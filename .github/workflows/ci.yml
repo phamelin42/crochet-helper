@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint · format · tests · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format
+        run: npm run format:check
+
+      - name: Tests unitaires
+        run: npm run test:ci
+
+      - name: Build de production + pré-rendu
+        run: npm run build
+
+      - name: Vérifier que le pré-rendu produit bien les pages attendues
+        run: |
+          for page in index.html lecteur/index.html glossaire/index.html \
+                      en/index.html en/reader/index.html en/glossary/index.html sitemap.xml; do
+            test -f "dist/fil-patterns/browser/$page" || { echo "manquant : $page"; exit 1; }
+          done
+          grep -q 'rel="canonical"' dist/fil-patterns/browser/glossaire/index.html

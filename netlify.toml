@@ -1,0 +1,32 @@
+# Hébergement statique : le build pré-rend chaque page, il n'y a pas de serveur.
+[build]
+  command = "npm run build"
+  publish = "dist/fil-patterns/browser"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+# Les pages pré-rendues existent en tant que fichiers ; ce repli ne sert qu'aux
+# URL inconnues, que l'application route côté client vers l'accueil.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

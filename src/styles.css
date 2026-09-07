@@ -1,0 +1,10 @@
+/* Point d'entrée des styles globaux — ordre significatif : police, jetons,
+   base du design system, puis couche applicative.
+
+   La police est auto-hébergée (@fontsource) plutôt que chargée depuis Google
+   Fonts : une requête tierce de moins, pas de dépendance externe au premier
+   rendu, et rien à déclarer côté RGPD. */
+@import '@fontsource-variable/inter';
+@import './styles/tokens.css';
+@import './styles/nocturne.css';
+@import './styles/lecteur.css';

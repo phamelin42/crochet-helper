@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"
-     stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+     stroke="#e8e4f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
      role="img" aria-hidden="true">
   <!-- Pelote : un cercle, traversé de deux arcs qui suggèrent l'enroulement. -->
   <circle cx="30" cy="36" r="20" />

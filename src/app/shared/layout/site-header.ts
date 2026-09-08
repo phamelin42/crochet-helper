@@ -19,8 +19,26 @@ import { Icon } from '../ui/icon/icon';
   host: { class: 'nav' },
   template: `
     <a class="nav-brand" [routerLink]="i18n.link('reader')">
-      <img class="brand-mark" src="logo.svg" width="28" height="28" alt="" />
-      <span>Crochet helper <small>crochet &amp; tricot</small></span>
+      <svg
+        class="brand-mark"
+        viewBox="0 0 64 64"
+        width="28"
+        height="28"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="30" cy="36" r="20" />
+        <path d="M16 22c8 6 13 15 15 27" />
+        <path d="M25 17c9 5 15 14 17 26" />
+        <path d="M11 32c11 1 20 8 24 19" />
+        <path d="M20 51 52 12" />
+        <path d="M44 10c5-2 9 1 8 5-1 3-5 4-7 2" />
+      </svg>
+      <span>Crochet helper</span>
     </a>
 
     <nav class="nav-links" [attr.aria-label]="i18n.t('nav.home')">

@@ -64,8 +64,6 @@ export const FR = {
   'ai.pageTitle': 'Connecter son IA',
   'ai.pageLead':
     'Fil peut remettre en forme un patron mal structuré avant de le découper. Pour cela il faut une clé d’API, la vôtre : elle reste sur votre appareil et le site ne paie rien.',
-  'ai.pageWarn':
-    'Un abonnement ChatGPT, Claude ou Perplexity ne suffit pas : l’API est un produit distinct, facturé séparément. Il faut créer une clé sur la console développeur du fournisseur.',
   'ai.pageSteps': 'Où obtenir une clé',
   'ai.pageConsole': 'Console :',
   'ai.pagePrefix': 'La clé commence par',
@@ -79,7 +77,7 @@ export const FR = {
   'ai.howAnthropic':
     'Créez un compte sur la console Claude, ajoutez des crédits prépayés, puis générez une clé. Coupez la recharge automatique si vous ne voulez aucun débit surprise.',
   'ai.howOpenai':
-    'Votre compte ChatGPT ne donne pas accès à l’API. Ouvrez la plateforme développeur, ajoutez un moyen de paiement et un plafond de dépense, puis créez une clé.',
+    'Ouvrez la plateforme développeur, ajoutez un moyen de paiement et un plafond de dépense, puis créez une clé.',
   'ai.howPerplexity':
     'Depuis les réglages de votre compte, section API, générez une clé. Un abonnement Pro inclut un petit crédit mensuel d’API.',
 } as const;
@@ -146,8 +144,6 @@ export const EN: Record<TranslationKey, string> = {
   'ai.pageTitle': 'Connect your AI',
   'ai.pageLead':
     'Fil can tidy up a badly structured pattern before splitting it. That needs an API key — yours: it stays on your device and the site pays nothing.',
-  'ai.pageWarn':
-    'A ChatGPT, Claude or Perplexity subscription is not enough: the API is a separate product, billed separately. You need to create a key in the provider’s developer console.',
   'ai.pageSteps': 'Where to get a key',
   'ai.pageConsole': 'Console:',
   'ai.pagePrefix': 'The key starts with',
@@ -161,7 +157,7 @@ export const EN: Record<TranslationKey, string> = {
   'ai.howAnthropic':
     'Create an account in the Claude console, add prepaid credits, then generate a key. Turn auto-reload off if you want no surprise charges.',
   'ai.howOpenai':
-    'Your ChatGPT account does not grant API access. Open the developer platform, add a payment method and a spend limit, then create a key.',
+    'Open the developer platform, add a payment method and a spend limit, then create a key.',
   'ai.howPerplexity':
     'From your account settings, API section, generate a key. A Pro subscription includes a small monthly API credit.',
 };

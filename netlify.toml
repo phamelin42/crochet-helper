@@ -30,3 +30,15 @@
   for = "/*.css"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Le lecteur a rejoint la racine ; on redirige les anciennes URL en 301 pour
+# ne pas perdre les liens partagés ni le référencement acquis.
+[[redirects]]
+  from = "/lecteur"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/en/reader"
+  to = "/en"
+  status = 301

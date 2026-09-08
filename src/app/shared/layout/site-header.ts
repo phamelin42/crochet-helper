@@ -18,7 +18,7 @@ import { Icon } from '../ui/icon/icon';
   imports: [Button, Icon, RouterLink, RouterLinkActive],
   host: { class: 'nav' },
   template: `
-    <a class="nav-brand" [routerLink]="i18n.link('home')">
+    <a class="nav-brand" [routerLink]="i18n.link('reader')">
       <img class="brand-mark" src="logo.svg" width="28" height="28" alt="" />
       <span>Crochet helper <small>crochet &amp; tricot</small></span>
     </a>

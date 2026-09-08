@@ -17,7 +17,23 @@ import { join } from 'node:path';
  */
 
 const ROOT = 'dist/fil-patterns/browser';
+
+/** `onload="…"`, `onclick="…"` : relèvent de `script-src`, pas de `style-src`. */
 const INLINE_HANDLER = /\son[a-z]+\s*=\s*["']/i;
+
+/**
+ * Bloc `<script>` sans `src`. Les types non exécutables sont tolérés :
+ * `application/json` (état d'hydratation) et `application/ld+json` (données
+ * structurées) ne sont pas évalués comme du script.
+ */
+const INLINE_SCRIPT = /<script(?![^>]*\bsrc=)([^>]*)>/gi;
+const HARMLESS_TYPE = /type\s*=\s*["'](application\/(ld\+)?json)["']/i;
+
+function inlineScripts(html) {
+  return [...html.matchAll(INLINE_SCRIPT)]
+    .map((match) => match[1])
+    .filter((attrs) => !HARMLESS_TYPE.test(attrs));
+}
 
 function htmlFiles(dir) {
   return readdirSync(dir).flatMap((entry) => {
@@ -27,16 +43,25 @@ function htmlFiles(dir) {
   });
 }
 
-const offenders = htmlFiles(ROOT).filter((path) => INLINE_HANDLER.test(readFileSync(path, 'utf8')));
+const pages = htmlFiles(ROOT);
+const offenders = pages.flatMap((path) => {
+  const html = readFileSync(path, 'utf8');
+  const problems = [];
+  if (INLINE_HANDLER.test(html)) problems.push("gestionnaire d'événement inline");
+  const scripts = inlineScripts(html);
+  if (scripts.length) problems.push(`${scripts.length} script(s) inline : ${scripts.join(' | ')}`);
+  return problems.length ? [`  ${path}\n    ${problems.join('\n    ')}`] : [];
+});
 
 if (offenders.length) {
   console.error(
-    `\nGestionnaire d'événement inline détecté dans ${offenders.length} page(s) :\n` +
-      offenders.map((p) => `  ${p}`).join('\n') +
-      `\n\nLa CSP du site (script-src 'self') le bloquera. Vérifier\n` +
-      `optimization.styles.inlineCritical dans angular.json.\n`,
+    `\nCode inline détecté dans ${offenders.length} page(s) pré-rendue(s) :\n` +
+      offenders.join('\n') +
+      `\n\nLa CSP du site (script-src 'self') le bloquera silencieusement.\n` +
+      `Pistes : optimization.styles.inlineCritical dans angular.json,\n` +
+      `withEventReplay() dans app.config.ts.\n`,
   );
   process.exit(1);
 }
 
-console.log(`CSP : aucun handler inline dans ${htmlFiles(ROOT).length} pages pré-rendues.`);
+console.log(`CSP : aucun code inline dans ${pages.length} pages pré-rendues.`);

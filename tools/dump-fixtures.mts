@@ -4,7 +4,9 @@ import { parsePattern } from '../src/app/features/reader/data/pattern-parser.ts'
 
 const dir = 'src/app/features/reader/data/fixtures';
 
-for (const file of readdirSync(dir).filter((f) => f.endsWith('.txt')).sort()) {
+for (const file of readdirSync(dir)
+  .filter((f) => f.endsWith('.txt'))
+  .sort()) {
   const pattern = parsePattern(readFileSync(join(dir, file), 'utf8'));
   console.log('\n' + '='.repeat(72));
   console.log(file);

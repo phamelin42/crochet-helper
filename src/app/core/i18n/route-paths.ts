@@ -9,6 +9,7 @@ export const ROUTE_PATHS = {
   home: { fr: '/', en: '/' },
   reader: { fr: '/lecteur', en: '/reader' },
   glossary: { fr: '/glossaire', en: '/glossary' },
+  connectAi: { fr: '/connecter-mon-ia', en: '/connect-your-ai' },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type RouteName = keyof typeof ROUTE_PATHS;

@@ -5,7 +5,6 @@ import { Locale } from '../../../core/i18n/locale';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
-import { DiagramPanel } from '../components/diagram-panel';
 import { MaterialsList } from '../components/materials-list';
 import { PatternImport } from '../components/pattern-import';
 import { ReaderCounters } from '../components/reader-counters';
@@ -34,7 +33,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
  */
 @Component({
   selector: 'fil-reader-page',
-  imports: [DiagramPanel, MaterialsList, PatternImport, ReaderCounters, StepView],
+  imports: [MaterialsList, PatternImport, ReaderCounters, StepView],
   host: {
     class: 'wrap',
     '(document:keydown)': 'onKeydown($event)',
@@ -43,13 +42,10 @@ const SEO: Record<Locale, { title: string; description: string }> = {
   template: `
     <fil-pattern-import />
 
-    <section class="reader" [class.has-img]="store.image()">
+    <section class="reader">
       <div>
         <fil-step-view />
       </div>
-      @if (store.image()) {
-        <fil-diagram-panel />
-      }
     </section>
 
     <hr class="hr" />

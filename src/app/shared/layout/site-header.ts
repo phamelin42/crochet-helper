@@ -34,6 +34,13 @@ import { Icon } from '../ui/icon/icon';
       >
         {{ i18n.t('nav.glossary') }}
       </a>
+      <a
+        [routerLink]="i18n.link('connectAi')"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+      >
+        {{ i18n.t('nav.connectAi') }}
+      </a>
     </nav>
 
     <div class="tools">

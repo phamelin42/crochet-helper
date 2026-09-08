@@ -4,7 +4,13 @@ import { parsePattern } from './pattern-parser';
 
 describe('parsePattern', () => {
   it('retourne un patron vide pour une entrée vide', () => {
-    expect(parsePattern('')).toEqual({ title: '', materials: [], pieces: [], total: 0 });
+    expect(parsePattern('')).toEqual({
+      title: '',
+      materials: [],
+      notes: [],
+      pieces: [],
+      total: 0,
+    });
     expect(parsePattern('   \n  ').total).toBe(0);
   });
 

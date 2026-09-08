@@ -126,3 +126,25 @@ export function annotate(text: string, locale: Locale): TextSegment[] {
   if (index < text.length) segments.push({ text: text.slice(index) });
   return segments.length ? segments : [{ text }];
 }
+
+/**
+ * Remplace chaque abréviation connue par sa définition en clair.
+ *
+ * Rendu **d'affichage uniquement** : le texte source du patron n'est jamais
+ * modifié, sinon le découpage — qui reparse `source` à chaque changement —
+ * travaillerait sur un texte réécrit.
+ *
+ * Le résultat est plus long que l'original : c'est un compromis lisibilité
+ * contre compacité, laissé au choix de la personne qui crochète.
+ */
+export function expand(text: string, locale: Locale): string {
+  return annotate(text, locale)
+    .map((segment) => {
+      if (!segment.definition) return segment.text;
+      // Les définitions du glossaire portent parfois une glose après un tiret
+      // cadratin (« augmentation — 2 mailles dans la même maille ») : dans le
+      // fil d'une consigne, seule la tête sert.
+      return segment.definition.split(/\s+—\s+/)[0];
+    })
+    .join('');
+}

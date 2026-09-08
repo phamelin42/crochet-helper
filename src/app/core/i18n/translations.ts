@@ -50,6 +50,47 @@ export const FR = {
   'nav.reader': 'Lecteur',
   'nav.glossary': 'Glossaire',
   'nav.home': 'Accueil',
+  'ai.simplify': 'Remettre en forme',
+  'ai.running': 'Analyse en cours…',
+  'ai.done': 'Texte remis en forme. Relisez-le avant de le découper.',
+  'ai.undo': 'Revenir au texte original',
+  'ai.fewer':
+    'Attention : la mise en forme donne moins d’étapes que le texte original. Vérifiez qu’aucun rang ne manque.',
+  'ai.notice':
+    'Le texte du patron est envoyé à un service d’analyse. Tout le reste — progression, compteurs, diagramme — ne quitte jamais votre appareil.',
+  'ai.blockedRate': 'Trop de demandes en ce moment. Réessayez dans',
+  'ai.blockedQuota': 'Le quota de mise en forme est épuisé. Retour dans',
+  'ai.blockedUnknown': 'La mise en forme est momentanément indisponible.',
+  'ai.errEmpty': 'Collez d’abord le texte du patron.',
+  'ai.errTooLarge': 'Le texte est trop long pour être analysé.',
+  'ai.errConfig': 'La mise en forme n’est pas configurée sur ce site.',
+  'ai.errUpstream': 'L’analyse a échoué. Réessayez, ou découpez le texte tel quel.',
+  'ui.expand': 'Développer les abréviations',
+  'ui.abbrev': 'Abréviations',
+  'nav.connectAi': 'Connecter mon IA',
+  'ai.pageTitle': 'Connecter son IA',
+  'ai.pageLead':
+    'Fil peut remettre en forme un patron mal structuré avant de le découper. Pour cela il faut une clé d’API, la vôtre : elle reste sur votre appareil et le site ne paie rien.',
+  'ai.pageWarn':
+    'Un abonnement ChatGPT, Claude ou Perplexity ne suffit pas : l’API est un produit distinct, facturé séparément. Il faut créer une clé sur la console développeur du fournisseur.',
+  'ai.pageSteps': 'Où obtenir une clé',
+  'ai.pageConsole': 'Console :',
+  'ai.pagePrefix': 'La clé commence par',
+  'ai.pageForm': 'Enregistrer votre clé',
+  'ai.pageProvider': 'Fournisseur',
+  'ai.pageKey': 'Clé d’API',
+  'ai.pageSave': 'Enregistrer',
+  'ai.pageForget': 'Oublier la clé',
+  'ai.pageSaved': 'Clé enregistrée. La remise en forme utilise désormais votre compte.',
+  'ai.pageActive': 'Une clé est déjà enregistrée sur cet appareil.',
+  'ai.pagePrivacy':
+    'La clé est stockée dans le navigateur, donc lisible par tout script de cette page. C’est votre clé, sur votre appareil, et vous pouvez la révoquer à tout moment depuis la console du fournisseur.',
+  'ai.howAnthropic':
+    'Créez un compte sur la console Claude, ajoutez des crédits prépayés, puis générez une clé. Coupez la recharge automatique si vous ne voulez aucun débit surprise.',
+  'ai.howOpenai':
+    'Votre compte ChatGPT ne donne pas accès à l’API. Ouvrez la plateforme développeur, ajoutez un moyen de paiement et un plafond de dépense, puis créez une clé.',
+  'ai.howPerplexity':
+    'Depuis les réglages de votre compte, section API, générez une clé. Un abonnement Pro inclut un petit crédit mensuel d’API.',
 } as const;
 
 export type TranslationKey = keyof typeof FR;
@@ -99,6 +140,47 @@ export const EN: Record<TranslationKey, string> = {
   'nav.reader': 'Reader',
   'nav.glossary': 'Glossary',
   'nav.home': 'Home',
+  'ai.simplify': 'Tidy up the text',
+  'ai.running': 'Analysing…',
+  'ai.done': 'Text tidied up. Read it over before splitting it into steps.',
+  'ai.undo': 'Back to the original text',
+  'ai.fewer':
+    'Careful: the tidied text yields fewer steps than the original. Check that no row went missing.',
+  'ai.notice':
+    'The pattern text is sent to an analysis service. Everything else — progress, counters, chart — never leaves your device.',
+  'ai.blockedRate': 'Too many requests right now. Try again in',
+  'ai.blockedQuota': 'The tidy-up quota is used up. Back in',
+  'ai.blockedUnknown': 'Tidying up is unavailable for the moment.',
+  'ai.errEmpty': 'Paste the pattern text first.',
+  'ai.errTooLarge': 'The text is too long to analyse.',
+  'ai.errConfig': 'Tidying up is not configured on this site.',
+  'ai.errUpstream': 'The analysis failed. Try again, or split the text as it is.',
+  'ui.expand': 'Spell out abbreviations',
+  'ui.abbrev': 'Abbreviations',
+  'nav.connectAi': 'Connect your AI',
+  'ai.pageTitle': 'Connect your AI',
+  'ai.pageLead':
+    'Fil can tidy up a badly structured pattern before splitting it. That needs an API key — yours: it stays on your device and the site pays nothing.',
+  'ai.pageWarn':
+    'A ChatGPT, Claude or Perplexity subscription is not enough: the API is a separate product, billed separately. You need to create a key in the provider’s developer console.',
+  'ai.pageSteps': 'Where to get a key',
+  'ai.pageConsole': 'Console:',
+  'ai.pagePrefix': 'The key starts with',
+  'ai.pageForm': 'Save your key',
+  'ai.pageProvider': 'Provider',
+  'ai.pageKey': 'API key',
+  'ai.pageSave': 'Save',
+  'ai.pageForget': 'Forget the key',
+  'ai.pageSaved': 'Key saved. Tidying up now uses your own account.',
+  'ai.pageActive': 'A key is already saved on this device.',
+  'ai.pagePrivacy':
+    'The key is stored in the browser, so any script on this page can read it. It is your key, on your device, and you can revoke it at any time from the provider’s console.',
+  'ai.howAnthropic':
+    'Create an account in the Claude console, add prepaid credits, then generate a key. Turn auto-reload off if you want no surprise charges.',
+  'ai.howOpenai':
+    'Your ChatGPT account does not grant API access. Open the developer platform, add a payment method and a spend limit, then create a key.',
+  'ai.howPerplexity':
+    'From your account settings, API section, generate a key. A Pro subscription includes a small monthly API credit.',
 };
 
 export const TRANSLATIONS: Record<Locale, Record<TranslationKey, string>> = { fr: FR, en: EN };

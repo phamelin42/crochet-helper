@@ -4,6 +4,13 @@ export interface PatternStep {
   readonly label: string;
   /** Texte de l'étape, affiché en grand dans le lecteur. */
   readonly body: string;
+  /**
+   * Conseil **extrait du texte source**, séparé des mailles à réaliser.
+   *
+   * Jamais généré : si l'auteur n'a pas écrit de conseil, le champ est absent.
+   * Un parseur déterministe ne peut que déplacer du texte existant.
+   */
+  readonly tip?: string;
   /** Notes rattachées à l'étape (lignes libres qui la précèdent). */
   readonly notes: readonly string[];
   /** Lignes libres qui suivent la dernière étape d'une pièce. */
@@ -22,9 +29,20 @@ export interface PatternPiece {
 export interface Pattern {
   readonly title: string;
   readonly materials: readonly string[];
+  /**
+   * Contenu des sections qui ne sont pas des étapes : abréviations, notes,
+   * échantillon, tailles. Conservé pour consultation, jamais compté en étapes.
+   */
+  readonly notes: readonly string[];
   readonly pieces: readonly PatternPiece[];
   /** Somme des étapes de toutes les pièces. */
   readonly total: number;
 }
 
-export const EMPTY_PATTERN: Pattern = { title: '', materials: [], pieces: [], total: 0 };
+export const EMPTY_PATTERN: Pattern = {
+  title: '',
+  materials: [],
+  notes: [],
+  pieces: [],
+  total: 0,
+};

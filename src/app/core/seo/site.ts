@@ -7,7 +7,7 @@ import { InjectionToken } from '@angular/core';
  */
 export const SITE_ORIGIN = new InjectionToken<string>('SITE_ORIGIN', {
   providedIn: 'root',
-  factory: () => 'https://fil-patterns.netlify.app',
+  factory: () => 'https://crochet-helper.vercel.app',
 });
 
 export const SITE_NAME = 'Crochet helper';

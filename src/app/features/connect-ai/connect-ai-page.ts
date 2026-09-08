@@ -26,8 +26,6 @@ import { InputField } from '../../shared/ui/field/input';
         <h1>{{ t('ai.pageTitle') }}</h1>
         <p class="lead">{{ t('ai.pageLead') }}</p>
 
-        <p class="warn">{{ t('ai.pageWarn') }}</p>
-
         <h2>{{ t('ai.pageSteps') }}</h2>
         <ol class="steps">
           @for (provider of providers; track provider.id) {
@@ -82,8 +80,6 @@ import { InputField } from '../../shared/ui/field/input';
         } @else if (byok.configured()) {
           <p class="hint">{{ t('ai.pageActive') }}</p>
         }
-
-        <p class="hint">{{ t('ai.pagePrivacy') }}</p>
       </section>
     </div>
   `,

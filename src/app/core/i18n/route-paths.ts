@@ -1,13 +1,15 @@
 import { Locale } from './locale';
 
 /**
- * Segments d'URL par langue. Les chemins sont traduits — `/lecteur` en
- * français, `/en/reader` en anglais — parce qu'une URL dans la langue de la
+ * Segments d'URL par langue. Les chemins sont traduits — `/glossaire` en
+ * français, `/en/glossary` en anglais — parce qu'une URL dans la langue de la
  * page pèse dans le référencement et se partage mieux.
+ *
+ * Le lecteur occupe la racine : c'est ce que les gens viennent faire ici, et
+ * une racine indexable vaut mieux qu'une redirection vers une sous-page.
  */
 export const ROUTE_PATHS = {
-  home: { fr: '/', en: '/' },
-  reader: { fr: '/lecteur', en: '/reader' },
+  reader: { fr: '/', en: '/' },
   glossary: { fr: '/glossaire', en: '/glossary' },
   connectAi: { fr: '/connecter-mon-ia', en: '/connect-your-ai' },
 } as const satisfies Record<string, Record<Locale, string>>;

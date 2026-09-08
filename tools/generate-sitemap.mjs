@@ -8,7 +8,7 @@
 import { readdir, writeFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 
-const ORIGIN = process.env['SITE_ORIGIN'] ?? 'https://fil-patterns.netlify.app';
+const ORIGIN = process.env['SITE_ORIGIN'] ?? 'https://crochet-helper.vercel.app';
 const ROOT = 'dist/fil-patterns/browser';
 
 /** Correspondance entre une page française et son équivalent anglais. */
@@ -73,3 +73,15 @@ ${body}
 
 await writeFile(join(ROOT, 'sitemap.xml'), xml, 'utf8');
 console.log(`sitemap.xml : ${routes.length} pages`);
+
+// `robots.txt` doit désigner le même domaine que le sitemap et les URL
+// canoniques. Le laisser statique dans `public/` garantissait qu'il finirait
+// par diverger — c'est exactement ce qui s'est produit après le passage de
+// Netlify à Vercel. Il est donc écrit ici, depuis la même origine.
+const robots = `User-agent: *
+Allow: /
+
+Sitemap: ${ORIGIN}/sitemap.xml
+`;
+await writeFile(join(ROOT, 'robots.txt'), robots, 'utf8');
+console.log(`robots.txt : ${ORIGIN}`);

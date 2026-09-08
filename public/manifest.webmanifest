@@ -1,11 +1,23 @@
 {
-  "name": "Fil — lecteur de patterns",
-  "short_name": "Fil",
-  "description": "Lire un patron de crochet ou de tricot une étape à la fois.",
+  "name": "Crochet helper \u2014 lecteur de patrons",
+  "short_name": "Crochet helper",
+  "description": "Lire un patron de crochet ou de tricot une \u00e9tape \u00e0 la fois.",
   "start_url": "/lecteur",
   "display": "standalone",
   "background_color": "#161826",
   "theme_color": "#161826",
   "lang": "fr",
-  "icons": [{ "src": "favicon.ico", "sizes": "48x48", "type": "image/x-icon" }]
+  "icons": [
+    {
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
 }

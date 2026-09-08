@@ -18,43 +18,6 @@ import { ReaderStore } from '../state/reader-store';
   imports: [Button, Checkbox, DurationPipe, Icon, InputField, Progress, Tile],
   host: { class: 'meter' },
   template: `
-    <fil-tile [label]="t('ui.step')">
-      <div class="big">
-        <span>{{ current() }}</span
-        ><span class="sub">
-          / <span>{{ count() }}</span></span
-        >
-      </div>
-      <fil-progress [value]="store.progress()" [label]="t('ui.step')" />
-      <div class="hint">{{ globalHint() }}</div>
-      <div class="row">
-        <label class="visually-hidden" for="jump-to">{{ t('ui.goto') }}</label>
-        <input
-          #jump
-          filInput
-          id="jump-to"
-          class="jump"
-          type="number"
-          min="1"
-          step="1"
-          inputmode="numeric"
-          [max]="store.stepCount() || 1"
-          [disabled]="!store.stepCount()"
-          [placeholder]="'n°'"
-          (keydown.enter)="goTo(jump.value)"
-        />
-        <button
-          type="button"
-          filButton="secondary"
-          [disabled]="!store.stepCount()"
-          (click)="goTo(jump.value)"
-        >
-          {{ t('ui.go') }}
-        </button>
-      </div>
-      <div class="hint">← → · espace</div>
-    </fil-tile>
-
     <fil-tile [label]="t('ui.reps')">
       <div class="big reps">
         {{ store.currentReps() }}

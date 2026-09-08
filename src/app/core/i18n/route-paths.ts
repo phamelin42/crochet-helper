@@ -1,4 +1,5 @@
 import { Locale } from './locale';
+import paths from './route-paths.json';
 
 /**
  * Segments d'URL par langue. Les chemins sont traduits — `/glossaire` en
@@ -7,12 +8,12 @@ import { Locale } from './locale';
  *
  * Le lecteur occupe la racine : c'est ce que les gens viennent faire ici, et
  * une racine indexable vaut mieux qu'une redirection vers une sous-page.
+ *
+ * La table vit dans `route-paths.json` pour que les outils de build la lisent
+ * aussi. Deux listes tenues séparément avaient déjà divergé : le sitemap et la
+ * CI décrivaient encore `/lecteur` après son passage à la racine.
  */
-export const ROUTE_PATHS = {
-  reader: { fr: '/', en: '/' },
-  glossary: { fr: '/glossaire', en: '/glossary' },
-  format: { fr: '/bien-formater-son-patron', en: '/format-your-pattern' },
-} as const satisfies Record<string, Record<Locale, string>>;
+export const ROUTE_PATHS = paths satisfies Record<string, Record<Locale, string>>;
 
 export type RouteName = keyof typeof ROUTE_PATHS;
 export type LocalizedPath = Record<Locale, string>;

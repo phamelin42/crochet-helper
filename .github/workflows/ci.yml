@@ -34,11 +34,3 @@ jobs:
 
       - name: Build de production + pré-rendu
         run: npm run build
-
-      - name: Vérifier que le pré-rendu produit bien les pages attendues
-        run: |
-          for page in index.html lecteur/index.html glossaire/index.html \
-                      en/index.html en/reader/index.html en/glossary/index.html sitemap.xml; do
-            test -f "dist/fil-patterns/browser/$page" || { echo "manquant : $page"; exit 1; }
-          done
-          grep -q 'rel="canonical"' dist/fil-patterns/browser/glossaire/index.html

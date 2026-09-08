@@ -5,7 +5,6 @@ import { Button } from '../../../shared/ui/button/button';
 import { Checkbox } from '../../../shared/ui/checkbox/checkbox';
 import { InputField } from '../../../shared/ui/field/input';
 import { Icon } from '../../../shared/ui/icon/icon';
-import { Progress } from '../../../shared/ui/progress/progress';
 import { Tile } from '../../../shared/ui/tile/tile';
 import { ReaderStore } from '../state/reader-store';
 
@@ -15,7 +14,7 @@ import { ReaderStore } from '../state/reader-store';
  */
 @Component({
   selector: 'fil-reader-counters',
-  imports: [Button, Checkbox, DurationPipe, Icon, InputField, Progress, Tile],
+  imports: [Button, Checkbox, DurationPipe, Icon, InputField, Tile],
   host: { class: 'meter' },
   template: `
     <fil-tile [label]="t('ui.reps')">

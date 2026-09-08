@@ -9,12 +9,19 @@
 :root {
   --gutter: 25px;
 }
+/* `display: block` est indispensable : ces deux classes sont posées sur des
+   hôtes de composants (`fil-reader-page`, `fil-site-header`), et un élément
+   personnalisé vaut `inline` par défaut. En inline, `max-width` est ignoré,
+   `margin: auto` ne centre pas et les enfants de type bloc débordent du
+   padding — la règle entière restait sans effet. */
 .wrap {
+  display: block;
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 var(--gutter);
 }
 .nav {
+  display: block;
   max-width: 1100px;
   margin: 0 auto;
   padding: var(--space-4) var(--gutter);

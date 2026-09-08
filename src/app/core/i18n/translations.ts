@@ -50,6 +50,21 @@ export const FR = {
   'nav.reader': 'Lecteur',
   'nav.glossary': 'Glossaire',
   'nav.home': 'Accueil',
+  'ai.simplify': 'Remettre en forme',
+  'ai.running': 'Analyse en cours…',
+  'ai.done': 'Texte remis en forme. Relisez-le avant de le découper.',
+  'ai.undo': 'Revenir au texte original',
+  'ai.fewer':
+    'Attention : la mise en forme donne moins d’étapes que le texte original. Vérifiez qu’aucun rang ne manque.',
+  'ai.notice':
+    'Le texte du patron est envoyé à un service d’analyse. Tout le reste — progression, compteurs, diagramme — ne quitte jamais votre appareil.',
+  'ai.blockedRate': 'Trop de demandes en ce moment. Réessayez dans',
+  'ai.blockedQuota': 'Le quota de mise en forme est épuisé. Retour dans',
+  'ai.blockedUnknown': 'La mise en forme est momentanément indisponible.',
+  'ai.errEmpty': 'Collez d’abord le texte du patron.',
+  'ai.errTooLarge': 'Le texte est trop long pour être analysé.',
+  'ai.errConfig': 'La mise en forme n’est pas configurée sur ce site.',
+  'ai.errUpstream': 'L’analyse a échoué. Réessayez, ou découpez le texte tel quel.',
 } as const;
 
 export type TranslationKey = keyof typeof FR;
@@ -99,6 +114,21 @@ export const EN: Record<TranslationKey, string> = {
   'nav.reader': 'Reader',
   'nav.glossary': 'Glossary',
   'nav.home': 'Home',
+  'ai.simplify': 'Tidy up the text',
+  'ai.running': 'Analysing…',
+  'ai.done': 'Text tidied up. Read it over before splitting it into steps.',
+  'ai.undo': 'Back to the original text',
+  'ai.fewer':
+    'Careful: the tidied text yields fewer steps than the original. Check that no row went missing.',
+  'ai.notice':
+    'The pattern text is sent to an analysis service. Everything else — progress, counters, chart — never leaves your device.',
+  'ai.blockedRate': 'Too many requests right now. Try again in',
+  'ai.blockedQuota': 'The tidy-up quota is used up. Back in',
+  'ai.blockedUnknown': 'Tidying up is unavailable for the moment.',
+  'ai.errEmpty': 'Paste the pattern text first.',
+  'ai.errTooLarge': 'The text is too long to analyse.',
+  'ai.errConfig': 'Tidying up is not configured on this site.',
+  'ai.errUpstream': 'The analysis failed. Try again, or split the text as it is.',
 };
 
 export const TRANSLATIONS: Record<Locale, Record<TranslationKey, string>> = { fr: FR, en: EN };

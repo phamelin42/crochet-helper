@@ -16,16 +16,35 @@ Chaque fonctionnalité du produit tient dans le navigateur :
 | Deux langues indexables            | deux arbres de routes pré-rendus         |
 | Garder l'écran allumé              | `navigator.wakeLock`                     |
 
-Un serveur ne deviendrait nécessaire que pour l'un de ces trois besoins :
-reconnaissance automatique de diagrammes (clé d'API à protéger), comptes
-synchronisés entre appareils, ou bibliothèque de patrons partagée. Aucun n'est
-au programme. **L'absence de serveur n'est donc pas une contrainte subie, c'est
-la conséquence du périmètre** — et elle donne gratuitement le coût
-d'hébergement nul, le fonctionnement hors ligne et la confidentialité totale.
+Cette liste tient toujours. **Une exception s'y est ajoutée**, et elle mérite
+d'être nommée plutôt qu'enterrée : la remise en forme du texte collé
+(`/api/normalize`) appelle un modèle de langage, donc détient une clé d'API,
+donc tourne sur un serveur.
 
-Conséquence assumée : rien n'est synchronisé entre appareils, et vider les
-données du navigateur efface le patron. Le permalien de la fiche `prompts/06`
-répond au premier point sans serveur.
+C'est une révision d'une décision antérieure, pas un oubli. Le raisonnement
+d'origine — « un serveur ne deviendrait nécessaire que pour la reconnaissance
+de diagrammes, des comptes synchronisés ou une bibliothèque partagée » — avait
+manqué un quatrième cas : les patrons réels ne sont pas régulièrement formatés,
+et aucune expression régulière ne rattrapera la variété des tutoriels publiés
+en ligne. Voir la section 8.
+
+Ce que le produit conserve malgré cette exception :
+
+- Le découpage reste **déterministe et local**. Le modèle ne produit pas de
+  structure, il réécrit du texte ; `parsePattern` reste seul juge des étapes.
+- Tout le reste — progression, compteurs, chronomètre, diagramme, glossaire —
+  ne quitte jamais l'appareil.
+- La fonction est **facultative**. Quota épuisé, panne, absence de réseau :
+  l'application retombe sur son comportement d'origine, l'utilisateur découpe
+  son texte tel quel.
+
+Ce que le produit perd, et qu'il faut dire à l'utilisateur : au moment précis
+de la remise en forme, le texte du patron transite par un service tiers.
+L'interface l'annonce sous le champ de saisie.
+
+Conséquence assumée par ailleurs : rien n'est synchronisé entre appareils, et
+vider les données du navigateur efface le patron. Le permalien de la fiche
+`prompts/06` répond au premier point sans serveur.
 
 ## 2. Pré-rendu statique plutôt que rendu serveur
 
@@ -100,3 +119,36 @@ simplement d'être atteintes.
   (voir `prompts/01`).
 - **Reconnaissance de diagrammes.** Le seul chantier qui remettrait la
   décision 1 en cause. À traiter comme un changement d'architecture.
+
+## 8. Remise en forme par modèle de langage
+
+Le parseur reconnaît « Rang 1 », « Round 3 », « Rangs 5-8 ». Les tutoriels
+publiés en ligne s'en écartent constamment : numérotation nue, indications
+endroit/envers collées au libellé, rangs étalés sur plusieurs lignes, sections
+de tailles prises pour des pièces. La fiche `prompts/03` élargit le parseur aux
+formes les plus courantes ; elle ne couvrira jamais la longue traîne.
+
+**Le modèle normalise, il ne découpe pas.** Il reçoit le texte collé et rend le
+même texte au format canonique ; `parsePattern` le découpe ensuite comme
+d'habitude. Ce choix est délibéré :
+
+- Le découpage reste déterministe, testé, et une seule fonction en répond.
+- `ReaderStore` reparse `source` à chaque changement : du texte normalisé se
+  substitue au texte brut sans qu'aucune autre couche ne bouge.
+- L'utilisateur relit le texte remis en forme dans le champ de saisie, et
+  déclenche lui-même le découpage. Rien n'est appliqué en silence.
+
+**Garde-fou de conservation.** Un rang perdu par le modèle ruine un ouvrage.
+L'interface compare le nombre d'étapes avant et après, et avertit dès que la
+remise en forme en fait disparaître. Le texte d'origine reste restaurable.
+
+**Épuisement du quota.** L'API refuse de trois façons qui se ressemblent mais
+n'ont pas la même échéance — limite par minute, plafond mensuel du palier,
+plafond fixé dans la console. `core/ai/refusal.ts` les distingue et calcule la
+date de reprise ; l'interface bloque le bouton et affiche le temps restant.
+Cette logique est pure et testée, contrairement au reste de la fonction
+serverless.
+
+**Configuration.** La variable d'environnement `ANTHROPIC_API_KEY` doit être
+définie sur l'hébergeur. Sans elle, la fonction répond `misconfigured` et
+l'interface le dit ; le reste de l'application fonctionne normalement.

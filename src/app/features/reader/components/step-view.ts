@@ -27,6 +27,15 @@ import { GlossaryText } from './glossary-text';
     }
 
     <div class="stepmeta">
+      <button
+        type="button"
+        filButton="ghost"
+        class="abbr-toggle"
+        [attr.aria-pressed]="store.expandAbbreviations()"
+        (click)="store.toggleExpandAbbreviations()"
+      >
+        {{ store.expandAbbreviations() ? t('ui.abbrev') : t('ui.expand') }}
+      </button>
       @if (store.step(); as step) {
         <span class="steplabel">{{ step.label || t('ui.repeat') }}</span>
       }
@@ -47,6 +56,10 @@ import { GlossaryText } from './glossary-text';
       }
     </p>
 
+    @if (store.step()?.tip; as tip) {
+      <p class="step-tip"><span aria-hidden="true">💡</span> <fil-glossary-text [text]="tip" /></p>
+    }
+
     <div class="navrow">
       <button
         type="button"
@@ -62,8 +75,8 @@ import { GlossaryText } from './glossary-text';
         filButton="primary"
         [step]="true"
         class="next"
-        [disabled]="!store.hasNext()"
-        (click)="store.move(1)"
+        [disabled]="!store.step()"
+        (click)="store.advance()"
       >
         <span>{{ t('ui.next') }}</span
         ><fil-icon name="right" />

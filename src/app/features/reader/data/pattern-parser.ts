@@ -66,7 +66,7 @@ const CHROME =
   /^(?:©|copyright\b|skip to content|privacy policy|terms\b|search\.{0,3}$|similar posts|view (?:the full pattern|this pattern)|posted\s*:|partner login|web stories|all rights reserved)/i;
 
 /** Entrée de table d'abréviations : « sc - single crochet », « dc = double ». */
-const ABBREV = /^[^.!?]{1,20}\s*[-=]\s*\S/;
+const ABBREV = /^\S+(?:\s\S+)?\s*[-=]\s+\S/;
 
 /** Note entre crochets, fréquente chez les auteurs qui commentent leur méthode. */
 const BRACKET_NOTE = /^\[[^\]]/;
@@ -281,11 +281,17 @@ export function parsePattern(raw: string): Pattern {
     }
 
     if (inMaterials) {
+      const bare = line
+        .replace(/\s*\([^)]*\)\s*/g, ' ')
+        .replace(/:$/, '')
+        .trim();
+      // Un nom de pièce clôt la liste de fournitures. Deux formes le trahissent :
+      // un en-tête classique sans chiffre, ou une ligne courte terminée par
+      // « : » qui n'est pas une amorce de sous-liste (« Small amount of: »).
       const isPieceHeading =
         materials.length > 0 &&
-        isHeading(line) &&
-        !/\d/.test(line) &&
-        line.split(/\s+/).length <= 3;
+        ((isHeading(line) && !/\d/.test(line) && line.split(/\s+/).length <= 3) ||
+          (/:$/.test(line) && !DANGLING.test(bare) && bare.split(/\s+/).length <= 4));
       if (!isRow && !isPieceHeading) {
         materials.push(line.replace(BULLET, ''));
         continue;

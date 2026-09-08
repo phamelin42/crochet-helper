@@ -1,11 +1,14 @@
 import { DestroyRef, Service, computed, inject, signal } from '@angular/core';
 import { I18nService } from '../i18n/i18n.service';
+import { ByokService } from './byok.service';
 import {
   BlockedReason,
   ErrorReason,
   MAX_INPUT_CHARS,
   NormalizeResponse,
 } from './normalize.contract';
+import { readReply, requestBody, requestHeaders } from './providers';
+import { SYSTEM_PROMPT } from './prompt';
 
 /**
  * Client de `/api/normalize`.
@@ -22,6 +25,7 @@ export type NormalizerState = 'idle' | 'running' | 'blocked' | 'error';
 @Service()
 export class NormalizerService {
   private readonly i18n = inject(I18nService);
+  private readonly byok = inject(ByokService);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Horloge de secondes, active uniquement pendant un blocage. */
@@ -78,6 +82,10 @@ export class NormalizerService {
     this.state.set('running');
     this.errorReason.set(null);
 
+    // Clé personnelle : on parle au fournisseur directement, le site n'est ni
+    // sur le chemin ni sur la facture.
+    if (this.byok.configured()) return this.viaOwnKey(source);
+
     let payload: NormalizeResponse;
     try {
       const response = await fetch('/api/normalize', {
@@ -106,6 +114,51 @@ export class NormalizerService {
 
     this.fail(payload.reason);
     return null;
+  }
+
+  /**
+   * Appel direct au fournisseur choisi, avec la clé de la personne.
+   *
+   * Aucun compte à rebours ici : les quotas d'une clé personnelle ne sont pas
+   * ceux du site, et le fournisseur ne les expose pas de façon uniforme. En cas
+   * de refus on le dit, sans prétendre savoir quand ça repartira.
+   */
+  private async viaOwnKey(text: string): Promise<string | null> {
+    const provider = this.byok.provider();
+    if (!provider) {
+      this.fail('misconfigured');
+      return null;
+    }
+
+    try {
+      const response = await fetch(provider.endpoint, {
+        method: 'POST',
+        headers: requestHeaders(provider, this.byok.key()),
+        body: JSON.stringify(requestBody(provider, SYSTEM_PROMPT(this.i18n.locale()), text)),
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        this.fail('misconfigured');
+        return null;
+      }
+      if (!response.ok) {
+        this.blockedReason.set('rate_limit');
+        this.resumesAt.set(null);
+        this.state.set('blocked');
+        return null;
+      }
+
+      const reply = readReply(provider, await response.json());
+      if (!reply) {
+        this.fail('upstream');
+        return null;
+      }
+      this.reset();
+      return reply;
+    } catch {
+      this.fail('upstream');
+      return null;
+    }
   }
 
   reset(): void {

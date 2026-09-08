@@ -5,7 +5,6 @@ import { parsePattern } from '../data/pattern-parser';
 import { Button } from '../../../shared/ui/button/button';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../../shared/ui/field/input';
-import { Icon } from '../../../shared/ui/icon/icon';
 import { ReaderStore } from '../state/reader-store';
 
 /**
@@ -15,7 +14,7 @@ import { ReaderStore } from '../state/reader-store';
  */
 @Component({
   selector: 'fil-pattern-import',
-  imports: [Button, Disclosure, Icon, InputField],
+  imports: [Button, Disclosure, InputField],
   template: `
     <fil-disclosure
       [label]="t('ui.import')"
@@ -68,26 +67,6 @@ import { ReaderStore } from '../state/reader-store';
           <p class="hint">{{ t('ui.hint') }}</p>
           <p class="hint">{{ t('ai.notice') }}</p>
         </div>
-
-        <label
-          class="drop"
-          [class.over]="over()"
-          for="diagram-input"
-          (dragenter)="onDragOver($event)"
-          (dragover)="onDragOver($event)"
-          (dragleave)="over.set(false)"
-          (drop)="onDrop($event)"
-        >
-          @if (store.image()) {
-            <img [src]="store.image()" alt="" />
-            <span>{{ t('ui.replace') }}</span>
-          } @else {
-            <fil-icon name="image" />
-            <b>{{ t('ui.drop') }}</b>
-            <span>{{ t('ui.dropSub') }}</span>
-          }
-          <input type="file" id="diagram-input" accept="image/*" hidden (change)="onFile($event)" />
-        </label>
       </div>
     </fil-disclosure>
   `,
@@ -114,7 +93,6 @@ export class PatternImport {
   private readonly i18n = inject(I18nService);
 
   readonly open = signal(true);
-  protected readonly over = signal(false);
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
 
   /** Texte d'avant la remise en forme, conservé tant qu'on peut l'annuler. */
@@ -208,29 +186,5 @@ export class PatternImport {
     this.ai.reset();
     const field = this.source();
     if (field) field.nativeElement.value = '';
-  }
-
-  protected onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.over.set(true);
-  }
-
-  protected onDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.over.set(false);
-    const file = event.dataTransfer?.files?.[0];
-    if (file) this.readImage(file);
-  }
-
-  protected onFile(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) this.readImage(file);
-  }
-
-  private readImage(file: File): void {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => this.store.setImage(String(reader.result));
-    reader.readAsDataURL(file);
   }
 }

@@ -8,7 +8,7 @@
  * La contrainte majeure est la conservation : sauter un rang dans un patron de
  * crochet ruine l'ouvrage. Toutes les consignes vont dans ce sens.
  */
-export function systemPrompt(locale: 'fr' | 'en'): string {
+export function SYSTEM_PROMPT(locale: 'fr' | 'en'): string {
   const row = locale === 'fr' ? 'Rang' : 'Row';
   const round = locale === 'fr' ? 'Tour' : 'Round';
   const materials = locale === 'fr' ? 'Matériel' : 'Materials';

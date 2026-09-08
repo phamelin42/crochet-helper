@@ -4,7 +4,7 @@ import {
   NormalizeResponse,
 } from '../src/app/core/ai/normalize.contract';
 import { UpstreamError, classifyRefusal } from '../src/app/core/ai/refusal';
-import { systemPrompt } from './_prompt';
+import { SYSTEM_PROMPT } from '../src/app/core/ai/prompt';
 
 /**
  * `POST /api/normalize` — remet un tutoriel collé au format canonique.
@@ -74,7 +74,7 @@ export default async function handler(request: Request): Promise<Response> {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: MAX_OUTPUT_TOKENS,
-        system: systemPrompt(locale),
+        system: SYSTEM_PROMPT(locale),
         messages: [{ role: 'user', content: text }],
       }),
     });

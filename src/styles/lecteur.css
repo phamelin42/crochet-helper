@@ -40,6 +40,18 @@
 main {
   padding-bottom: var(--space-8);
 }
+
+/* Sur téléphone, le contenu touchait les bords de l'écran : on élargit la
+   gouttière et on tient compte de l'encoche. */
+@media (max-width: 640px) {
+  .wrap,
+  .nav {
+    padding-inline: calc(var(--space-4) + env(safe-area-inset-left, 0px));
+  }
+  main {
+    padding-bottom: var(--space-6);
+  }
+}
 section + section {
   margin-top: var(--space-6);
 }
@@ -531,4 +543,26 @@ textarea.src-input {
   .tile .big {
     font-size: 30px;
   }
+}
+
+.step-tip {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid color-mix(in srgb, var(--color-accent, currentColor) 50%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.warn {
+  padding: var(--space-3);
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+}
+.steps > li + li {
+  margin-top: var(--space-5);
+}
+.mono {
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
 }

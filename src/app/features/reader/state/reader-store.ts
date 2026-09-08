@@ -24,6 +24,7 @@ interface PersistedState {
   done: Record<string, boolean>;
   reps: Record<string, number>;
   elapsed: number;
+  expandAbbreviations: boolean;
 }
 
 /**
@@ -52,6 +53,9 @@ export class ReaderStore {
   readonly reps = signal<Record<string, number>>({});
   readonly elapsed = signal(0);
   readonly running = signal(false);
+  /** Affiche « maille serrée » au lieu de « ms ». Confort de lecture, pas un
+   *  réglage de découpage : le texte source reste intact. */
+  readonly expandAbbreviations = signal(false);
 
   readonly pattern = computed(() => (this.source() ? parsePattern(this.source()) : EMPTY_PATTERN));
   readonly pieces = computed<readonly PatternPiece[]>(() => this.pattern().pieces);
@@ -101,6 +105,7 @@ export class ReaderStore {
     done: this.done(),
     reps: this.reps(),
     elapsed: this.elapsed(),
+    expandAbbreviations: this.expandAbbreviations(),
   }));
 
   private restore(): void {
@@ -111,6 +116,7 @@ export class ReaderStore {
     this.done.set(saved.done ?? {});
     this.reps.set(saved.reps ?? {});
     this.elapsed.set(saved.elapsed ?? 0);
+    this.expandAbbreviations.set(saved.expandAbbreviations ?? false);
     this.pieceIndex.set(Math.min(saved.pieceIndex ?? 0, Math.max(0, this.pieces().length - 1)));
     this.stepIndex.set(Math.min(saved.stepIndex ?? 0, Math.max(0, this.stepCount() - 1)));
   }
@@ -180,6 +186,24 @@ export class ReaderStore {
   resetRepeat(): void {
     const key = this.positionKey();
     this.reps.update((reps) => ({ ...reps, [key]: 0 }));
+  }
+
+  toggleExpandAbbreviations(): void {
+    this.expandAbbreviations.update((on) => !on);
+  }
+
+  /**
+   * Avance en marquant l'étape courante terminée.
+   *
+   * C'est le geste attendu crochet en main : on ne passe à la suite que parce
+   * qu'on vient de finir. Le retour arrière, lui, ne démarque rien — revenir
+   * consulter une étape n'est pas la défaire.
+   */
+  advance(): void {
+    if (!this.step()) return;
+    const key = this.positionKey();
+    this.done.update((done) => ({ ...done, [key]: true }));
+    if (this.hasNext()) this.move(1);
   }
 
   setDone(value: boolean): void {

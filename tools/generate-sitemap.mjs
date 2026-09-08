@@ -5,18 +5,21 @@
  * main : ajouter une route suffit à l'y faire apparaître, et une route qui
  * cesse d'être pré-rendue en disparaît au lieu de renvoyer un 404 aux robots.
  */
-import { readdir, writeFile } from 'node:fs/promises';
+import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 
 const ORIGIN = process.env['SITE_ORIGIN'] ?? 'https://crochet-helper.vercel.app';
 const ROOT = 'dist/fil-patterns/browser';
 
-/** Correspondance entre une page française et son équivalent anglais. */
-const ALTERNATES = new Map([
-  ['/', '/en'],
-  ['/lecteur', '/en/reader'],
-  ['/glossaire', '/en/glossary'],
-]);
+/**
+ * Correspondance entre une page française et son équivalent anglais, lue depuis
+ * la même table que l'application. Elle était auparavant recopiée ici, et avait
+ * divergé dès que le lecteur a changé d'URL.
+ */
+const PATHS = JSON.parse(await readFile('src/app/core/i18n/route-paths.json', 'utf8'));
+const ALTERNATES = new Map(
+  Object.values(PATHS).map(({ fr, en }) => [fr, en === '/' ? '/en' : `/en${en}`]),
+);
 
 async function findPages(dir) {
   const pages = [];

@@ -64,14 +64,16 @@ describe('parsePattern', () => {
     expect(pattern.total).toBe(3);
   });
 
-  it("rattache une ligne libre à l'étape qu'elle commente", () => {
+  it("rattache une ligne libre au conseil de l'étape qu'elle commente", () => {
     const pattern = parsePattern(
       ['Corps', 'Round 1: 6 sc (6)', 'Stuff firmly before closing.', 'Round 2: dec x 3 (3)'].join(
         '\n',
       ),
     );
     const steps = pattern.pieces[0].steps;
-    expect(steps[0].body).toContain('Stuff firmly before closing.');
+    // Une ligne libre commente l'étape : elle va dans le conseil, pas dans les
+    // mailles à réaliser. Arbitrage produit, revu sur des patrons réels.
+    expect(steps[0].tip).toContain('Stuff firmly before closing.');
     expect(steps[1].label).toBe('Round 2');
   });
 

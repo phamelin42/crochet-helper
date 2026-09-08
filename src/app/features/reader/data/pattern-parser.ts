@@ -193,6 +193,28 @@ function splitTip(body: string): { body: string; tip?: string } {
   return { body: sentences.slice(0, cut).join(' ').replace(/\s+/g, ' ').trim(), tip };
 }
 
+/** « Beware », « Note », « Astuce », « Make sure »… : la ligne s'annonce comme
+ *  un commentaire, même si elle contient un chiffre. */
+const ADVICE =
+  /^(beware|note|tip|hint|remember|make sure|if you|you can|don'?t forget|attention|astuce|conseil|remarque|pensez|n'oubliez|si vous|vous pouvez)\b/i;
+
+/** Abréviations et chiffres qui trahissent une consigne de maille. */
+const STITCH_IN_LINE =
+  /\d|\b(?:sc|dc|hdc|tr|dtr|sl\s?st|slst|ch|inc|dec|blo|flo|fo|fpdc|bpdc|rsc|mr|ms|mc|br|aug|dim)\b/i;
+
+/**
+ * Une ligne libre qui suit une étape la commente-t-elle, ou prolonge-t-elle
+ * ses consignes ?
+ *
+ * Un patron mis en colonne coupe ses rangs : « FPDC in the same » puis « DC,
+ * *(dc, FPDC) in the next dc… ». Cette suite-là doit rejoindre le corps. En
+ * revanche « Stitch to tan. » ou « You can switch color if you want » sont des
+ * commentaires. Le départage se fait sur la présence de mailles.
+ */
+function isAdvice(line: string): boolean {
+  return ADVICE.test(line) || !STITCH_IN_LINE.test(line);
+}
+
 interface MutablePiece {
   name: string;
   steps: PatternStep[];
@@ -246,7 +268,11 @@ export function parsePattern(raw: string): Pattern {
     seenStep = true;
   };
 
-  for (const line of lines) {
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    const next = lines[index + 1] ?? '';
+    const nextIsRow = ROW.test(next) || (!hasKeywordRow && BARE_ROW.test(next));
+
     if (MAT.test(line) || MAT_LOOSE.test(line)) {
       inMaterials = true;
       inAside = false;
@@ -333,8 +359,24 @@ export function parsePattern(raw: string): Pattern {
 
     if (isHeading(line)) {
       const name = line.replace(/:$/, '');
+      // Le tout premier en-tête est le titre, même si un rang le suit
+      // immédiatement : un patron d'une seule pièce n'a pas de nom de pièce.
       if (couldTitle) {
         title = name;
+        continue;
+      }
+      // Un titre coupé sur deux lignes (« Pumpkin » / « Harvest Hat ») ne se
+      // prolonge que s'il est encore court et que rien d'autre n'a été lu. Un
+      // rang juste après signe un nom de pièce, pas une suite de titre.
+      if (
+        title &&
+        title.split(/\s+/).length <= 4 &&
+        !seenStep &&
+        !pieces.length &&
+        !materials.length &&
+        !nextIsRow
+      ) {
+        title = `${title} ${name}`;
         continue;
       }
       newPiece(name);
@@ -356,10 +398,14 @@ export function parsePattern(raw: string): Pattern {
 
     const previous = lastStep();
     if (previous && pending.length === 0) {
-      const merged: PatternStep = {
-        ...previous,
-        body: `${previous.body} ${line.replace(BULLET, '')}`,
-      };
+      // Décision produit : une ligne libre qui suit une étape commente cette
+      // étape, elle ne s'ajoute pas aux mailles à réaliser. « Stitch to tan. »,
+      // « You can switch color if you want » sont des conseils, et les mêler au
+      // corps rallongeait l'étape sans rien apporter à l'exécution.
+      const addition = line.replace(BULLET, '');
+      const merged: PatternStep = isAdvice(addition)
+        ? { ...previous, tip: previous.tip ? `${previous.tip} ${addition}` : addition }
+        : { ...previous, body: `${previous.body} ${addition}` };
       piece!.steps[piece!.steps.length - 1] = merged;
     } else {
       pending.push(line.replace(BULLET, ''));

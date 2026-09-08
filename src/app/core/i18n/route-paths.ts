@@ -11,7 +11,7 @@ import { Locale } from './locale';
 export const ROUTE_PATHS = {
   reader: { fr: '/', en: '/' },
   glossary: { fr: '/glossaire', en: '/glossary' },
-  connectAi: { fr: '/connecter-mon-ia', en: '/connect-your-ai' },
+  format: { fr: '/bien-formater-son-patron', en: '/format-your-pattern' },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type RouteName = keyof typeof ROUTE_PATHS;

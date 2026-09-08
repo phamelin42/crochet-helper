@@ -33,9 +33,8 @@ function routesFor(locale: Locale): Routes {
           data,
         },
         {
-          path: strip(ROUTE_PATHS.connectAi[locale]),
-          loadComponent: () =>
-            import('./features/connect-ai/connect-ai-page').then((m) => m.ConnectAiPage),
+          path: strip(ROUTE_PATHS.format[locale]),
+          loadComponent: () => import('./features/format/format-page').then((m) => m.FormatPage),
           data,
         },
       ],

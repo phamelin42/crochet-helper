@@ -4,9 +4,7 @@ Collez un tutoriel de crochet ou de tricot : **Fil le découpe en étapes et en
 affiche une seule à la fois, en très grand**, compte vos rangs et vos
 répétitions, chronomètre la session et traduit les abréviations au survol.
 
-Pas de compte : progression, compteurs et diagramme restent sur l'appareil.
-Seule la remise en forme facultative du texte collé passe par un service
-d'analyse ; sans elle, l'application fonctionne entièrement hors ligne.
+Pas de compte, pas de serveur, pas de réseau : le patron reste sur l'appareil.
 
 |             |                                                                             |
 | ----------- | --------------------------------------------------------------------------- |
@@ -74,19 +72,9 @@ d'environnement du même nom au build, qui alimente le sitemap.
 
 ### Variables d'environnement
 
-| Variable            | Rôle                                                     |
-| ------------------- | -------------------------------------------------------- |
-| `SITE_ORIGIN`       | origine publique : sitemap et URL canoniques             |
-| `ANTHROPIC_API_KEY` | clé de la **Claude API** (console `platform.claude.com`) |
-
-`ANTHROPIC_API_KEY` alimente la fonction `/api/normalize`, qui remet en forme
-les patrons mal structurés. Ce n'est **pas** un abonnement Claude.ai : l'API est
-un produit distinct, facturé en crédits. Sans cette variable, le bouton signale
-qu'il n'est pas configuré et le reste de l'application fonctionne normalement.
-
-Fixe un plafond de dépense mensuel dans la console : le site étant public,
-c'est ce qui borne le pire scénario à « la fonction ne répond plus jusqu'au
-mois prochain » au lieu d'une facture ouverte.
+`SITE_ORIGIN` définit l'origine publique : URL canoniques, hreflang, sitemap
+et `robots.txt`. Aucune autre variable n'est nécessaire — le site n'appelle
+aucun service externe.
 
 ## Contribuer
 

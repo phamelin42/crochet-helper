@@ -13,14 +13,14 @@ import { ReaderStore } from '../state/reader-store';
 
 const SEO: Record<Locale, { title: string; description: string }> = {
   fr: {
-    title: `Lecteur de patterns crochet et tricot — ${SITE_NAME}`,
+    title: `Lecteur de patrons crochet et tricot — ${SITE_NAME}`,
     description:
-      'Collez un tutoriel de crochet ou de tricot : Crochet helper le découpe en étapes, affiche une seule instruction à la fois, compte vos rangs et traduit les abréviations. Gratuit, sans compte, tout reste sur votre appareil.',
+      'Collez votre patron de crochet ou de tricot : découpage en étapes, une instruction à la fois, compteur de rangs et abréviations traduites. Gratuit, sans compte.',
   },
   en: {
     title: `Crochet and knitting pattern reader — ${SITE_NAME}`,
     description:
-      'Paste any crochet or knitting pattern: Crochet helper splits it into steps, shows one instruction at a time, counts your rows and explains the abbreviations. Free, no account, everything stays on your device.',
+      'Paste your crochet or knitting pattern: split into steps, one instruction at a time, with a row counter and abbreviations explained. Free, no account.',
   },
 };
 

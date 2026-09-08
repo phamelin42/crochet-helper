@@ -17,6 +17,55 @@ export interface GlossaryEntry {
  * cherchent « ms crochet signification », « what does sc mean »…).
  */
 export const GLOSSARY: readonly GlossaryEntry[] = [
+  {
+    term: 'crab st',
+    fr: "maille serrée à l'envers — point d'écrevisse, travaillé de gauche à droite",
+    en: 'crab stitch — reverse single crochet, worked left to right',
+    craft: 'crochet',
+  },
+  {
+    term: 'rsc',
+    fr: "maille serrée à l'envers — point d'écrevisse, travaillé de gauche à droite",
+    en: 'reverse single crochet — worked left to right',
+    craft: 'crochet',
+  },
+  {
+    term: 'fpdc',
+    fr: 'bride relief endroit — la bride passe autour du montant de la maille',
+    en: 'front post double crochet — worked around the stitch post',
+    craft: 'crochet',
+  },
+  {
+    term: 'bpdc',
+    fr: 'bride relief envers — la bride passe derrière le montant de la maille',
+    en: 'back post double crochet — worked behind the stitch post',
+    craft: 'crochet',
+  },
+  { term: 'slst', fr: 'maille coulée', en: 'slip stitch', craft: 'crochet' },
+  { term: 'rnd', fr: 'tour', en: 'round', craft: 'crochet' },
+  { term: 'rnds', fr: 'tours', en: 'rounds', craft: 'crochet' },
+  {
+    term: 'puff',
+    fr: 'point bouillon — plusieurs boucles fermées ensemble',
+    en: 'puff stitch — several loops closed together',
+    craft: 'crochet',
+  },
+  {
+    term: 'bobble',
+    fr: 'point popcorn — plusieurs brides fermées ensemble',
+    en: 'bobble — several double crochets closed together',
+    craft: 'crochet',
+  },
+  {
+    term: 'v-st',
+    fr: 'point V — deux brides séparées par une maille en l’air, dans la même maille',
+    en: 'V-stitch — two doubles with a chain between, in the same stitch',
+    craft: 'crochet',
+  },
+  { term: 'sp', fr: 'espace', en: 'space', craft: 'crochet' },
+  { term: 'beg', fr: 'début', en: 'beginning', craft: 'commun' },
+  { term: 'rem', fr: 'restant', en: 'remaining', craft: 'commun' },
+  { term: 'tbl', fr: 'par le brin arrière', en: 'through the back loop', craft: 'tricot' },
   { term: 'ms', fr: 'maille serrée', en: 'single crochet', craft: 'crochet' },
   { term: 'sc', fr: 'maille serrée', en: 'single crochet', craft: 'crochet' },
   { term: 'dc', fr: 'bride', en: 'double crochet', craft: 'crochet' },
@@ -138,13 +187,24 @@ export function annotate(text: string, locale: Locale): TextSegment[] {
  * contre compacité, laissé au choix de la personne qui crochète.
  */
 export function expand(text: string, locale: Locale): string {
-  return annotate(text, locale)
-    .map((segment) => {
-      if (!segment.definition) return segment.text;
-      // Les définitions du glossaire portent parfois une glose après un tiret
-      // cadratin (« augmentation — 2 mailles dans la même maille ») : dans le
-      // fil d'une consigne, seule la tête sert.
-      return segment.definition.split(/\s+—\s+/)[0];
+  const parts = annotate(text, locale).map((segment) => {
+    if (!segment.definition) return segment.text;
+    // Les définitions portent parfois une glose après un tiret cadratin
+    // (« augmentation — 2 mailles dans la même maille ») : dans le fil d'une
+    // consigne, seule la tête sert.
+    return { expanded: segment.definition.split(/\s+—\s+/)[0] };
+  });
+
+  // Les patrons collent l'abréviation au nombre (« 1sc », « Ch3 »). Développée,
+  // la forme collée devient illisible : on insère l'espace qui manquait.
+  return parts
+    .map((part, index) => {
+      if (typeof part === 'string') return part;
+      const before = parts[index - 1];
+      const after = parts[index + 1];
+      const left = typeof before === 'string' && /\d$/.test(before) ? ' ' : '';
+      const right = typeof after === 'string' && /^\d/.test(after) ? ' ' : '';
+      return `${left}${part.expanded}${right}`;
     })
     .join('');
 }

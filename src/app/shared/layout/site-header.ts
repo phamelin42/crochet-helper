@@ -72,7 +72,12 @@ import { Icon } from '../ui/icon/icon';
         </button>
       }
 
-      <a filButton="secondary" [href]="otherLanguageHref()" [attr.hreflang]="i18n.other()">
+      <a
+        filButton="secondary"
+        [iconOnly]="true"
+        [href]="otherLanguageHref()"
+        [attr.hreflang]="i18n.other()"
+      >
         {{ i18n.other().toUpperCase() }}
       </a>
     </div>

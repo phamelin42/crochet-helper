@@ -10,7 +10,7 @@ import { InputField } from '../../shared/ui/field/input';
 
 const COPY: Record<Locale, Record<string, string>> = {
   fr: {
-    title: `Glossaire des abréviations de crochet et de tricot — ${SITE_NAME}`,
+    title: `Abréviations de crochet et de tricot — ${SITE_NAME}`,
     description:
       'ms, sc, aug, dim, k2tog, cercle magique… la traduction en clair des abréviations de patrons de crochet et de tricot, en français et en anglais.',
     h1: 'Abréviations de crochet et de tricot',
@@ -22,9 +22,9 @@ const COPY: Record<Locale, Record<string, string>> = {
     craft: 'Technique',
   },
   en: {
-    title: `Crochet and knitting abbreviations glossary — ${SITE_NAME}`,
+    title: `Crochet and knitting abbreviations — ${SITE_NAME}`,
     description:
-      'sc, dc, inc, dec, k2tog, magic ring… what each crochet and knitting pattern abbreviation means, in English and French.',
+      'sc, dc, inc, dec, k2tog, magic ring… what every crochet and knitting pattern abbreviation means, in English and French.',
     h1: 'Crochet and knitting abbreviations',
     lead: 'Patterns abbreviate everything. Here is what each one means, in English and French. In the reader these terms are underlined and their definition appears on hover.',
     search: 'Filter abbreviations',

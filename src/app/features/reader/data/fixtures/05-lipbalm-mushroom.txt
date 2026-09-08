@@ -1,0 +1,46 @@
+Abbreviations (US)
+st - stich
+rnd(s' - round(s)
+sc - single crochet
+mr - magic ring
+inc - increase (2sc in 1 st)
+dec - decrease (sc 2 together)
+ch - chain
+slst - slipstitch
+crab st - crab stitch aka reverse single crochet
+hdc - half double crochet
+Lipbalm Mushroom Bag-/Keychain - Pattern by JoCupckake
+Mushroom Stem
+for toadstool in white, for brown mushroom in beige:
+[_] 1 - 6sc in mr
+[_] 2 - (inc)x6 (12)
+[_] 3 - (sc, inc)x6 (18)
+[_][_] 4-5 - sc around (18) (2rnds)
+[_] 6 - (sc, dec)x6 (12)
+[_][_][_][_][_][_][_][_][_][_] 7-16 - sc around (12) (10 rnds - or until your chapstick is covered so far that you can still take it out)
+sew a small white or beige button on the opposite side of the mushroom from where your working yarn is
+ch30+X, slst in Xth st from hook to create a loop for the button. adjust X to fit your button. hide your yarn end in the chain.
+Mushroom Cap
+for toadstool in red, for brown mushroom in brown:
+[_] 1 - 6sc in mr
+[_] 2 - (inc)x6 - (12)
+[_] 3 - sc around (12)
+[_] 4 - (sc, inc)x6 (18)
+[_] 5 - sc around (18)
+[_] 6 - (sc, inc, sc)x6 (24)
+[_] 7 - (sc3, inc)x6 (30)
+[_] 8 - (sc2, inc, sc2)x6 (36)
+[_] 9 - (sc5, inc)x6 (42)
+[_] 10 - crab st around (42)
+FO and weave in ends
+Mushroom Spots - for Toadstool (leave out for Brown Mushroom)
+in white:
+small - sc4 in mr, slst in 1st sc, FO
+medium - sc6 in mr, slst in 1st sc, FO
+large - hdc6 in mr, slst in 1st hdc, FO
+make 2 of each size and sew onto the cap.
+Assembly
+thread the chain through the cap between rounds 4&5, going up through from the bottom and then back down through from the top on the opposite side. put the loop around 
+the button and you're done! unthreading the last pull-through, you can thread the chain around the handle of a tote bag for example.
+-
+havegun! .

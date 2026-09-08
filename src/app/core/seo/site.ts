@@ -10,4 +10,4 @@ export const SITE_ORIGIN = new InjectionToken<string>('SITE_ORIGIN', {
   factory: () => 'https://fil-patterns.netlify.app',
 });
 
-export const SITE_NAME = 'Fil';
+export const SITE_NAME = 'Crochet helper';

@@ -63,9 +63,6 @@ import { ReaderStore } from '../state/reader-store';
               }
             </p>
           }
-
-          <p class="hint">{{ t('ui.hint') }}</p>
-          <p class="hint">{{ t('ai.notice') }}</p>
         </div>
       </div>
     </fil-disclosure>

@@ -15,12 +15,12 @@ const SEO: Record<Locale, { title: string; description: string }> = {
   fr: {
     title: `Lecteur de patterns crochet et tricot — ${SITE_NAME}`,
     description:
-      'Collez un tutoriel de crochet ou de tricot : Fil le découpe en étapes, affiche une seule instruction à la fois, compte vos rangs et traduit les abréviations. Gratuit, sans compte, tout reste sur votre appareil.',
+      'Collez un tutoriel de crochet ou de tricot : Crochet helper le découpe en étapes, affiche une seule instruction à la fois, compte vos rangs et traduit les abréviations. Gratuit, sans compte, tout reste sur votre appareil.',
   },
   en: {
     title: `Crochet and knitting pattern reader — ${SITE_NAME}`,
     description:
-      'Paste any crochet or knitting pattern: Fil splits it into steps, shows one instruction at a time, counts your rows and explains the abbreviations. Free, no account, everything stays on your device.',
+      'Paste any crochet or knitting pattern: Crochet helper splits it into steps, shows one instruction at a time, counts your rows and explains the abbreviations. Free, no account, everything stays on your device.',
   },
 };
 
@@ -55,8 +55,6 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     @if (store.materials().length) {
       <fil-materials-list />
     }
-
-    <p class="foot">Fil · {{ i18n.t('ui.importHint') }}</p>
   `,
 })
 export class ReaderPage {

@@ -82,8 +82,6 @@ import { InputField } from '../../shared/ui/field/input';
         } @else if (byok.configured()) {
           <p class="hint">{{ t('ai.pageActive') }}</p>
         }
-
-        <p class="hint">{{ t('ai.pagePrivacy') }}</p>
       </section>
     </div>
   `,

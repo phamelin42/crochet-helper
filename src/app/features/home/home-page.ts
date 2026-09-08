@@ -11,13 +11,13 @@ const COPY: Record<Locale, Record<string, string>> = {
   fr: {
     title: `${SITE_NAME} — lire un patron de crochet une étape à la fois`,
     description:
-      'Fil transforme un tutoriel de crochet ou de tricot collé en texte en une lecture pas à pas : une instruction en grand, un compteur de rangs, un glossaire des abréviations. Gratuit, sans compte, hors ligne.',
+      'Crochet helper transforme un tutoriel de crochet ou de tricot collé en texte en une lecture pas à pas : une instruction en grand, un compteur de rangs, un glossaire des abréviations. Gratuit, sans compte, hors ligne.',
     h1: 'Un patron, une étape à la fois',
-    lead: "Collez le tutoriel. Fil le découpe en rangs, affiche l'instruction en cours en grand, compte vos répétitions et explique les abréviations au survol. Rien n'est envoyé sur un serveur : tout se passe dans votre navigateur.",
+    lead: "Collez le tutoriel. Crochet helper le découpe en rangs, affiche l'instruction en cours en grand, compte vos répétitions et explique les abréviations au survol.",
     cta: 'Ouvrir le lecteur',
     ctaSecondary: 'Voir le glossaire',
     f1t: 'Découpage automatique',
-    f1b: '« Rang 1 », « Round 3 », « Rangs 5-8 » : Fil reconnaît les libellés français et anglais, isole le matériel et sépare les pièces.',
+    f1b: '« Rang 1 », « Round 3 », « Rangs 5-8 » : Crochet helper reconnaît les libellés français et anglais, isole le matériel et sépare les pièces.',
     f2t: 'Compteurs à portée de main',
     f2b: 'Répétitions, avancement, chronomètre de session. Les flèches du clavier suffisent, crochet en main.',
     f3t: 'Glossaire intégré',
@@ -28,13 +28,13 @@ const COPY: Record<Locale, Record<string, string>> = {
   en: {
     title: `${SITE_NAME} — read a crochet pattern one step at a time`,
     description:
-      'Fil turns a pasted crochet or knitting pattern into a step-by-step read: one large instruction, a row counter, a glossary of abbreviations. Free, no account, offline.',
+      'Crochet helper turns a pasted crochet or knitting pattern into a step-by-step read: one large instruction, a row counter, a glossary of abbreviations. Free, no account, offline.',
     h1: 'One pattern, one step at a time',
-    lead: 'Paste the pattern. Fil splits it into rows, shows the current instruction large, counts your repeats and explains abbreviations on hover. Nothing is sent to a server: it all happens in your browser.',
+    lead: 'Paste the pattern. Crochet helper splits it into rows, shows the current instruction large, counts your repeats and explains abbreviations on hover.',
     cta: 'Open the reader',
     ctaSecondary: 'Browse the glossary',
     f1t: 'Automatic splitting',
-    f1b: '“Row 1”, “Round 3”, “Rows 5-8”: Fil recognises French and English labels, isolates materials and separates pieces.',
+    f1b: '“Row 1”, “Round 3”, “Rows 5-8”: Crochet helper recognises French and English labels, isolates materials and separates pieces.',
     f2t: 'Counters within reach',
     f2b: 'Repeats, progress, session timer. Arrow keys are enough, hook in hand.',
     f3t: 'Built-in glossary',

@@ -6,13 +6,10 @@ import { Locale } from './locale';
  */
 export const FR = {
   'ui.import': 'Le pattern',
-  'ui.importHint': 'Collez le texte, tapez-le, ou déposez la photo du diagramme.',
   'ui.paste': 'Texte du pattern',
   'ui.load': 'Découper en étapes',
   'ui.demo': 'Exemple',
   'ui.clear': 'Effacer',
-  'ui.hint':
-    'Détection automatique de « Rang 1 », « Round 3 », « Tour 5 »… Le matériel et les notes ne comptent pas comme des étapes.',
   'ui.drop': 'Diagramme ou photo',
   'ui.dropSub': 'Cliquez, déposez ou collez une image',
   'ui.replace': 'Remplacer',
@@ -20,7 +17,6 @@ export const FR = {
   'ui.zoom': 'Cliquez pour agrandir',
   'ui.prev': 'Précédente',
   'ui.next': 'Suivante',
-  'ui.step': 'Étape',
   'ui.reps': 'Répétitions',
   'ui.doneLabel': 'Avancement',
   'ui.done': 'Étape terminée',
@@ -35,7 +31,6 @@ export const FR = {
   'ui.of': 'sur',
   'ui.allSteps': 'étapes en tout',
   'ui.reset': 'Remettre à zéro',
-  'ui.dim': 'Assombrir',
   'ui.wake': "Garder l'écran allumé",
   'ui.close': 'Fermer',
   'ui.stepsIn': 'dans cette pièce',
@@ -56,8 +51,6 @@ export const FR = {
   'ai.undo': 'Revenir au texte original',
   'ai.fewer':
     'Attention : la mise en forme donne moins d’étapes que le texte original. Vérifiez qu’aucun rang ne manque.',
-  'ai.notice':
-    'Le texte du patron est envoyé à un service d’analyse. Tout le reste — progression, compteurs, diagramme — ne quitte jamais votre appareil.',
   'ai.blockedRate': 'Trop de demandes en ce moment. Réessayez dans',
   'ai.blockedQuota': 'Le quota de mise en forme est épuisé. Retour dans',
   'ai.blockedUnknown': 'La mise en forme est momentanément indisponible.',
@@ -83,8 +76,6 @@ export const FR = {
   'ai.pageForget': 'Oublier la clé',
   'ai.pageSaved': 'Clé enregistrée. La remise en forme utilise désormais votre compte.',
   'ai.pageActive': 'Une clé est déjà enregistrée sur cet appareil.',
-  'ai.pagePrivacy':
-    'La clé est stockée dans le navigateur, donc lisible par tout script de cette page. C’est votre clé, sur votre appareil, et vous pouvez la révoquer à tout moment depuis la console du fournisseur.',
   'ai.howAnthropic':
     'Créez un compte sur la console Claude, ajoutez des crédits prépayés, puis générez une clé. Coupez la recharge automatique si vous ne voulez aucun débit surprise.',
   'ai.howOpenai':
@@ -97,12 +88,10 @@ export type TranslationKey = keyof typeof FR;
 
 export const EN: Record<TranslationKey, string> = {
   'ui.import': 'The pattern',
-  'ui.importHint': 'Paste the text, type it, or drop the chart photo.',
   'ui.paste': 'Pattern text',
   'ui.load': 'Split into steps',
   'ui.demo': 'Example',
   'ui.clear': 'Clear',
-  'ui.hint': 'Auto-detects “Row 1”, “Round 3”, “Rnd 5”… Materials and notes never count as steps.',
   'ui.drop': 'Chart or photo',
   'ui.dropSub': 'Click, drop or paste an image',
   'ui.replace': 'Replace',
@@ -110,7 +99,6 @@ export const EN: Record<TranslationKey, string> = {
   'ui.zoom': 'Click to enlarge',
   'ui.prev': 'Previous',
   'ui.next': 'Next',
-  'ui.step': 'Step',
   'ui.reps': 'Repeats',
   'ui.doneLabel': 'Progress',
   'ui.done': 'Step done',
@@ -125,7 +113,6 @@ export const EN: Record<TranslationKey, string> = {
   'ui.of': 'of',
   'ui.allSteps': 'steps in total',
   'ui.reset': 'Reset',
-  'ui.dim': 'Dim',
   'ui.wake': 'Keep screen awake',
   'ui.close': 'Close',
   'ui.stepsIn': 'in this piece',
@@ -146,8 +133,6 @@ export const EN: Record<TranslationKey, string> = {
   'ai.undo': 'Back to the original text',
   'ai.fewer':
     'Careful: the tidied text yields fewer steps than the original. Check that no row went missing.',
-  'ai.notice':
-    'The pattern text is sent to an analysis service. Everything else — progress, counters, chart — never leaves your device.',
   'ai.blockedRate': 'Too many requests right now. Try again in',
   'ai.blockedQuota': 'The tidy-up quota is used up. Back in',
   'ai.blockedUnknown': 'Tidying up is unavailable for the moment.',
@@ -173,8 +158,6 @@ export const EN: Record<TranslationKey, string> = {
   'ai.pageForget': 'Forget the key',
   'ai.pageSaved': 'Key saved. Tidying up now uses your own account.',
   'ai.pageActive': 'A key is already saved on this device.',
-  'ai.pagePrivacy':
-    'The key is stored in the browser, so any script on this page can read it. It is your key, on your device, and you can revoke it at any time from the provider’s console.',
   'ai.howAnthropic':
     'Create an account in the Claude console, add prepaid credits, then generate a key. Turn auto-reload off if you want no surprise charges.',
   'ai.howOpenai':

@@ -576,3 +576,33 @@ textarea.src-input {
   flex: none;
   color: var(--color-accent-300);
 }
+
+.tuto h2 {
+  margin-top: var(--space-6);
+}
+.tuto ul {
+  padding-left: var(--space-5);
+  line-height: 1.6;
+}
+.tuto li + li {
+  margin-top: var(--space-2);
+}
+.prompt-box {
+  margin: var(--space-4) 0;
+}
+.prompt-box pre {
+  max-height: 18rem;
+  overflow: auto;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  -webkit-user-select: all;
+  user-select: all;
+}
+.prompt-box button {
+  margin-top: var(--space-3);
+}

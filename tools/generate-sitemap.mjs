@@ -8,7 +8,7 @@
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 
-const ORIGIN = process.env['SITE_ORIGIN'] ?? 'https://crochet-helper.vercel.app';
+const ORIGIN = process.env['SITE_ORIGIN'] ?? 'https://crochet-helper.phamelin.fr';
 const ROOT = 'dist/fil-patterns/browser';
 
 /**

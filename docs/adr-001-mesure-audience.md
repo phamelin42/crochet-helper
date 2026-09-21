@@ -33,7 +33,7 @@ Le nom de domaine du collecteur n'est pas encore choisi (voir la fiche `11 —
 Marque et domaine`, bloquée). `ANALYTICS_ORIGIN` et `ANALYTICS_SITE_ID`
 valent donc `''` : `AnalyticsService` devient un no-op silencieux — aucun
 script n'est chargé, aucune requête n'est émise, `track()` ne fait rien. Le
-service, les cinq événements et leurs points d'instrumentation sont écrits et
+service, les événements et leurs points d'instrumentation sont écrits et
 testés dès maintenant, pour n'avoir qu'à renseigner l'origine plus tard.
 
 Cette même raison empêche d'ajouter l'origine à `script-src` et
@@ -49,5 +49,5 @@ les deux fichiers restent identiques entre eux.
 3. Ajouter cette origine à `script-src` et `connect-src` dans `vercel.json`
    et `netlify.toml`, à l'identique dans les deux fichiers.
 
-Aucun autre changement de code n'est nécessaire : le service et les cinq
+Aucun autre changement de code n'est nécessaire : le service et les
 événements sont déjà en place.

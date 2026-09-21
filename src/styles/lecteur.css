@@ -284,11 +284,29 @@ textarea.src-input {
   min-height: calc(var(--reader-step) * 2.1);
 }
 .step-body.empty {
-  font-size: clamp(19px, 2.4vw, 25px);
+  font-size: var(--reader-step-sm);
   color: color-mix(in srgb, var(--color-text) 60%, transparent);
   max-width: 34ch;
   font-weight: 400;
   font-family: var(--font-body);
+}
+/* Page d'abréviation : le rang d'essai, rendu comme une étape du lecteur. */
+.step-body.term-try {
+  max-width: none;
+  min-height: 0;
+  margin-top: var(--space-3);
+  font-size: var(--reader-step-sm);
+}
+.term-section {
+  margin-top: var(--space-8);
+}
+.term-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-3) 0 0;
 }
 .abbr {
   color: var(--color-accent-300);

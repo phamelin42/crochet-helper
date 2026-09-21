@@ -35,17 +35,30 @@ async function findPages(dir) {
   return pages;
 }
 
-function alternatesFor(route) {
+/**
+ * Paire anglais / français d'une route. Une sous-page hérite de la
+ * correspondance de sa section, suffixe identique dans les deux langues :
+ * `/glossary/sc` ↔ `/fr/glossaire/sc`.
+ */
+function pairFor(route) {
   for (const [en, fr] of ALTERNATES) {
-    if (route === en || route === fr) {
-      return [
-        `    <xhtml:link rel="alternate" hreflang="en" href="${ORIGIN}${en === '/' ? '' : en}"/>`,
-        `    <xhtml:link rel="alternate" hreflang="fr" href="${ORIGIN}${fr}"/>`,
-        `    <xhtml:link rel="alternate" hreflang="x-default" href="${ORIGIN}${en === '/' ? '' : en}"/>`,
-      ].join('\n');
-    }
+    if (route === en || route === fr) return [en, fr];
+    if (en === '/') continue;
+    if (route.startsWith(`${en}/`)) return [route, `${fr}${route.slice(en.length)}`];
+    if (route.startsWith(`${fr}/`)) return [`${en}${route.slice(fr.length)}`, route];
   }
-  return '';
+  return null;
+}
+
+function alternatesFor(route) {
+  const pair = pairFor(route);
+  if (!pair) return '';
+  const [en, fr] = pair;
+  return [
+    `    <xhtml:link rel="alternate" hreflang="en" href="${ORIGIN}${en === '/' ? '' : en}"/>`,
+    `    <xhtml:link rel="alternate" hreflang="fr" href="${ORIGIN}${fr}"/>`,
+    `    <xhtml:link rel="alternate" hreflang="x-default" href="${ORIGIN}${en === '/' ? '' : en}"/>`,
+  ].join('\n');
 }
 
 const routes = (await findPages(ROOT)).sort();

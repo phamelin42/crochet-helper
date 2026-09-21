@@ -58,6 +58,7 @@
   --space-2: 5.6px;
   --space-3: 8.4px;
   --space-4: 11.2px;
+  --space-5: 14px;
   --space-6: 16.8px;
   --space-8: 22.4px;
 
@@ -73,6 +74,7 @@
 
   /* — spécifiques lecteur — */
   --reader-step: clamp(27px, 4.3vw, 46px);
+  --reader-step-sm: clamp(19px, 2.4vw, 25px);
 
   color-scheme: dark;
 }

@@ -59,6 +59,17 @@ un enrichissement du glossaire qui servira aussi aux pages d'abréviations.
 
 6. Instrumenter `conversion_run` avec `from`, `to` et le nombre de remplacements.
 
+7. Afficher la variante sur la page d'abréviation
+   (`src/app/features/glossary/pages/term-page.ts`, livrée par la fiche 14) :
+   sur `/glossary/dc`, dire en tête qu'un patron britannique emploie `dc` pour
+   la maille serrée, et lier la page de l'équivalent. La fiche 14 l'a laissé
+   faute de données ; c'est le champ `region` qui les apporte.
+
+   Chaque nouvelle entrée du glossaire devient une page : lui donner un
+   `example` (un rang réaliste dans sa propre notation) et une `lang`, et
+   ajouter son slug à `PUBLISHED_SLUGS` dans `glossary.spec.ts`. Ne jamais
+   modifier un slug déjà publié.
+
 ## Critères d'acceptation
 
 - `npm run verify` vert.

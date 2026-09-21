@@ -2,7 +2,7 @@ import { InjectionToken, PLATFORM_ID, Service, afterNextRender, inject } from '@
 import { isPlatformBrowser } from '@angular/common';
 import { ANALYTICS_ORIGIN, ANALYTICS_SITE_ID } from './analytics.config';
 
-/** Les sept seuls événements mesurés — une faute de frappe casse le build plutôt que de créer un événement fantôme. */
+/** Les seuls événements mesurés — une faute de frappe casse le build plutôt que de créer un événement fantôme. */
 export type AnalyticsEvent =
   | 'pattern_pasted'
   | 'pattern_parsed'
@@ -10,7 +10,9 @@ export type AnalyticsEvent =
   | 'glossary_hover'
   | 'session_resumed'
   | 'pdf_imported'
-  | 'pdf_failed';
+  | 'pdf_failed'
+  /** Première modification du rang d'essai d'une page d'abréviation. */
+  | 'term_tried';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;
@@ -34,7 +36,7 @@ export const ANALYTICS_ORIGIN_TOKEN = new InjectionToken<string>('fil.analyticsO
 });
 
 /**
- * Mesure d'audience minimale : cinq événements nommés, aucun contenu de
+ * Mesure d'audience minimale : quelques événements nommés, aucun contenu de
  * patron, aucun identifiant persistant. Inerte tant que `ANALYTICS_ORIGIN`
  * est vide. Voir `docs/adr-001-mesure-audience.md`.
  */

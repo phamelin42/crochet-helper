@@ -12,6 +12,10 @@ import { ReaderStore } from '../state/reader-store';
  * Le texte vient de l'utilisateur : il est rendu en segments par `@for`, jamais
  * via `innerHTML`, donc rien de ce qui est collé ne peut être interprété comme
  * du balisage.
+ *
+ * Chaque segment neutre est enveloppé d'un `ng-container` : sans lui, les
+ * retours à la ligne du gabarit deviennent des espaces autour du texte, et
+ * « st, inc » s'affiche « st , inc ».
  */
 @Component({
   selector: 'fil-glossary-text',
@@ -30,7 +34,7 @@ import { ReaderStore } from '../state/reader-store';
         >{{ segment.text }}</span
       >
     } @else {
-      {{ segment.text }}
+      <ng-container>{{ segment.text }}</ng-container>
     }
   }`,
 })

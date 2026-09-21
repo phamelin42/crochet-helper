@@ -1,56 +1,92 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { map } from 'rxjs';
+import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
-import { LocalizedPath, ROUTE_PATHS } from '../../../core/i18n/route-paths';
+import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
 import { Button } from '../../../shared/ui/button/button';
 import { InputField } from '../../../shared/ui/field/input';
 import { TooltipService } from '../../../shared/ui/tooltip/tooltip.service';
-import { GLOSSARY, GlossaryEntry, TextSegment, annotate } from '../../reader/data/glossary';
+import { GLOSSARY, GlossaryEntry, annotate } from '../../reader/data/glossary';
+import { headOf, neighborsOf } from '../data/term-neighbors';
 
-const CRAFT_LABEL: Record<Locale, Record<GlossaryEntry['craft'], string>> = {
-  fr: { crochet: 'Crochet', tricot: 'Tricot', commun: 'Crochet et tricot' },
-  en: { crochet: 'Crochet', tricot: 'Knitting', commun: 'Crochet and knitting' },
-};
+type Craft = GlossaryEntry['craft'];
 
-const ROW_WORD: Record<Locale, string> = { fr: 'Rang 1', en: 'Row 1' };
+interface TermCopy {
+  /** Question de la page, de part et d'autre de l'abréviation. */
+  readonly question: Record<Craft, readonly [string, string]>;
+  /** Langue des patrons où l'abréviation apparaît. */
+  readonly notation: Record<Locale, string>;
+  readonly craft: Record<Craft, string>;
+  readonly means: string;
+  /** Traduction dans l'autre langue, précédée de ce libellé. */
+  readonly otherLanguage: string;
+  readonly tryTitle: string;
+  readonly tryLead: string;
+  readonly tryLabel: string;
+  readonly synonymsTitle: string;
+  readonly relatedTitle: string;
+  readonly backToReader: string;
+  readonly backToGlossary: string;
+  title(entry: GlossaryEntry): string;
+  description(entry: GlossaryEntry): string;
+}
 
-const COPY: Record<Locale, Record<string, string>> = {
+const NBSP = ' ';
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+const COPY: Record<Locale, TermCopy> = {
   fr: {
-    kicker: 'Abréviation',
-    meansIntro: 'veut dire',
+    question: {
+      crochet: ['Que veut dire ', ` au crochet${NBSP}?`],
+      tricot: ['Que veut dire ', ` au tricot${NBSP}?`],
+      commun: ['Que veut dire ', ` au crochet et au tricot${NBSP}?`],
+    },
+    notation: { fr: 'Abréviation française', en: 'Abréviation anglaise' },
+    craft: { crochet: 'Crochet', tricot: 'Tricot', commun: 'Crochet et tricot' },
+    means: 'veut dire',
+    otherLanguage: `En anglais${NBSP}:`,
     tryTitle: 'Essayez avec un rang de votre patron',
     tryLead:
-      'Collez un rang qui contient cette abréviation : les termes connus du glossaire sont soulignés, leur définition apparaît au survol.',
+      'Voici un rang qui l’emploie. Remplacez-le par un rang de votre patron : chaque abréviation reconnue est soulignée, et sa traduction apparaît au survol.',
     tryLabel: 'Un rang de patron',
-    neighborsTitle: 'À voir aussi',
-    backToReader: 'Ouvrir le lecteur complet',
-    backToGlossary: 'Voir toutes les abréviations',
+    synonymsTitle: 'Autres façons de l’écrire',
+    relatedTitle: 'À voir aussi',
+    backToReader: 'Lire tout un patron pas à pas',
+    backToGlossary: 'Toutes les abréviations',
+    title: (e) =>
+      `Que veut dire «${NBSP}${e.term}${NBSP}» au ${e.craft === 'tricot' ? 'tricot' : 'crochet'}${NBSP}? ${capitalize(headOf(e.fr))} — ${SITE_NAME}`,
+    description: (e) =>
+      `«${NBSP}${e.term}${NBSP}» veut dire ${headOf(e.fr)} (${headOf(e.en)} en anglais). Collez un rang de votre patron${NBSP}: chaque abréviation y est traduite en clair.`,
   },
   en: {
-    kicker: 'Abbreviation',
-    meansIntro: 'means',
+    question: {
+      crochet: ['What does ', ' mean in crochet?'],
+      tricot: ['What does ', ' mean in knitting?'],
+      commun: ['What does ', ' mean in crochet and knitting?'],
+    },
+    notation: { fr: 'French abbreviation', en: 'English abbreviation' },
+    craft: { crochet: 'Crochet', tricot: 'Knitting', commun: 'Crochet and knitting' },
+    means: 'means',
+    otherLanguage: 'In French:',
     tryTitle: 'Try it with a row from your pattern',
     tryLead:
-      'Paste a row that contains this abbreviation: terms known to the glossary are underlined, their definition shows on hover.',
+      'Here is a row that uses it. Replace it with a row from your pattern: every abbreviation the reader knows is underlined, and its meaning shows on hover.',
     tryLabel: 'A row from a pattern',
-    neighborsTitle: 'See also',
-    backToReader: 'Open the full reader',
-    backToGlossary: 'See all abbreviations',
+    synonymsTitle: 'Other ways to write it',
+    relatedTitle: 'See also',
+    backToReader: 'Read a whole pattern step by step',
+    backToGlossary: 'All abbreviations',
+    title: (e) =>
+      `What does “${e.term}” mean in ${e.craft === 'tricot' ? 'knitting' : 'crochet'}? ${capitalize(headOf(e.en))} — ${SITE_NAME}`,
+    description: (e) =>
+      `“${e.term}” means ${headOf(e.en)} (${headOf(e.fr)} in French). Paste a row from your pattern and every abbreviation in it is spelled out.`,
   },
 };
-
-/** Tête d'une définition, sans la glose qui suit un tiret cadratin. */
-function headOf(definition: string): string {
-  return definition.split(/\s+—\s+/)[0];
-}
-
-/** Autres entrées qui désignent exactement le même point : synonymes de notation. */
-function synonymsOf(entry: GlossaryEntry): readonly GlossaryEntry[] {
-  return GLOSSARY.filter((e) => e !== entry && e.fr === entry.fr && e.en === entry.en);
-}
 
 /**
  * Une page par abréviation : chacune répond à une requête distincte
@@ -58,6 +94,10 @@ function synonymsOf(entry: GlossaryEntry): readonly GlossaryEntry[] {
  * lecteur réduit mais fonctionnel, pour que la page fasse quelque chose et ne
  * se contente pas de définir — sinon elle se fait absorber par les réponses
  * générées des moteurs de recherche, et le clic n'arrive jamais.
+ *
+ * Le composant est réutilisé quand on passe d'une abréviation à une autre par
+ * un lien de la page : tout ce qui dépend du terme est donc dérivé du
+ * paramètre d'URL, jamais lu une seule fois à la construction.
  */
 @Component({
   selector: 'fil-glossary-term-page',
@@ -65,35 +105,35 @@ function synonymsOf(entry: GlossaryEntry): readonly GlossaryEntry[] {
   host: { class: 'wrap' },
   template: `
     <section class="hero">
-      <p class="card-kicker">{{ c['kicker'] }}</p>
+      <p class="card-kicker">{{ c.notation[entry().lang] }} · {{ c.craft[entry().craft] }}</p>
       <h1>
-        <code>{{ entry.term }}</code>
+        {{ question()[0] }}<code>{{ entry().term }}</code
+        >{{ question()[1] }}
       </h1>
       <p>
-        <span class="steplabel">{{ craftLabel() }}</span>
+        <code>{{ entry().term }}</code> {{ c.means }} <strong>{{ meaning().head }}</strong
+        >{{ meaning().rest }}
       </p>
-      <p>
-        <strong>{{ c['meansIntro'] }} :</strong>
-        {{ entry.fr }} <span class="text-muted">— {{ entry.en }}</span>
-      </p>
+      <p class="text-muted">{{ c.otherLanguage }} {{ entry()[otherLocale] }}</p>
     </section>
 
     <section class="card">
-      <h2 class="card-title">{{ c['tryTitle'] }}</h2>
-      <p class="card-body">{{ c['tryLead'] }}</p>
+      <h2 class="card-title">{{ c.tryTitle }}</h2>
+      <p class="card-body">{{ c.tryLead }}</p>
 
       <div class="field">
-        <label for="mini-reader-input">{{ c['tryLabel'] }}</label>
+        <label for="term-try-input">{{ c.tryLabel }}</label>
         <textarea
           filInput
-          id="mini-reader-input"
+          id="term-try-input"
           rows="2"
+          spellcheck="false"
           [value]="line()"
-          (input)="line.set($any($event.target).value)"
+          (input)="edit($any($event.target).value)"
         ></textarea>
       </div>
 
-      <p class="step-body mini-output">
+      <p class="step-body term-try">
         @for (segment of segments(); track $index) {
           @if (segment.definition) {
             <span
@@ -109,20 +149,20 @@ function synonymsOf(entry: GlossaryEntry): readonly GlossaryEntry[] {
               >{{ segment.text }}</span
             >
           } @else {
-            {{ segment.text }}
+            <ng-container>{{ segment.text }}</ng-container>
           }
         }
       </p>
     </section>
 
-    @if (neighbors().length) {
-      <section>
-        <h2 class="card-title">{{ c['neighborsTitle'] }}</h2>
-        <ul class="neighbors">
-          @for (neighbor of neighbors(); track neighbor.slug) {
+    @if (neighbors().synonyms.length) {
+      <section class="term-section">
+        <h2 class="card-title">{{ c.synonymsTitle }}</h2>
+        <ul class="term-links">
+          @for (other of neighbors().synonyms; track other.slug) {
             <li>
-              <a [routerLink]="termHref(neighbor)"
-                ><code>{{ neighbor.term }}</code> — {{ neighbor.fr }}</a
+              <a [routerLink]="hrefOf(other)"
+                ><code>{{ other.term }}</code> — {{ c.notation[other.lang] }}</a
               >
             </li>
           }
@@ -130,83 +170,105 @@ function synonymsOf(entry: GlossaryEntry): readonly GlossaryEntry[] {
       </section>
     }
 
+    <section class="term-section">
+      <h2 class="card-title">{{ c.relatedTitle }}</h2>
+      <ul class="term-links">
+        @for (other of neighbors().related; track other.slug) {
+          <li>
+            <a [routerLink]="hrefOf(other)"
+              ><code>{{ other.term }}</code> — {{ headOf(other[locale]) }}</a
+            >
+          </li>
+        }
+      </ul>
+    </section>
+
     <div class="navrow">
-      <a filButton="secondary" [routerLink]="i18n.link('reader')">{{ c['backToReader'] }}</a>
-      <a filButton="ghost" [routerLink]="i18n.link('glossary')">{{ c['backToGlossary'] }}</a>
+      <a filButton="primary" [routerLink]="i18n.link('reader')">{{ c.backToReader }}</a>
+      <a filButton="ghost" [routerLink]="i18n.link('glossary')">{{ c.backToGlossary }}</a>
     </div>
-  `,
-  styles: `
-    .neighbors {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-2) var(--space-5);
-      list-style: none;
-      padding: 0;
-      margin: var(--space-3) 0 0;
-    }
-    .mini-output {
-      max-width: none;
-      font-size: clamp(19px, 2.4vw, 25px);
-    }
   `,
 })
 export class GlossaryTermPage {
   protected readonly tooltips = inject(TooltipService);
   protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
+  private readonly analytics = inject(AnalyticsService);
   private readonly origin = inject(SITE_ORIGIN);
   private readonly route = inject(ActivatedRoute);
 
-  private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
-  protected readonly entry = GLOSSARY.find(
-    (e) => e.term === (this.route.snapshot.data['term'] as string),
-  )!;
+  protected readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
+  protected readonly otherLocale: Locale = this.locale === 'fr' ? 'en' : 'fr';
   protected readonly c = COPY[this.locale];
+  protected readonly headOf = headOf;
 
-  protected readonly line = signal(`${ROW_WORD[this.locale]}: 6 ${this.entry.term}, ch 1, rep *`);
-  protected readonly segments = computed<TextSegment[]>(() => annotate(this.line(), this.locale));
-
-  protected readonly craftLabel = computed(() => CRAFT_LABEL[this.locale][this.entry.craft]);
-
-  protected readonly neighbors = computed<readonly GlossaryEntry[]>(() => {
-    const synonyms = synonymsOf(this.entry);
-    if (synonyms.length) return synonyms;
-    return GLOSSARY.filter((e) => e !== this.entry && e.craft === this.entry.craft).slice(0, 6);
+  /** `canMatch` garantit que le slug appartient au glossaire. */
+  private readonly slug = toSignal(this.route.paramMap.pipe(map((params) => params.get('slug'))), {
+    requireSync: true,
   });
+  protected readonly entry = computed(() => GLOSSARY.find((e) => e.slug === this.slug())!);
+
+  protected readonly question = computed(() => this.c.question[this.entry().craft]);
+  protected readonly meaning = computed(() => {
+    const definition = this.entry()[this.locale];
+    const head = headOf(definition);
+    // La glose éventuelle suit la tête, séparée d'un tiret cadratin.
+    return { head, rest: `${definition.slice(head.length)}.` };
+  });
+  protected readonly neighbors = computed(() => neighborsOf(this.entry()));
+
+  /** Rang d'essai : l'exemple du terme, remplacé dès que la personne écrit. */
+  protected readonly line = linkedSignal(() => this.entry().example);
+  protected readonly segments = computed(() => annotate(this.line(), this.locale));
+  private triedFor: string | null = null;
 
   constructor() {
     this.i18n.setLocale(this.locale);
+    // Émet de façon synchrone à la construction, donc aussi au pré-rendu.
+    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe(() => this.applySeo());
+  }
 
-    const path: LocalizedPath = {
-      fr: `${ROUTE_PATHS.glossary.fr}/${this.entry.slug}`,
-      en: `${ROUTE_PATHS.glossary.en}/${this.entry.slug}`,
+  protected hrefOf(entry: GlossaryEntry): string {
+    return `${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}/${entry.slug}`;
+  }
+
+  protected edit(value: string): void {
+    this.line.set(value);
+    if (this.triedFor !== this.entry().slug) {
+      this.triedFor = this.entry().slug;
+      this.analytics.track('term_tried');
+    }
+  }
+
+  protected show(event: Event, term: string, definition: string): void {
+    this.analytics.track('glossary_hover');
+    this.tooltips.showFor(event.target as HTMLElement, term, definition);
+  }
+
+  private applySeo(): void {
+    const entry = this.entry();
+    const path = {
+      fr: `${ROUTE_PATHS.glossary.fr}/${entry.slug}`,
+      en: `${ROUTE_PATHS.glossary.en}/${entry.slug}`,
     };
+    const url = `${this.origin}${localePrefix(this.locale)}${path[this.locale]}`;
     const glossaryUrl = `${this.origin}${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}`;
 
     this.seo.apply({
-      title: `${this.entry.term} — ${headOf(this.locale === 'fr' ? this.entry.fr : this.entry.en)} — ${SITE_NAME}`,
-      description:
-        this.locale === 'fr'
-          ? `« ${this.entry.term} » veut dire ${this.entry.fr} (${this.entry.en} en anglais). Essayez-le avec un rang de votre patron.`
-          : `“${this.entry.term}” means ${this.entry.en} (${this.entry.fr} in French). Try it with a row from your pattern.`,
+      title: this.c.title(entry),
+      description: this.c.description(entry),
       path,
       locale: this.locale,
       jsonLd: {
         '@context': 'https://schema.org',
         '@type': 'DefinedTerm',
-        name: this.entry.term,
-        description: this.locale === 'fr' ? this.entry.fr : this.entry.en,
+        '@id': url,
+        url,
+        name: entry.term,
+        description: entry[this.locale],
         inLanguage: this.locale,
         inDefinedTermSet: glossaryUrl,
       },
     });
-  }
-
-  protected termHref(entry: GlossaryEntry): string {
-    return `${this.i18n.prefix()}${ROUTE_PATHS.glossary[this.locale]}/${entry.slug}`;
-  }
-
-  protected show(event: Event, term: string, definition: string): void {
-    this.tooltips.showFor(event.target as HTMLElement, term, definition);
   }
 }

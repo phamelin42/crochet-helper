@@ -3,7 +3,6 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { DurationPipe } from '../../../shared/pipes/duration.pipe';
 import { Button } from '../../../shared/ui/button/button';
 import { Checkbox } from '../../../shared/ui/checkbox/checkbox';
-import { InputField } from '../../../shared/ui/field/input';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Tile } from '../../../shared/ui/tile/tile';
 import { ReaderStore } from '../state/reader-store';
@@ -14,7 +13,7 @@ import { ReaderStore } from '../state/reader-store';
  */
 @Component({
   selector: 'fil-reader-counters',
-  imports: [Button, Checkbox, DurationPipe, Icon, InputField, Tile],
+  imports: [Button, Checkbox, DurationPipe, Icon, Tile],
   host: { class: 'meter' },
   template: `
     <fil-tile [label]="t('ui.reps')">

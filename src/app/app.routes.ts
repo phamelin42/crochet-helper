@@ -1,7 +1,17 @@
-import { Routes } from '@angular/router';
+import { CanMatchFn, Routes } from '@angular/router';
 import { DEFAULT_LOCALE, LOCALES, Locale } from './core/i18n/locale';
 import { ROUTE_PATHS } from './core/i18n/route-paths';
-import { GLOSSARY } from './features/reader/data/glossary';
+
+/**
+ * N'accepte que les abréviations du glossaire ; une autre valeur retombe sur
+ * la route `**`. Le glossaire est chargé à la demande : l'importer ici le
+ * ferait entrer dans le bundle initial de chaque page du site.
+ */
+const isGlossaryTerm: CanMatchFn = async (_route, segments) => {
+  const { GLOSSARY } = await import('./features/reader/data/glossary');
+  const slug = segments.at(-1)?.path;
+  return GLOSSARY.some((entry) => entry.slug === slug);
+};
 
 /**
  * Un arbre de routes par langue, construit à partir de la même définition.
@@ -33,14 +43,15 @@ function routesFor(locale: Locale): Routes {
             import('./features/glossary/glossary-page').then((m) => m.GlossaryPage),
           data,
         },
-        // Une route par abréviation, dérivée de `GLOSSARY` : aucune liste de
-        // slugs écrite à la main, donc jamais désynchronisée du glossaire.
-        ...GLOSSARY.map((entry) => ({
-          path: `${strip(ROUTE_PATHS.glossary[locale])}/${entry.slug}`,
+        // Une page par abréviation. Les valeurs de `:slug` à pré-rendre sont
+        // dérivées de `GLOSSARY` dans `app.routes.server.ts`.
+        {
+          path: `${strip(ROUTE_PATHS.glossary[locale])}/:slug`,
+          canMatch: [isGlossaryTerm],
           loadComponent: () =>
             import('./features/glossary/pages/term-page').then((m) => m.GlossaryTermPage),
-          data: { ...data, term: entry.term },
-        })),
+          data,
+        },
         {
           path: strip(ROUTE_PATHS.format[locale]),
           loadComponent: () => import('./features/format/format-page').then((m) => m.FormatPage),

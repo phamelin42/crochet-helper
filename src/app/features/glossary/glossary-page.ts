@@ -1,11 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../core/i18n/locale';
 import { SeoService } from '../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../core/seo/site';
 import { ROUTE_PATHS } from '../../core/i18n/route-paths';
-import { GLOSSARY } from '../reader/data/glossary';
+import { GLOSSARY, GlossaryEntry } from '../reader/data/glossary';
 import { InputField } from '../../shared/ui/field/input';
 
 const COPY: Record<Locale, Record<string, string>> = {
@@ -20,6 +20,9 @@ const COPY: Record<Locale, Record<string, string>> = {
     fr: 'Français',
     en: 'Anglais',
     craft: 'Technique',
+    crochet: 'crochet',
+    tricot: 'tricot',
+    commun: 'crochet et tricot',
   },
   en: {
     title: `Crochet and knitting abbreviations — ${SITE_NAME}`,
@@ -32,6 +35,9 @@ const COPY: Record<Locale, Record<string, string>> = {
     fr: 'French',
     en: 'English',
     craft: 'Craft',
+    crochet: 'crochet',
+    tricot: 'knitting',
+    commun: 'crochet and knitting',
   },
 };
 
@@ -42,7 +48,7 @@ const COPY: Record<Locale, Record<string, string>> = {
  */
 @Component({
   selector: 'fil-glossary-page',
-  imports: [InputField],
+  imports: [InputField, RouterLink],
   host: { class: 'wrap' },
   template: `
     <section class="hero">
@@ -79,11 +85,13 @@ const COPY: Record<Locale, Record<string, string>> = {
         @for (entry of filtered(); track entry.term) {
           <tr>
             <th scope="row">
-              <code>{{ entry.term }}</code>
+              <a [routerLink]="hrefOf(entry)"
+                ><code>{{ entry.term }}</code></a
+              >
             </th>
             <td>{{ entry.fr }}</td>
             <td>{{ entry.en }}</td>
-            <td class="text-muted">{{ entry.craft }}</td>
+            <td class="text-muted">{{ c[entry.craft] }}</td>
           </tr>
         }
       </tbody>
@@ -111,6 +119,11 @@ export class GlossaryPage {
     );
   });
 
+  /** Chaque abréviation a sa page : le tableau est aussi leur porte d'entrée. */
+  protected hrefOf(entry: GlossaryEntry): string {
+    return `${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}/${entry.slug}`;
+  }
+
   constructor() {
     this.i18n.setLocale(this.locale);
     this.seo.apply({
@@ -128,6 +141,7 @@ export class GlossaryPage {
           '@type': 'DefinedTerm',
           name: entry.term,
           description: this.locale === 'fr' ? entry.fr : entry.en,
+          url: `${this.origin}${this.hrefOf(entry)}`,
         })),
       },
     });

@@ -5,6 +5,14 @@
 
 [build.environment]
   NODE_VERSION = "24"
+  SITE_ORIGIN = "https://patternreader.com"
+
+# L'ancien domaine reste redirigé, chemin par chemin, vers le nouveau.
+[[redirects]]
+  from = "https://crochet-helper.phamelin.fr/*"
+  to = "https://patternreader.com/:splat"
+  status = 301
+  force = true
 
 # Les pages pré-rendues existent en tant que fichiers ; ce repli ne sert qu'aux
 # URL inconnues, que l'application route côté client vers l'accueil.

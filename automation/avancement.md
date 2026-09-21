@@ -15,7 +15,7 @@ branche.
 | Fiche                                | État     | PR  | Date       |
 | ------------------------------------ | -------- | --- | ---------- |
 | 10 — Mesure de l'usage réel          | Terminée | #11 | 2026-09-21 |
-| 11 — Marque et domaine               | À faire  | —   | —          |
+| 11 — Marque et domaine               | Terminée | —   | 2026-09-21 |
 | 12 — Anglais par défaut              | À faire  | —   | —          |
 | 13 — Import PDF                      | À faire  | —   | —          |
 | 14 — Une page par abréviation        | À faire  | —   | —          |

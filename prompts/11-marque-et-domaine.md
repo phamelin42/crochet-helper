@@ -10,11 +10,22 @@ la confiance.
 Cette tâche se fait **maintenant** : changer de domaine après avoir accumulé du
 référencement coûte des mois de trafic.
 
-## Décision préalable — bloquante
+## Décision prise
 
-Le nom et le domaine sont une décision du propriétaire du projet, pas de l'agent.
-**Si le domaine cible n'est pas fourni dans la consigne, arrête-toi et demande-le.**
-N'invente pas de nom.
+- **Nom affiché :** « Pattern Reader », partout où une personne le lit.
+- **Origine canonique :** `https://patternreader.com`, sans `www`.
+- **Ancienne origine à rediriger :** `https://crochet-helper.phamelin.fr`.
+- **Identifiant technique inchangé :** `fil-patterns` reste le nom du projet
+  Angular, donc aussi le dossier `dist/fil-patterns/browser`. `vercel.json`,
+  `netlify.toml` et quatre scripts de `tools/` en dépendent ; le renommer
+  casserait le déploiement pour un gain nul.
+
+## Condition de fusion — à écrire en tête de la PR
+
+Le nouveau domaine doit servir le site **avant** que cette PR soit fusionnée.
+Sinon les redirections envoient toutes les visiteuses vers un domaine qui ne
+répond pas. Écris-le comme premier « point à relire en priorité » : « Ne fusionner
+qu'une fois https://patternreader.com affiché correctement. »
 
 ## Objectif
 
@@ -34,14 +45,21 @@ Un seul nom partout, un domaine propre, et aucune URL cassée.
    d'environnement `SITE_ORIGIN` au build, sur les deux hébergeurs.
 2. Vérifier la régénération de `sitemap.xml`, `robots.txt`, des `canonical` et
    des `hreflang` (dont `x-default`) avec la nouvelle origine.
-3. Ajouter les redirections 301 de l'ancien domaine vers le nouveau, route par
-   route, dans `vercel.json` et `netlify.toml`. Une redirection globale vers la
-   racine est un échec : chaque URL doit atterrir sur son équivalent.
-4. Aligner le nom dans `package.json`, `README.md`, `manifest.webmanifest`
-   (`name`, `short_name`), les métadonnées Open Graph et les `<title>` par défaut.
-5. Noter dans `docs/` la marche à suivre Search Console : nouvelle propriété,
-   outil de changement d'adresse, soumission du nouveau sitemap. L'agent ne peut
-   pas le faire lui-même.
+3. Ajouter les redirections 301 de l'ancien domaine vers le nouveau, dans
+   `vercel.json` et `netlify.toml`, en conservant le chemin : une règle filtrée
+   sur l'hôte `crochet-helper.phamelin.fr` qui renvoie `/<chemin>` vers
+   `https://patternreader.com/<chemin>` convient. Une redirection de toutes les
+   pages vers la racine est un échec : chaque URL doit atterrir sur son
+   équivalent.
+4. Remplacer « Fil » et « Crochet helper » par « Pattern Reader » dans tout ce
+   qui s'affiche : `README.md`, `manifest.webmanifest` (`name`, `short_name`),
+   les métadonnées Open Graph, les `<title>` par défaut, les traductions. Le
+   champ `name` de `package.json` peut devenir `pattern-reader`.
+5. Noter dans `docs/` la marche à suivre manuelle, que l'agent ne peut pas
+   faire lui-même : garder l'ancien domaine attaché au projet Vercel (les
+   redirections passent par lui), puis dans la Search Console créer la nouvelle
+   propriété, utiliser l'outil de changement d'adresse et soumettre le nouveau
+   sitemap.
 
 ## Critères d'acceptation
 
@@ -50,8 +68,11 @@ Un seul nom partout, un domaine propre, et aucune URL cassée.
 - `check-prerender.mjs` confirme que chaque page annoncée est présente et canonique.
 - Aucune occurrence de `phamelin.fr` ni de `vercel.app` ne subsiste dans `src/`,
   hors fichier de redirection.
-- Les trois noms sont réduits à un seul dans tout le dépôt.
+- Plus aucun texte visible ne dit « Fil » ni « Crochet helper ».
+- `fil-patterns` n'apparaît plus que comme identifiant technique : projet
+  Angular, dossier `dist/`, scripts de `tools/`.
 
 ## Hors périmètre
 
 Refonte visuelle, nouveau logo, changement de charte. On renomme, on ne redessine pas.
+Renommer le projet Angular ou le dossier de sortie `dist/fil-patterns`.

@@ -130,9 +130,10 @@ export class ReaderStore {
 
   /**
    * Charge un texte de patron. `keepPosition` sert à la restauration ;
-   * `origine` évite de compter l'exemple comme un patron apporté par la personne.
+   * `origine` distingue un patron collé, un PDF importé et l'exemple : seul un
+   * patron collé compte comme `pattern_pasted`.
    */
-  load(text: string, keepPosition = false, origine: 'saisie' | 'exemple' = 'saisie'): void {
+  load(text: string, keepPosition = false, origine: 'saisie' | 'pdf' | 'exemple' = 'saisie'): void {
     this.pdfError.set(null);
     this.source.set(text);
     if (!keepPosition) {
@@ -170,7 +171,7 @@ export class ReaderStore {
       const { extractPdfPages } = await import('../data/pdf-extract');
       const pages = await extractPdfPages(file);
       const text = normalizePdfPages(pages);
-      this.load(text);
+      this.load(text, false, 'pdf');
       this.analytics.track('pdf_imported', { pages: pages.length });
     } catch (error) {
       const raison = error instanceof PdfEmptyTextError ? 'vide' : 'erreur';

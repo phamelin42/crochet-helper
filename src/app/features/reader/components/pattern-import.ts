@@ -55,6 +55,8 @@ import { ReaderStore } from '../state/reader-store';
             type="file"
             accept="application/pdf,.pdf"
             class="visually-hidden"
+            tabindex="-1"
+            aria-hidden="true"
             (change)="onPdfChange($event)"
           />
           @if (pdfErrorMessage(); as message) {

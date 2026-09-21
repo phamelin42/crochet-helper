@@ -37,6 +37,16 @@ describe('ReaderStore — mesure', () => {
     );
   });
 
+  it('ne compte pas un PDF importé comme un patron collé', () => {
+    store.load('Round 1: 6 sc in a magic ring (6)', false, 'pdf');
+
+    expect(events()).toEqual(['pattern_parsed']);
+    expect(track).toHaveBeenCalledWith(
+      'pattern_parsed',
+      expect.objectContaining({ origine: 'pdf' }),
+    );
+  });
+
   it("n'émet rien quand on vide le lecteur", () => {
     store.clear();
 

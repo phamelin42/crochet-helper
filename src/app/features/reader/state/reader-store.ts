@@ -7,6 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { DEMO_PATTERN } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
@@ -39,6 +40,7 @@ interface PersistedState {
 @Service()
 export class ReaderStore {
   private readonly storage = inject(LocalStorageService);
+  private readonly analytics = inject(AnalyticsService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly restored = signal(false);
@@ -111,6 +113,7 @@ export class ReaderStore {
   private restore(): void {
     const saved = this.storage.read<Partial<PersistedState>>(KEY);
     if (!saved) return;
+    if (saved.source) this.analytics.track('session_resumed');
     this.source.set(saved.source ?? '');
     this.image.set(saved.image ?? '');
     this.done.set(saved.done ?? {});
@@ -132,6 +135,8 @@ export class ReaderStore {
     }
     this.pieceIndex.update((i) => Math.min(i, Math.max(0, this.pieces().length - 1)));
     this.stepIndex.update((i) => Math.min(i, Math.max(0, this.stepCount() - 1)));
+    if (text)
+      this.analytics.track('pattern_parsed', { steps: this.total(), pieces: this.pieces().length });
   }
 
   loadDemo(): void {
@@ -169,6 +174,7 @@ export class ReaderStore {
 
     this.pieceIndex.set(pieceIndex);
     this.stepIndex.set(stepIndex);
+    this.analytics.track('step_advanced');
     if (!this.running()) this.startTimer();
   }
 
@@ -176,6 +182,7 @@ export class ReaderStore {
   goTo(oneBased: number): void {
     if (!this.stepCount()) return;
     this.stepIndex.set(Math.max(0, Math.min(this.stepCount() - 1, oneBased - 1)));
+    this.analytics.track('step_advanced');
   }
 
   addRepeat(delta: number): void {

@@ -1,4 +1,5 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { AnalyticsService, roundToHundred } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
@@ -55,6 +56,7 @@ import { ReaderStore } from '../state/reader-store';
 export class PatternImport {
   protected readonly store = inject(ReaderStore);
   private readonly i18n = inject(I18nService);
+  private readonly analytics = inject(AnalyticsService);
 
   readonly open = signal(true);
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
@@ -70,6 +72,7 @@ export class PatternImport {
   }
 
   protected load(text: string): void {
+    this.analytics.track('pattern_pasted', { length: roundToHundred(text.length) });
     this.store.load(text);
     this.open.set(false);
   }

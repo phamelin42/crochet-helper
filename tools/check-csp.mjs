@@ -18,6 +18,40 @@ import { join } from 'node:path';
 
 const ROOT = 'dist/fil-patterns/browser';
 
+/**
+ * Vercel et Netlify portent chacun leur propre copie de la CSP
+ * (`vercel.json`, `netlify.toml`). Rien ne les lie automatiquement : une
+ * mise à jour de l'une sans l'autre servirait une politique différente selon
+ * l'hébergeur choisi, en silence.
+ */
+function cspFromVercel() {
+  const config = JSON.parse(readFileSync('vercel.json', 'utf8'));
+  const block = config.headers?.find((entry) => entry.source === '/(.*)');
+  return block?.headers?.find((header) => header.key === 'Content-Security-Policy')?.value;
+}
+
+function cspFromNetlify() {
+  const toml = readFileSync('netlify.toml', 'utf8');
+  return toml.match(/Content-Security-Policy\s*=\s*"([^"]+)"/)?.[1];
+}
+
+const vercelCsp = cspFromVercel();
+const netlifyCsp = cspFromNetlify();
+
+if (!vercelCsp || !netlifyCsp) {
+  console.error('CSP introuvable dans vercel.json ou netlify.toml.');
+  process.exit(1);
+}
+
+if (vercelCsp !== netlifyCsp) {
+  console.error(
+    `\nLa CSP diverge entre les deux hébergeurs :\n` +
+      `  vercel.json  : ${vercelCsp}\n` +
+      `  netlify.toml : ${netlifyCsp}\n`,
+  );
+  process.exit(1);
+}
+
 /** `onload="…"`, `onclick="…"` : relèvent de `script-src`, pas de `style-src`. */
 const INLINE_HANDLER = /\son[a-z]+\s*=\s*["']/i;
 
@@ -64,4 +98,6 @@ if (offenders.length) {
   process.exit(1);
 }
 
-console.log(`CSP : aucun code inline dans ${pages.length} pages pré-rendues.`);
+console.log(
+  `CSP : vercel.json et netlify.toml identiques, aucun code inline dans ${pages.length} pages pré-rendues.`,
+);

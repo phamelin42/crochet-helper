@@ -12,13 +12,13 @@ const ORIGIN = process.env['SITE_ORIGIN'] ?? 'https://patternreader.com';
 const ROOT = 'dist/fil-patterns/browser';
 
 /**
- * Correspondance entre une page française et son équivalent anglais, lue depuis
- * la même table que l'application. Elle était auparavant recopiée ici, et avait
- * divergé dès que le lecteur a changé d'URL.
+ * Correspondance entre une page anglaise (à la racine) et son équivalent
+ * français (sous `/fr`), lue depuis la même table que l'application. Elle était
+ * auparavant recopiée ici, et avait divergé dès que le lecteur a changé d'URL.
  */
 const PATHS = JSON.parse(await readFile('src/app/core/i18n/route-paths.json', 'utf8'));
 const ALTERNATES = new Map(
-  Object.values(PATHS).map(({ fr, en }) => [fr, en === '/' ? '/en' : `/en${en}`]),
+  Object.values(PATHS).map(({ fr, en }) => [en, fr === '/' ? '/fr' : `/fr${fr}`]),
 );
 
 async function findPages(dir) {
@@ -36,12 +36,12 @@ async function findPages(dir) {
 }
 
 function alternatesFor(route) {
-  for (const [fr, en] of ALTERNATES) {
-    if (route === fr || route === en) {
+  for (const [en, fr] of ALTERNATES) {
+    if (route === en || route === fr) {
       return [
-        `    <xhtml:link rel="alternate" hreflang="fr" href="${ORIGIN}${fr === '/' ? '' : fr}"/>`,
-        `    <xhtml:link rel="alternate" hreflang="en" href="${ORIGIN}${en}"/>`,
-        `    <xhtml:link rel="alternate" hreflang="x-default" href="${ORIGIN}${fr === '/' ? '' : fr}"/>`,
+        `    <xhtml:link rel="alternate" hreflang="en" href="${ORIGIN}${en === '/' ? '' : en}"/>`,
+        `    <xhtml:link rel="alternate" hreflang="fr" href="${ORIGIN}${fr}"/>`,
+        `    <xhtml:link rel="alternate" hreflang="x-default" href="${ORIGIN}${en === '/' ? '' : en}"/>`,
       ].join('\n');
     }
   }

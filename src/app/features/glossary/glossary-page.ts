@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { Locale } from '../../core/i18n/locale';
+import { DEFAULT_LOCALE, Locale } from '../../core/i18n/locale';
 import { SeoService } from '../../core/seo/seo.service';
 import { SITE_NAME } from '../../core/seo/site';
 import { ROUTE_PATHS } from '../../core/i18n/route-paths';
@@ -95,7 +95,7 @@ export class GlossaryPage {
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
 
-  private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? 'fr';
+  private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
   protected readonly query = signal('');
 

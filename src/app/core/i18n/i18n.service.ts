@@ -6,7 +6,7 @@ import { TRANSLATIONS, TranslationKey } from './translations';
 /**
  * Langue courante et traduction d'interface.
  *
- * La langue vient de l'URL (`/` pour le français, `/en` pour l'anglais), pas
+ * La langue vient de l'URL (`/` pour l'anglais, `/fr` pour le français), pas
  * d'une préférence stockée : c'est ce qui rend chaque langue indexable et
  * pré-rendue indépendamment. Le service est fourni à la racine, donc chaque
  * rendu serveur dispose de sa propre instance.

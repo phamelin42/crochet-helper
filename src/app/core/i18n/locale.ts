@@ -1,9 +1,9 @@
 /** Langues servies par l'application. La première est la langue par défaut. */
-export const LOCALES = ['fr', 'en'] as const;
+export const LOCALES = ['en', 'fr'] as const;
 
 export type Locale = (typeof LOCALES)[number];
 
-export const DEFAULT_LOCALE: Locale = 'fr';
+export const DEFAULT_LOCALE: Locale = 'en';
 
 /** Préfixe d'URL d'une langue : la langue par défaut vit à la racine. */
 export function localePrefix(locale: Locale): string {

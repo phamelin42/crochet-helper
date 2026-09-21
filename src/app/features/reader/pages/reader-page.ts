@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
-import { Locale } from '../../../core/i18n/locale';
+import { DEFAULT_LOCALE, Locale } from '../../../core/i18n/locale';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
@@ -64,7 +64,7 @@ export class ReaderPage {
   private readonly route = inject(ActivatedRoute);
 
   constructor() {
-    const locale = (this.route.snapshot.data['locale'] as Locale) ?? 'fr';
+    const locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
     this.i18n.setLocale(locale);
     this.seo.apply({
       ...SEO[locale],

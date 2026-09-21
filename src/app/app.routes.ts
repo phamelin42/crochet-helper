@@ -5,8 +5,8 @@ import { ROUTE_PATHS } from './core/i18n/route-paths';
 /**
  * Un arbre de routes par langue, construit à partir de la même définition.
  *
- * Le français vit à la racine, l'anglais sous `/en` avec des
- * segments traduits (`/en/glossary`). Chaque route porte sa langue en `data`,
+ * L'anglais vit à la racine, le français sous `/fr` avec des
+ * segments traduits (`/fr/glossaire`). Chaque route porte sa langue en `data`,
  * ce que les pages lisent pour se traduire et poser leurs métadonnées — la
  * langue vient donc de l'URL, jamais d'une préférence stockée, et les deux
  * versions sont pré-rendues et indexables séparément.

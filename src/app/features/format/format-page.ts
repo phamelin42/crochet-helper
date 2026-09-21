@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { Locale } from '../../core/i18n/locale';
+import { DEFAULT_LOCALE, Locale } from '../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../core/i18n/route-paths';
 import { SeoService } from '../../core/seo/seo.service';
 import { Button } from '../../shared/ui/button/button';
@@ -67,7 +67,7 @@ export class FormatPage {
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
 
-  private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? 'fr';
+  private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
   protected readonly prompt = FORMAT_PROMPT[this.locale];
   protected readonly copied = signal(false);

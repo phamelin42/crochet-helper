@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { DEFAULT_LOCALE, LOCALES, Locale } from './core/i18n/locale';
 import { ROUTE_PATHS } from './core/i18n/route-paths';
+import { GLOSSARY } from './features/reader/data/glossary';
 
 /**
  * Un arbre de routes par langue, construit à partir de la même définition.
@@ -32,6 +33,14 @@ function routesFor(locale: Locale): Routes {
             import('./features/glossary/glossary-page').then((m) => m.GlossaryPage),
           data,
         },
+        // Une route par abréviation, dérivée de `GLOSSARY` : aucune liste de
+        // slugs écrite à la main, donc jamais désynchronisée du glossaire.
+        ...GLOSSARY.map((entry) => ({
+          path: `${strip(ROUTE_PATHS.glossary[locale])}/${entry.slug}`,
+          loadComponent: () =>
+            import('./features/glossary/pages/term-page').then((m) => m.GlossaryTermPage),
+          data: { ...data, term: entry.term },
+        })),
         {
           path: strip(ROUTE_PATHS.format[locale]),
           loadComponent: () => import('./features/format/format-page').then((m) => m.FormatPage),

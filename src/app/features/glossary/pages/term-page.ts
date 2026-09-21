@@ -11,6 +11,7 @@ import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
 import { Button } from '../../../shared/ui/button/button';
 import { InputField } from '../../../shared/ui/field/input';
 import { TooltipService } from '../../../shared/ui/tooltip/tooltip.service';
+import { regionCrossReferenceOf } from '../../converter/data/convert-terms';
 import { GLOSSARY, GlossaryEntry, annotate } from '../../reader/data/glossary';
 import { headOf, neighborsOf } from '../data/term-neighbors';
 
@@ -28,6 +29,11 @@ interface TermCopy {
   readonly tryTitle: string;
   readonly tryLead: string;
   readonly tryLabel: string;
+  readonly regionTitle: string;
+  /** Un patron britannique emploie ces lettres pour une autre maille : laquelle. */
+  regionReused(term: string, otherMeaning: string): string;
+  /** Cette maille s'écrit autrement en notation britannique : comment. */
+  regionEquivalent(otherTerm: string): string;
   readonly synonymsTitle: string;
   readonly relatedTitle: string;
   readonly backToReader: string;
@@ -54,6 +60,11 @@ const COPY: Record<Locale, TermCopy> = {
     tryLead:
       'Voici un rang qui l’emploie. Remplacez-le par un rang de votre patron : chaque abréviation reconnue est soulignée, et sa traduction apparaît au survol.',
     tryLabel: 'Un rang de patron',
+    regionTitle: 'Convention britannique',
+    regionReused: (term, otherMeaning) =>
+      `Dans un patron britannique, «${NBSP}${term}${NBSP}» désigne ${otherMeaning}.`,
+    regionEquivalent: (otherTerm) =>
+      `Un patron britannique écrit «${NBSP}${otherTerm}${NBSP}» pour ce point.`,
     synonymsTitle: 'Autres façons de l’écrire',
     relatedTitle: 'À voir aussi',
     backToReader: 'Lire tout un patron pas à pas',
@@ -77,6 +88,9 @@ const COPY: Record<Locale, TermCopy> = {
     tryLead:
       'Here is a row that uses it. Replace it with a row from your pattern: every abbreviation the reader knows is underlined, and its meaning shows on hover.',
     tryLabel: 'A row from a pattern',
+    regionTitle: 'British notation',
+    regionReused: (term, otherMeaning) => `In a British pattern, “${term}” means ${otherMeaning}.`,
+    regionEquivalent: (otherTerm) => `A British pattern writes “${otherTerm}” for this stitch.`,
     synonymsTitle: 'Other ways to write it',
     relatedTitle: 'See also',
     backToReader: 'Read a whole pattern step by step',
@@ -155,6 +169,16 @@ const COPY: Record<Locale, TermCopy> = {
       </p>
     </section>
 
+    @if (regionRef(); as region) {
+      <section class="card">
+        <h2 class="card-title">{{ c.regionTitle }}</h2>
+        <p class="card-body">{{ regionNote() }}</p>
+        <a filButton="ghost" [routerLink]="hrefOf(region.other)"
+          ><code>{{ region.other.term }}</code></a
+        >
+      </section>
+    }
+
     @if (neighbors().synonyms.length) {
       <section class="term-section">
         <h2 class="card-title">{{ c.synonymsTitle }}</h2>
@@ -216,6 +240,25 @@ export class GlossaryTermPage {
     return { head, rest: `${definition.slice(head.length)}.` };
   });
   protected readonly neighbors = computed(() => neighborsOf(this.entry()));
+
+  /**
+   * Variante régionale de ce terme, quand `sc`, `dc`, `hdc`, `tr`, `dtr` ou
+   * `htr` en a une : la fiche 14 avait laissé ce point de côté faute de
+   * données, c'est le champ `region` du glossaire qui les apporte.
+   */
+  protected readonly regionRef = computed(() => {
+    const ref = regionCrossReferenceOf(this.entry().term);
+    if (!ref) return undefined;
+    const other = GLOSSARY.find((e) => e.term === ref.otherTerm);
+    return other ? { reusedInUk: ref.reusedInUk, other } : undefined;
+  });
+  protected readonly regionNote = computed(() => {
+    const ref = this.regionRef();
+    if (!ref) return '';
+    return ref.reusedInUk
+      ? this.c.regionReused(this.entry().term, headOf(ref.other[this.locale]))
+      : this.c.regionEquivalent(ref.other.term);
+  });
 
   /** Rang d'essai : l'exemple du terme, remplacé dès que la personne écrit. */
   protected readonly line = linkedSignal(() => this.entry().example);

@@ -12,7 +12,9 @@ export type AnalyticsEvent =
   | 'pdf_imported'
   | 'pdf_failed'
   /** Première modification du rang d'essai d'une page d'abréviation. */
-  | 'term_tried';
+  | 'term_tried'
+  /** Conversion d'un patron entier d'une convention US/UK à l'autre. */
+  | 'conversion_run';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

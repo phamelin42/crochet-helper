@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TooltipService } from '../../../shared/ui/tooltip/tooltip.service';
 import { annotate, expand } from '../data/glossary';
@@ -36,6 +37,7 @@ import { ReaderStore } from '../state/reader-store';
 export class GlossaryText {
   protected readonly tooltips = inject(TooltipService);
   private readonly i18n = inject(I18nService);
+  private readonly analytics = inject(AnalyticsService);
 
   private readonly store = inject(ReaderStore);
 
@@ -53,6 +55,7 @@ export class GlossaryText {
   });
 
   protected show(event: Event, term: string, definition: string): void {
+    this.analytics.track('glossary_hover');
     this.tooltips.showFor(event.target as HTMLElement, term, definition);
   }
 }

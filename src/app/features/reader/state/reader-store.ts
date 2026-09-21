@@ -7,7 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { AnalyticsService } from '../../../core/analytics/analytics.service';
+import { AnalyticsService, roundToHundred } from '../../../core/analytics/analytics.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { DEMO_PATTERN } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
@@ -124,8 +124,11 @@ export class ReaderStore {
     this.stepIndex.set(Math.min(saved.stepIndex ?? 0, Math.max(0, this.stepCount() - 1)));
   }
 
-  /** Charge un texte de patron. `keepPosition` sert à la restauration. */
-  load(text: string, keepPosition = false): void {
+  /**
+   * Charge un texte de patron. `keepPosition` sert à la restauration ;
+   * `origine` évite de compter l'exemple comme un patron apporté par la personne.
+   */
+  load(text: string, keepPosition = false, origine: 'saisie' | 'exemple' = 'saisie'): void {
     this.source.set(text);
     if (!keepPosition) {
       this.pieceIndex.set(0);
@@ -135,12 +138,19 @@ export class ReaderStore {
     }
     this.pieceIndex.update((i) => Math.min(i, Math.max(0, this.pieces().length - 1)));
     this.stepIndex.update((i) => Math.min(i, Math.max(0, this.stepCount() - 1)));
-    if (text)
-      this.analytics.track('pattern_parsed', { steps: this.total(), pieces: this.pieces().length });
+    if (!text) return;
+    if (origine === 'saisie') {
+      this.analytics.track('pattern_pasted', { length: roundToHundred(text.length) });
+    }
+    this.analytics.track('pattern_parsed', {
+      steps: this.total(),
+      pieces: this.pieces().length,
+      origine,
+    });
   }
 
   loadDemo(): void {
-    this.load(DEMO_PATTERN);
+    this.load(DEMO_PATTERN, false, 'exemple');
   }
 
   clear(): void {

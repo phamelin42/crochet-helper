@@ -1,5 +1,5 @@
 {
-  "name": "fil-patterns",
+  "name": "pattern-reader",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",

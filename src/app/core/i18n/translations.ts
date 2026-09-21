@@ -44,6 +44,11 @@ export const FR = {
   'ui.zoomIn': 'Agrandir',
   'ui.zoomOut': 'Réduire',
   'ui.skipToContent': 'Aller au contenu',
+  'ui.pdfOpen': 'Ouvrir un PDF',
+  'ui.pdfLoading': 'Lecture du PDF…',
+  'ui.pdfEmpty':
+    'Ce PDF ressemble à une image scannée : le texte ne peut pas en être extrait. Collez le texte du pattern ci-dessus à la place.',
+  'ui.pdfError': "Ce PDF n'a pas pu être lu. Collez le texte du pattern ci-dessus à la place.",
   'nav.reader': 'Lecteur',
   'nav.glossary': 'Glossaire',
   'nav.home': 'Accueil',
@@ -94,6 +99,11 @@ export const EN: Record<TranslationKey, string> = {
   'ui.zoomIn': 'Zoom in',
   'ui.zoomOut': 'Zoom out',
   'ui.skipToContent': 'Skip to content',
+  'ui.pdfOpen': 'Open a PDF',
+  'ui.pdfLoading': 'Reading the PDF…',
+  'ui.pdfEmpty':
+    "This PDF looks like a scanned image: its text can't be extracted. Paste the pattern text above instead.",
+  'ui.pdfError': "This PDF couldn't be read. Paste the pattern text above instead.",
   'nav.reader': 'Reader',
   'nav.glossary': 'Glossary',
   'nav.home': 'Home',

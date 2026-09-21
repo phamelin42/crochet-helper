@@ -17,7 +17,7 @@ branche.
 | 10 — Mesure de l'usage réel          | Terminée | #11 | 2026-09-21 |
 | 11 — Marque et domaine               | Terminée | —   | 2026-09-21 |
 | 12 — Anglais par défaut              | Terminée | —   | 2026-09-21 |
-| 13 — Import PDF                      | À faire  | —   | —          |
+| 13 — Import PDF                      | Terminée | —   | 2026-09-21 |
 | 14 — Une page par abréviation        | À faire  | —   | —          |
 | 15 — Convertisseur US ↔ UK           | À faire  | —   | —          |
 | 16 — Projets multiples et sauvegarde | À faire  | —   | —          |

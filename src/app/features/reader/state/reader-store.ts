@@ -11,6 +11,7 @@ import { AnalyticsService, roundToHundred } from '../../../core/analytics/analyt
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { DEMO_PATTERN } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
+import { PdfEmptyTextError, normalizePdfPages } from '../data/pdf-normalize';
 import { EMPTY_PATTERN, PatternPiece, PatternStep } from '../data/pattern.model';
 
 const KEY = 'fil.reader.v1';
@@ -58,6 +59,9 @@ export class ReaderStore {
   /** Affiche « maille serrée » au lieu de « ms ». Confort de lecture, pas un
    *  réglage de découpage : le texte source reste intact. */
   readonly expandAbbreviations = signal(false);
+
+  readonly pdfImporting = signal(false);
+  readonly pdfError = signal<'vide' | 'erreur' | null>(null);
 
   readonly pattern = computed(() => (this.source() ? parsePattern(this.source()) : EMPTY_PATTERN));
   readonly pieces = computed<readonly PatternPiece[]>(() => this.pattern().pieces);
@@ -129,6 +133,7 @@ export class ReaderStore {
    * `origine` évite de compter l'exemple comme un patron apporté par la personne.
    */
   load(text: string, keepPosition = false, origine: 'saisie' | 'exemple' = 'saisie'): void {
+    this.pdfError.set(null);
     this.source.set(text);
     if (!keepPosition) {
       this.pieceIndex.set(0);
@@ -151,6 +156,29 @@ export class ReaderStore {
 
   loadDemo(): void {
     this.load(DEMO_PATTERN, false, 'exemple');
+  }
+
+  /**
+   * Charge un PDF : lit le fichier, extrait le texte, le normalise, puis suit
+   * le même chemin que `load`. Chemin unique pour le bouton, le collage et le
+   * glisser-déposer d'un PDF.
+   */
+  async importPdf(file: File): Promise<void> {
+    this.pdfImporting.set(true);
+    this.pdfError.set(null);
+    try {
+      const { extractPdfPages } = await import('../data/pdf-extract');
+      const pages = await extractPdfPages(file);
+      const text = normalizePdfPages(pages);
+      this.load(text);
+      this.analytics.track('pdf_imported', { pages: pages.length });
+    } catch (error) {
+      const raison = error instanceof PdfEmptyTextError ? 'vide' : 'erreur';
+      this.pdfError.set(raison);
+      this.analytics.track('pdf_failed', { raison });
+    } finally {
+      this.pdfImporting.set(false);
+    }
   }
 
   clear(): void {

@@ -38,6 +38,8 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     class: 'wrap',
     '(document:keydown)': 'onKeydown($event)',
     '(document:paste)': 'onPaste($event)',
+    '(document:dragover)': 'onDragOver($event)',
+    '(document:drop)': 'onDrop($event)',
   },
   template: `
     <fil-pattern-import />
@@ -118,7 +120,7 @@ export class ReaderPage {
     }
   }
 
-  /** Coller une image ou un patron entier n'importe où sur la page l'importe. */
+  /** Coller une image, un PDF ou un patron entier n'importe où sur la page l'importe. */
   protected onPaste(event: ClipboardEvent): void {
     const file = event.clipboardData?.files?.[0];
     if (file?.type.startsWith('image/')) {
@@ -128,11 +130,30 @@ export class ReaderPage {
       event.preventDefault();
       return;
     }
+    if (file?.type === 'application/pdf') {
+      event.preventDefault();
+      this.store.importPdf(file);
+      return;
+    }
     if ((event.target as HTMLElement | null)?.tagName === 'TEXTAREA') return;
     const text = event.clipboardData?.getData('text') ?? '';
     if (text.trim().length > 20) {
       this.store.load(text);
       event.preventDefault();
     }
+  }
+
+  /** Autorise le dépôt sur la page : nécessaire pour que `drop` se déclenche. */
+  protected onDragOver(event: DragEvent): void {
+    event.preventDefault();
+  }
+
+  /** Un PDF déposé n'importe où sur la page suit le même chemin que le bouton
+   *  et le collage. Les images gardent leur comportement actuel : pas de dépôt géré. */
+  protected onDrop(event: DragEvent): void {
+    const file = event.dataTransfer?.files?.[0];
+    if (file?.type !== 'application/pdf') return;
+    event.preventDefault();
+    this.store.importPdf(file);
   }
 }

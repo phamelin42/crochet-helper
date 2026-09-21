@@ -7,7 +7,26 @@ export interface GlossaryEntry {
   readonly fr: string;
   readonly en: string;
   readonly craft: 'crochet' | 'tricot' | 'commun';
+  /**
+   * Identifiant d'URL, dérivé de `term`. Stable par construction : deux
+   * entrées ne partagent jamais le même terme, et `glossary.spec.ts` fige la
+   * liste pour qu'un changement de dérivation ne déplace pas une URL indexée
+   * sans qu'on s'en rende compte.
+   */
+  readonly slug: string;
 }
+
+/** Dérive un identifiant d'URL d'un terme : minuscules, ASCII, tirets. */
+function slugify(term: string): string {
+  return term
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+type RawGlossaryEntry = Omit<GlossaryEntry, 'slug'>;
 
 /**
  * Glossaire crochet / tricot, français et anglais.
@@ -16,7 +35,7 @@ export interface GlossaryEntry {
  * la principale porte d'entrée de référencement du site (les tricoteuses
  * cherchent « ms crochet signification », « what does sc mean »…).
  */
-export const GLOSSARY: readonly GlossaryEntry[] = [
+const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
   {
     term: 'crab st',
     fr: "maille serrée à l'envers — point d'écrevisse, travaillé de gauche à droite",
@@ -127,6 +146,11 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   { term: 'co', fr: 'monter les mailles', en: 'cast on', craft: 'tricot' },
   { term: 'bo', fr: 'rabattre les mailles', en: 'bind off', craft: 'tricot' },
 ];
+
+export const GLOSSARY: readonly GlossaryEntry[] = RAW_GLOSSARY.map((entry) => ({
+  ...entry,
+  slug: slugify(entry.term),
+}));
 
 const DEFINITIONS = new Map<string, GlossaryEntry>(
   GLOSSARY.map((entry) => [entry.term.toLowerCase(), entry]),

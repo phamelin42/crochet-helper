@@ -1,9 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { DEFAULT_LOCALE, Locale } from '../../core/i18n/locale';
+import { DEFAULT_LOCALE, Locale, localePrefix } from '../../core/i18n/locale';
 import { SeoService } from '../../core/seo/seo.service';
-import { SITE_NAME } from '../../core/seo/site';
+import { SITE_NAME, SITE_ORIGIN } from '../../core/seo/site';
 import { ROUTE_PATHS } from '../../core/i18n/route-paths';
 import { GLOSSARY } from '../reader/data/glossary';
 import { InputField } from '../../shared/ui/field/input';
@@ -93,6 +93,7 @@ const COPY: Record<Locale, Record<string, string>> = {
 export class GlossaryPage {
   private readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
+  private readonly origin = inject(SITE_ORIGIN);
   private readonly route = inject(ActivatedRoute);
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
@@ -120,6 +121,7 @@ export class GlossaryPage {
       jsonLd: {
         '@context': 'https://schema.org',
         '@type': 'DefinedTermSet',
+        '@id': `${this.origin}${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}`,
         name: this.c['h1'],
         inLanguage: this.locale,
         hasDefinedTerm: GLOSSARY.map((entry) => ({

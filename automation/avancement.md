@@ -18,7 +18,7 @@ branche.
 | 11 — Marque et domaine               | Terminée | —   | 2026-09-21 |
 | 12 — Anglais par défaut              | Terminée | —   | 2026-09-21 |
 | 13 — Import PDF                      | Terminée | —   | 2026-09-21 |
-| 14 — Une page par abréviation        | À faire  | —   | —          |
+| 14 — Une page par abréviation        | Terminée | —   | 2026-09-21 |
 | 15 — Convertisseur US ↔ UK           | À faire  | —   | —          |
 | 16 — Projets multiples et sauvegarde | À faire  | —   | —          |
 | 06 — Partage et impression           | À faire  | —   | —          |

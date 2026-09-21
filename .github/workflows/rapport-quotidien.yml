@@ -1,0 +1,37 @@
+# Phase 2 — Observation.
+# Lit Umami sur J-1, écrit le rapport, ouvre une issue si quelque chose a bougé.
+name: Rapport quotidien
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # 05h00 heure de Paris
+  workflow_dispatch:
+
+concurrency:
+  group: rapport-quotidien
+  cancel-in-progress: false
+
+jobs:
+  rapport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        env:
+          UMAMI_URL: ${{ secrets.UMAMI_URL }}
+          UMAMI_TOKEN: ${{ secrets.UMAMI_TOKEN }}
+          UMAMI_WEBSITE_ID: ${{ secrets.UMAMI_WEBSITE_ID }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: '/rapport-quotidien'
+          claude_args: '--max-turns 25'

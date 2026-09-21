@@ -1,8 +1,8 @@
-# Fil — lecteur de patterns crochet & tricot
+# Pattern Reader — lecteur de patterns crochet & tricot
 
-Collez un tutoriel de crochet ou de tricot : **Fil le découpe en étapes et en
-affiche une seule à la fois, en très grand**, compte vos rangs et vos
-répétitions, chronomètre la session et traduit les abréviations au survol.
+Collez un tutoriel de crochet ou de tricot : **Pattern Reader le découpe en
+étapes et en affiche une seule à la fois, en très grand**, compte vos rangs et
+vos répétitions, chronomètre la session et traduit les abréviations au survol.
 
 Pas de compte, pas de serveur, pas de réseau : le patron reste sur l'appareil.
 

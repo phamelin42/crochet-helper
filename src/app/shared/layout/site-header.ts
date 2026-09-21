@@ -38,7 +38,7 @@ import { Icon } from '../ui/icon/icon';
         <path d="M20 51 52 12" />
         <path d="M44 10c5-2 9 1 8 5-1 3-5 4-7 2" />
       </svg>
-      <span>Crochet helper</span>
+      <span>Pattern Reader</span>
     </a>
 
     <nav class="nav-links" [attr.aria-label]="i18n.t('nav.home')">

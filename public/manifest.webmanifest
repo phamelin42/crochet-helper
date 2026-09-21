@@ -1,6 +1,6 @@
 {
-  "name": "Crochet helper \u2014 lecteur de patrons",
-  "short_name": "Crochet helper",
+  "name": "Pattern Reader \u2014 lecteur de patrons",
+  "short_name": "Pattern Reader",
   "description": "Lire un patron de crochet ou de tricot une \u00e9tape \u00e0 la fois.",
   "start_url": "/lecteur",
   "display": "standalone",

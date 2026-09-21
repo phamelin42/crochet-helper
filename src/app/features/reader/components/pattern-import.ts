@@ -32,7 +32,7 @@ import { ReaderStore } from '../state/reader-store';
               class="src-input"
               spellcheck="false"
               [value]="store.source()"
-              [attr.placeholder]="placeholder"
+              [attr.placeholder]="t('ui.placeholder')"
             ></textarea>
           </div>
           <div class="import-actions">
@@ -58,9 +58,6 @@ export class PatternImport {
 
   readonly open = signal(true);
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
-
-  protected readonly placeholder =
-    'Rang 1 : 6 ms dans un cercle magique (6)\nRang 2 : 1 aug dans chaque m (12)\nRangs 3-6 : 1 ms dans chaque m (12)';
 
   protected t = (key: Parameters<I18nService['t']>[0]) => this.i18n.t(key);
 

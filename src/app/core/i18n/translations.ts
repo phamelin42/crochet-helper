@@ -7,6 +7,8 @@ import { Locale } from './locale';
 export const FR = {
   'ui.import': 'Le pattern',
   'ui.paste': 'Texte du pattern',
+  'ui.placeholder':
+    'Rang 1 : 6 ms dans un cercle magique (6)\nRang 2 : 1 aug dans chaque m (12)\nRangs 3-6 : 1 ms dans chaque m (12)',
   'ui.load': 'Découper en étapes',
   'ui.demo': 'Exemple',
   'ui.clear': 'Effacer',
@@ -55,6 +57,8 @@ export type TranslationKey = keyof typeof FR;
 export const EN: Record<TranslationKey, string> = {
   'ui.import': 'The pattern',
   'ui.paste': 'Pattern text',
+  'ui.placeholder':
+    'Round 1: 6 sc in a magic ring (6)\nRound 2: inc in each st around (12)\nRounds 3-6: sc in each st around (12)',
   'ui.load': 'Split into steps',
   'ui.demo': 'Example',
   'ui.clear': 'Clear',

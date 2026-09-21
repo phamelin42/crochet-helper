@@ -2,8 +2,8 @@ import { Locale } from './locale';
 import paths from './route-paths.json';
 
 /**
- * Segments d'URL par langue. Les chemins sont traduits — `/glossaire` en
- * français, `/en/glossary` en anglais — parce qu'une URL dans la langue de la
+ * Segments d'URL par langue. Les chemins sont traduits — `/glossary` en
+ * anglais, `/fr/glossaire` en français — parce qu'une URL dans la langue de la
  * page pèse dans le référencement et se partage mieux.
  *
  * Le lecteur occupe la racine : c'est ce que les gens viennent faire ici, et

@@ -2,9 +2,15 @@ import { InjectionToken, PLATFORM_ID, Service, afterNextRender, inject } from '@
 import { isPlatformBrowser } from '@angular/common';
 import { ANALYTICS_ORIGIN, ANALYTICS_SITE_ID } from './analytics.config';
 
-/** Les cinq seuls événements mesurés — une faute de frappe casse le build plutôt que de créer un événement fantôme. */
+/** Les sept seuls événements mesurés — une faute de frappe casse le build plutôt que de créer un événement fantôme. */
 export type AnalyticsEvent =
-  'pattern_pasted' | 'pattern_parsed' | 'step_advanced' | 'glossary_hover' | 'session_resumed';
+  | 'pattern_pasted'
+  | 'pattern_parsed'
+  | 'step_advanced'
+  | 'glossary_hover'
+  | 'session_resumed'
+  | 'pdf_imported'
+  | 'pdf_failed';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

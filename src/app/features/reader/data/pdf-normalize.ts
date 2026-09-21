@@ -8,7 +8,7 @@
 /** Levée quand aucune page ne contient de texte : le PDF est une image scannée. */
 export class PdfEmptyTextError extends Error {}
 
-const NBSP = / /g;
+const NBSP = /\u00a0/g;
 const MULTI_SPACE = /[ \t]{2,}/g;
 const PAGE_NUMBER = /^\d{1,3}$/;
 /** Lettre suivie d'un tiret en fin de ligne : une césure. Un chiffre ne compte jamais. */

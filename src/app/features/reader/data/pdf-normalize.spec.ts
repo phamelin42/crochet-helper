@@ -39,7 +39,9 @@ describe('normalizePdfPages', () => {
     const result = normalizePdfPages(pages);
 
     expect(result).not.toContain(header);
-    expect(result).toBe('Row 1: sc around\nRow 2: inc in each st\nRow 3: sc around\nRow 4: inc in each st');
+    expect(result).toBe(
+      'Row 1: sc around\nRow 2: inc in each st\nRow 3: sc around\nRow 4: inc in each st',
+    );
   });
 
   it('retire les numéros de page isolés en tête ou en fin de page', () => {

@@ -51,7 +51,7 @@ import { ReaderStore } from '../state/reader-store';
             <button type="button" filButton="ghost" (click)="clear()">{{ t('ui.clear') }}</button>
           </div>
           <input
-            #pdfInput
+            #pdfFile
             type="file"
             accept="application/pdf,.pdf"
             class="visually-hidden"
@@ -76,7 +76,7 @@ export class PatternImport {
 
   readonly open = signal(true);
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
-  private readonly pdfInput = viewChild.required<ElementRef<HTMLInputElement>>('pdfInput');
+  protected readonly pdfInput = viewChild.required<ElementRef<HTMLInputElement>>('pdfFile');
 
   protected t = (key: Parameters<I18nService['t']>[0]) => this.i18n.t(key);
 

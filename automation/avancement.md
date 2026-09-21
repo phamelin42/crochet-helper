@@ -8,7 +8,7 @@ savoir quelle fiche exécuter, et le met à jour dans la PR qu'il ouvre.
 
 | Fiche                                | État                                | PR  | Date |
 | ------------------------------------ | ----------------------------------- | --- | ---- |
-| 10 — Mesure de l'usage réel          | À faire                             | —   | —    |
+| 10 — Mesure de l'usage réel          | En cours                            | —   | 2026-09-21 |
 | 11 — Marque et domaine               | Bloquée : nom de domaine à trancher | —   | —    |
 | 12 — Anglais par défaut              | À faire                             | —   | —    |
 | 13 — Import PDF                      | À faire                             | —   | —    |

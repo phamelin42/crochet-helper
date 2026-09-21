@@ -70,7 +70,14 @@ diff qui déborde du périmètre sera refusé, et tu auras consommé une semaine
 rien. Si tu penses qu'un point de la fiche est une mauvaise idée, fais-le quand
 même et dis pourquoi dans la description de la PR.
 
-Commits découpés par intention, message en français à l'impératif.
+Commits découpés par intention, message en français à l'impératif, **faits au
+fil de l'eau** : dès qu'une étape tient debout, commite-la. Une exécution dispose
+d'un nombre limité d'échanges (200). Si elle s'arrête en route, le workflow
+ouvre en brouillon ce que tu as commité ; ce qui ne l'était pas n'est sauvé
+qu'en vrac, dans un seul commit.
+
+Quand une fiche contient une section « Décisions déjà prises », applique-les
+telles quelles : elles ont été vérifiées. Ne refais pas l'exploration.
 
 ## 4. Vérifier
 

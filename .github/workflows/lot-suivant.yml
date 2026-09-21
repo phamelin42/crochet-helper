@@ -51,7 +51,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: '/lot-suivant'
           claude_args: >-
-            --max-turns 120
+            --max-turns 200
             --allowedTools "Read,Glob,Grep,Edit,MultiEdit,Write,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(git:*),Bash(ls:*)"
 
       - id: publier
@@ -73,6 +73,15 @@ jobs:
           fi
 
           branche=$(git branch --show-current)
+
+          # L'agent a été interrompu (limite de tours, délai) : on commite ce
+          # qu'il n'avait pas commité, pour l'ouvrir en brouillon plutôt que de
+          # le perdre avec la machine.
+          if [ "$ISSUE_AGENT" != "success" ] && [ -n "$(git status --porcelain)" ] &&
+            [[ "$branche" =~ ^[0-9]{2}-[a-z0-9-]+$ ]]; then
+            git add -A
+            git commit -qm "Sauvegarder le travail inachevé de l'agent"
+          fi
           if [ -z "$branche" ] || [ "$branche" = "main" ]; then
             echo "Pas de branche de travail : rien à publier." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
@@ -111,15 +120,21 @@ jobs:
           fi
           echo "PR ouverte : $url" | tee -a "$GITHUB_STEP_SUMMARY"
 
-      # Filet de sécurité : si la publication échoue avant le push, le travail
-      # de l'agent reste téléchargeable depuis la page de l'exécution.
+      # Filet de sécurité : si l'agent ou la publication échoue, tout son
+      # travail, commité ou non, reste téléchargeable depuis la page de
+      # l'exécution — en patch lisible et en bundle git.
       - name: Conserver le travail de l'agent
-        if: failure() && steps.publier.outcome == 'failure'
-        run: git bundle create "$RUNNER_TEMP/travail-agent.bundle" --all
+        if: failure() && (steps.claude.outcome == 'failure' || steps.publier.outcome == 'failure')
+        run: |
+          git add -A
+          git diff --cached origin/main > "$RUNNER_TEMP/travail-agent.patch" || true
+          git bundle create "$RUNNER_TEMP/travail-agent.bundle" --all || true
 
-      - if: failure() && steps.publier.outcome == 'failure'
+      - if: failure() && (steps.claude.outcome == 'failure' || steps.publier.outcome == 'failure')
         uses: actions/upload-artifact@v4
         with:
           name: travail-agent
-          path: ${{ runner.temp }}/travail-agent.bundle
+          path: |
+            ${{ runner.temp }}/travail-agent.patch
+            ${{ runner.temp }}/travail-agent.bundle
           retention-days: 14

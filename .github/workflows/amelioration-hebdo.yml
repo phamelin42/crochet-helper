@@ -3,8 +3,10 @@
 name: Amelioration hebdomadaire
 
 on:
-  schedule:
-    - cron: '0 4 * * 1' # lundi 06h00 heure de Paris
+  # En pause : sera réactivé quand Umami sera installé et la phase recâblée
+  # (voir docs/pilote-automatique.md). Lancé à la main, l'agent n'a aucun outil.
+  # schedule:
+  #   - cron: '0 4 * * 1' # lundi 06h00 heure de Paris
   workflow_dispatch:
 
 concurrency:

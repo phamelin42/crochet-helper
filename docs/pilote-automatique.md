@@ -60,7 +60,9 @@ Droits d'administration du dépôt requis.
 Réglages du dépôt, protection de `main` :
 
 - pull request obligatoire avant fusion
-- vérifications de statut obligatoires : le job `verify` de la CI
+- vérifications de statut obligatoires, **en sélectionnant** le job
+  `Lint · format · tests · build` dans la liste : cocher la case sans choisir de
+  job n'exige rien
 
 C'est ce qui rend tout le reste sûr. Ne saute pas cette étape.
 
@@ -70,12 +72,18 @@ Lance « Lot suivant » à la main (exécution manuelle du workflow). Attendu : 
 PR qui exécute la fiche 10, ou une issue « Décision requise » si quelque chose
 manque. Dans les deux cas, la chaîne marche.
 
-## 6. Les deux décisions à débloquer
+L'agent travaille sans aucun droit d'écriture sur GitHub : il modifie, vérifie
+et commite en local sur le runner, puis laisse son titre et sa description dans
+`.pilote/`. C'est l'étape suivante du workflow, hors de sa portée, qui pousse la
+branche et ouvre la PR avec le jeton de l'app Claude. Elle refuse une branche au
+nom inattendu ou qui modifie `.github/` ou `.claude/`.
+
+## 6. La décision à débloquer
 
 - **Nom et domaine** (fiche 11) — réponds dans l'issue que l'agent ouvrira
-- **Origine du collecteur** (fiche 10) — Umami auto-hébergé, ou service managé
 
-Tant qu'elles ne sont pas prises, l'agent saute ces fiches et continue.
+Tant qu'elle n'est pas prise, l'agent saute la fiche 11 et continue. La fiche 10
+n'attend rien : elle livre une mesure inerte, activée plus tard par une constante.
 
 ## 7. Umami, quand tu es prêt
 
@@ -86,15 +94,21 @@ au dépôt :
 - `UMAMI_TOKEN` — un jeton d'API en lecture
 - `UMAMI_WEBSITE_ID` — l'identifiant du site
 
-Le rapport quotidien s'allume tout seul trois jours après.
+Les phases 2 et 3 (rapport quotidien, amélioration hebdomadaire) sont **en
+pause** : leur planification est commentée dans leurs workflows. Elles seront
+recâblées sur le même modèle que la phase 1 — l'agent analyse des fichiers
+préparés par le workflow, sans accès réseau ni secret — et testées contre ton
+instance Umami réelle avant d'être réactivées.
 
 ## Ce qui se passe ensuite
 
-| Quand             | Quoi                                                     |
-| ----------------- | -------------------------------------------------------- |
-| Dimanche 5h       | Une fiche exécutée, une PR ouverte                       |
-| Tous les jours 5h | Rapport écrit ; issue seulement si quelque chose a bougé |
-| Lundi 6h          | Point hebdomadaire et jusqu'à trois propositions         |
+| Quand             | Quoi                                                     | État     |
+| ----------------- | -------------------------------------------------------- | -------- |
+| Dimanche 5h       | Une fiche exécutée, une PR ouverte                       | Actif    |
+| Tous les jours 5h | Rapport écrit ; issue seulement si quelque chose a bougé | En pause |
+| Lundi 6h          | Point hebdomadaire et jusqu'à trois propositions         | En pause |
+
+Aucune fusion automatique n'est câblée : toutes les PR attendent ta relecture.
 
 Toi : lire, fusionner ou refuser, et répondre `@claude` dans une issue quand tu
 veux qu'une proposition soit mise en œuvre.

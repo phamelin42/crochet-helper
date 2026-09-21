@@ -45,3 +45,6 @@ Thumbs.db
 
 # Sortie de build locale
 /dist
+
+# Échanges entre l’agent et le workflow qui le publie
+/.pilote

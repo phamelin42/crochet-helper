@@ -38,7 +38,8 @@ interface TermCopy {
   readonly relatedTitle: string;
   readonly backToReader: string;
   readonly backToGlossary: string;
-  title(entry: GlossaryEntry): string;
+  /** Guillemets de la langue, posés autour de l'abréviation dans le titre. */
+  readonly quotes: readonly [string, string];
   description(entry: GlossaryEntry): string;
 }
 
@@ -69,8 +70,7 @@ const COPY: Record<Locale, TermCopy> = {
     relatedTitle: 'À voir aussi',
     backToReader: 'Lire tout un patron pas à pas',
     backToGlossary: 'Toutes les abréviations',
-    title: (e) =>
-      `Que veut dire «${NBSP}${e.term}${NBSP}» au ${e.craft === 'tricot' ? 'tricot' : 'crochet'}${NBSP}? ${capitalize(headOf(e.fr))} — ${SITE_NAME}`,
+    quotes: [`«${NBSP}`, `${NBSP}»`],
     description: (e) =>
       `«${NBSP}${e.term}${NBSP}» veut dire ${headOf(e.fr)} (${headOf(e.en)} en anglais). Collez un rang de votre patron${NBSP}: chaque abréviation y est traduite en clair.`,
   },
@@ -95,12 +95,27 @@ const COPY: Record<Locale, TermCopy> = {
     relatedTitle: 'See also',
     backToReader: 'Read a whole pattern step by step',
     backToGlossary: 'All abbreviations',
-    title: (e) =>
-      `What does “${e.term}” mean in ${e.craft === 'tricot' ? 'knitting' : 'crochet'}? ${capitalize(headOf(e.en))} — ${SITE_NAME}`,
+    quotes: ['“', '”'],
     description: (e) =>
       `“${e.term}” means ${headOf(e.en)} (${headOf(e.fr)} in French). Paste a row from your pattern and every abbreviation in it is spelled out.`,
   },
 };
+
+/**
+ * Titre de l'onglet et du résultat de recherche.
+ *
+ * Il reprend mot pour mot la question du `<h1>`, `question` étant la seule
+ * source des deux : un terme commun aux deux métiers annonçait « in crochet »
+ * dans le titre et « in crochet and knitting » dans la page, soit une promesse
+ * différente de la réponse sur les trente pages concernées.
+ */
+export function titleOf(entry: GlossaryEntry, locale: Locale): string {
+  const c = COPY[locale];
+  const [before, after] = c.question[entry.craft];
+  const [open, close] = c.quotes;
+  const meaning = capitalize(headOf(entry[locale]));
+  return `${before}${open}${entry.term}${close}${after} ${meaning} — ${SITE_NAME}`;
+}
 
 /**
  * Une page par abréviation : chacune répond à une requête distincte
@@ -298,7 +313,7 @@ export class GlossaryTermPage {
     const glossaryUrl = `${this.origin}${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}`;
 
     this.seo.apply({
-      title: this.c.title(entry),
+      title: titleOf(entry, this.locale),
       description: this.c.description(entry),
       path,
       locale: this.locale,

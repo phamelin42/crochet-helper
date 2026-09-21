@@ -1,12 +1,12 @@
 {
-  "name": "Pattern Reader \u2014 lecteur de patrons",
+  "name": "Pattern Reader — crochet & knitting pattern reader",
   "short_name": "Pattern Reader",
-  "description": "Lire un patron de crochet ou de tricot une \u00e9tape \u00e0 la fois.",
-  "start_url": "/lecteur",
+  "description": "Read a crochet or knitting pattern one step at a time.",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#161826",
   "theme_color": "#161826",
-  "lang": "fr",
+  "lang": "en",
   "icons": [
     {
       "src": "logo.svg",

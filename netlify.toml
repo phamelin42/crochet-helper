@@ -14,13 +14,6 @@
   status = 301
   force = true
 
-# Les pages pré-rendues existent en tant que fichiers ; ce repli ne sert qu'aux
-# URL inconnues, que l'application route côté client vers l'accueil.
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
 [[headers]]
   for = "/*"
   [headers.values]
@@ -43,12 +36,12 @@
 # ne pas perdre les liens partagés ni le référencement acquis.
 [[redirects]]
   from = "/lecteur"
-  to = "/"
+  to = "/fr"
   status = 301
 
 [[redirects]]
   from = "/en/reader"
-  to = "/en"
+  to = "/"
   status = 301
 
 # L'anglais est passé langue par défaut : l'ancien arbre anglais sous /en se
@@ -78,3 +71,12 @@
   from = "/en/format-your-pattern"
   to = "/format-your-pattern"
   status = 301
+
+# En dernier : Netlify applique la première règle qui correspond, et ce repli
+# correspond à toutes les URL. Placé plus haut, il masquerait les 301 ci-dessus.
+# Les pages pré-rendues existent en tant que fichiers ; il ne sert qu'aux URL
+# inconnues, que l'application route côté client vers l'accueil.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

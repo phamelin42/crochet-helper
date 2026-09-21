@@ -3,9 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/fil-patterns/browser",
   "cleanUrls": true,
-  "env": {
-    "SITE_ORIGIN": "https://patternreader.com"
-  },
   "headers": [
     {
       "source": "/(.*)",
@@ -28,18 +25,23 @@
   "redirects": [
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "crochet-helper.phamelin.fr" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "crochet-helper.phamelin.fr"
+        }
+      ],
       "destination": "https://patternreader.com/$1",
       "permanent": true
     },
     {
       "source": "/lecteur",
-      "destination": "/",
+      "destination": "/fr",
       "permanent": true
     },
     {
       "source": "/en/reader",
-      "destination": "/en",
+      "destination": "/",
       "permanent": true
     },
     {

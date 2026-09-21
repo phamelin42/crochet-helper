@@ -15,7 +15,8 @@ natif, Vitest, ESLint + Prettier. Pré-rendu statique de toutes les routes.
 
 1. **Aucun back-end.** Tout tourne dans le navigateur. N'ajoute ni serveur, ni
    appel réseau, ni clé d'API. Si une tâche semble en exiger un, arrête-toi et
-   dis-le au lieu d'improviser.
+   dis-le au lieu d'improviser. Seule exception existante : la mesure
+   d'audience de `core/analytics/`, bornée par `docs/adr-001-mesure-audience.md`.
 2. **Tout est pré-rendu.** Le contenu doit exister dans le HTML avant exécution
    du JavaScript. Tout accès à `document`, `window`, `localStorage`,
    `navigator` ou `FileReader` doit être gardé par `isPlatformBrowser(...)` ou
@@ -53,11 +54,11 @@ src/styles/lecteur.css       mise en page de l'application
 src/app/core/i18n/           langue, dictionnaires, chemins traduits
 src/app/core/seo/            SeoService (titre, canonique, hreflang, JSON-LD)
 src/app/core/storage/        LocalStorageService (sûr côté serveur)
-src/app/core/theme/          mode assombri
 src/app/core/platform/       WakeLockService
+src/app/core/analytics/      AnalyticsService (mesure d'audience, inerte sans origine)
 src/app/shared/ui/           composants réutilisables
 src/app/features/reader/     data/ (parseur, glossaire) · state/ · components/ · pages/
-src/app/features/home/       accueil
+src/app/features/format/     page « bien formater son patron »
 src/app/features/glossary/   page glossaire
 tools/generate-sitemap.mjs   sitemap déduit des pages pré-rendues
 ```

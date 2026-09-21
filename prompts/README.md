@@ -58,9 +58,3 @@ Une fiche terminée, c'est : `npm run verify` vert, une PR ouverte, le tableau
 ci-dessus relu. S'il reste une décision humaine en suspens (le nom du domaine
 pour la fiche 11, l'origine du collecteur pour la 10), **s'arrêter et demander**
 plutôt que d'inventer — c'est écrit dans chaque fiche concernée.
-
-## Dette de documentation connue
-
-`00-contexte.md` mentionne `src/app/features/home/` et `src/app/core/theme/`.
-Ces deux répertoires **n'existent pas** dans le dépôt. À corriger lors de la
-première fiche exécutée, dans le même commit.

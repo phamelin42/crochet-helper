@@ -34,9 +34,12 @@ Lis dans cet ordre :
 3. `prompts/README.md` — la table « Ordre d'exécution »
 4. `automation/avancement.md` — ce qui est déjà fait
 
-La fiche à exécuter est **la première de la table d'ordre d'exécution qui n'est
-ni terminée ni bloquée** dans `automation/avancement.md`. Une seule. Ne prends
-pas d'avance, même si la suivante paraît triviale.
+Puis liste les branches du dépôt : `git branch -r`. Une branche
+`origin/<numéro>-<slug>` signifie qu'une PR pour cette fiche attend relecture.
+
+La fiche à exécuter est **la première de la table d'ordre d'exécution qui est
+« À faire » et n'a pas de branche sur le dépôt**. Une seule. Ne prends pas
+d'avance, même si la suivante paraît triviale.
 
 ## 2. Vérifier qu'elle est exécutable
 
@@ -84,8 +87,9 @@ la PR sera ouverte en brouillon, ce qui est plus utile qu'un abandon silencieux.
 ## 5. Préparer la publication
 
 Mets à jour `automation/avancement.md` dans ton dernier commit : la fiche passe
-à « En cours », avec la date. Laisse le numéro de PR vide, il n'existe pas
-encore.
+à « Terminée », avec la date. Ce n'est vrai qu'une fois la PR fusionnée, et
+c'est voulu : si elle est refusée, la ligne ne touche jamais `main`. Laisse le
+numéro de PR à « — », il n'existe pas encore.
 
 Puis écris :
 

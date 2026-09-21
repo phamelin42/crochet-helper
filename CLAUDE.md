@@ -17,7 +17,8 @@ survol. C'est un outil qu'on regarde à un mètre de distance, crochet en main.
    persistance (`localStorage`), lecture d'image (`FileReader`). Le build produit
    des fichiers statiques (`outputMode: 'static'`). N'introduis ni serveur, ni
    appel réseau, ni clé d'API sans en discuter — ce serait un changement
-   d'architecture, pas une fonctionnalité.
+   d'architecture, pas une fonctionnalité. Seule exception, discutée et bornée :
+   la mesure d'audience (`docs/adr-001-mesure-audience.md`).
 2. **Tout est pré-rendu.** Chaque route existe en HTML complet dans
    `dist/fil-patterns/browser`. Une page dont le contenu n'apparaît qu'après
    exécution du JavaScript est un bug de référencement. Le code qui touche au

@@ -29,15 +29,20 @@ export function neighborsOf(
   const family = glossary.filter((e) => e.craft === entry.craft);
   const index = family.indexOf(entry);
   const related: GlossaryEntry[] = [];
+  // La liste montre la définition, pas la notation : « db — demi-bride » et
+  // « hdc — demi-bride » y seraient deux liens que rien ne distingue. Un seul
+  // sens y entre donc une fois, l'autre notation restant atteignable depuis la
+  // section « autres façons de l'écrire » de sa jumelle.
+  const seen = new Set([entry, ...synonyms].map((e) => headOf(e.fr)));
   for (let distance = 1; distance < family.length && related.length < relatedCount; distance++) {
     for (const candidate of [
       family[(index + distance) % family.length],
       family[(index - distance + family.length) % family.length],
     ]) {
       if (related.length >= relatedCount) break;
-      if (candidate === entry || synonyms.includes(candidate) || related.includes(candidate)) {
-        continue;
-      }
+      const meaning = headOf(candidate.fr);
+      if (seen.has(meaning)) continue;
+      seen.add(meaning);
       related.push(candidate);
     }
   }

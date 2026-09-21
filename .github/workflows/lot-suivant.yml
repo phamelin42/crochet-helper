@@ -1,9 +1,9 @@
 # Phase 1 — Construction.
 #
 # L'agent exécute la fiche suivante de prompts/ et commite en local, sans
-# réseau ni droit d'écriture sur GitHub. L'étape suivante, écrite ici et donc
-# hors de portée de l'agent, publie la branche et ouvre la PR avec le jeton de
-# l'app Claude — un jeton d'app, contrairement à GITHUB_TOKEN, déclenche la CI.
+# droit d'écriture sur GitHub. L'étape suivante, écrite ici et donc hors de
+# portée de l'agent, publie la branche, lance la CI dessus et ouvre la PR avec
+# le jeton du workflow (celui de l'app Claude est révoqué à la fin de son étape).
 name: Lot suivant
 
 on:
@@ -24,7 +24,7 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
-      actions: read
+      actions: write # lancer la CI sur la branche publiée
     steps:
       - uses: actions/checkout@v6
         with:
@@ -54,18 +54,15 @@ jobs:
             --max-turns 120
             --allowedTools "Read,Glob,Grep,Edit,MultiEdit,Write,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(git:*),Bash(ls:*)"
 
-      - name: Publier la branche et ouvrir la PR
+      - id: publier
+        name: Publier la branche et ouvrir la PR
         if: always() && steps.claude.outcome != 'skipped'
         env:
-          GH_TOKEN: ${{ steps.claude.outputs.github_token }}
+          GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           ISSUE_AGENT: ${{ steps.claude.outcome }}
         run: |
           set -euo pipefail
-          if [ -z "${GH_TOKEN:-}" ]; then
-            echo "::error::Jeton de l'app Claude indisponible. L'app est-elle installée sur le dépôt ?"
-            exit 1
-          fi
           distant="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
 
           # Une décision humaine manquait : l'agent a rédigé la question.
@@ -97,6 +94,9 @@ jobs:
           fi
 
           git push --quiet "$distant" "HEAD:refs/heads/$branche"
+          # Un push fait avec ce jeton ne déclenche aucun workflow : on lance la CI
+          # explicitement, son résultat s'attache au dernier commit de la branche.
+          gh workflow run ci.yml --repo "$REPO" --ref "$branche"
 
           titre=$(head -n 1 .pilote/pr-titre.txt 2>/dev/null || git log -1 --format=%s)
           [ -s .pilote/pr-corps.md ] || git log --format='- %s' origin/main..HEAD > .pilote/pr-corps.md
@@ -104,6 +104,22 @@ jobs:
           if [ -f .pilote/brouillon ] || [ "$ISSUE_AGENT" != "success" ]; then
             brouillon=(--draft)
           fi
-          gh pr create --repo "$REPO" --base main --head "$branche" \
-            --title "$titre" --body-file .pilote/pr-corps.md "${brouillon[@]}" \
-            | tee -a "$GITHUB_STEP_SUMMARY"
+          if ! url=$(gh pr create --repo "$REPO" --base main --head "$branche" \
+            --title "$titre" --body-file .pilote/pr-corps.md "${brouillon[@]}"); then
+            echo "::error::La branche $branche est poussée, mais GitHub a refusé d'ouvrir la PR. Active « Allow GitHub Actions to create and approve pull requests » dans Settings → Actions → General."
+            exit 1
+          fi
+          echo "PR ouverte : $url" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # Filet de sécurité : si la publication échoue avant le push, le travail
+      # de l'agent reste téléchargeable depuis la page de l'exécution.
+      - name: Conserver le travail de l'agent
+        if: failure() && steps.publier.outcome == 'failure'
+        run: git bundle create "$RUNNER_TEMP/travail-agent.bundle" --all
+
+      - if: failure() && steps.publier.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: travail-agent
+          path: ${{ runner.temp }}/travail-agent.bundle
+          retention-days: 14

@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Lancée par « Lot suivant » : un push fait avec le jeton du workflow
+  # ne déclenche pas la CI d'elle-même.
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

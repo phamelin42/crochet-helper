@@ -75,8 +75,15 @@ manque. Dans les deux cas, la chaîne marche.
 L'agent travaille sans aucun droit d'écriture sur GitHub : il modifie, vérifie
 et commite en local sur le runner, puis laisse son titre et sa description dans
 `.pilote/`. C'est l'étape suivante du workflow, hors de sa portée, qui pousse la
-branche et ouvre la PR avec le jeton de l'app Claude. Elle refuse une branche au
-nom inattendu ou qui modifie `.github/` ou `.claude/`.
+branche, lance la CI dessus et ouvre la PR avec le jeton du workflow — celui de
+l'app Claude est révoqué dès la fin de son étape. Elle refuse une branche au nom
+inattendu ou qui modifie `.github/` ou `.claude/`. Si la publication échoue, le
+travail de l'agent reste téléchargeable depuis la page de l'exécution
+(artefact `travail-agent`, gardé 14 jours).
+
+Un réglage est nécessaire pour que le workflow puisse ouvrir la PR : _Settings →
+Actions → General → Workflow permissions_, cocher **Allow GitHub Actions to
+create and approve pull requests**. Aucun workflow du dépôt n'approuve de PR.
 
 ## 6. La décision à débloquer
 

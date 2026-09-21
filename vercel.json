@@ -41,6 +41,31 @@
       "source": "/en/reader",
       "destination": "/en",
       "permanent": true
+    },
+    {
+      "source": "/en",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/glossaire",
+      "destination": "/fr/glossaire",
+      "permanent": true
+    },
+    {
+      "source": "/en/glossary",
+      "destination": "/glossary",
+      "permanent": true
+    },
+    {
+      "source": "/bien-formater-son-patron",
+      "destination": "/fr/bien-formater-son-patron",
+      "permanent": true
+    },
+    {
+      "source": "/en/format-your-pattern",
+      "destination": "/format-your-pattern",
+      "permanent": true
     }
   ]
 }

@@ -50,3 +50,31 @@
   from = "/en/reader"
   to = "/en"
   status = 301
+
+# L'anglais est passé langue par défaut : l'ancien arbre anglais sous /en se
+# redirige vers la racine, l'ancien arbre français à la racine se redirige
+# sous /fr.
+[[redirects]]
+  from = "/en"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/glossaire"
+  to = "/fr/glossaire"
+  status = 301
+
+[[redirects]]
+  from = "/en/glossary"
+  to = "/glossary"
+  status = 301
+
+[[redirects]]
+  from = "/bien-formater-son-patron"
+  to = "/fr/bien-formater-son-patron"
+  status = 301
+
+[[redirects]]
+  from = "/en/format-your-pattern"
+  to = "/format-your-pattern"
+  status = 301

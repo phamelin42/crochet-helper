@@ -1,12 +1,16 @@
-import { Component, inject } from '@angular/core';
+import { Component, PLATFORM_ID, effect, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale } from '../../../core/i18n/locale';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
+import { Dialog } from '../../../shared/ui/dialog/dialog';
+import { decodePattern } from '../data/pattern-link';
 import { MaterialsList } from '../components/materials-list';
 import { PatternImport } from '../components/pattern-import';
+import { PrintView } from '../components/print-view';
 import { ReaderCounters } from '../components/reader-counters';
 import { StepView } from '../components/step-view';
 import { ReaderStore } from '../state/reader-store';
@@ -33,7 +37,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
  */
 @Component({
   selector: 'fil-reader-page',
-  imports: [MaterialsList, PatternImport, ReaderCounters, StepView],
+  imports: [Dialog, MaterialsList, PatternImport, PrintView, ReaderCounters, StepView],
   host: {
     class: 'wrap',
     '(document:keydown)': 'onKeydown($event)',
@@ -57,6 +61,21 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     @if (store.materials().length) {
       <fil-materials-list />
     }
+
+    <fil-print-view />
+
+    <fil-dialog [(open)]="linkConfirmOpen" [label]="i18n.t('ui.linkImportTitle')">
+      <h2 class="dialog-title">{{ i18n.t('ui.linkImportTitle') }}</h2>
+      <p class="dialog-body">{{ i18n.t('ui.linkImportBody') }}</p>
+      <div class="dialog-actions">
+        <button type="button" filButton="secondary" (click)="cancelLinkImport()">
+          {{ i18n.t('ui.cancel') }}
+        </button>
+        <button type="button" filButton="primary" (click)="confirmLinkImport()">
+          {{ i18n.t('ui.linkImportAction') }}
+        </button>
+      </div>
+    </fil-dialog>
   `,
 })
 export class ReaderPage {
@@ -64,6 +83,10 @@ export class ReaderPage {
   protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
+  private readonly platformId = inject(PLATFORM_ID);
+
+  protected readonly linkConfirmOpen = signal(false);
+  private pendingLinkSource: string | null = null;
 
   constructor() {
     const locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
@@ -88,6 +111,48 @@ export class ReaderPage {
         ],
       },
     });
+
+    // Attend la restauration du projet en cours avant de lire un éventuel
+    // permalien : sinon un patron en cours de reprise depuis IndexedDB
+    // pourrait être écrasé sans confirmation, la course arrivant avant lui.
+    if (isPlatformBrowser(this.platformId)) {
+      const untilRestored = effect(() => {
+        if (!this.store.restored()) return;
+        untilRestored.destroy();
+        void this.loadFromFragment();
+      });
+    }
+  }
+
+  /** Lit `#p=…` au démarrage : un permalien de patron partagé, jamais un paramètre
+   *  de requête, pour qu'il ne parte ni dans les journaux serveur ni le `Referer`. */
+  private async loadFromFragment(): Promise<void> {
+    const hash = window.location.hash;
+    if (!hash.startsWith('#p=')) return;
+    const decoded = await decodePattern(hash.slice('#p='.length));
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    if (!decoded) return;
+    if (this.store.source()) {
+      this.pendingLinkSource = decoded;
+      this.linkConfirmOpen.set(true);
+      return;
+    }
+    this.store.load(decoded, 'lien');
+  }
+
+  /** Le patron en cours reste enregistré dans « Mes projets » : `clear()` ne le
+   *  supprime pas, il libère seulement l'affichage pour le patron du lien. */
+  protected confirmLinkImport(): void {
+    if (this.pendingLinkSource === null) return;
+    this.store.clear();
+    this.store.load(this.pendingLinkSource, 'lien');
+    this.pendingLinkSource = null;
+    this.linkConfirmOpen.set(false);
+  }
+
+  protected cancelLinkImport(): void {
+    this.pendingLinkSource = null;
+    this.linkConfirmOpen.set(false);
   }
 
   protected onKeydown(event: KeyboardEvent): void {

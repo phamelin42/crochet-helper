@@ -1,9 +1,24 @@
-import { Component, ElementRef, effect, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  PLATFORM_ID,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../../shared/ui/field/input';
+import { encodePattern } from '../data/pattern-link';
 import { ReaderStore } from '../state/reader-store';
+
+/** Un lien plus long qu'une adresse de partage usuelle est un lien qui échoue
+ *  au collage dans certains outils : autant refuser avant plutôt que de
+ *  livrer un lien tronqué, silencieusement cassé. */
+const MAX_LINK_LENGTH = 8000;
 
 /**
  * Panneau d'import : coller ou taper le texte du patron, ou charger
@@ -49,6 +64,16 @@ import { ReaderStore } from '../state/reader-store';
             </button>
             <button type="button" filButton="secondary" (click)="demo()">{{ t('ui.demo') }}</button>
             <button type="button" filButton="ghost" (click)="clear()">{{ t('ui.clear') }}</button>
+            @if (store.total()) {
+              <button
+                type="button"
+                filButton="secondary"
+                [disabled]="linkTooLong()"
+                (click)="copyLink()"
+              >
+                {{ t('ui.copyLink') }}
+              </button>
+            }
           </div>
           <input
             #pdfFile
@@ -61,6 +86,12 @@ import { ReaderStore } from '../state/reader-store';
           />
           @if (pdfErrorMessage(); as message) {
             <p class="hint" role="alert">{{ message }}</p>
+          }
+          @if (linkTooLong()) {
+            <p class="hint" role="alert">{{ t('ui.linkTooLong') }}</p>
+          }
+          @if (linkCopied()) {
+            <p class="hint" role="status">{{ t('ui.linkCopied') }}</p>
           }
         </div>
       </div>
@@ -75,10 +106,16 @@ import { ReaderStore } from '../state/reader-store';
 export class PatternImport {
   protected readonly store = inject(ReaderStore);
   private readonly i18n = inject(I18nService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly open = signal(true);
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
   protected readonly pdfInput = viewChild.required<ElementRef<HTMLInputElement>>('pdfFile');
+
+  protected readonly linkTooLong = signal(false);
+  protected readonly linkCopied = signal(false);
+  private shareUrl: string | null = null;
+  private shareTicket = 0;
 
   protected t = (key: Parameters<I18nService['t']>[0]) => this.i18n.t(key);
 
@@ -87,6 +124,15 @@ export class PatternImport {
     // PDF a été collé ou déposé ailleurs sur la page, panneau replié.
     effect(() => {
       if (this.store.pdfError()) this.open.set(true);
+    });
+
+    // Prépare le lien de partage à l'avance : au clic sur « Copier le lien »,
+    // il doit déjà être prêt, et le bouton doit déjà savoir s'il tient dans
+    // l'URL. Inerte côté serveur : la compression n'a rien à faire au pré-rendu.
+    effect(() => {
+      const source = this.store.source();
+      if (!this.isBrowser) return;
+      void this.refreshShareUrl(source);
     });
   }
 
@@ -130,5 +176,26 @@ export class PatternImport {
     this.store.clear();
     const field = this.source();
     if (field) field.nativeElement.value = '';
+  }
+
+  private async refreshShareUrl(source: string): Promise<void> {
+    const ticket = ++this.shareTicket;
+    this.linkCopied.set(false);
+    if (!source) {
+      this.shareUrl = null;
+      this.linkTooLong.set(false);
+      return;
+    }
+    const encoded = await encodePattern(source);
+    if (ticket !== this.shareTicket) return; // une saisie plus récente a pris le dessus
+    const url = `${window.location.origin}${window.location.pathname}#p=${encoded}`;
+    this.shareUrl = url;
+    this.linkTooLong.set(url.length > MAX_LINK_LENGTH);
+  }
+
+  protected async copyLink(): Promise<void> {
+    if (!this.shareUrl || this.linkTooLong()) return;
+    await navigator.clipboard.writeText(this.shareUrl);
+    this.linkCopied.set(true);
   }
 }

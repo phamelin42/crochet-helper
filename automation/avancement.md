@@ -21,7 +21,7 @@ branche.
 | 14 — Une page par abréviation        | Terminée | —   | 2026-09-21 |
 | 15 — Convertisseur US ↔ UK           | Terminée | —   | 2026-09-21 |
 | 16 — Projets multiples et sauvegarde | Terminée | —   | 2026-09-22 |
-| 06 — Partage et impression           | À faire  | —   | —          |
+| 06 — Partage et impression           | Terminée | —   | 2026-09-22 |
 | 02 — Tests du lecteur                | À faire  | —   | —          |
 | 03 — Formats supplémentaires         | À faire  | —   | —          |
 | 05 — Mode hors ligne (PWA)           | À faire  | —   | —          |

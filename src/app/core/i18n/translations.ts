@@ -79,6 +79,14 @@ export const FR = {
   'ui.importInvalid':
     "Ce fichier n'est pas une sauvegarde valide pour cette version de l'application.",
   'ui.lastOpened': 'Ouvert le',
+  'ui.copyLink': 'Copier le lien',
+  'ui.linkCopied': 'Lien copié dans le presse-papiers.',
+  'ui.linkTooLong':
+    'Ce patron est trop long pour tenir dans un lien. Partagez-le en texte à la place.',
+  'ui.linkImportTitle': 'Ouvrir ce patron partagé ?',
+  'ui.linkImportBody':
+    "Un patron est déjà en cours. L'ouvrir depuis ce lien remplace l'affichage actuel — le projet en cours reste enregistré dans « Mes projets ».",
+  'ui.linkImportAction': 'Ouvrir le patron du lien',
 } as const;
 
 export type TranslationKey = keyof typeof FR;
@@ -156,6 +164,13 @@ export const EN: Record<TranslationKey, string> = {
   'ui.importOk': 'Backup imported: the projects were merged with the ones already here.',
   'ui.importInvalid': "This file isn't a valid backup for this version of the app.",
   'ui.lastOpened': 'Opened on',
+  'ui.copyLink': 'Copy link',
+  'ui.linkCopied': 'Link copied to clipboard.',
+  'ui.linkTooLong': 'This pattern is too long to fit in a link. Share it as text instead.',
+  'ui.linkImportTitle': 'Open this shared pattern?',
+  'ui.linkImportBody':
+    'A pattern is already open. Opening this link replaces the current view — the current project stays saved in “My projects”.',
+  'ui.linkImportAction': 'Open the pattern from the link',
 };
 
 export const TRANSLATIONS: Record<Locale, Record<TranslationKey, string>> = { fr: FR, en: EN };

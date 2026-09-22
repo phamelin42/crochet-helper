@@ -754,6 +754,20 @@ textarea.src-input {
   gap: var(--space-1);
   font-size: 12px;
 }
+/* `--color-text-label` plutôt que `.card-meta` (color-mix … 50%) : sous 18px,
+ * seule sur fond `.card`, cette dernière tombe sous le seuil AA — c'est
+ * exactement ce que `--color-text-label` a déjà été calculé pour éviter. */
+.ds-caption {
+  font-size: 11px;
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-label);
+}
+/* Le segment à cinq options peut dépasser sa carte sur petit écran : elle
+ * défile plutôt que d'élargir toute la grille (même correction que `.pieces`
+ * pour ce contrôle dans le lecteur). */
+.ds-card-scroll {
+  overflow-x: auto;
+}
 .ds-swatch-chip {
   height: 48px;
   border-radius: var(--radius-md);

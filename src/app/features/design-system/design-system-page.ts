@@ -160,33 +160,33 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
       <h3>Button</h3>
       <div class="grid-cards">
         <div class="card">
-          <p class="card-meta">primary</p>
+          <p class="ds-caption">primary</p>
           <button type="button" filButton="primary">Étiquette</button>
         </div>
         <div class="card">
-          <p class="card-meta">secondary</p>
+          <p class="ds-caption">secondary</p>
           <button type="button" filButton="secondary">Étiquette</button>
         </div>
         <div class="card">
-          <p class="card-meta">ghost</p>
+          <p class="ds-caption">ghost</p>
           <button type="button" filButton="ghost">Étiquette</button>
         </div>
         <div class="card">
-          <p class="card-meta">désactivé</p>
+          <p class="ds-caption">désactivé</p>
           <button type="button" filButton="primary" disabled>Étiquette</button>
         </div>
         <div class="card">
-          <p class="card-meta">icône seule</p>
+          <p class="ds-caption">icône seule</p>
           <button type="button" filButton="secondary" [iconOnly]="true" aria-label="Fermer">
             <fil-icon name="minus" />
           </button>
         </div>
         <div class="card">
-          <p class="card-meta">pleine largeur</p>
+          <p class="ds-caption">pleine largeur</p>
           <button type="button" filButton="primary" [block]="true">Étiquette</button>
         </div>
         <div class="card">
-          <p class="card-meta">grande cible (pas à pas)</p>
+          <p class="ds-caption">grande cible (pas à pas)</p>
           <button type="button" filButton="primary" [step]="true">
             <span>Suivante</span><fil-icon name="right" />
           </button>
@@ -196,14 +196,14 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
       <h3>InputField</h3>
       <div class="grid-cards">
         <div class="card">
-          <p class="card-meta">champ</p>
+          <p class="ds-caption">champ</p>
           <div class="field">
             <label for="ds-input-text">Nom du patron</label>
             <input filInput id="ds-input-text" type="text" value="Bonnet côtelé" />
           </div>
         </div>
         <div class="card">
-          <p class="card-meta">zone de texte</p>
+          <p class="ds-caption">zone de texte</p>
           <div class="field">
             <label for="ds-input-textarea">Note</label>
             <textarea filInput id="ds-input-textarea" rows="3">
@@ -211,7 +211,7 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
           </div>
         </div>
         <div class="card">
-          <p class="card-meta">invalide</p>
+          <p class="ds-caption">invalide</p>
           <div class="field">
             <label for="ds-input-invalid">Nom du patron</label>
             <input
@@ -225,7 +225,7 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
           </div>
         </div>
         <div class="card">
-          <p class="card-meta">désactivé</p>
+          <p class="ds-caption">désactivé</p>
           <div class="field">
             <label for="ds-input-disabled">Nom du patron</label>
             <input filInput id="ds-input-disabled" type="text" value="Bonnet côtelé" disabled />
@@ -250,7 +250,7 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
           />
         </div>
         <div class="card">
-          <p class="card-meta">désactivée</p>
+          <p class="ds-caption">désactivée</p>
           <fil-checkbox [checked]="true" [disabled]="true" label="Option désactivée" />
         </div>
       </div>
@@ -258,7 +258,7 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
       <h3>Segmented</h3>
       <div class="grid-cards">
         <div class="card">
-          <p class="card-meta">deux options</p>
+          <p class="ds-caption">deux options</p>
           <fil-segmented
             name="ds-craft"
             label="Technique"
@@ -267,8 +267,8 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
             (selectedChange)="craftValue.set($event)"
           />
         </div>
-        <div class="card">
-          <p class="card-meta">cinq options</p>
+        <div class="card ds-card-scroll">
+          <p class="ds-caption">cinq options</p>
           <fil-segmented
             name="ds-piece"
             label="Pièce"
@@ -289,7 +289,7 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
       <h3>Disclosure</h3>
       <div class="grid-cards">
         <div class="card">
-          <p class="card-meta">variante « mats »</p>
+          <p class="ds-caption">variante « mats »</p>
           <fil-disclosure label="Matériel" variant="mats">
             <ul>
               <li>Crochet 4 mm</li>
@@ -298,7 +298,7 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
           </fil-disclosure>
         </div>
         <div class="card">
-          <p class="card-meta">variante « import »</p>
+          <p class="ds-caption">variante « import »</p>
           <fil-disclosure label="Importer un patron" variant="import" state="3 étapes">
             <p>Contenu du panneau d’import.</p>
           </fil-disclosure>

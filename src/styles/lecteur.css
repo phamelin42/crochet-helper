@@ -734,3 +734,80 @@ textarea.src-input {
     display: none;
   }
 }
+
+/* Vitrine du design system (`/design-system`) : uniquement la grille qui
+ * présente les jetons, la page consomme les composants et classes Nocturne
+ * existants pour tout le reste. */
+.ds-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
+}
+.ds-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-3);
+}
+.ds-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: 12px;
+}
+/* `--color-text-label` plutôt que `.card-meta` (color-mix … 50%) : sous 18px,
+ * seule sur fond `.card`, cette dernière tombe sous le seuil AA — c'est
+ * exactement ce que `--color-text-label` a déjà été calculé pour éviter. */
+.ds-caption {
+  font-size: 11px;
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-label);
+}
+/* Le segment à cinq options peut dépasser sa carte sur petit écran : elle
+ * défile plutôt que d'élargir toute la grille (même correction que `.pieces`
+ * pour ce contrôle dans le lecteur). */
+.ds-card-scroll {
+  overflow-x: auto;
+}
+.ds-swatch-chip {
+  height: 48px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.ds-radius-box {
+  width: 64px;
+  height: 64px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+.ds-shadow-box {
+  height: 64px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.ds-type-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.ds-scale-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.ds-bar {
+  height: 14px;
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+}
+.ds-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-3);
+  text-align: center;
+  font-size: 12px;
+}
+.ds-icon-grid fil-icon {
+  font-size: 28px;
+  color: var(--color-accent);
+}

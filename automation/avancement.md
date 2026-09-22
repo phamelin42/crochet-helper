@@ -28,7 +28,7 @@ branche.
 | 07 — Audit d'accessibilité           | Terminée | —   | 2026-09-22 |
 | 09 — Performance et Core Web Vitals  | Terminée | —   | 2026-09-22 |
 | 04 — Pages éditoriales               | Terminée | —   | 2026-09-22 |
-| 08 — Vitrine du design system        | À faire  | —   | —          |
+| 08 — Vitrine du design system        | Terminée | —   | 2026-09-22 |
 
 ## États possibles
 

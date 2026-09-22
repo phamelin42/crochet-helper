@@ -46,6 +46,13 @@ import { Icon } from '../ui/icon/icon';
         {{ i18n.t('nav.reader') }}
       </a>
       <a
+        [routerLink]="i18n.link('projects')"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+      >
+        {{ i18n.t('nav.projects') }}
+      </a>
+      <a
         [routerLink]="i18n.link('glossary')"
         routerLinkActive="active"
         ariaCurrentWhenActive="page"

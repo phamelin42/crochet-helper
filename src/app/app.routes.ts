@@ -63,6 +63,12 @@ function routesFor(locale: Locale): Routes {
             import('./features/converter/converter-page').then((m) => m.ConverterPage),
           data,
         },
+        {
+          path: strip(ROUTE_PATHS.projects[locale]),
+          loadComponent: () =>
+            import('./features/reader/pages/projects-page').then((m) => m.ProjectsPage),
+          data,
+        },
       ],
     },
   ];

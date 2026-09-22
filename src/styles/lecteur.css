@@ -40,8 +40,14 @@
 }
 .nav-links {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-2) var(--space-4);
+}
+/* Un intitulé de navigation ne se coupe jamais (« US ↔ UK », « My projects ») :
+ * c'est la ligne entière qui passe à la suivante. */
+.nav-links a {
+  white-space: nowrap;
 }
 .tools {
   display: flex;
@@ -657,4 +663,47 @@ textarea.src-input {
 }
 .prompt-box button {
   margin-top: var(--space-3);
+}
+
+/* Écran « Mes projets ». */
+.projects-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.projects-list {
+  display: grid;
+  gap: var(--space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.projects-list .card {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* Panneau d'import du lecteur. */
+.import-host {
+  display: block;
+}
+
+/* Glossaire : champ de filtre étroit, tableau détaché du filtre. */
+.glossary-filter {
+  max-width: var(--glossary-filter-width);
+}
+.glossary-table {
+  margin-top: var(--space-6);
+}
+
+/* Vue d'impression (PrintView) : dans le DOM, invisible à l'écran. Ses règles
+ * d'impression vivent dans print.css, chargée à part — et *avant* cette
+ * feuille : un masquage sans media l'emporterait à l'impression. */
+@media screen {
+  .print-only {
+    display: none;
+  }
 }

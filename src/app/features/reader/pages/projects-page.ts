@@ -1,6 +1,7 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { TranslationKey } from '../../../core/i18n/translations';
 import { DEFAULT_LOCALE, Locale } from '../../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
 import { SeoService } from '../../../core/seo/seo.service';
@@ -22,6 +23,61 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     description: 'Find your patterns in progress, resume one, or export a backup.',
   },
 };
+
+/**
+ * Textes propres à cet écran. Ils vivent ici plutôt que dans le dictionnaire
+ * global pour rester dans le chunk paresseux de la page : le dictionnaire
+ * global fait partie du bundle initial (budget 320 kB).
+ */
+const COPY = {
+  fr: {
+    'ui.delete': 'Supprimer',
+    'ui.deleteConfirmAction': 'Supprimer définitivement',
+    'ui.deleteConfirmBody':
+      'Le patron, la progression et le chronomètre de ce projet seront définitivement supprimés.',
+    'ui.deleteConfirmTitle': 'Supprimer ce projet ?',
+    'ui.exportBackup': 'Exporter une sauvegarde',
+    'ui.importBackup': 'Importer une sauvegarde',
+    'ui.importInvalid':
+      "Ce fichier n'est pas une sauvegarde valide pour cette version de l'application.",
+    'ui.importOk': 'Sauvegarde importée : les projets ont été fusionnés avec ceux déjà présents.',
+    'ui.lastOpened': 'Ouvert le',
+    'ui.newProject': 'Nouveau projet',
+    'ui.projectsEmpty': 'Aucun projet enregistré pour le moment. Collez un patron pour commencer.',
+    'ui.projectsLead':
+      'Reprenez un patron en cours, ou démarrez-en un nouveau. Tout reste sur cet appareil : exportez une sauvegarde pour la retrouver ailleurs.',
+    'ui.projectsTitle': 'Mes projets',
+    'ui.rename': 'Renommer',
+    'ui.renameLabel': 'Nom du projet',
+    'ui.resume': 'Reprendre',
+    'ui.save': 'Enregistrer',
+    'ui.untitledProject': 'Projet sans titre',
+  },
+  en: {
+    'ui.delete': 'Delete',
+    'ui.deleteConfirmAction': 'Delete permanently',
+    'ui.deleteConfirmBody':
+      "This project's pattern, progress and timer will be permanently deleted.",
+    'ui.deleteConfirmTitle': 'Delete this project?',
+    'ui.exportBackup': 'Export a backup',
+    'ui.importBackup': 'Import a backup',
+    'ui.importInvalid': "This file isn't a valid backup for this version of the app.",
+    'ui.importOk': 'Backup imported: the projects were merged with the ones already here.',
+    'ui.lastOpened': 'Opened on',
+    'ui.newProject': 'New project',
+    'ui.projectsEmpty': 'No project saved yet. Paste a pattern to get started.',
+    'ui.projectsLead':
+      'Resume a pattern in progress, or start a new one. Everything stays on this device: export a backup to take it elsewhere.',
+    'ui.projectsTitle': 'My projects',
+    'ui.rename': 'Rename',
+    'ui.renameLabel': 'Project name',
+    'ui.resume': 'Resume',
+    'ui.save': 'Save',
+    'ui.untitledProject': 'Untitled project',
+  },
+} satisfies Record<Locale, Record<string, string>>;
+
+type LocalKey = keyof typeof COPY.fr;
 
 /**
  * Écran de liste des projets : reprise en un clic, renommage, suppression, et
@@ -96,7 +152,13 @@ const SEO: Record<Locale, { title: string; description: string }> = {
       <h2 class="dialog-title">{{ t('ui.rename') }}</h2>
       <div class="field">
         <label for="rename-input">{{ t('ui.renameLabel') }}</label>
-        <input filInput id="rename-input" #renameField [value]="renameTarget()?.name ?? ''" />
+        <input
+          filInput
+          id="rename-input"
+          #renameField
+          [value]="renameTarget()?.name ?? ''"
+          (keydown.enter)="saveRename(renameField.value)"
+        />
       </div>
       <div class="dialog-actions">
         <button type="button" filButton="secondary" (click)="renameOpen.set(false)">
@@ -121,27 +183,6 @@ const SEO: Record<Locale, { title: string; description: string }> = {
       </div>
     </fil-dialog>
   `,
-  styles: `
-    .projects-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-2);
-      margin-bottom: var(--space-4);
-    }
-    .projects-list {
-      display: grid;
-      gap: var(--space-2);
-      padding: 0;
-      margin: 0;
-      list-style: none;
-    }
-    .projects-list .card {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-3);
-    }
-  `,
 })
 export class ProjectsPage {
   protected readonly store = inject(ReaderStore);
@@ -152,7 +193,8 @@ export class ProjectsPage {
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
 
-  protected t = (key: Parameters<I18nService['t']>[0]) => this.i18n.t(key);
+  protected t = (key: LocalKey | TranslationKey): string =>
+    key in COPY.fr ? COPY[this.locale][key as LocalKey] : this.i18n.t(key as TranslationKey);
 
   protected readonly renameOpen = signal(false);
   protected readonly renameTarget = signal<Project | null>(null);
@@ -218,9 +260,10 @@ export class ProjectsPage {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `fil-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `pattern-reader-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
-    URL.revokeObjectURL(url);
+    // Révoquer dans la même tâche peut annuler le téléchargement (Safari, Firefox).
+    setTimeout(() => URL.revokeObjectURL(url));
   }
 
   protected async onImport(event: Event): Promise<void> {

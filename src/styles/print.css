@@ -1,12 +1,12 @@
 /* ============================================================================
    Impression du lecteur — un livret lisible : toutes les étapes de toutes les
-   pièces, une pièce par page. `.print-only` n'existe qu'ici : le contenu est
-   déjà dans le DOM (voir `PrintView`), jamais fabriqué au moment d'imprimer.
-   ========================================================================== */
+   pièces, une pièce par page. Le contenu est déjà dans le DOM (voir
+   `PrintView`), jamais fabriqué au moment d'imprimer.
 
-.print-only {
-  display: none;
-}
+   Feuille séparée, chargée par `<link media="print">` (index.html) : elle ne
+   bloque pas l'affichage et ne pèse pas dans le bundle initial. Seul
+   `.print-only { display: none }` reste dans `lecteur.css`.
+   ========================================================================== */
 
 @media print {
   fil-site-header,
@@ -31,38 +31,43 @@
 
   html,
   body {
-    background: #fff !important;
+    background: var(--print-paper) !important;
   }
 
   .print-only,
   .print-only * {
-    color: #000 !important;
+    color: var(--print-ink) !important;
     background: none !important;
-    border-color: #000 !important;
+    border-color: var(--print-ink) !important;
+  }
+
+  /* Le pointillé signale un survol possible à l'écran : sans objet sur papier. */
+  .print-only .abbr {
+    border-bottom: none;
   }
 
   .print-materials {
-    margin-bottom: 2em;
+    margin-bottom: var(--space-8);
   }
   .print-materials ul {
-    padding-left: 1.4em;
+    padding-left: var(--space-8);
   }
 
   .print-piece + .print-piece {
     break-before: page;
   }
   .print-piece ol {
-    padding-left: 1.6em;
+    padding-left: var(--space-8);
   }
   .print-piece li + li {
-    margin-top: 0.6em;
+    margin-top: var(--space-3);
   }
   .print-piece li {
     break-inside: avoid;
   }
 
   .print-footer {
-    margin-top: 2em;
-    font-size: 0.85em;
+    margin-top: var(--space-8);
+    font-size: var(--print-small);
   }
 }

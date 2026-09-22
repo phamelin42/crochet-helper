@@ -45,7 +45,16 @@ export class ProjectStoreService {
           request.result.createObjectStore(STORE, { keyPath: 'id' });
         }
       };
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        const db = request.result;
+        // Un autre onglet ouvre une version plus récente : on libère la base,
+        // et la prochaine opération rouvrira une connexion.
+        db.onversionchange = () => {
+          db.close();
+          this.dbPromise = null;
+        };
+        resolve(db);
+      };
       request.onerror = () => resolve(null);
       request.onblocked = () => resolve(null);
     });
@@ -55,36 +64,55 @@ export class ProjectStoreService {
     const db = await this.db();
     if (!db) return [];
     return new Promise((resolve) => {
-      const tx = db.transaction(STORE, 'readonly');
-      const request = tx.objectStore(STORE).getAll();
-      request.onsuccess = () => resolve((request.result as T[]) ?? []);
-      request.onerror = () => resolve([]);
+      try {
+        const request = db.transaction(STORE, 'readonly').objectStore(STORE).getAll();
+        request.onsuccess = () => resolve((request.result as T[]) ?? []);
+        request.onerror = () => resolve([]);
+      } catch {
+        resolve([]);
+      }
     });
   }
 
-  /** Renvoie `false` sans lever si IndexedDB est indisponible : l'appelant
-   *  décide alors s'il doit conserver un repli (ex. ne pas effacer l'ancien
-   *  stockage tant que la migration n'a pas vraiment réussi). */
-  async put<T extends { id: string }>(item: T): Promise<boolean> {
+  /**
+   * Écrit un élément. Renvoie `true` seulement quand la transaction est
+   * **validée** : un quota dépassé se manifeste par un `abort`, pas par un
+   * `error`, et ne doit jamais passer pour un succès — la migration efface
+   * l'ancien stockage sur la foi de ce booléen.
+   */
+  put<T extends { id: string }>(item: T): Promise<boolean> {
+    return this.putAll([item]);
+  }
+
+  /**
+   * Écrit plusieurs éléments dans **une seule** transaction : tout ou rien.
+   * C'est ce qui rend l'import d'une sauvegarde atomique.
+   */
+  async putAll<T extends { id: string }>(items: readonly T[]): Promise<boolean> {
     const db = await this.db();
     if (!db) return false;
-    await new Promise<void>((resolve) => {
-      const tx = db.transaction(STORE, 'readwrite');
-      tx.objectStore(STORE).put(item);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => resolve();
-    });
-    return true;
+    return this.run(db, (store) => items.forEach((item) => store.put(item)));
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string): Promise<boolean> {
     const db = await this.db();
-    if (!db) return;
-    await new Promise<void>((resolve) => {
-      const tx = db.transaction(STORE, 'readwrite');
-      tx.objectStore(STORE).delete(id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => resolve();
+    if (!db) return false;
+    return this.run(db, (store) => store.delete(id));
+  }
+
+  private run(db: IDBDatabase, work: (store: IDBObjectStore) => void): Promise<boolean> {
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+        tx.onabort = () => resolve(false);
+        work(tx.objectStore(STORE));
+      } catch {
+        // Connexion fermée (autre onglet qui met la base à jour), ou quota
+        // refusé dès l'ouverture de la transaction.
+        resolve(false);
+      }
     });
   }
 }

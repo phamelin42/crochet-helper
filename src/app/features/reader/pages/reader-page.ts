@@ -7,7 +7,6 @@ import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
-import { decodePattern } from '../data/pattern-link';
 import { MaterialsList } from '../components/materials-list';
 import { PatternImport } from '../components/pattern-import';
 import { PrintView } from '../components/print-view';
@@ -129,9 +128,10 @@ export class ReaderPage {
   private async loadFromFragment(): Promise<void> {
     const hash = window.location.hash;
     if (!hash.startsWith('#p=')) return;
+    const { decodePattern } = await import('../data/pattern-link');
     const decoded = await decodePattern(hash.slice('#p='.length));
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
-    if (!decoded) return;
+    if (!decoded || decoded === this.store.source()) return;
     if (this.store.source()) {
       this.pendingLinkSource = decoded;
       this.linkConfirmOpen.set(true);

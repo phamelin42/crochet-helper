@@ -56,7 +56,7 @@ const COPY: Record<Locale, Record<string, string>> = {
       <p>{{ c['lead'] }}</p>
     </section>
 
-    <div class="field" style="max-width:320px">
+    <div class="field glossary-filter">
       <label for="glossary-filter">{{ c['search'] }}</label>
       <input
         filInput
@@ -67,7 +67,7 @@ const COPY: Record<Locale, Record<string, string>> = {
       />
     </div>
 
-    <table class="table" style="margin-top:var(--space-6)">
+    <table class="table glossary-table">
       <caption class="visually-hidden">
         {{
           c['h1']

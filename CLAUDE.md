@@ -14,7 +14,8 @@ survol. C'est un outil qu'on regarde à un mètre de distance, crochet en main.
 ## Contraintes non négociables
 
 1. **Aucun back-end.** Tout se passe dans le navigateur : parsing, état,
-   persistance (`localStorage`), lecture d'image (`FileReader`). Le build produit
+   persistance (IndexedDB pour les projets, `localStorage` pour le seul
+   pointeur du projet actif), lecture d'image (`FileReader`). Le build produit
    des fichiers statiques (`outputMode: 'static'`). N'introduis ni serveur, ni
    appel réseau, ni clé d'API sans en discuter — ce serait un changement
    d'architecture, pas une fonctionnalité. Seule exception, discutée et bornée :
@@ -22,15 +23,18 @@ survol. C'est un outil qu'on regarde à un mètre de distance, crochet en main.
 2. **Tout est pré-rendu.** Chaque route existe en HTML complet dans
    `dist/fil-patterns/browser`. Une page dont le contenu n'apparaît qu'après
    exécution du JavaScript est un bug de référencement. Le code qui touche au
-   DOM, à `localStorage` ou à `navigator` doit être gardé par
+   DOM, à `localStorage`, à IndexedDB ou à `navigator` doit être gardé par
    `isPlatformBrowser` ou `afterNextRender`.
-3. **La langue vient de l'URL.** `/` et `/lecteur` en français, `/en` et
-   `/en/reader` en anglais. Jamais d'un état stocké : c'est ce qui rend les deux
-   versions indexables. Voir `core/i18n/route-paths.ts`.
+3. **La langue vient de l'URL.** Anglais à la racine (`/`, `/glossary`),
+   français sous `/fr` (`/fr`, `/fr/glossaire`). Jamais d'un état stocké : c'est
+   ce qui rend les deux versions indexables. Voir `core/i18n/route-paths.json`.
 4. **Le texte de l'utilisateur n'est jamais du HTML.** Il est rendu en segments
    (`@for`), pas via `innerHTML` ni `bypassSecurityTrust*`.
 5. **Aucune valeur brute de style.** Couleur, espacement, rayon, ombre, typo :
-   uniquement des `var(--…)` définis dans `src/styles/tokens.css`.
+   uniquement des `var(--…)` définis dans `src/styles/tokens.css`. Ni
+   `styles:` de composant ni attribut `style="…"` : les classes vont dans
+   `src/styles/lecteur.css` (mise en page) ou `nocturne.css` (design system).
+   Contrôlé par `tools/check-styles.mjs` au build.
 
 ## Architecture
 
@@ -67,6 +71,37 @@ refuser en relecture.
 Existant : `Button` (directive sur `<button>`/`<a>`), `InputField`, `Icon`,
 `Tile`, `Progress`, `Checkbox`, `Segmented`, `Dialog`, `Disclosure`,
 `TooltipHost` + `TooltipService`.
+
+## Pièges déjà rencontrés en relecture
+
+Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une fiche.
+
+- **Un test ne fige jamais un comportement douteux.** Deux fiches ont livré un
+  test qui validait le bug (`dtr` laissé tel quel par le convertisseur,
+  patron écrasé au rechargement). Un test décrit ce que la lectrice doit
+  obtenir, pas ce que le code fait.
+- **Données de la lectrice : aucune perte, même en cas d'échec.** Une écriture
+  IndexedDB n'est réussie qu'au `complete` de la transaction (un quota dépassé
+  déclenche `abort`). On n'efface jamais une ancienne copie sur la foi d'une
+  écriture non confirmée. Plusieurs écritures liées = une seule transaction.
+- **Toute entrée venant d'un tiers est bornée en taille avant traitement**
+  (permalien, sauvegarde importée, PDF) : un lien de 6 Ko peut se décompresser
+  en 5 Mo. Invalide ou trop grand → `null` / refus propre, jamais d'exception.
+- **Charger un autre patron ouvre un autre projet**, jamais n'écrase le projet
+  actif. Toute action destructive passe par une confirmation (`Dialog`).
+- **Asynchrone et effets** : vider l'état _avant_ d'attendre une suppression,
+  sinon un effet (chronomètre) réécrit ce qu'on vient d'effacer.
+- **Une nouvelle page est reliée** (en-tête ou maillage interne) : une page
+  orpheline n'est ni trouvée ni bien indexée. Une page `noIndex` ne va pas au
+  sitemap (`tools/generate-sitemap.mjs` les exclut).
+- **Français soigné** : article devant un nom de maille (« désigne _la_ maille
+  serrée »), espaces insécables avant `: ; ? !` et dans « ».
+- **Bundle initial ≤ 320 kB (erreur de build au-delà).** Code non nécessaire au
+  premier affichage → `import()` ; textes propres à une page paresseuse → dans
+  la page, pas dans `translations.ts` (qui est dans le bundle initial) ; CSS
+  d'impression → `print.css`, chargée à part. `ng build --stats-json` dit ce qui pèse.
+- **Impression** : vérifier sur un vrai PDF (Chromium `page.pdf`), pas sur
+  `innerText`, qui renvoie aussi le texte des éléments masqués.
 
 ## Vérification
 

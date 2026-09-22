@@ -12,7 +12,6 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../../shared/ui/field/input';
-import { encodePattern } from '../data/pattern-link';
 import { ReaderStore } from '../state/reader-store';
 
 /** Un lien plus long qu'une adresse de partage usuelle est un lien qui échoue
@@ -93,14 +92,12 @@ const MAX_LINK_LENGTH = 8000;
           @if (linkCopied()) {
             <p class="hint" role="status">{{ t('ui.linkCopied') }}</p>
           }
+          @if (linkCopyFailed()) {
+            <p class="hint" role="alert">{{ t('ui.linkCopyFailed') }}</p>
+          }
         </div>
       </div>
     </fil-disclosure>
-  `,
-  styles: `
-    .import-host {
-      display: block;
-    }
   `,
 })
 export class PatternImport {
@@ -114,6 +111,7 @@ export class PatternImport {
 
   protected readonly linkTooLong = signal(false);
   protected readonly linkCopied = signal(false);
+  protected readonly linkCopyFailed = signal(false);
   private shareUrl: string | null = null;
   private shareTicket = 0;
 
@@ -181,11 +179,14 @@ export class PatternImport {
   private async refreshShareUrl(source: string): Promise<void> {
     const ticket = ++this.shareTicket;
     this.linkCopied.set(false);
+    this.linkCopyFailed.set(false);
     if (!source) {
       this.shareUrl = null;
       this.linkTooLong.set(false);
       return;
     }
+    // Chargé à la demande : le permalien n'a pas sa place dans le bundle initial.
+    const { encodePattern } = await import('../data/pattern-link');
     const encoded = await encodePattern(source);
     if (ticket !== this.shareTicket) return; // une saisie plus récente a pris le dessus
     const url = `${window.location.origin}${window.location.pathname}#p=${encoded}`;
@@ -195,7 +196,13 @@ export class PatternImport {
 
   protected async copyLink(): Promise<void> {
     if (!this.shareUrl || this.linkTooLong()) return;
-    await navigator.clipboard.writeText(this.shareUrl);
-    this.linkCopied.set(true);
+    try {
+      await navigator.clipboard.writeText(this.shareUrl);
+      this.linkCopied.set(true);
+    } catch {
+      // Presse-papiers refusé (permission, contexte non sécurisé) : on le dit
+      // plutôt que d'échouer en silence.
+      this.linkCopyFailed.set(true);
+    }
   }
 }

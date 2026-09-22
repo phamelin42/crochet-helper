@@ -32,6 +32,26 @@ jobs:
           # Aucun identifiant dans la configuration git : l'agent ne peut rien pousser.
           persist-credentials: false
 
+      # Une fiche lancée avant la fusion des corrections de la précédente est
+      # écrite sans elles, ni sans les pièges ajoutés à CLAUDE.md : c'est arrivé
+      # deux fois (fiches 06 et 02). On s'arrête avant de payer l'agent.
+      - name: Refuser de partir si des finitions ne sont pas fusionnées
+        run: |
+          en_attente=""
+          for b in $(git branch -r --format='%(refname:short)' | grep '^origin/finitions-' || true); do
+            n=$(git rev-list --count origin/main.."$b")
+            [ "$n" -gt 0 ] && en_attente="$en_attente $b ($n commits)"
+          done
+          if [ -n "$en_attente" ]; then
+            {
+              echo "## Lot suivant non lancé"
+              echo "Corrections pas encore fusionnées dans main :$en_attente."
+              echo "Merge la PR correspondante, puis relance « Lot suivant »."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Finitions non fusionnées :$en_attente"
+            exit 1
+          fi
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24

@@ -22,4 +22,16 @@ describe('pattern-link', () => {
     await expect(decodePattern('')).resolves.toBeNull();
     await expect(decodePattern('1!!!not-base64!!!')).resolves.toBeNull();
   });
+
+  it('refuse une bombe de décompression sans tout décompresser', async () => {
+    // 5 Mo d'espaces tiennent en quelques kilo-octets une fois compressés.
+    const bomb = await encodePattern(' '.repeat(5_000_000));
+    expect(bomb.length).toBeLessThan(16_000);
+
+    await expect(decodePattern(bomb)).resolves.toBeNull();
+  });
+
+  it('refuse un fragment démesuré', async () => {
+    await expect(decodePattern('0' + 'A'.repeat(20_000))).resolves.toBeNull();
+  });
 });

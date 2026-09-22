@@ -18,7 +18,7 @@ describe('ProjectStoreService', () => {
 
     await expect(service.list()).resolves.toEqual([]);
     await expect(service.put<Fixture>({ id: 'a', label: 'A' })).resolves.toBe(false);
-    await expect(service.remove('a')).resolves.toBeUndefined();
+    await expect(service.remove('a')).resolves.toBe(false);
   });
 
   it('reste inerte côté serveur même si IndexedDB est simulée', async () => {
@@ -39,5 +39,33 @@ describe('ProjectStoreService', () => {
 
     await service.remove('a');
     await expect(service.list()).resolves.toEqual([]);
+  });
+
+  it('signale un échec quand la transaction est annulée (quota dépassé)', async () => {
+    const control = installFakeIndexedDb();
+    TestBed.configureTestingModule({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] });
+    const service = TestBed.inject(ProjectStoreService);
+    control.failWrites = true;
+
+    await expect(service.put<Fixture>({ id: 'a', label: 'A' })).resolves.toBe(false);
+    await expect(service.list()).resolves.toEqual([]);
+  });
+
+  it('écrit plusieurs éléments en tout ou rien', async () => {
+    const control = installFakeIndexedDb();
+    TestBed.configureTestingModule({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] });
+    const service = TestBed.inject(ProjectStoreService);
+    const items = [
+      { id: 'a', label: 'A' },
+      { id: 'b', label: 'B' },
+    ];
+
+    control.failWrites = true;
+    await expect(service.putAll<Fixture>(items)).resolves.toBe(false);
+    await expect(service.list()).resolves.toEqual([]);
+
+    control.failWrites = false;
+    await expect(service.putAll<Fixture>(items)).resolves.toBe(true);
+    await expect(service.list()).resolves.toEqual(items);
   });
 });

@@ -147,6 +147,11 @@ Mets à jour `claude/etat-du-projet.md` (outil Projects) : fiche en cours, actio
 - `npx playwright test` (tests `e2e/` du dépôt) veut sa propre révision de
   Chromium, absente du conteneur : lancer avec `PW_CHROMIUM=/opt/pw-browsers/chromium`.
   `smoke.mjs` accepte `W=320` pour tester le reflow.
+- Les tests Angular n'ont pas les types Node (`tsconfig.spec.json`) : un
+  contrôle qui doit lire des fichiers va dans `tools/*.mjs`, lancé par le build,
+  pas dans une spec.
+- Les boutons d'un `Segmented` sont des radios masquées : les cliquer par leur
+  libellé (`getByText('Assombri', { exact: true })`), pas par `getByRole`.
 - Poids du bundle : `npx ng build --stats-json`, puis lire
   `dist/fil-patterns/stats.json` (`outputs[main].inputs[*].bytesInOutput`).
 

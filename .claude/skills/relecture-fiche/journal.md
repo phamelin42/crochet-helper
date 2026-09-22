@@ -63,3 +63,9 @@ coûteuses (→ script). Élaguer les entrées de plus de dix fiches.
 - Défauts : deux guides anglais sous le minimum de mots de la fiche (626 et 662 pour 700 demandés) ; **violation de contraste** sur la nouvelle section de l'accueil (résumé imbriqué dans le lien) — invisible pour l'audit, qui ne connaissait pas encore ces pages.
 - Coûts : la fiche annonçait « 12 routes pré-rendues » (chiffre d'avant les fiches 14/15), non repéré à la préparation malgré la consigne sur les nombres ; Prettier a coupé un mot dans un commentaire de gabarit et cassé la compilation.
 - Amélioration : `e2e/a11y.spec.ts` dérive ses routes de `route-paths.json` — toute famille de page ajoutée est auditée d'office (59 cas) ; piège correspondant dans CLAUDE.md ; fiche 08 corrigée (ThemeService et Progress inexistants, sitemap déjà adapté) ; liste des composants de CLAUDE.md corrigée.
+
+## 08 — Vitrine du design system
+
+- Défauts : aucun. L'agent a suivi les consignes ajoutées par les rétros précédentes (commits au fil de l'eau, page ajoutée elle-même à l'audit axe, corrections a11y avant de rendre) et ses deux tests résistent aux mutations.
+- Coûts : contrôle d'abord écrit en spec Angular, impossible faute de types Node → déplacé dans `tools/` ; premier contrôle trop permissif (`includes`), repéré par un contrôle négatif.
+- Amélioration : `tools/check-showcase.mjs` — le build échoue si un composant de `shared/ui` manque à la vitrine, ce que la fiche faisait vérifier à l'œil ; piège correspondant dans CLAUDE.md ; deux erreurs d'outillage notées.

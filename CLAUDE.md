@@ -108,6 +108,8 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
 - **Une fiche qui énumère des formes ou des valeurs** (« deux à douze, FR et
   EN », « chaque forme du tableau ») : le test les parcourt **toutes** (boucle),
   pas un échantillon.
+- **Un composant ajouté à `shared/ui/` entre dans la vitrine**
+  (`/design-system`) : `tools/check-showcase.mjs` fait échouer le build sinon.
 - **Une nouvelle famille de page entre d'elle-même dans l'audit** dès qu'elle
   est déclarée dans `route-paths.json` (`e2e/a11y.spec.ts` en dérive ses
   routes). Une route déclarée ailleurs échappe à l'audit : l'ajouter à la main.

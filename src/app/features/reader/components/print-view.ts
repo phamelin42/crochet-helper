@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 import { GlossaryText } from './glossary-text';
 
@@ -55,5 +56,5 @@ export class PrintView {
   protected readonly store = inject(ReaderStore);
   private readonly i18n = inject(I18nService);
 
-  protected t = (key: Parameters<I18nService['t']>[0]) => this.i18n.t(key);
+  protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
 }

@@ -5,6 +5,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Checkbox } from '../../../shared/ui/checkbox/checkbox';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Tile } from '../../../shared/ui/tile/tile';
+import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 
 /**
@@ -88,7 +89,7 @@ export class ReaderCounters {
   protected readonly store = inject(ReaderStore);
   private readonly i18n = inject(I18nService);
 
-  protected t = (key: Parameters<I18nService['t']>[0]) => this.i18n.t(key);
+  protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
 
   protected readonly current = computed(() =>
     this.store.step() ? String(this.store.stepIndex() + 1).padStart(2, '0') : '--',

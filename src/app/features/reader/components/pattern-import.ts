@@ -12,6 +12,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../../shared/ui/field/input';
+import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 
 /** Un lien plus long qu'une adresse de partage usuelle est un lien qui échoue
@@ -115,7 +116,7 @@ export class PatternImport {
   private shareUrl: string | null = null;
   private shareTicket = 0;
 
-  protected t = (key: Parameters<I18nService['t']>[0]) => this.i18n.t(key);
+  protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
 
   constructor() {
     // Rouvre le panneau dès qu'une erreur de PDF survient, y compris quand le

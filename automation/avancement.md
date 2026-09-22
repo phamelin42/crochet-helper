@@ -25,7 +25,7 @@ branche.
 | 02 — Tests du lecteur                | Terminée | —   | 2026-09-22 |
 | 03 — Formats supplémentaires         | Terminée | —   | 2026-09-22 |
 | 05 — Mode hors ligne (PWA)           | Terminée | —   | 2026-09-22 |
-| 07 — Audit d'accessibilité           | À faire  | —   | —          |
+| 07 — Audit d'accessibilité           | Terminée | —   | 2026-09-22 |
 | 09 — Performance et Core Web Vitals  | À faire  | —   | —          |
 | 04 — Pages éditoriales               | À faire  | —   | —          |
 | 08 — Vitrine du design system        | À faire  | —   | —          |

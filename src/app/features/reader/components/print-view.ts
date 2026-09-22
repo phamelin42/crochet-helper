@@ -34,7 +34,8 @@ import { GlossaryText } from './glossary-text';
             @for (step of piece.steps; track $index) {
               <li>
                 @if (step.label) {
-                  <strong>{{ step.label }}</strong>
+                  <strong>{{ step.label }}</strong
+                  >{{ ' ' }}
                 }
                 <fil-glossary-text [text]="step.body" />
               </li>

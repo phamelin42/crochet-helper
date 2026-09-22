@@ -63,8 +63,8 @@
    l'en-tête (mêmes dimensions que `.btn-icon`). */
 .tool-slot {
   display: flex;
-  width: 36px;
-  height: 36px;
+  width: var(--control-size);
+  height: var(--control-size);
   flex: none;
 }
 

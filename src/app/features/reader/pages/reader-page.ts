@@ -124,10 +124,17 @@ const SEO: Record<Locale, { title: string; description: string }> = {
       <h2>{{ guides.sectionTitle }}</h2>
       <div class="grid-cards">
         @for (item of guides.items; track item.href) {
-          <a class="card" [routerLink]="item.href">
-            <p class="card-title">{{ item.title }}</p>
+          <!--
+            Le résumé reste en dehors du lien : à l'intérieur, il hérite de la
+            couleur d'accent et son opacité le fait passer sous le seuil de
+            contraste AA (relevé par l'audit axe).
+          -->
+          <div class="card">
+            <p class="card-title">
+              <a [routerLink]="item.href">{{ item.title }}</a>
+            </p>
             <p class="card-body">{{ item.lead }}</p>
-          </a>
+          </div>
         }
       </div>
     </section>

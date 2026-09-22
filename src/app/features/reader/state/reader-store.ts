@@ -151,11 +151,13 @@ export class ReaderStore {
    * premier rendu ; public pour que les tests puissent l'attendre directement.
    */
   async initialize(): Promise<void> {
-    await this.migrateLegacyState();
+    const unsaved = await this.migrateLegacyState();
     const list = await this.projectStore.list<Project>();
     this.projects.set(list);
     const pointer = this.storage.read<string>(CURRENT_ID_KEY);
-    const project = pointer ? list.find((p) => p.id === pointer) : undefined;
+    // Migration impossible (IndexedDB indisponible) : le patron en cours reste
+    // affiché, en mémoire, et l'ancien stockage est gardé pour la prochaine fois.
+    const project = unsaved ?? (pointer ? list.find((p) => p.id === pointer) : undefined);
     if (project) {
       this.hydrate(project);
       this.analytics.track('session_resumed');
@@ -163,19 +165,26 @@ export class ReaderStore {
     this.restored.set(true);
   }
 
-  private async migrateLegacyState(): Promise<void> {
-    if (this.storage.read<boolean>(MIGRATION_FLAG)) return;
+  /** Renvoie le projet issu de l'ancien état quand il n'a pas pu être enregistré. */
+  private async migrateLegacyState(): Promise<Project | undefined> {
+    if (this.storage.read<boolean>(MIGRATION_FLAG)) return undefined;
     const legacy = this.storage.read<LegacyReaderState>(LEGACY_KEY);
     if (legacy?.source) {
-      const project = legacyToProject(legacy, crypto.randomUUID(), Date.now());
+      const project = legacyToProject(
+        legacy,
+        parsePattern(legacy.source).title,
+        crypto.randomUUID(),
+        Date.now(),
+      );
       const persisted = await this.projectStore.put(project);
       // IndexedDB indisponible pour l'instant : on retente à la prochaine
       // visite plutôt que d'effacer le seul exemplaire du patron.
-      if (!persisted) return;
+      if (!persisted) return project;
       this.storage.write(CURRENT_ID_KEY, project.id);
     }
     this.storage.write(MIGRATION_FLAG, true);
     this.storage.remove(LEGACY_KEY);
+    return undefined;
   }
 
   private async persist(): Promise<void> {
@@ -238,16 +247,12 @@ export class ReaderStore {
   }
 
   async removeProject(id: string): Promise<void> {
-    await this.projectStore.remove(id);
+    // Le lecteur est vidé **avant** d'attendre la suppression : sinon un tic du
+    // chronomètre pendant l'attente relancerait `persist()` et réécrirait le
+    // projet qu'on vient d'effacer.
+    if (id === this.currentId()) this.clear();
     this.projects.update((list) => list.filter((p) => p.id !== id));
-    if (id === this.currentId()) {
-      this.stopTimer();
-      this.currentId.set(null);
-      this.nameOverride.set(null);
-      this.elapsed.set(0);
-      this.image.set('');
-      this.load('');
-    }
+    await this.projectStore.remove(id);
   }
 
   /** Fichier `.json` téléchargeable, tous les projets, avec le numéro de schéma. */
@@ -260,7 +265,7 @@ export class ReaderStore {
   /**
    * Réimporte une sauvegarde : fusion, jamais écrasement — un doublon garde la
    * version la plus récemment ouverte. Refuse en bloc un fichier dont le
-   * numéro de schéma est inconnu.
+   * numéro de schéma est inconnu, et n'importe rien si l'écriture échoue.
    */
   async importBackup(file: File): Promise<boolean> {
     let raw: unknown;
@@ -272,14 +277,20 @@ export class ReaderStore {
     const backup = parseBackup(raw);
     if (!backup) return false;
 
-    const merged = mergeProjects(this.projects(), backup.projects);
-    await Promise.all(merged.map((project) => this.projectStore.put(project)));
+    const current = this.projects();
+    const merged = mergeProjects(current, backup.projects);
+    // Une seule transaction : si le quota lâche, rien n'est importé.
+    if (!(await this.projectStore.putAll(merged))) return false;
     this.projects.set(merged);
 
+    // Si la sauvegarde apporte une version plus récente du projet ouvert, le
+    // lecteur doit l'afficher : sinon le prochain `persist()` réécrirait
+    // l'ancienne progression par-dessus celle qu'on vient d'importer.
     const id = this.currentId();
-    if (id) {
-      const refreshed = merged.find((p) => p.id === id);
-      if (refreshed && refreshed.source !== this.source()) this.hydrate(refreshed);
+    const refreshed = id ? merged.find((p) => p.id === id) : undefined;
+    if (refreshed && !current.includes(refreshed)) {
+      this.stopTimer();
+      this.hydrate(refreshed);
     }
 
     this.analytics.track('backup_imported', { projects: backup.projects.length });
@@ -289,10 +300,14 @@ export class ReaderStore {
   /**
    * Charge un texte de patron. `origine` distingue un patron collé, un PDF
    * importé et l'exemple : seul un patron collé compte comme `pattern_pasted`.
-   * Un texte non vide sans projet actif en ouvre un nouveau.
+   *
+   * Un texte différent du patron actif ouvre un **nouveau** projet : le projet
+   * en cours reste intact dans la liste. Recharger le même texte garde le
+   * projet et remet sa progression à zéro, comme avant la fiche 16.
    */
   load(text: string, origine: 'saisie' | 'pdf' | 'exemple' = 'saisie'): void {
     this.pdfError.set(null);
+    if (text && this.currentId() && text !== this.source()) this.detach();
     this.source.set(text);
     this.pieceIndex.set(0);
     this.stepIndex.set(0);
@@ -346,12 +361,17 @@ export class ReaderStore {
    * ensuite ouvre un nouveau projet.
    */
   clear(): void {
+    this.detach();
+    this.load('');
+  }
+
+  /** Quitte le projet actif sans le modifier : il reste tel quel dans la liste. */
+  private detach(): void {
     this.stopTimer();
-    this.elapsed.set(0);
-    this.image.set('');
     this.currentId.set(null);
     this.nameOverride.set(null);
-    this.load('');
+    this.elapsed.set(0);
+    this.image.set('');
   }
 
   selectPiece(index: number): void {

@@ -47,13 +47,22 @@ describe('ReaderStore — mesure', () => {
     );
   });
 
-  it("n'ouvre pas de nouveau projet quand un patron est déjà en cours", () => {
+  it("n'ouvre pas de nouveau projet quand on recharge le même patron", () => {
+    store.load('Rang 1 : 6 ms');
+    track.mockClear();
+
+    store.load('Rang 1 : 6 ms');
+
+    expect(events()).toEqual(['pattern_pasted', 'pattern_parsed']);
+  });
+
+  it('ouvre un nouveau projet quand on charge un autre patron', () => {
     store.load('Rang 1 : 6 ms');
     track.mockClear();
 
     store.load('Rang 1 : 12 ms');
 
-    expect(events()).toEqual(['pattern_pasted', 'pattern_parsed']);
+    expect(events()).toEqual(['project_created', 'pattern_pasted', 'pattern_parsed']);
   });
 
   it("n'émet rien quand on vide le lecteur", () => {

@@ -134,4 +134,41 @@ describe('parsePattern', () => {
     expect(pattern.materials).toEqual(['1. 4mm hook', '2. green yarn']);
     expect(pattern.total).toBe(1);
   });
+
+  it('range une section Notes dans Pattern.notes plutôt que dans une pièce', () => {
+    const pattern = parsePattern(
+      [
+        'Notes:',
+        'Work in continuous rounds, do not join.',
+        'Use a stitch marker to track the start of the round.',
+        'Rang 1 : 6 ms dans un cercle magique',
+      ].join('\n'),
+    );
+    expect(pattern.notes).toEqual([
+      'Work in continuous rounds, do not join.',
+      'Use a stitch marker to track the start of the round.',
+    ]);
+    expect(pattern.pieces.map((p) => p.name)).toEqual(['']);
+    expect(pattern.total).toBe(1);
+  });
+
+  it("referme la table d'abréviations dès qu'un nom de pièce suit, sans avaler le paragraphe", () => {
+    const pattern = parsePattern(
+      [
+        'Pumpkin Harvest Hat',
+        'Materials:',
+        'G Hook',
+        'Abbreviations:',
+        'sc= single crochet',
+        'dc = double crochet',
+        'Stem',
+        'With Green Yarn, Chain 2',
+        'Row 1: In 2nd Chain from hook, make 4 sc (4)',
+      ].join('\n'),
+    );
+    expect(pattern.title).toBe('Pumpkin Harvest Hat');
+    expect(pattern.notes).toEqual(['sc= single crochet', 'dc = double crochet']);
+    expect(pattern.pieces.map((p) => p.name)).toEqual(['Stem']);
+    expect(pattern.total).toBe(1);
+  });
 });

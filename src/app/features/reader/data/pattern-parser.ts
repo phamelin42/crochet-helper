@@ -46,6 +46,9 @@ const INSTR = /^(instructions?|pattern|steps?|[ée]tapes?|r[ée]alisation)\s*:?\
 const ASIDE =
   /^(notes?|abbreviations?|abr[ée]viations?|gauge|[ée]chantillon|sizes?|tailles?|taille|skill\s+level|pattern\s+details|difficult[ée])\b\s*(?:\([^)]*\))?\s*:?\s*$/i;
 
+/** En-tête qui ouvre spécifiquement une table d'abréviations. */
+const ABBREV_HEADER = /^(abbreviations?|abr[ée]viations?)\b/i;
+
 /** Même chose mais avec du contenu sur la même ligne : « Size: 6-12 months ». */
 const ASIDE_INLINE =
   /^(sizes?|tailles?|taille|gauge|[ée]chantillon|skill\s+level|yarn\s+(?:brand|name|weight)|hook\s+size|niveau)\s*:\s*\S/i;
@@ -256,6 +259,7 @@ export function parsePattern(raw: string): Pattern {
   let pending: string[] = [];
   let inMaterials = false;
   let inAside = false;
+  let asideIsAbbrevTable = false;
   let seenStep = false;
 
   const newPiece = (name: string): MutablePiece => {
@@ -298,6 +302,7 @@ export function parsePattern(raw: string): Pattern {
     }
     if (ASIDE.test(line)) {
       inAside = true;
+      asideIsAbbrevTable = ABBREV_HEADER.test(line);
       inMaterials = false;
       continue;
     }
@@ -311,8 +316,14 @@ export function parsePattern(raw: string): Pattern {
     if (inAside) {
       // Une table d'abréviations se reconnaît à sa forme « terme - définition ».
       // Dès qu'une ligne n'en a plus l'allure, la section est finie : sinon le
-      // titre du patron, qui suit souvent la table, y serait englouti.
-      if (!isRow && (ABBREV.test(line) || (!isHeading(line) && line.length < 40))) {
+      // titre du patron, qui suit souvent la table, y serait englouti. Les
+      // autres sections à part (Notes, Gauge, Sizes…) sont des paragraphes
+      // libres : elles se poursuivent tant qu'aucun rang ni titre n'apparaît,
+      // quelle que soit la longueur de la ligne.
+      const continuesAside = asideIsAbbrevTable
+        ? !isRow && (ABBREV.test(line) || (!isHeading(line) && line.length < 40))
+        : !isRow && !isHeading(line);
+      if (continuesAside) {
         notes.push(line.replace(BULLET, ''));
         continue;
       }

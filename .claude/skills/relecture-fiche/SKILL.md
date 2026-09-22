@@ -58,6 +58,12 @@ grep -E "×|Tests |Initial total|Prerendered|sitemap.xml|Pré-rendu|CSP :" $SCRA
 Tests ciblés pendant les corrections : `npx ng test --no-watch --include='<glob>'`
 (jamais `npx vitest` directement : l'environnement Angular n'est pas initialisé).
 
+**Les tests protègent-ils vraiment ?** Plutôt que de relire les specs, casser le
+code et voir si elles échouent — c'est plus sûr et moins cher en tokens :
+`.claude/skills/relecture-fiche/mutate.sh <fichier> "<ancien>" "<nouveau>" "<nom>" [glob]`.
+Viser les invariants de la fiche et les pièges de `CLAUDE.md`. Une mutation
+qui « SURVIT » = un test à écrire.
+
 E2E sous CSP de production, à 360 px :
 
 ```bash
@@ -132,6 +138,8 @@ Modèle, à adapter :
    ```
    Si `main` est protégée et la fiche déjà mergée : pousser sur une branche
    `finitions-<nn>` (`git push -u origin HEAD:finitions-<nn>`) et ouvrir la PR.
+   **Insister : cette PR se merge avant de lancer « Lot suivant »** — le
+   workflow refuse désormais de partir sinon.
 2. **CI** : Actions → attendre « Lint · format · tests · build » vert (sinon
    workflow **CI** → Run workflow sur la branche). Ignorer l'exécution
    `pull_request` vide.

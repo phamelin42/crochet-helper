@@ -21,7 +21,7 @@ Mesurer, améliorer ce qui compte, et rendre la régression détectable.
 ## À faire
 
 1. **Mesurer d'abord.** `npm run build`, puis Lighthouse en mode mobile sur le
-   dossier servi en statique, sur `/`, `/lecteur` et `/glossaire`. Consigne les
+   dossier servi en statique, sur `/` (lecteur), `/glossary` et `/fr/glossaire/ms` (une page d'abréviation). Consigne les
    chiffres de départ dans `docs/performance.md`. **Ne change rien avant d'avoir
    ces chiffres** : sans référence, une optimisation est une croyance.
 2. Pistes, par gain attendu décroissant — n'applique que celles qui se mesurent :
@@ -38,6 +38,9 @@ Mesurer, améliorer ce qui compte, et rendre la régression détectable.
      le panneau matériel, qui ne sont pas visibles au premier écran sur mobile.
 3. Resserrer les budgets d'`angular.json` **juste au-dessus** du résultat
    obtenu, pour qu'une régression casse le build plutôt qu'un tableau de bord.
+   Point de départ (fiche 05) : bundle initial ≈ 320 kB brut / 88 kB transférés,
+   dont ~305 kB d'Angular ; budget relevé à 335 kB pour laisser travailler les
+   fiches 07 et 04. Le poids _transféré_ est ce qui compte pour la lectrice.
 4. Ajouter au workflow CI une étape qui échoue si le paquet initial dépasse le
    budget (le build le fait déjà : vérifie que l'étape n'est pas silencieuse).
 

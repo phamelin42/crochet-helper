@@ -87,6 +87,10 @@
   --print-ink: #000;
   --print-paper: #fff;
   --print-small: 0.875rem;
+  /* Côté d'un bouton d'icône. L'emplacement réservé du bouton « écran allumé »
+     (`.tool-slot`) doit garder exactement cette taille, sinon le décalage de
+     mise en page revient à l'hydratation. */
+  --control-size: 36px;
   /* Largeur du champ de filtre du glossaire. */
   --glossary-filter-width: 320px;
 }

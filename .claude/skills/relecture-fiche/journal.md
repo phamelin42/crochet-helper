@@ -45,3 +45,15 @@ coûteuses (→ script). Élaguer les entrées de plus de dix fiches.
 - Défauts : **service worker dégradé en production** (empreintes de `ngsw.json` périmées par `strip-event-dispatch.mjs`) ; icônes d'installation au logo d'Angular ; 110 pages préchargées à l'installation. Agent à 200 échanges sans commit.
 - Coûts : fiche périmée (`/lecteur`, « six pages ») et budget 320 kB devenu un plancher (Angular ≈ 305 kB) → l'agent s'est épuisé à grappiller ; premier test hors ligne faux positif (statut 200 sans lire l'état du worker).
 - Amélioration : `ngsw.json` régénéré après post-traitement + `tools/check-ngsw.mjs` ; budget 325/335 kB ; fiches 04/08/09 remises à jour ; `lot-suivant` : commits fréquents, fiche contredite → le code fait foi, blocage → brouillon ; relecture : **mettre à jour la fiche suivante avant de lancer le lot**.
+
+## 07 — Accessibilité
+
+- Défauts : audit axe **non branché dans la CI** (l'objectif « empêcher les régressions » n'était pas tenu) ; couverture sans pages FR ni lecteur chargé ; reflow vérifié à la main seulement. Bon point : l'agent a commité au fil de l'eau (consigne de la rétro 05) et relevé une incohérence de `CLAUDE.md` (`core/theme` inexistant).
+- Coûts : « six routes » dans la fiche, non détecté par ma vérification de fraîcheur (chemins seulement) ; révision de Chromium de Playwright absente du conteneur.
+- Amélioration : a11y dans la CI ; 38 cas (12 pages × 2 thèmes, lecteur chargé, reflow 320 px), reflow vérifié par mutation ; piège « garde-fou non branché » ; fraîcheur des fiches = lecture complète ; `PW_CHROMIUM`.
+
+## 09 — Performance et Core Web Vitals
+
+- Défauts : aucun dans le code. Le rapport est honnête (Lighthouse impossible, méthode Playwright+CDP assumée) et ses chiffres sont reproductibles à l'identique. Manquait le garde-fou : rien n'empêchait le CLS de revenir.
+- Coûts : **mes finitions de la fiche 07 n'étaient pas dans `main`** (PR #24 n'a mergé que l'agent) et je l'avais annoncé mergé sans lire la sortie de ma vérification → refait le merge dans `revue-09` ; mutation du `.tool-slot` non reproductible sans API `wakeLock` (fausse API injectée dans le test).
+- Amélioration : `e2e/perf.spec.ts` (CLS ≤ 0,05, LCP ≤ 2 s, mobile bridé) dans la CI, vérifié par mutation ; jeton `--control-size` partagé entre `.btn-icon` et sa place réservée ; étape 0 du skill : vérifier que les corrections précédentes sont **dans main**, en lisant la réponse.

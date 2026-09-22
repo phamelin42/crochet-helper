@@ -191,8 +191,8 @@ figcaption {
   background: color-mix(in srgb, var(--color-accent) 18%, transparent);
 }
 .btn-icon {
-  width: 36px;
-  height: 36px;
+  width: var(--control-size);
+  height: var(--control-size);
   padding: 0;
 }
 .btn-block {

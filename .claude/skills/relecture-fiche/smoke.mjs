@@ -21,7 +21,9 @@ await mkdir(OUT, { recursive: true });
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 let failed = false;
 for (const path of paths) {
-  const page = await browser.newPage({ viewport: { width: 360, height: 800 } });
+  const page = await browser.newPage({
+    viewport: { width: Number(process.env.W ?? 360), height: 800 },
+  });
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));

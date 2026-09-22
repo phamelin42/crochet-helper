@@ -79,19 +79,27 @@ import { Icon } from '../ui/icon/icon';
         </button>
       }
 
-      @if (wakeLock.supported()) {
-        <button
-          type="button"
-          filButton="secondary"
-          [iconOnly]="true"
-          [attr.aria-pressed]="wakeLock.active()"
-          [attr.aria-label]="i18n.t('ui.wake')"
-          [title]="i18n.t('ui.wake')"
-          (click)="wakeLock.toggle()"
-        >
-          <fil-icon name="eye" />
-        </button>
-      }
+      <!--
+        Support de l'API wakeLock : inconnaissable côté serveur, donc
+        toujours faux au pré-rendu. Sans cet emplacement de taille fixe, son
+        apparition après l'hydratation (sur les navigateurs qui le supportent)
+        décale tout l'en-tête — mesuré : CLS ≈ 0,34 sur les trois pages.
+      -->
+      <span class="tool-slot">
+        @if (wakeLock.supported()) {
+          <button
+            type="button"
+            filButton="secondary"
+            [iconOnly]="true"
+            [attr.aria-pressed]="wakeLock.active()"
+            [attr.aria-label]="i18n.t('ui.wake')"
+            [title]="i18n.t('ui.wake')"
+            (click)="wakeLock.toggle()"
+          >
+            <fil-icon name="eye" />
+          </button>
+        }
+      </span>
 
       <a
         filButton="secondary"

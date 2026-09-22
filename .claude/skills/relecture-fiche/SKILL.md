@@ -16,10 +16,14 @@ fichier, et tu termines **toujours** par la liste d'actions de Phil.
 - Doc projet `claude/etat-du-projet.md` (outil Projects) : état, action en attente.
 - `git fetch --prune && git log --oneline -15 origin/main && git branch -r`.
   Branche `origin/<nn>-<slug>` = fiche en relecture ; déjà mergée = relecture après merge.
-- **Finitions en souffrance** : `git log --oneline origin/main..origin/finitions-<nn>`
-  pour chaque branche `finitions-*`. Non vide = la PR de correction n'est pas
-  mergée → baser la relecture suivante dessus (merge dans `revue-<nn>`) pour
-  tout livrer dans une seule PR.
+- **Mes corrections précédentes sont-elles bien dans `main` ?** Vérifier le
+  dernier commit de la relecture précédente, pas la branche (elle est supprimée
+  au merge) : `git merge-base --is-ancestor <sha> origin/main && echo DANS MAIN || echo ABSENT`
+  — lire la réponse, ne pas la supposer. Absent = les corrections ont été
+  perdues au merge de la fiche : les remettre dans `revue-<nn>` (`git merge`)
+  et le dire à Phil. C'est arrivé à la fiche 07.
+- Idem pour toute branche `finitions-*` encore présente :
+  `git log --oneline origin/main..origin/finitions-<nn>`.
 
 Pas de `gh` ni d'API GitHub dans le conteneur : l'état des PR se déduit des
 branches. Le push direct est refusé (403) tant que Phil n'a pas ajouté le dépôt
@@ -115,8 +119,10 @@ supprimer une consigne devenue inutile. La rétro figure dans le message final �
 Phil, en deux lignes.
 
 **Préparer la fiche suivante** (quelques minutes, évite un lot raté) : la
-relire contre l'état actuel du code — URL, fichiers cités, budget, pièges
-connus — et la corriger dans le même bundle. La fiche 05, périmée, a coûté 200
+relire **en entier** contre l'état actuel du code — URL, fichiers cités, mais
+aussi les nombres et listes (« six routes », « trois pages »), le budget, les
+pièges connus — et la corriger dans le même bundle. Un simple contrôle des
+chemins a laissé passer « six routes » dans la fiche 07. La fiche 05, périmée, a coûté 200
 échanges à l'agent.
 
 Mets à jour `claude/etat-du-projet.md` (outil Projects) : fiche en cours, action en attente.
@@ -138,6 +144,9 @@ Mets à jour `claude/etat-du-projet.md` (outil Projects) : fiche en cours, actio
   la fin de `verify` avant d'utiliser `node_modules/.bin`.
 - Prettier reformate les lignes longues : relire la ligne (`grep -n`) avant un
   remplacement Python sur du code déjà formaté.
+- `npx playwright test` (tests `e2e/` du dépôt) veut sa propre révision de
+  Chromium, absente du conteneur : lancer avec `PW_CHROMIUM=/opt/pw-browsers/chromium`.
+  `smoke.mjs` accepte `W=320` pour tester le reflow.
 - Poids du bundle : `npx ng build --stats-json`, puis lire
   `dist/fil-patterns/stats.json` (`outputs[main].inputs[*].bytesInOutput`).
 

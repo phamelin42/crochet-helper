@@ -32,8 +32,10 @@ Mesurer, améliorer ce qui compte, et rendre la régression détectable.
      pages. Mesurer ce qui sert au-dessus de la ligne de flottaison.
    - **Découpage** : vérifier qu'aucun composant de `features/reader` ne fuit
      dans le paquet initial (`--stats-json` puis analyse).
-   - **Décalage de mise en page** : le panneau de diagramme et la zone d'étape
-     changent de taille à l'hydratation. Réserver la place.
+   - **Décalage de mise en page** : la zone d'étape change de taille à
+     l'hydratation (le panneau de diagramme n'existe plus). Réserver la place.
+   - **CSS mort** : `.figpanel`, `.zoomview`, `.dialog.zoom` ne servent plus
+     (voir `docs/accessibilite.md`) : les retirer allège la feuille globale.
    - **Hydratation incrémentale** (`@defer (hydrate on …)`) pour les compteurs et
      le panneau matériel, qui ne sont pas visibles au premier écran sur mobile.
 3. Resserrer les budgets d'`angular.json` **juste au-dessus** du résultat

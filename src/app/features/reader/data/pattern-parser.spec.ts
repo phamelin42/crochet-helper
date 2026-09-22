@@ -102,4 +102,12 @@ describe('parsePattern', () => {
     const pattern = parsePattern('Rang 2 (envers) : m2, m2 env');
     expect(pattern.pieces[0].steps[0].side).toBe('ws');
   });
+
+  it('garde le renvoi entre parenthèses qui suit une étendue de rangs', () => {
+    const pattern = parsePattern('Rnd 12-16 (rep rnd 11)');
+    const step = pattern.pieces[0].steps[0];
+    expect(step.label).toBe('Rnd 12–16');
+    expect(step.reps).toBe(5);
+    expect(step.body).toBe('(rep rnd 11)');
+  });
 });

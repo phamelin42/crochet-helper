@@ -1,0 +1,68 @@
+/* ============================================================================
+   Impression du lecteur — un livret lisible : toutes les étapes de toutes les
+   pièces, une pièce par page. `.print-only` n'existe qu'ici : le contenu est
+   déjà dans le DOM (voir `PrintView`), jamais fabriqué au moment d'imprimer.
+   ========================================================================== */
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  fil-site-header,
+  .skip-link,
+  fil-tooltip-host,
+  fil-pattern-import,
+  .reader,
+  .hr,
+  fil-reader-counters,
+  fil-materials-list {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  .print-only,
+  .print-only * {
+    color: #000 !important;
+    background: none !important;
+    border-color: #000 !important;
+  }
+
+  .print-materials {
+    margin-bottom: 2em;
+  }
+  .print-materials ul {
+    padding-left: 1.4em;
+  }
+
+  .print-piece + .print-piece {
+    break-before: page;
+  }
+  .print-piece ol {
+    padding-left: 1.6em;
+  }
+  .print-piece li + li {
+    margin-top: 0.6em;
+  }
+  .print-piece li {
+    break-inside: avoid;
+  }
+
+  .print-footer {
+    margin-top: 2em;
+    font-size: 0.85em;
+  }
+}

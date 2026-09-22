@@ -54,7 +54,10 @@ export class ReaderStore {
   private readonly analytics = inject(AnalyticsService);
   private readonly destroyRef = inject(DestroyRef);
 
-  private readonly restored = signal(false);
+  /** Devient vrai une fois la restauration initiale terminée — sert à `ReaderPage`
+   *  pour savoir quand il est sûr de lire un permalien sans risquer d'écraser
+   *  un projet en cours de reprise. */
+  readonly restored = signal(false);
   private ticker: ReturnType<typeof setInterval> | null = null;
   private ticks = 0;
 
@@ -288,10 +291,10 @@ export class ReaderStore {
 
   /**
    * Charge un texte de patron. `origine` distingue un patron collé, un PDF
-   * importé et l'exemple : seul un patron collé compte comme `pattern_pasted`.
-   * Un texte non vide sans projet actif en ouvre un nouveau.
+   * importé, l'exemple et un permalien : seul un patron collé compte comme
+   * `pattern_pasted`. Un texte non vide sans projet actif en ouvre un nouveau.
    */
-  load(text: string, origine: 'saisie' | 'pdf' | 'exemple' = 'saisie'): void {
+  load(text: string, origine: 'saisie' | 'pdf' | 'exemple' | 'lien' = 'saisie'): void {
     this.pdfError.set(null);
     this.source.set(text);
     this.pieceIndex.set(0);

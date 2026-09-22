@@ -1,5 +1,6 @@
 {
   "reader": { "fr": "/", "en": "/" },
   "glossary": { "fr": "/glossaire", "en": "/glossary" },
-  "format": { "fr": "/bien-formater-son-patron", "en": "/format-your-pattern" }
+  "format": { "fr": "/bien-formater-son-patron", "en": "/format-your-pattern" },
+  "converter": { "fr": "/convertisseur-us-uk", "en": "/us-uk-converter" }
 }

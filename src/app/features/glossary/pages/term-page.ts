@@ -11,6 +11,7 @@ import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
 import { Button } from '../../../shared/ui/button/button';
 import { InputField } from '../../../shared/ui/field/input';
 import { TooltipService } from '../../../shared/ui/tooltip/tooltip.service';
+import { regionCrossReferenceOf } from '../../converter/data/convert-terms';
 import { GLOSSARY, GlossaryEntry, annotate } from '../../reader/data/glossary';
 import { headOf, neighborsOf } from '../data/term-neighbors';
 
@@ -28,11 +29,20 @@ interface TermCopy {
   readonly tryTitle: string;
   readonly tryLead: string;
   readonly tryLabel: string;
+  readonly regionTitle: string;
+  readonly regionConvert: string;
+  /** Un patron britannique emploie ces lettres pour une autre maille : laquelle. */
+  regionReused(term: string, otherMeaning: string): string;
+  /** Cette maille s'écrit autrement en notation britannique : comment. */
+  regionEquivalent(otherTerm: string): string;
+  /** Terme propre au britannique (`htr`, `trtr`) : comment l'écrit un patron américain. */
+  regionUkOnly(term: string, otherTerm: string): string;
   readonly synonymsTitle: string;
   readonly relatedTitle: string;
   readonly backToReader: string;
   readonly backToGlossary: string;
-  title(entry: GlossaryEntry): string;
+  /** Guillemets de la langue, posés autour de l'abréviation dans le titre. */
+  readonly quotes: readonly [string, string];
   description(entry: GlossaryEntry): string;
 }
 
@@ -54,12 +64,19 @@ const COPY: Record<Locale, TermCopy> = {
     tryLead:
       'Voici un rang qui l’emploie. Remplacez-le par un rang de votre patron : chaque abréviation reconnue est soulignée, et sa traduction apparaît au survol.',
     tryLabel: 'Un rang de patron',
+    regionTitle: 'Convention britannique',
+    regionConvert: 'Convertir un patron US ↔ UK',
+    regionReused: (term, otherMeaning) =>
+      `Dans un patron britannique, «${NBSP}${term}${NBSP}» désigne la ${otherMeaning}.`,
+    regionEquivalent: (otherTerm) =>
+      `Un patron britannique écrit «${NBSP}${otherTerm}${NBSP}» pour ce point.`,
+    regionUkOnly: (term, otherTerm) =>
+      `«${NBSP}${term}${NBSP}» n’existe qu’en notation britannique. Un patron américain écrit «${NBSP}${otherTerm}${NBSP}» pour ce point.`,
     synonymsTitle: 'Autres façons de l’écrire',
     relatedTitle: 'À voir aussi',
     backToReader: 'Lire tout un patron pas à pas',
     backToGlossary: 'Toutes les abréviations',
-    title: (e) =>
-      `Que veut dire «${NBSP}${e.term}${NBSP}» au ${e.craft === 'tricot' ? 'tricot' : 'crochet'}${NBSP}? ${capitalize(headOf(e.fr))} — ${SITE_NAME}`,
+    quotes: [`«${NBSP}`, `${NBSP}»`],
     description: (e) =>
       `«${NBSP}${e.term}${NBSP}» veut dire ${headOf(e.fr)} (${headOf(e.en)} en anglais). Collez un rang de votre patron${NBSP}: chaque abréviation y est traduite en clair.`,
   },
@@ -77,16 +94,37 @@ const COPY: Record<Locale, TermCopy> = {
     tryLead:
       'Here is a row that uses it. Replace it with a row from your pattern: every abbreviation the reader knows is underlined, and its meaning shows on hover.',
     tryLabel: 'A row from a pattern',
+    regionTitle: 'British notation',
+    regionConvert: 'Convert a pattern US ↔ UK',
+    regionReused: (term, otherMeaning) => `In a British pattern, “${term}” means ${otherMeaning}.`,
+    regionEquivalent: (otherTerm) => `A British pattern writes “${otherTerm}” for this stitch.`,
+    regionUkOnly: (term, otherTerm) =>
+      `“${term}” only exists in British notation. A US pattern writes “${otherTerm}” for this stitch.`,
     synonymsTitle: 'Other ways to write it',
     relatedTitle: 'See also',
     backToReader: 'Read a whole pattern step by step',
     backToGlossary: 'All abbreviations',
-    title: (e) =>
-      `What does “${e.term}” mean in ${e.craft === 'tricot' ? 'knitting' : 'crochet'}? ${capitalize(headOf(e.en))} — ${SITE_NAME}`,
+    quotes: ['“', '”'],
     description: (e) =>
       `“${e.term}” means ${headOf(e.en)} (${headOf(e.fr)} in French). Paste a row from your pattern and every abbreviation in it is spelled out.`,
   },
 };
+
+/**
+ * Titre de l'onglet et du résultat de recherche.
+ *
+ * Il reprend mot pour mot la question du `<h1>`, `question` étant la seule
+ * source des deux : un terme commun aux deux métiers annonçait « in crochet »
+ * dans le titre et « in crochet and knitting » dans la page, soit une promesse
+ * différente de la réponse sur les trente pages concernées.
+ */
+export function titleOf(entry: GlossaryEntry, locale: Locale): string {
+  const c = COPY[locale];
+  const [before, after] = c.question[entry.craft];
+  const [open, close] = c.quotes;
+  const meaning = capitalize(headOf(entry[locale]));
+  return `${before}${open}${entry.term}${close}${after} ${meaning} — ${SITE_NAME}`;
+}
 
 /**
  * Une page par abréviation : chacune répond à une requête distincte
@@ -99,6 +137,32 @@ const COPY: Record<Locale, TermCopy> = {
  * un lien de la page : tout ce qui dépend du terme est donc dérivé du
  * paramètre d'URL, jamais lu une seule fois à la construction.
  */
+/**
+ * Ce que la notation britannique change pour ce terme, quand il appartient au
+ * décalage US/UK (`sc`, `hdc`, `dc`, `tr`, `dtr`, `htr`, `trtr`) : la note à
+ * afficher en tête de page et l'entrée équivalente à lier. Trois cas :
+ * - lettres propres au britannique (`htr`, `trtr`) : leur équivalent américain ;
+ * - lettres réutilisées par le britannique (`dc`, `tr`, `dtr`) : la maille
+ *   qu'elles y désignent, le piège qui ruine un ouvrage ;
+ * - lettres propres à l'américain (`sc`, `hdc`) : leur équivalent britannique.
+ */
+export function regionNoteOf(
+  entry: GlossaryEntry,
+  locale: Locale,
+): { readonly note: string; readonly other: GlossaryEntry } | undefined {
+  const ref = regionCrossReferenceOf(entry.term);
+  const other = ref && GLOSSARY.find((e) => e.term === ref.otherTerm);
+  if (!ref || !other) return undefined;
+  const c = COPY[locale];
+  const note =
+    entry.region === 'UK'
+      ? c.regionUkOnly(entry.term, other.term)
+      : ref.reusedInUk
+        ? c.regionReused(entry.term, headOf(other[locale]))
+        : c.regionEquivalent(other.term);
+  return { note, other };
+}
+
 @Component({
   selector: 'fil-glossary-term-page',
   imports: [Button, InputField, RouterLink],
@@ -116,6 +180,19 @@ const COPY: Record<Locale, TermCopy> = {
       </p>
       <p class="text-muted">{{ c.otherLanguage }} {{ entry()[otherLocale] }}</p>
     </section>
+
+    @if (regionRef(); as region) {
+      <section class="card">
+        <h2 class="card-title">{{ c.regionTitle }}</h2>
+        <p class="card-body">{{ region.note }}</p>
+        <div class="navrow">
+          <a filButton="ghost" [routerLink]="hrefOf(region.other)"
+            ><code>{{ region.other.term }}</code></a
+          >
+          <a filButton="ghost" [routerLink]="i18n.link('converter')">{{ c.regionConvert }}</a>
+        </div>
+      </section>
+    }
 
     <section class="card">
       <h2 class="card-title">{{ c.tryTitle }}</h2>
@@ -217,6 +294,9 @@ export class GlossaryTermPage {
   });
   protected readonly neighbors = computed(() => neighborsOf(this.entry()));
 
+  /** Variante régionale de ce terme, quand elle existe (voir `regionNoteOf`). */
+  protected readonly regionRef = computed(() => regionNoteOf(this.entry(), this.locale));
+
   /** Rang d'essai : l'exemple du terme, remplacé dès que la personne écrit. */
   protected readonly line = linkedSignal(() => this.entry().example);
   protected readonly segments = computed(() => annotate(this.line(), this.locale));
@@ -255,7 +335,7 @@ export class GlossaryTermPage {
     const glossaryUrl = `${this.origin}${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}`;
 
     this.seo.apply({
-      title: this.c.title(entry),
+      title: titleOf(entry, this.locale),
       description: this.c.description(entry),
       path,
       locale: this.locale,

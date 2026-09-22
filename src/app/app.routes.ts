@@ -57,6 +57,12 @@ function routesFor(locale: Locale): Routes {
           loadComponent: () => import('./features/format/format-page').then((m) => m.FormatPage),
           data,
         },
+        {
+          path: strip(ROUTE_PATHS.converter[locale]),
+          loadComponent: () =>
+            import('./features/converter/converter-page').then((m) => m.ConverterPage),
+          data,
+        },
       ],
     },
   ];

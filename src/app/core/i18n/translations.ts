@@ -55,6 +55,7 @@ export const FR = {
   'ui.expand': 'Développer les abréviations',
   'ui.abbrev': 'Abréviations',
   'nav.format': 'Bien formater',
+  'nav.converter': 'US ↔ UK',
 } as const;
 
 export type TranslationKey = keyof typeof FR;
@@ -110,6 +111,7 @@ export const EN: Record<TranslationKey, string> = {
   'ui.expand': 'Spell out abbreviations',
   'ui.abbrev': 'Abbreviations',
   'nav.format': 'Formatting',
+  'nav.converter': 'US ↔ UK',
 };
 
 export const TRANSLATIONS: Record<Locale, Record<TranslationKey, string>> = { fr: FR, en: EN };

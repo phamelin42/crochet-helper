@@ -20,6 +20,14 @@ describe('neighborsOf', () => {
     }
   });
 
+  it('ne montre jamais deux termes proches de même définition', () => {
+    for (const current of GLOSSARY) {
+      const meanings = neighborsOf(current).related.map((e) => headOf(e.fr));
+      expect(new Set(meanings).size).toBe(meanings.length);
+      expect(meanings).not.toContain(headOf(current.fr));
+    }
+  });
+
   it('reste dans le même métier pour les termes proches', () => {
     for (const current of GLOSSARY) {
       for (const other of neighborsOf(current).related) expect(other.craft).toBe(current.craft);

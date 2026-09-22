@@ -317,6 +317,11 @@ textarea.src-input {
   color: var(--color-accent-200);
 }
 
+/* Empilement vertical régulier d'un formulaire simple (convertisseur…). */
+.stack > * + * {
+  margin-top: var(--space-4);
+}
+
 .navrow {
   display: flex;
   gap: var(--space-3);

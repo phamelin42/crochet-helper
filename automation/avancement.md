@@ -19,7 +19,7 @@ branche.
 | 12 — Anglais par défaut              | Terminée | —   | 2026-09-21 |
 | 13 — Import PDF                      | Terminée | —   | 2026-09-21 |
 | 14 — Une page par abréviation        | Terminée | —   | 2026-09-21 |
-| 15 — Convertisseur US ↔ UK           | À faire  | —   | —          |
+| 15 — Convertisseur US ↔ UK           | Terminée | —   | 2026-09-21 |
 | 16 — Projets multiples et sauvegarde | À faire  | —   | —          |
 | 06 — Partage et impression           | À faire  | —   | —          |
 | 02 — Tests du lecteur                | À faire  | —   | —          |

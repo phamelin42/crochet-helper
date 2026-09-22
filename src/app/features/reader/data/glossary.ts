@@ -10,6 +10,17 @@ export interface GlossaryEntry {
   /** Langue des patrons où l'on rencontre cette abréviation : `ms` est française, `sc` anglaise. */
   readonly lang: Locale;
   /**
+   * Convention à laquelle appartient cette définition, quand l'abréviation
+   * désigne une hauteur de maille qui diffère entre les deux : `sc` et `hdc`
+   * n'existent qu'en notation américaine, `htr` et `trtr` qu'en notation
+   * britannique.
+   * Des lettres comme `dc`, `tr` ou `dtr` sont réutilisées par les deux
+   * conventions pour des mailles différentes — la définition ici est
+   * l'américaine ; le convertisseur (`features/converter/data/convert-terms.ts`)
+   * porte la correspondance complète.
+   */
+  readonly region?: 'US' | 'UK';
+  /**
    * Un rang réaliste qui l'emploie, écrit dans sa propre notation. Il préremplit
    * l'essai de la page d'abréviation : un rang qui a du sens montre ce que fait
    * le lecteur, un gabarit générique (« Row 1: 6 bo, ch 1 ») le dessert.
@@ -171,6 +182,7 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     en: 'single crochet',
     craft: 'crochet',
     lang: 'en',
+    region: 'US',
     example: 'Rnd 3: *sc in next st, inc in next st; rep from * around (18)',
   },
   {
@@ -179,6 +191,7 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     en: 'double crochet',
     craft: 'crochet',
     lang: 'en',
+    region: 'US',
     example: 'Row 2: ch 3 (counts as dc), dc in each st across, turn (20)',
   },
   {
@@ -195,7 +208,17 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     en: 'half double crochet',
     craft: 'crochet',
     lang: 'en',
+    region: 'US',
     example: 'Row 2: ch 2, hdc in each st across, turn (18)',
+  },
+  {
+    term: 'htr',
+    fr: 'demi-bride',
+    en: 'half treble crochet',
+    craft: 'crochet',
+    lang: 'en',
+    region: 'UK',
+    example: 'Row 2: ch 2, htr in each st across, turn (18)',
   },
   {
     term: 'tr',
@@ -203,6 +226,7 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     en: 'treble crochet',
     craft: 'crochet',
     lang: 'en',
+    region: 'US',
     example: 'Row 4: ch 4 (counts as tr), tr in each st across, turn (20)',
   },
   {
@@ -211,7 +235,17 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     en: 'double treble',
     craft: 'crochet',
     lang: 'en',
+    region: 'US',
     example: 'Row 5: ch 5 (counts as dtr), dtr in each st across, turn (20)',
+  },
+  {
+    term: 'trtr',
+    fr: 'triple bride',
+    en: 'triple treble crochet',
+    craft: 'crochet',
+    lang: 'en',
+    region: 'UK',
+    example: 'Row 5: ch 5 (counts as trtr), trtr in each st across, turn (20)',
   },
   {
     term: 'mc',

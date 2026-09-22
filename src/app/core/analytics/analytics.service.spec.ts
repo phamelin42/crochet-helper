@@ -1,6 +1,7 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ANALYTICS_ORIGIN, ANALYTICS_SITE_ID } from './analytics.config';
 import { ANALYTICS_ORIGIN_TOKEN, AnalyticsService, roundToHundred } from './analytics.service';
 
 type UmamiWindow = Window & { umami?: { track: (event: string, props?: unknown) => void } };
@@ -31,9 +32,14 @@ describe('AnalyticsService', () => {
     expect(track).not.toHaveBeenCalled();
   });
 
-  it('reste inerte dans le navigateur tant que ANALYTICS_ORIGIN est vide', () => {
+  it("reste inerte dans le navigateur tant que l'origine est vide", () => {
+    // L'origine est injectée ici plutôt que laissée à la fabrique par défaut :
+    // ce cas décrit la mesure désactivée, pas la valeur de production du jour.
     TestBed.configureTestingModule({
-      providers: [{ provide: PLATFORM_ID, useValue: 'browser' }],
+      providers: [
+        { provide: PLATFORM_ID, useValue: 'browser' },
+        { provide: ANALYTICS_ORIGIN_TOKEN, useValue: '' },
+      ],
     });
     const track = stubUmami();
 
@@ -63,5 +69,16 @@ describe('AnalyticsService', () => {
     expect(roundToHundred(42)).toBe(0);
     expect(roundToHundred(1234)).toBe(1200);
     expect(Number.isInteger(roundToHundred(7))).toBe(true);
+  });
+});
+
+describe('Configuration de production', () => {
+  it('va par paire : une origine sans identifiant de site ne mesure rien', () => {
+    expect(Boolean(ANALYTICS_ORIGIN)).toBe(Boolean(ANALYTICS_SITE_ID));
+  });
+
+  it("est une origine https sans barre finale (le service concatène '/script.js')", () => {
+    if (!ANALYTICS_ORIGIN) return;
+    expect(ANALYTICS_ORIGIN).toMatch(/^https:\/\/[^/]+$/);
   });
 });

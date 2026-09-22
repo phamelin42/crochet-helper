@@ -16,6 +16,10 @@ fichier, et tu termines **toujours** par la liste d'actions de Phil.
 - Doc projet `claude/etat-du-projet.md` (outil Projects) : état, action en attente.
 - `git fetch --prune && git log --oneline -15 origin/main && git branch -r`.
   Branche `origin/<nn>-<slug>` = fiche en relecture ; déjà mergée = relecture après merge.
+- **Finitions en souffrance** : `git log --oneline origin/main..origin/finitions-<nn>`
+  pour chaque branche `finitions-*`. Non vide = la PR de correction n'est pas
+  mergée → baser la relecture suivante dessus (merge dans `revue-<nn>`) pour
+  tout livrer dans une seule PR.
 
 Pas de `gh` ni d'API GitHub dans le conteneur : l'état des PR se déduit des
 branches. Le push direct est refusé (403) tant que Phil n'a pas ajouté le dépôt
@@ -106,6 +110,12 @@ Mets à jour `claude/etat-du-projet.md` (outil Projects) : fiche en cours, actio
   pas : `smoke.mjs` le charge avec `createRequire(process.cwd())`.
 - Playwright `text=Convert` matche aussi le titre : utiliser `getByRole('button', { name, exact: true })`.
 - `git push` et l'API GitHub renvoient 403 : ne pas réessayer, livrer en bundle.
+- `innerText` renvoie le texte d'un élément `display: none` : pour l'impression,
+  compter les pages de `page.pdf()` (`/Type /Page`).
+- Un bouton dans un `Disclosure` replié est introuvable par Playwright : ouvrir
+  d'abord le panneau.
+- Poids du bundle : `npx ng build --stats-json`, puis lire
+  `dist/fil-patterns/stats.json` (`outputs[main].inputs[*].bytesInOutput`).
 
 ## 5. Dire à Phil quoi faire — toujours, en liste numérotée
 

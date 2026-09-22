@@ -21,3 +21,9 @@ coûteuses (→ script). Élaguer les entrées de plus de dix fiches.
 - Défauts : **coller un autre patron écrasait le projet actif** (test qui figeait le bug, 2e fois) ; écriture IndexedDB réputée réussie sur échec/quota ; import non atomique ; noindex au sitemap ; styles locaux.
 - Coûts : fiche mergée avant relecture (PR de correction séparée) ; serveur/E2E réécrits à la main ; `pkill` qui tue son shell ; résolution ESM de playwright.
 - Amélioration : `CLAUDE.md` corrigé + section pièges ; skill `relecture-fiche`, `serve-csp.py`, `smoke.mjs` ; sitemap exclut noindex automatiquement ; auto-vérification ajoutée au skill `lot-suivant`.
+
+## 06 — Partage et impression
+
+- Défauts : **bombe de décompression** via permalien (entrée tierce non bornée) ; bundle initial à 321 kB (piège connu, simple avertissement ignoré) ; impression « Round 1in », pointillés imprimés ; style local et valeurs brutes (3e fois) ; copie de lien sans gestion d'échec.
+- Coûts : finitions de la 16 pushées mais non mergées, découvert en cours de route ; PDF d'une page après séparation de print.css (cascade) ; `innerText` trompeur ; recherche du poids du bundle à tâtons avant `--stats-json`.
+- Amélioration : budget 320 kB passé en **erreur** de build ; `tools/check-styles.mjs` au build (style local, couleurs brutes) ; piège « entrée tierce bornée » ; étape 0 du skill vérifie les `finitions-*` non mergées ; 3 erreurs d'outillage ajoutées.

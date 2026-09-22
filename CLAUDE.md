@@ -34,6 +34,7 @@ survol. C'est un outil qu'on regarde à un mètre de distance, crochet en main.
    uniquement des `var(--…)` définis dans `src/styles/tokens.css`. Ni
    `styles:` de composant ni attribut `style="…"` : les classes vont dans
    `src/styles/lecteur.css` (mise en page) ou `nocturne.css` (design system).
+   Contrôlé par `tools/check-styles.mjs` au build.
 
 ## Architecture
 
@@ -83,6 +84,9 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   IndexedDB n'est réussie qu'au `complete` de la transaction (un quota dépassé
   déclenche `abort`). On n'efface jamais une ancienne copie sur la foi d'une
   écriture non confirmée. Plusieurs écritures liées = une seule transaction.
+- **Toute entrée venant d'un tiers est bornée en taille avant traitement**
+  (permalien, sauvegarde importée, PDF) : un lien de 6 Ko peut se décompresser
+  en 5 Mo. Invalide ou trop grand → `null` / refus propre, jamais d'exception.
 - **Charger un autre patron ouvre un autre projet**, jamais n'écrase le projet
   actif. Toute action destructive passe par une confirmation (`Dialog`).
 - **Asynchrone et effets** : vider l'état _avant_ d'attendre une suppression,
@@ -92,8 +96,12 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   sitemap (`tools/generate-sitemap.mjs` les exclut).
 - **Français soigné** : article devant un nom de maille (« désigne _la_ maille
   serrée »), espaces insécables avant `: ; ? !` et dans « ».
-- **Bundle initial** : budget d'alerte à 320 kB. Tout code non nécessaire au
-  premier affichage passe en `import()` ou en route paresseuse.
+- **Bundle initial ≤ 320 kB (erreur de build au-delà).** Code non nécessaire au
+  premier affichage → `import()` ; textes propres à une page paresseuse → dans
+  la page, pas dans `translations.ts` (qui est dans le bundle initial) ; CSS
+  d'impression → `print.css`, chargée à part. `ng build --stats-json` dit ce qui pèse.
+- **Impression** : vérifier sur un vrai PDF (Chromium `page.pdf`), pas sur
+  `innerText`, qui renvoie aussi le texte des éléments masqués.
 
 ## Vérification
 

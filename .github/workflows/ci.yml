@@ -37,3 +37,11 @@ jobs:
 
       - name: Build de production + pré-rendu
         run: npm run build
+
+      # Garde-fou de la fiche 07 : sans lui, une régression d'accessibilité ne
+      # serait vue qu'en relecture. Sert le build ci-dessus (e2e/static-server.mjs).
+      - name: Navigateur pour l'audit d'accessibilité
+        run: npx playwright install --with-deps chromium
+
+      - name: Accessibilité (axe, WCAG 2.1 AA)
+        run: npx playwright test

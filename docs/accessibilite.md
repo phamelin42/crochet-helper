@@ -21,8 +21,11 @@ dans les deux états de `tokens.css` (normal et `data-dim="true"`) :
 - « Mes projets » (`/my-projects`)
 
 Le test échoue sur toute violation de gravité `serious` ou `critical`
-(`e2e/a11y.spec.ts`). Douze passages (6 pages × 2 thèmes), zéro violation
-après correction.
+(`e2e/a11y.spec.ts`). Il couvre les six pages **dans les deux langues**, dans
+les deux thèmes, plus le lecteur **avec un patron chargé** (son état principal),
+et vérifie le reflow à 320 px sur les douze pages : 38 passages, zéro
+violation. Il tourne dans la CI (job « Lint · format · tests · build »), ce qui
+empêche les régressions.
 
 ### Écart avec `CLAUDE.md` : pas de bascule de thème
 
@@ -109,8 +112,8 @@ de données, sans plus jamais élargir la page.
 - **CSS mort du diagramme retiré** (`.figpanel`, `.zoomview`, `.dialog.zoom`)
   : sans impact sur l'accessibilité puisqu'inutilisé, mais à nettoyer un jour
   pour ne pas induire en erreur un futur audit.
-- **Pas de test automatisé pour le parcours clavier, l'annonce du
-  changement d'étape ou le reflow** : ces trois points sont hors de portée
+- **Pas de test automatisé pour le parcours clavier ni l'annonce du
+  changement d'étape** (le reflow, lui, est désormais testé) : ces points sont hors de portée
   d'axe (qui n'exécute pas d'interaction) et ont été vérifiés à la main avec
   des scripts Playwright ponctuels, non conservés dans le dépôt. Les
   formaliser en tests (`e2e/`) donnerait une garantie contre la régression ;

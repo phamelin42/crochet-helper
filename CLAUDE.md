@@ -69,8 +69,8 @@ fonctionnalité qui définit ses propres couleurs ou ses propres boutons est à
 refuser en relecture.
 
 Existant : `Button` (directive sur `<button>`/`<a>`), `InputField`, `Icon`,
-`Tile`, `Progress`, `Checkbox`, `Segmented`, `Dialog`, `Disclosure`,
-`TooltipHost` + `TooltipService`.
+`Tile`, `Checkbox`, `Segmented`, `Dialog`, `Disclosure`, `TooltipHost` +
+`TooltipService`.
 
 ## Pièges déjà rencontrés en relecture
 
@@ -105,6 +105,9 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
 - **Une fiche qui énumère des formes ou des valeurs** (« deux à douze, FR et
   EN », « chaque forme du tableau ») : le test les parcourt **toutes** (boucle),
   pas un échantillon.
+- **Une nouvelle famille de page entre d'elle-même dans l'audit** dès qu'elle
+  est déclarée dans `route-paths.json` (`e2e/a11y.spec.ts` en dérive ses
+  routes). Une route déclarée ailleurs échappe à l'audit : l'ajouter à la main.
 - **Un garde-fou non branché ne garde rien.** Tout test ou contrôle créé pour
   empêcher une régression (axe, reflow, budget…) tourne dans la CI ou dans
   `npm run verify`, sinon il n'est jamais relancé.

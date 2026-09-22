@@ -23,7 +23,9 @@ chaque composant dans tous ses états.
 
 1. `src/app/features/design-system/design-system-page.ts`, route
    `/design-system` **en français uniquement** (pas de version anglaise : c'est
-   une page d'équipe). `SeoService.apply({ ..., noIndex: true })`.
+   une page d'équipe). Elle ne passe donc pas par `route-paths.json`, qui décrit
+   des paires de langues : déclare-la directement dans `app.routes.ts`.
+   `SeoService.apply({ ..., noIndex: true })`.
 2. Sections, dans cet ordre :
    - **Jetons** : pastilles de couleur avec le nom du jeton et sa valeur calculée
      (`getComputedStyle`, dans un `afterNextRender`), échelle typographique de h1
@@ -31,13 +33,17 @@ chaque composant dans tous ses états.
    - **Composants** : `Button` (trois variantes × normal / survol / désactivé /
      icône seule / pleine largeur / grande cible), `InputField` (champ, zone de
      texte, invalide, désactivé), `Checkbox`, `Segmented` (deux et cinq options),
-     `Tile`, `Progress` (0 %, 37 %, 100 %), `Disclosure`, `Dialog`, `Icon` (la
-     grille complète avec le nom de chaque icône), l'infobulle du glossaire.
+     `Tile`, `Disclosure`, `Dialog`, `Icon` (la grille complète avec le nom de
+     chaque icône), l'infobulle du glossaire. La liste fait foi : `shared/ui/`
+     ne contient pas de composant `Progress`, contrairement à ce qu'annonçait
+     une ancienne version de `CLAUDE.md`.
    - **Usage** : pour chaque composant, le fragment de gabarit à copier, dans un
      `<pre>`. Écris ces fragments à la main : ne tente pas de les extraire du
      code à l'exécution.
-3. Un sélecteur normal / assombri en haut de page, qui bascule `ThemeService`,
-   pour vérifier les deux thèmes d'un coup d'œil.
+3. Un sélecteur normal / assombri en haut de page. **Il n'existe pas de
+   `ThemeService`** : le thème assombri est le seul attribut `data-dim` posé sur
+   `<html>` (voir `tokens.css` et `docs/accessibilite.md`). Le sélecteur pose ou
+   retire cet attribut ; garde-le dans la page, n'introduis pas de service.
 4. Ajouter un lien vers cette page depuis `CLAUDE.md`, section design system.
 
 ## Critères d'acceptation
@@ -45,8 +51,8 @@ chaque composant dans tous ses états.
 - La page rend chaque composant exporté par `shared/ui/` — vérifie la liste
   fichier par fichier, il n'en manque aucun.
 - `<meta name="robots" content="noindex, nofollow">` dans le HTML pré-rendu de
-  `/design-system`, et la page **n'apparaît pas** dans `sitemap.xml` (adapter
-  `tools/generate-sitemap.mjs` : exclure les routes marquées `noindex`).
+  `/design-system`, et la page **n'apparaît pas** dans `sitemap.xml` — rien à
+  adapter, `tools/generate-sitemap.mjs` exclut déjà les pages `noindex`.
 - Aucun style local en dehors de la grille de la vitrine elle-même : la page
   consomme le design system, elle ne le redéfinit pas.
 - `npm run verify` vert.

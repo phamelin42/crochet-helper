@@ -49,13 +49,14 @@ pré-rendues, maillées avec le lecteur.
 
 ## Critères d'acceptation
 
-- `npm run build` annonce **12 routes pré-rendues** (6 existantes + 6 guides).
+- `npm run build` annonce **six routes pré-rendues de plus** qu'avant la fiche
+  (les trois guides dans les deux langues), et le sitemap autant d'URL de plus.
 - `dist/fil-patterns/browser/guide/lire-un-patron/index.html` contient le texte
   intégral de la page sans exécution de JavaScript (`grep` sur une phrase du
   corps).
 - `canonical` et les trois `hreflang` sont corrects sur chaque nouvelle page ;
   la version anglaise pointe la française et réciproquement.
-- `sitemap.xml` liste 12 URL avec leurs alternates.
+- chaque nouvelle URL figure au sitemap avec ses alternates.
 - Aucun style local : uniquement `.prose`, `.card`, `.hr` et les jetons.
 
 ## Hors périmètre

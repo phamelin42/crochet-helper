@@ -69,6 +69,28 @@ function routesFor(locale: Locale): Routes {
             import('./features/reader/pages/projects-page').then((m) => m.ProjectsPage),
           data,
         },
+        {
+          path: strip(ROUTE_PATHS.guideReadingPattern[locale]),
+          loadComponent: () =>
+            import('./features/guides/pages/reading-pattern-page').then(
+              (m) => m.ReadingPatternPage,
+            ),
+          data,
+        },
+        {
+          path: strip(ROUTE_PATHS.guideReadingChart[locale]),
+          loadComponent: () =>
+            import('./features/guides/pages/reading-chart-page').then((m) => m.ReadingChartPage),
+          data,
+        },
+        {
+          path: strip(ROUTE_PATHS.guideCrochetOrKnitting[locale]),
+          loadComponent: () =>
+            import('./features/guides/pages/crochet-or-knitting-page').then(
+              (m) => m.CrochetOrKnittingPage,
+            ),
+          data,
+        },
       ],
     },
   ];

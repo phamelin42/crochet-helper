@@ -3,5 +3,8 @@
   "glossary": { "fr": "/glossaire", "en": "/glossary" },
   "format": { "fr": "/bien-formater-son-patron", "en": "/format-your-pattern" },
   "converter": { "fr": "/convertisseur-us-uk", "en": "/us-uk-converter" },
-  "projects": { "fr": "/mes-projets", "en": "/my-projects" }
+  "projects": { "fr": "/mes-projets", "en": "/my-projects" },
+  "guideReadingPattern": { "fr": "/guide/lire-un-patron", "en": "/guide/reading-a-pattern" },
+  "guideReadingChart": { "fr": "/guide/lire-un-diagramme", "en": "/guide/reading-a-chart" },
+  "guideCrochetOrKnitting": { "fr": "/guide/crochet-ou-tricot", "en": "/guide/crochet-or-knitting" }
 }

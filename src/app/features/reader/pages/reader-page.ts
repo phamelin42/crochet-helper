@@ -1,8 +1,8 @@
 import { Component, PLATFORM_ID, effect, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
-import { DEFAULT_LOCALE, Locale } from '../../../core/i18n/locale';
+import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
@@ -14,6 +14,60 @@ import { ReaderCounters } from '../components/reader-counters';
 import { StepView } from '../components/step-view';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
+
+interface GuideLink {
+  readonly href: string;
+  readonly title: string;
+  readonly lead: string;
+}
+
+/**
+ * Maille l'accueil vers les trois guides éditoriaux (fiche 04) : c'est la
+ * seule page à fort trafic qui peut leur faire gagner du poids de lien
+ * interne.
+ */
+const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[] }> = {
+  fr: {
+    sectionTitle: 'Pour aller plus loin',
+    items: [
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.guideReadingPattern.fr}`,
+        title: 'Comment lire un patron de crochet ou de tricot',
+        lead: 'Abréviations, rangs, nombre de mailles entre parenthèses : la méthode expliquée pas à pas.',
+      },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.guideReadingChart.fr}`,
+        title: 'Comment lire un diagramme de crochet',
+        lead: 'Symboles, sens de lecture, diagramme en rang ou en rond.',
+      },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.guideCrochetOrKnitting.fr}`,
+        title: 'Crochet ou tricot : par lequel commencer ?',
+        lead: 'Les différences entre les deux techniques, pour choisir la sienne.',
+      },
+    ],
+  },
+  en: {
+    sectionTitle: 'Go further',
+    items: [
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.guideReadingPattern.en}`,
+        title: 'How to read a crochet or knitting pattern',
+        lead: 'Abbreviations, rows, the stitch count in parentheses: the method explained step by step.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.guideReadingChart.en}`,
+        title: 'How to read a crochet chart',
+        lead: 'Symbols, reading direction, flat versus in-the-round charts.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.guideCrochetOrKnitting.en}`,
+        title: 'Crochet or knitting: which to start with?',
+        lead: 'The differences between the two crafts, to help you pick one.',
+      },
+    ],
+  },
+};
 
 const SEO: Record<Locale, { title: string; description: string }> = {
   fr: {
@@ -37,7 +91,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
  */
 @Component({
   selector: 'fil-reader-page',
-  imports: [Dialog, MaterialsList, PatternImport, PrintView, ReaderCounters, StepView],
+  imports: [Dialog, MaterialsList, PatternImport, PrintView, ReaderCounters, RouterLink, StepView],
   host: {
     class: 'wrap',
     '(document:keydown)': 'onKeydown($event)',
@@ -64,6 +118,20 @@ const SEO: Record<Locale, { title: string; description: string }> = {
 
     <fil-print-view />
 
+    <hr class="hr" />
+
+    <section>
+      <h2>{{ guides.sectionTitle }}</h2>
+      <div class="grid-cards">
+        @for (item of guides.items; track item.href) {
+          <a class="card" [routerLink]="item.href">
+            <p class="card-title">{{ item.title }}</p>
+            <p class="card-body">{{ item.lead }}</p>
+          </a>
+        }
+      </div>
+    </section>
+
     <fil-dialog [(open)]="linkConfirmOpen" [label]="t('ui.linkImportTitle')">
       <h2 class="dialog-title">{{ t('ui.linkImportTitle') }}</h2>
       <p class="dialog-body">{{ t('ui.linkImportBody') }}</p>
@@ -86,6 +154,7 @@ export class ReaderPage {
   private readonly platformId = inject(PLATFORM_ID);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
+  protected readonly guides = GUIDES[(this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE];
 
   protected readonly linkConfirmOpen = signal(false);
   private pendingLinkSource: string | null = null;

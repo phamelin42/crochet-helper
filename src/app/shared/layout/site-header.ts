@@ -55,6 +55,13 @@ import { Icon } from '../ui/icon/icon';
       <a [routerLink]="i18n.link('format')" routerLinkActive="active" ariaCurrentWhenActive="page">
         {{ i18n.t('nav.format') }}
       </a>
+      <a
+        [routerLink]="i18n.link('converter')"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+      >
+        {{ i18n.t('nav.converter') }}
+      </a>
     </nav>
 
     <div class="tools">

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../core/analytics/analytics.service';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -23,8 +23,11 @@ interface ConverterCopy {
   readonly convert: string;
   readonly resultTitle: string;
   readonly resultEmpty: string;
-  readonly replacementsTitle: string;
-  readonly unmatchedTitle: string;
+  replacementsTitle(count: number): string;
+  readonly noReplacement: string;
+  /** Termes de l'autre convention trouvés dans le patron : la convention choisie est sans doute fausse. */
+  unmatchedTitle(from: Region): string;
+  directionOf(from: Region, to: Region): string;
   readonly backToReader: string;
   readonly backToGlossary: string;
 }
@@ -42,9 +45,12 @@ const COPY: Record<Locale, ConverterCopy> = {
     inputLabel: 'Votre patron',
     convert: 'Convertir',
     resultTitle: 'Résultat',
-    resultEmpty: 'Le texte converti apparaît ici.',
-    replacementsTitle: 'Remplacements effectués',
-    unmatchedTitle: 'Termes reconnus, sans équivalent direct',
+    resultEmpty: 'Le texte converti apparaîtra ici, avec la liste de chaque remplacement.',
+    replacementsTitle: (n) => (n > 1 ? `${n} remplacements effectués` : '1 remplacement effectué'),
+    noReplacement: 'Aucune abréviation à convertir dans ce texte.',
+    unmatchedTitle: (from) =>
+      `Termes laissés tels quels : ils n’appartiennent pas à la notation ${from === 'US' ? 'américaine' : 'britannique'}. Vérifiez la convention du patron.`,
+    directionOf: (from, to) => `Notation ${from} convertie en notation ${to}.`,
     backToReader: 'Lire tout un patron pas à pas',
     backToGlossary: 'Toutes les abréviations',
   },
@@ -60,9 +66,12 @@ const COPY: Record<Locale, ConverterCopy> = {
     inputLabel: 'Your pattern',
     convert: 'Convert',
     resultTitle: 'Result',
-    resultEmpty: 'The converted text appears here.',
-    replacementsTitle: 'Replacements made',
-    unmatchedTitle: 'Recognised terms with no direct equivalent',
+    resultEmpty: 'The converted text will appear here, with every replacement listed.',
+    replacementsTitle: (n) => (n > 1 ? `${n} replacements made` : '1 replacement made'),
+    noReplacement: 'No abbreviation to convert in this text.',
+    unmatchedTitle: (from) =>
+      `Left as they are: these terms are not ${from} notation. Check which convention the pattern uses.`,
+    directionOf: (from, to) => `${from} notation converted to ${to} notation.`,
     backToReader: 'Read a whole pattern step by step',
     backToGlossary: 'All abbreviations',
   },
@@ -87,53 +96,62 @@ const COPY: Record<Locale, ConverterCopy> = {
       <p>{{ c.lead }}</p>
     </section>
 
-    <fil-segmented
-      name="converter-direction"
-      [label]="c.directionLabel"
-      [options]="directionOptions"
-      [(selected)]="direction"
-    />
+    <section class="stack">
+      <fil-segmented
+        name="converter-direction"
+        [label]="c.directionLabel"
+        [options]="directionOptions"
+        [(selected)]="direction"
+      />
 
-    <div class="field" style="margin-top:var(--space-4)">
-      <label for="converter-input">{{ c.inputLabel }}</label>
-      <textarea
-        filInput
-        id="converter-input"
-        rows="10"
-        spellcheck="false"
-        [value]="source()"
-        (input)="source.set($any($event.target).value)"
-      ></textarea>
-    </div>
-
-    <button type="button" filButton="primary" (click)="convert()">{{ c.convert }}</button>
-
-    <section class="card" style="margin-top:var(--space-6)">
-      <h2 class="card-title">{{ c.resultTitle }}</h2>
-      <div class="prompt-box">
-        <pre>{{ result().text || c.resultEmpty }}</pre>
+      <div class="field">
+        <label for="converter-input">{{ c.inputLabel }}</label>
+        <textarea
+          filInput
+          id="converter-input"
+          rows="10"
+          spellcheck="false"
+          [value]="source()"
+          (input)="source.set($any($event.target).value)"
+        ></textarea>
       </div>
 
-      @if (result().replacements.length) {
-        <p class="card-body">{{ c.replacementsTitle }}</p>
-        <ul class="term-links">
-          @for (item of result().replacements; track $index) {
-            <li>
-              <code>{{ item.term }}</code> → <code>{{ item.replacement }}</code>
-            </li>
-          }
-        </ul>
-      }
+      <button type="button" filButton="primary" (click)="convert()">{{ c.convert }}</button>
+    </section>
 
-      @if (result().unmatched.length) {
-        <p class="card-body">{{ c.unmatchedTitle }}</p>
-        <ul class="term-links">
-          @for (term of result().unmatched; track term) {
-            <li>
-              <code>{{ term }}</code>
-            </li>
-          }
-        </ul>
+    <section class="card" aria-live="polite">
+      <h2 class="card-title">{{ c.resultTitle }}</h2>
+      @if (result(); as r) {
+        <p class="card-body">{{ c.directionOf(r.from, r.to) }}</p>
+        <div class="prompt-box">
+          <pre>{{ r.text }}</pre>
+        </div>
+
+        @if (r.replacements.length) {
+          <h3 class="card-body">{{ c.replacementsTitle(r.replacements.length) }}</h3>
+          <ul class="term-links">
+            @for (item of r.replacements; track $index) {
+              <li>
+                <code>{{ item.term }}</code> → <code>{{ item.replacement }}</code>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="card-body">{{ c.noReplacement }}</p>
+        }
+
+        @if (r.unmatched.length) {
+          <h3 class="card-body">{{ c.unmatchedTitle(r.from) }}</h3>
+          <ul class="term-links">
+            @for (term of r.unmatched; track term) {
+              <li>
+                <code>{{ term }}</code>
+              </li>
+            }
+          </ul>
+        }
+      } @else {
+        <p class="card-body">{{ c.resultEmpty }}</p>
       }
     </section>
 
@@ -161,10 +179,13 @@ export class ConverterPage {
   protected readonly direction = signal(0);
   protected readonly source = signal('');
 
-  protected readonly from = computed<Region>(() => (this.direction() === 0 ? 'US' : 'UK'));
-  protected readonly to = computed<Region>(() => (this.direction() === 0 ? 'UK' : 'US'));
-  protected readonly result = computed<ConversionResult>(() =>
-    convertTerms(this.source(), this.from(), this.to()),
+  /**
+   * Dernière conversion demandée. Le résultat ne suit pas la frappe : il
+   * correspond toujours au texte et au sens validés par le bouton, et la mesure
+   * `conversion_run` compte donc des conversions, pas des touches.
+   */
+  protected readonly result = signal<(ConversionResult & { from: Region; to: Region }) | undefined>(
+    undefined,
   );
 
   constructor() {
@@ -190,10 +211,13 @@ export class ConverterPage {
 
   protected convert(): void {
     if (!this.source().trim()) return;
+    const [from, to]: [Region, Region] = this.direction() === 0 ? ['US', 'UK'] : ['UK', 'US'];
+    const result = convertTerms(this.source(), from, to);
+    this.result.set({ ...result, from, to });
     this.analytics.track('conversion_run', {
-      from: this.from(),
-      to: this.to(),
-      replacements: this.result().replacements.length,
+      from,
+      to,
+      replacements: result.replacements.length,
     });
   }
 }

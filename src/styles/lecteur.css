@@ -695,8 +695,15 @@ textarea.src-input {
 .glossary-filter {
   max-width: var(--glossary-filter-width);
 }
-.glossary-table {
+/* Le tableau peut être plus large que l'écran (quatre colonnes de texte) :
+ * il défile seul plutôt que d'élargir la page entière, seule exception que
+ * WCAG 1.4.10 (reflow) accorde aux tableaux de données. */
+.glossary-table-scroll {
   margin-top: var(--space-6);
+  overflow-x: auto;
+}
+.glossary-table-scroll .glossary-table {
+  margin-top: 0;
 }
 
 /* Vue d'impression (PrintView) : dans le DOM, invisible à l'écran. Ses règles

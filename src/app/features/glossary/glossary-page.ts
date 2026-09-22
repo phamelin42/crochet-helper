@@ -67,35 +67,37 @@ const COPY: Record<Locale, Record<string, string>> = {
       />
     </div>
 
-    <table class="table glossary-table">
-      <caption class="visually-hidden">
-        {{
-          c['h1']
-        }}
-      </caption>
-      <thead>
-        <tr>
-          <th scope="col">{{ c['term'] }}</th>
-          <th scope="col">{{ c['fr'] }}</th>
-          <th scope="col">{{ c['en'] }}</th>
-          <th scope="col">{{ c['craft'] }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (entry of filtered(); track entry.term) {
+    <div class="glossary-table-scroll">
+      <table class="table glossary-table">
+        <caption class="visually-hidden">
+          {{
+            c['h1']
+          }}
+        </caption>
+        <thead>
           <tr>
-            <th scope="row">
-              <a [routerLink]="hrefOf(entry)"
-                ><code>{{ entry.term }}</code></a
-              >
-            </th>
-            <td>{{ entry.fr }}</td>
-            <td>{{ entry.en }}</td>
-            <td class="text-muted">{{ c[entry.craft] }}</td>
+            <th scope="col">{{ c['term'] }}</th>
+            <th scope="col">{{ c['fr'] }}</th>
+            <th scope="col">{{ c['en'] }}</th>
+            <th scope="col">{{ c['craft'] }}</th>
           </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (entry of filtered(); track entry.term) {
+            <tr>
+              <th scope="row">
+                <a [routerLink]="hrefOf(entry)"
+                  ><code>{{ entry.term }}</code></a
+                >
+              </th>
+              <td>{{ entry.fr }}</td>
+              <td>{{ entry.en }}</td>
+              <td class="text-muted">{{ c[entry.craft] }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   `,
 })
 export class GlossaryPage {

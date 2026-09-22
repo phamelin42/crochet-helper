@@ -2,9 +2,11 @@
 
 ## Problème
 
-Le site n'a que trois pages par langue. Le glossaire capte les recherches
-d'abréviations, mais rien ne capte les questions que se posent réellement les
-débutantes — et ce sont elles qui amènent du trafic durable.
+Le site compte six familles de pages par langue (lecteur, glossaire, page par
+abréviation, bien formater, convertisseur US ↔ UK, mes projets). Le glossaire et
+les pages d'abréviation captent les recherches de notation, mais rien ne capte
+les questions que se posent réellement les débutantes — et ce sont elles qui
+amènent du trafic durable.
 
 ## Objectif
 

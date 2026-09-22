@@ -16,10 +16,14 @@ fichier, et tu termines **toujours** par la liste d'actions de Phil.
 - Doc projet `claude/etat-du-projet.md` (outil Projects) : état, action en attente.
 - `git fetch --prune && git log --oneline -15 origin/main && git branch -r`.
   Branche `origin/<nn>-<slug>` = fiche en relecture ; déjà mergée = relecture après merge.
-- **Finitions en souffrance** : `git log --oneline origin/main..origin/finitions-<nn>`
-  pour chaque branche `finitions-*`. Non vide = la PR de correction n'est pas
-  mergée → baser la relecture suivante dessus (merge dans `revue-<nn>`) pour
-  tout livrer dans une seule PR.
+- **Mes corrections précédentes sont-elles bien dans `main` ?** Vérifier le
+  dernier commit de la relecture précédente, pas la branche (elle est supprimée
+  au merge) : `git merge-base --is-ancestor <sha> origin/main && echo DANS MAIN || echo ABSENT`
+  — lire la réponse, ne pas la supposer. Absent = les corrections ont été
+  perdues au merge de la fiche : les remettre dans `revue-<nn>` (`git merge`)
+  et le dire à Phil. C'est arrivé à la fiche 07.
+- Idem pour toute branche `finitions-*` encore présente :
+  `git log --oneline origin/main..origin/finitions-<nn>`.
 
 Pas de `gh` ni d'API GitHub dans le conteneur : l'état des PR se déduit des
 branches. Le push direct est refusé (403) tant que Phil n'a pas ajouté le dépôt

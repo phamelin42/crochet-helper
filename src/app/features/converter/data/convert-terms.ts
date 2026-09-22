@@ -3,24 +3,29 @@ export type Region = 'US' | 'UK';
 
 /**
  * Le décalage d'un cran entre les deux conventions : chaque paire désigne le
- * même point, sous son nom américain puis britannique. `htr` est la seule
- * abréviation propre au Royaume-Uni qui n'existe pas déjà côté américain ; les
- * trois autres (`dc`, `tr`, `dtr`) réutilisent des lettres déjà prises par une
- * autre maille côté américain — c'est tout l'enjeu du convertisseur : les mêmes
- * lettres désignent des mailles différentes selon la convention.
+ * même point, sous son nom américain puis britannique. `htr` et `trtr` sont
+ * propres au Royaume-Uni ; `dc`, `tr` et `dtr` existent des deux côtés pour des
+ * mailles différentes — c'est tout l'enjeu du convertisseur.
  */
 const PAIRS: readonly { readonly us: string; readonly uk: string }[] = [
   { us: 'sc', uk: 'dc' },
-  { us: 'dc', uk: 'tr' },
   { us: 'hdc', uk: 'htr' },
+  { us: 'dc', uk: 'tr' },
   { us: 'tr', uk: 'dtr' },
+  { us: 'dtr', uk: 'trtr' },
 ];
 
 /** Termes reconnus, quelle que soit la convention : les deux colonnes des paires. */
 const KNOWN_TERMS = Array.from(new Set(PAIRS.flatMap((pair) => [pair.us, pair.uk])));
 
+/**
+ * Un jeton de hauteur de maille, avec ses formes composées : relief avant ou
+ * arrière (`FPdc`, `BPtr`) et diminution groupée (`sc2tog`, `dc3tog`). Le
+ * préfixe et le suffixe sont conservés tels quels, seul le cœur est converti.
+ * Les bornes `\b` excluent tout jeton partiel (`dcs`, `abcdc`).
+ */
 const TOKEN_PATTERN = new RegExp(
-  `\\b(${[...KNOWN_TERMS].sort((a, b) => b.length - a.length).join('|')})\\b`,
+  `\\b(fp|bp)?(${[...KNOWN_TERMS].sort((a, b) => b.length - a.length).join('|')})(\\d+tog)?\\b`,
   'gi',
 );
 
@@ -44,7 +49,11 @@ export interface TermReplacement {
 export interface ConversionResult {
   readonly text: string;
   readonly replacements: readonly TermReplacement[];
-  /** Termes reconnus mais sans équivalent défini dans ce sens : laissés intacts, mais signalés. */
+  /**
+   * Termes qui n'appartiennent pas à la convention de départ (`sc` dans un
+   * patron dit britannique) : laissés intacts, mais signalés, car ils trahissent
+   * le plus souvent une convention mal choisie.
+   */
   readonly unmatched: readonly string[];
 }
 
@@ -63,20 +72,25 @@ export function convertTerms(text: string, from: Region, to: Region): Conversion
   const unmatched: string[] = [];
   const seenUnmatched = new Set<string>();
 
-  const converted = text.replace(TOKEN_PATTERN, (match) => {
-    const target = targets.get(match.toLowerCase());
-    if (!target) {
-      const key = match.toLowerCase();
-      if (!seenUnmatched.has(key)) {
-        seenUnmatched.add(key);
-        unmatched.push(match);
+  const converted = text.replace(
+    TOKEN_PATTERN,
+    (match, prefix: string | undefined, core: string, suffix: string | undefined) => {
+      const target = targets.get(core.toLowerCase());
+      if (!target) {
+        // Un terme de l'autre convention (`htr` dans un patron dit américain) :
+        // la convention choisie est sans doute la mauvaise, on le signale.
+        const key = match.toLowerCase();
+        if (!seenUnmatched.has(key)) {
+          seenUnmatched.add(key);
+          unmatched.push(match);
+        }
+        return match;
       }
-      return match;
-    }
-    const replacement = matchCase(match, target);
-    replacements.push({ term: match, replacement });
-    return replacement;
-  });
+      const replacement = `${prefix ?? ''}${matchCase(core, target)}${suffix ?? ''}`;
+      replacements.push({ term: match, replacement });
+      return replacement;
+    },
+  );
 
   return { text: converted, replacements, unmatched };
 }

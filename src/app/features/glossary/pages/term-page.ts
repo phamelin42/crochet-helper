@@ -30,10 +30,13 @@ interface TermCopy {
   readonly tryLead: string;
   readonly tryLabel: string;
   readonly regionTitle: string;
+  readonly regionConvert: string;
   /** Un patron britannique emploie ces lettres pour une autre maille : laquelle. */
   regionReused(term: string, otherMeaning: string): string;
   /** Cette maille s'écrit autrement en notation britannique : comment. */
   regionEquivalent(otherTerm: string): string;
+  /** Terme propre au britannique (`htr`, `trtr`) : comment l'écrit un patron américain. */
+  regionUkOnly(term: string, otherTerm: string): string;
   readonly synonymsTitle: string;
   readonly relatedTitle: string;
   readonly backToReader: string;
@@ -62,10 +65,13 @@ const COPY: Record<Locale, TermCopy> = {
       'Voici un rang qui l’emploie. Remplacez-le par un rang de votre patron : chaque abréviation reconnue est soulignée, et sa traduction apparaît au survol.',
     tryLabel: 'Un rang de patron',
     regionTitle: 'Convention britannique',
+    regionConvert: 'Convertir un patron US ↔ UK',
     regionReused: (term, otherMeaning) =>
-      `Dans un patron britannique, «${NBSP}${term}${NBSP}» désigne ${otherMeaning}.`,
+      `Dans un patron britannique, «${NBSP}${term}${NBSP}» désigne la ${otherMeaning}.`,
     regionEquivalent: (otherTerm) =>
       `Un patron britannique écrit «${NBSP}${otherTerm}${NBSP}» pour ce point.`,
+    regionUkOnly: (term, otherTerm) =>
+      `«${NBSP}${term}${NBSP}» n’existe qu’en notation britannique. Un patron américain écrit «${NBSP}${otherTerm}${NBSP}» pour ce point.`,
     synonymsTitle: 'Autres façons de l’écrire',
     relatedTitle: 'À voir aussi',
     backToReader: 'Lire tout un patron pas à pas',
@@ -89,8 +95,11 @@ const COPY: Record<Locale, TermCopy> = {
       'Here is a row that uses it. Replace it with a row from your pattern: every abbreviation the reader knows is underlined, and its meaning shows on hover.',
     tryLabel: 'A row from a pattern',
     regionTitle: 'British notation',
+    regionConvert: 'Convert a pattern US ↔ UK',
     regionReused: (term, otherMeaning) => `In a British pattern, “${term}” means ${otherMeaning}.`,
     regionEquivalent: (otherTerm) => `A British pattern writes “${otherTerm}” for this stitch.`,
+    regionUkOnly: (term, otherTerm) =>
+      `“${term}” only exists in British notation. A US pattern writes “${otherTerm}” for this stitch.`,
     synonymsTitle: 'Other ways to write it',
     relatedTitle: 'See also',
     backToReader: 'Read a whole pattern step by step',
@@ -128,6 +137,32 @@ export function titleOf(entry: GlossaryEntry, locale: Locale): string {
  * un lien de la page : tout ce qui dépend du terme est donc dérivé du
  * paramètre d'URL, jamais lu une seule fois à la construction.
  */
+/**
+ * Ce que la notation britannique change pour ce terme, quand il appartient au
+ * décalage US/UK (`sc`, `hdc`, `dc`, `tr`, `dtr`, `htr`, `trtr`) : la note à
+ * afficher en tête de page et l'entrée équivalente à lier. Trois cas :
+ * - lettres propres au britannique (`htr`, `trtr`) : leur équivalent américain ;
+ * - lettres réutilisées par le britannique (`dc`, `tr`, `dtr`) : la maille
+ *   qu'elles y désignent, le piège qui ruine un ouvrage ;
+ * - lettres propres à l'américain (`sc`, `hdc`) : leur équivalent britannique.
+ */
+export function regionNoteOf(
+  entry: GlossaryEntry,
+  locale: Locale,
+): { readonly note: string; readonly other: GlossaryEntry } | undefined {
+  const ref = regionCrossReferenceOf(entry.term);
+  const other = ref && GLOSSARY.find((e) => e.term === ref.otherTerm);
+  if (!ref || !other) return undefined;
+  const c = COPY[locale];
+  const note =
+    entry.region === 'UK'
+      ? c.regionUkOnly(entry.term, other.term)
+      : ref.reusedInUk
+        ? c.regionReused(entry.term, headOf(other[locale]))
+        : c.regionEquivalent(other.term);
+  return { note, other };
+}
+
 @Component({
   selector: 'fil-glossary-term-page',
   imports: [Button, InputField, RouterLink],
@@ -145,6 +180,19 @@ export function titleOf(entry: GlossaryEntry, locale: Locale): string {
       </p>
       <p class="text-muted">{{ c.otherLanguage }} {{ entry()[otherLocale] }}</p>
     </section>
+
+    @if (regionRef(); as region) {
+      <section class="card">
+        <h2 class="card-title">{{ c.regionTitle }}</h2>
+        <p class="card-body">{{ region.note }}</p>
+        <div class="navrow">
+          <a filButton="ghost" [routerLink]="hrefOf(region.other)"
+            ><code>{{ region.other.term }}</code></a
+          >
+          <a filButton="ghost" [routerLink]="i18n.link('converter')">{{ c.regionConvert }}</a>
+        </div>
+      </section>
+    }
 
     <section class="card">
       <h2 class="card-title">{{ c.tryTitle }}</h2>
@@ -183,16 +231,6 @@ export function titleOf(entry: GlossaryEntry, locale: Locale): string {
         }
       </p>
     </section>
-
-    @if (regionRef(); as region) {
-      <section class="card">
-        <h2 class="card-title">{{ c.regionTitle }}</h2>
-        <p class="card-body">{{ regionNote() }}</p>
-        <a filButton="ghost" [routerLink]="hrefOf(region.other)"
-          ><code>{{ region.other.term }}</code></a
-        >
-      </section>
-    }
 
     @if (neighbors().synonyms.length) {
       <section class="term-section">
@@ -256,24 +294,8 @@ export class GlossaryTermPage {
   });
   protected readonly neighbors = computed(() => neighborsOf(this.entry()));
 
-  /**
-   * Variante régionale de ce terme, quand `sc`, `dc`, `hdc`, `tr`, `dtr` ou
-   * `htr` en a une : la fiche 14 avait laissé ce point de côté faute de
-   * données, c'est le champ `region` du glossaire qui les apporte.
-   */
-  protected readonly regionRef = computed(() => {
-    const ref = regionCrossReferenceOf(this.entry().term);
-    if (!ref) return undefined;
-    const other = GLOSSARY.find((e) => e.term === ref.otherTerm);
-    return other ? { reusedInUk: ref.reusedInUk, other } : undefined;
-  });
-  protected readonly regionNote = computed(() => {
-    const ref = this.regionRef();
-    if (!ref) return '';
-    return ref.reusedInUk
-      ? this.c.regionReused(this.entry().term, headOf(ref.other[this.locale]))
-      : this.c.regionEquivalent(ref.other.term);
-  });
+  /** Variante régionale de ce terme, quand elle existe (voir `regionNoteOf`). */
+  protected readonly regionRef = computed(() => regionNoteOf(this.entry(), this.locale));
 
   /** Rang d'essai : l'exemple du terme, remplacé dès que la personne écrit. */
   protected readonly line = linkedSignal(() => this.entry().example);

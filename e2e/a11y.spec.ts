@@ -1,27 +1,26 @@
 import AxeBuilder from '@axe-core/playwright';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { type Page, expect, test } from '@playwright/test';
 
 /**
- * Les six familles de page du produit, dans les deux langues : la version
- * française a ses propres libellés, son propre `lang`, et se casse
- * indépendamment. Une page par abréviation (`/glossary/:slug`) en compte plus
- * de cent, mais elles partagent le même gabarit : `sc` / `ms` en sont
- * l'échantillon.
+ * Toutes les familles de page, dans les deux langues, **déduites de
+ * `route-paths.json`** : une famille ajoutée par une fiche entre d'elle-même
+ * dans l'audit. Les pages d'abréviation (`/glossary/:slug`) sont plus de cent
+ * mais partagent un gabarit : `sc` et `ms` en sont l'échantillon.
  */
+const ROUTE_PATHS = JSON.parse(
+  readFileSync(join(__dirname, '../src/app/core/i18n/route-paths.json'), 'utf8'),
+) as Record<string, { fr: string; en: string }>;
+
 const ROUTES = [
-  { name: 'lecteur', path: '/' },
-  { name: 'glossaire', path: '/glossary' },
+  ...Object.entries(ROUTE_PATHS).flatMap(([name, paths]) => [
+    { name, path: paths.en },
+    { name: `${name} (fr)`, path: paths.fr === '/' ? '/fr' : `/fr${paths.fr}` },
+  ]),
   { name: 'terme du glossaire', path: '/glossary/sc' },
-  { name: 'bien formater son patron', path: '/format-your-pattern' },
-  { name: 'convertisseur US ↔ UK', path: '/us-uk-converter' },
-  { name: 'mes projets', path: '/my-projects' },
-  { name: 'lecteur (fr)', path: '/fr' },
-  { name: 'glossaire (fr)', path: '/fr/glossaire' },
   { name: 'terme du glossaire (fr)', path: '/fr/glossaire/ms' },
-  { name: 'bien formater son patron (fr)', path: '/fr/bien-formater-son-patron' },
-  { name: 'convertisseur US ↔ UK (fr)', path: '/fr/convertisseur-us-uk' },
-  { name: 'mes projets (fr)', path: '/fr/mes-projets' },
-] as const;
+];
 
 /**
  * `data-dim` est le seul état que le thème assombri ajoute au DOM (voir

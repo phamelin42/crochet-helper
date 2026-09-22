@@ -57,3 +57,9 @@ coûteuses (→ script). Élaguer les entrées de plus de dix fiches.
 - Défauts : aucun dans le code. Le rapport est honnête (Lighthouse impossible, méthode Playwright+CDP assumée) et ses chiffres sont reproductibles à l'identique. Manquait le garde-fou : rien n'empêchait le CLS de revenir.
 - Coûts : **mes finitions de la fiche 07 n'étaient pas dans `main`** (PR #24 n'a mergé que l'agent) et je l'avais annoncé mergé sans lire la sortie de ma vérification → refait le merge dans `revue-09` ; mutation du `.tool-slot` non reproductible sans API `wakeLock` (fausse API injectée dans le test).
 - Amélioration : `e2e/perf.spec.ts` (CLS ≤ 0,05, LCP ≤ 2 s, mobile bridé) dans la CI, vérifié par mutation ; jeton `--control-size` partagé entre `.btn-icon` et sa place réservée ; étape 0 du skill : vérifier que les corrections précédentes sont **dans main**, en lisant la réponse.
+
+## 04 — Pages éditoriales
+
+- Défauts : deux guides anglais sous le minimum de mots de la fiche (626 et 662 pour 700 demandés) ; **violation de contraste** sur la nouvelle section de l'accueil (résumé imbriqué dans le lien) — invisible pour l'audit, qui ne connaissait pas encore ces pages.
+- Coûts : la fiche annonçait « 12 routes pré-rendues » (chiffre d'avant les fiches 14/15), non repéré à la préparation malgré la consigne sur les nombres ; Prettier a coupé un mot dans un commentaire de gabarit et cassé la compilation.
+- Amélioration : `e2e/a11y.spec.ts` dérive ses routes de `route-paths.json` — toute famille de page ajoutée est auditée d'office (59 cas) ; piège correspondant dans CLAUDE.md ; fiche 08 corrigée (ThemeService et Progress inexistants, sitemap déjà adapté) ; liste des composants de CLAUDE.md corrigée.

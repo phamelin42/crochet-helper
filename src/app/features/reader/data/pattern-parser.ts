@@ -46,12 +46,27 @@ const INSTR = /^(instructions?|pattern|steps?|[ée]tapes?|r[ée]alisation)\s*:?\
 const ASIDE =
   /^(notes?|abbreviations?|abr[ée]viations?|gauge|[ée]chantillon|sizes?|tailles?|taille|skill\s+level|pattern\s+details|difficult[ée])\b\s*(?:\([^)]*\))?\s*:?\s*$/i;
 
+/** En-tête qui ouvre spécifiquement une table d'abréviations. */
+const ABBREV_HEADER = /^(abbreviations?|abr[ée]viations?)\b/i;
+
 /** Même chose mais avec du contenu sur la même ligne : « Size: 6-12 months ». */
 const ASIDE_INLINE =
   /^(sizes?|tailles?|taille|gauge|[ée]chantillon|skill\s+level|yarn\s+(?:brand|name|weight)|hook\s+size|niveau)\s*:\s*\S/i;
 
 /** Consigne de répétition autonome, rattachée à l'étape précédente. */
 const REPEAT = /^(repeat|rep\.?|r[ée]p[èe]te|r[ée]p[ée]t\w*|work)\b/i;
+
+/** Indication endroit/envers en tête de corps : « (RS): », « (envers) : ». */
+const SIDE = /^\(\s*(rs|ws|endroit|envers)\s*\)\s*:?\s*/i;
+
+const SIDE_VALUE: Record<string, 'rs' | 'ws'> = { rs: 'rs', endroit: 'rs', ws: 'ws', envers: 'ws' };
+
+/** Détache un suffixe endroit/envers du début d'un texte de rang. */
+function extractSide(text: string): { side?: 'rs' | 'ws'; rest: string } {
+  const match = SIDE.exec(text);
+  if (!match) return { rest: text };
+  return { side: SIDE_VALUE[match[1].toLowerCase()], rest: text.slice(match[0].length) };
+}
 
 const BULLET = /^[-–—•*·§o]\s+/;
 
@@ -154,15 +169,54 @@ function isHeading(line: string): boolean {
   return /^[A-ZÀ-ÝŒ0-9(«"]/.test(bare) || bare === bare.toLocaleUpperCase();
 }
 
+/** Nombres de deux à douze écrits en toutes lettres, français et anglais. */
+const NUMBER_WORDS: Record<string, number> = {
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+  eleven: 11,
+  twelve: 12,
+  deux: 2,
+  trois: 3,
+  quatre: 4,
+  cinq: 5,
+  sept: 7,
+  huit: 8,
+  neuf: 9,
+  dix: 10,
+  onze: 11,
+  douze: 12,
+};
+
+/**
+ * « 6 times », « four more times », « quatre fois » : un compte de répétition
+ * en chiffres ou en toutes lettres, avec un éventuel mot de liaison
+ * (« more », « de plus ») entre le nombre et « times »/« fois ».
+ */
+const REPEAT_COUNT = new RegExp(
+  `\\b(\\d{1,2}|${Object.keys(NUMBER_WORDS).join('|')})\\b(?:\\s+(?:more|de\\s+plus))?\\s+(?:times?|fois)\\b`,
+  'i',
+);
+
 /**
  * Nombre de répétitions d'une étape : d'abord l'étendue du libellé
- * (« Rangs 3-6 » → 4), sinon un « x6 » ou « 6 fois » dans le corps.
+ * (« Rangs 3-6 » → 4), sinon un « x6 », un « 6 times » ou un « quatre fois »
+ * dans le corps.
  */
 function repeatTarget(range: number, body: string): number {
   if (range) return range;
-  const match =
-    body.match(/[x×]\s*(\d{1,2})\b/i) ?? body.match(/\b(\d{1,2})\s*(?:times|fois|x)\b/i);
-  return match ? Number.parseInt(match[1], 10) : 0;
+  const direct = body.match(/[x×]\s*(\d{1,2})\b/i);
+  if (direct) return Number.parseInt(direct[1], 10);
+  const worded = REPEAT_COUNT.exec(body);
+  if (!worded) return 0;
+  const raw = worded[1].toLowerCase();
+  return NUMBER_WORDS[raw] ?? Number.parseInt(raw, 10);
 }
 
 /** Jetons qui trahissent une consigne de maille plutôt qu'une phrase de conseil. */
@@ -244,6 +298,7 @@ export function parsePattern(raw: string): Pattern {
   let pending: string[] = [];
   let inMaterials = false;
   let inAside = false;
+  let asideIsAbbrevTable = false;
   let seenStep = false;
 
   const newPiece = (name: string): MutablePiece => {
@@ -254,13 +309,14 @@ export function parsePattern(raw: string): Pattern {
   const lastStep = (): PatternStep | null =>
     piece && piece.steps.length ? piece.steps[piece.steps.length - 1] : null;
 
-  const addStep = (label: string, rawBody: string, range: number): void => {
+  const addStep = (label: string, rawBody: string, range: number, side?: 'rs' | 'ws'): void => {
     const target = piece ?? newPiece('');
     const { body, tip } = splitTip(rawBody);
     target.steps.push({
       label,
       body,
       ...(tip ? { tip } : {}),
+      ...(side ? { side } : {}),
       notes: pending.slice(),
       reps: repeatTarget(range, rawBody),
     });
@@ -285,6 +341,7 @@ export function parsePattern(raw: string): Pattern {
     }
     if (ASIDE.test(line)) {
       inAside = true;
+      asideIsAbbrevTable = ABBREV_HEADER.test(line);
       inMaterials = false;
       continue;
     }
@@ -298,8 +355,14 @@ export function parsePattern(raw: string): Pattern {
     if (inAside) {
       // Une table d'abréviations se reconnaît à sa forme « terme - définition ».
       // Dès qu'une ligne n'en a plus l'allure, la section est finie : sinon le
-      // titre du patron, qui suit souvent la table, y serait englouti.
-      if (!isRow && (ABBREV.test(line) || (!isHeading(line) && line.length < 40))) {
+      // titre du patron, qui suit souvent la table, y serait englouti. Les
+      // autres sections à part (Notes, Gauge, Sizes…) sont des paragraphes
+      // libres : elles se poursuivent tant qu'aucun rang ni titre n'apparaît,
+      // quelle que soit la longueur de la ligne.
+      const continuesAside = asideIsAbbrevTable
+        ? !isRow && (ABBREV.test(line) || (!isHeading(line) && line.length < 40))
+        : !isRow && !isHeading(line);
+      if (continuesAside) {
         notes.push(line.replace(BULLET, ''));
         continue;
       }
@@ -338,7 +401,8 @@ export function parsePattern(raw: string): Pattern {
       const label = (to ? `${word} ${from}–${to}` : `${word} ${from}`).replace(/^./, (c) =>
         c.toUpperCase(),
       );
-      addStep(label, line.slice(row[0].length).trim() || line, to ? Math.max(0, to - from + 1) : 0);
+      const { side, rest } = extractSide(line.slice(row[0].length));
+      addStep(label, rest.trim() || line, to ? Math.max(0, to - from + 1) : 0, side);
       continue;
     }
 
@@ -347,11 +411,8 @@ export function parsePattern(raw: string): Pattern {
       const from = Number.parseInt(bare[1], 10);
       const to = bare[2] ? Number.parseInt(bare[2], 10) : 0;
       const label = to ? `${from}–${to}` : String(from);
-      addStep(
-        label,
-        line.slice(bare[0].length).trim() || line,
-        to ? Math.max(0, to - from + 1) : 0,
-      );
+      const { side, rest } = extractSide(line.slice(bare[0].length));
+      addStep(label, rest.trim() || line, to ? Math.max(0, to - from + 1) : 0, side);
       continue;
     }
 

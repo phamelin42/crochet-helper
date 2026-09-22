@@ -23,7 +23,7 @@ branche.
 | 16 — Projets multiples et sauvegarde | Terminée | —   | 2026-09-22 |
 | 06 — Partage et impression           | Terminée | —   | 2026-09-22 |
 | 02 — Tests du lecteur                | Terminée | —   | 2026-09-22 |
-| 03 — Formats supplémentaires         | À faire  | —   | —          |
+| 03 — Formats supplémentaires         | Terminée | —   | 2026-09-22 |
 | 05 — Mode hors ligne (PWA)           | À faire  | —   | —          |
 | 07 — Audit d'accessibilité           | À faire  | —   | —          |
 | 09 — Performance et Core Web Vitals  | À faire  | —   | —          |

@@ -89,4 +89,116 @@ describe('parsePattern', () => {
     const pattern = parsePattern('Rang 1 : ms &amp; brides&nbsp;(6)');
     expect(pattern.pieces[0].steps[0].body).toBe('ms & brides (6)');
   });
+
+  it("détache l'indication endroit/envers du libellé de rang", () => {
+    const pattern = parsePattern('Row 1 (RS): k2, p2');
+    const step = pattern.pieces[0].steps[0];
+    expect(step.label).toBe('Row 1');
+    expect(step.side).toBe('rs');
+    expect(step.body).toBe('k2, p2');
+  });
+
+  it("reconnaît l'indication envers en français", () => {
+    const pattern = parsePattern('Rang 2 (envers) : m2, m2 env');
+    expect(pattern.pieces[0].steps[0].side).toBe('ws');
+  });
+
+  it('garde le renvoi entre parenthèses qui suit une étendue de rangs', () => {
+    const pattern = parsePattern('Rnd 12-16 (rep rnd 11)');
+    const step = pattern.pieces[0].steps[0];
+    expect(step.label).toBe('Rnd 12–16');
+    expect(step.reps).toBe(5);
+    expect(step.body).toBe('(rep rnd 11)');
+  });
+
+  it('lit une numérotation nue comme des étapes en l’absence de libellé de rang', () => {
+    const pattern = parsePattern(
+      [
+        '1. 6 ms dans un cercle magique',
+        '2) inc dans chaque m (12)',
+        '3 - 1 ms dans chaque m',
+      ].join('\n'),
+    );
+    expect(pattern.pieces[0].steps.map((s) => s.label)).toEqual(['1', '2', '3']);
+    expect(pattern.total).toBe(3);
+  });
+
+  it('ne lit pas une numérotation nue comme des étapes quand un vrai libellé de rang existe', () => {
+    const pattern = parsePattern(
+      [
+        'You will need:',
+        '1. 4mm hook',
+        '2. green yarn',
+        'Instructions:',
+        'Rang 1 : 6 ms dans un cercle magique',
+      ].join('\n'),
+    );
+    expect(pattern.materials).toEqual(['1. 4mm hook', '2. green yarn']);
+    expect(pattern.total).toBe(1);
+  });
+
+  it('range une section Notes dans Pattern.notes plutôt que dans une pièce', () => {
+    const pattern = parsePattern(
+      [
+        'Notes:',
+        'Work in continuous rounds, do not join.',
+        'Use a stitch marker to track the start of the round.',
+        'Rang 1 : 6 ms dans un cercle magique',
+      ].join('\n'),
+    );
+    expect(pattern.notes).toEqual([
+      'Work in continuous rounds, do not join.',
+      'Use a stitch marker to track the start of the round.',
+    ]);
+    expect(pattern.pieces.map((p) => p.name)).toEqual(['']);
+    expect(pattern.total).toBe(1);
+  });
+
+  it("referme la table d'abréviations dès qu'un nom de pièce suit, sans avaler le paragraphe", () => {
+    const pattern = parsePattern(
+      [
+        'Pumpkin Harvest Hat',
+        'Materials:',
+        'G Hook',
+        'Abbreviations:',
+        'sc= single crochet',
+        'dc = double crochet',
+        'Stem',
+        'With Green Yarn, Chain 2',
+        'Row 1: In 2nd Chain from hook, make 4 sc (4)',
+      ].join('\n'),
+    );
+    expect(pattern.title).toBe('Pumpkin Harvest Hat');
+    expect(pattern.notes).toEqual(['sc= single crochet', 'dc = double crochet']);
+    expect(pattern.pieces.map((p) => p.name)).toEqual(['Stem']);
+    expect(pattern.total).toBe(1);
+  });
+
+  it("range 'Sizes: S (M, L)' dans les notes plutôt que d'en faire une pièce", () => {
+    const pattern = parsePattern(
+      ['Beanie', 'Sizes: S (M, L)', 'Round 1: 6 sc in magic ring (6)'].join('\n'),
+    );
+    expect(pattern.notes).toEqual(['Sizes: S (M, L)']);
+    expect(pattern.pieces.map((p) => p.name)).toEqual(['']);
+    expect(pattern.total).toBe(1);
+  });
+
+  it("déduit reps d'une consigne « Repeat rows 2-5 four more times » écrite en lettres", () => {
+    const pattern = parsePattern(['Row 1: k2, p2', 'Repeat rows 2-5 four more times.'].join('\n'));
+    const steps = pattern.pieces[0].steps;
+    expect(steps[1].reps).toBe(4);
+  });
+
+  it("déduit reps d'une consigne « Répéter les rangs 2 à 5 quatre fois » en français", () => {
+    const pattern = parsePattern(
+      ['Rang 1 : m2, m2 env', 'Répéter les rangs 2 à 5 quatre fois.'].join('\n'),
+    );
+    const steps = pattern.pieces[0].steps;
+    expect(steps[1].reps).toBe(4);
+  });
+
+  it('déduit reps en chiffres dans une consigne de répétition', () => {
+    const pattern = parsePattern(['Row 1: k2, p2', 'Repeat rows 2-5 10 more times.'].join('\n'));
+    expect(pattern.pieces[0].steps[1].reps).toBe(10);
+  });
 });

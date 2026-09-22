@@ -171,4 +171,13 @@ describe('parsePattern', () => {
     expect(pattern.pieces.map((p) => p.name)).toEqual(['Stem']);
     expect(pattern.total).toBe(1);
   });
+
+  it("range 'Sizes: S (M, L)' dans les notes plutôt que d'en faire une pièce", () => {
+    const pattern = parsePattern(
+      ['Beanie', 'Sizes: S (M, L)', 'Round 1: 6 sc in magic ring (6)'].join('\n'),
+    );
+    expect(pattern.notes).toEqual(['Sizes: S (M, L)']);
+    expect(pattern.pieces.map((p) => p.name)).toEqual(['']);
+    expect(pattern.total).toBe(1);
+  });
 });

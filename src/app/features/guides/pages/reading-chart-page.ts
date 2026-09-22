@@ -25,6 +25,8 @@ interface GuideCopy {
   readonly h2Mismatch: string;
   readonly bodyMismatch: string;
   readonly h2Why: string;
+  readonly h2Track: string;
+  readonly bodyTrack: string;
   readonly bodyWhy: string;
   readonly seeAlso: string;
   readonly linkPattern: string;
@@ -52,6 +54,8 @@ const COPY: Record<Locale, GuideCopy> = {
     bodyMismatch: `Le texte fait autorité en cas de désaccord${NBSP}: une erreur d'impression touche plus facilement un symbole isolé sur une grille dense qu'une ligne de texte, et les errata publiés par les designers corrigent presque toujours le texte en premier. Le diagramme reste malgré tout la meilleure vue d'ensemble${NBSP}: utile pour vérifier la forme générale de l'ouvrage et repérer une erreur de comptage avant qu'elle ne s'accumule sur plusieurs rangs.`,
     h2Why: `Faut-il un diagramme si le patron donne déjà le texte${NBSP}?`,
     bodyWhy: `Les deux se complètent plus qu'ils ne se remplacent${NBSP}: le texte donne l'instruction précise maille par maille, le diagramme donne la forme d'ensemble et permet de repérer en un regard où se situe le rang en cours dans la pièce entière. Pour un motif qui se répète (un point d'ajour, un empiècement de torsades), le diagramme montre en une seule image ce que le texte décrit sur plusieurs lignes de répétitions imbriquées — beaucoup de tricoteuses le trouvent alors plus rapide à suivre que le texte une fois le principe compris. Un diagramme traverse aussi les langues sans traduction${NBSP}: un symbole de bride se lit pareil dans un magazine japonais, allemand ou français, ce qui explique sa popularité dans les patrons publiés à l'international.`,
+    h2Track: `Comment suivre un grand diagramme sans perdre sa ligne${NBSP}?`,
+    bodyTrack: `Sur une grille dense, l'œil saute facilement d'une ligne à l'autre, et l'erreur ne se voit que deux rangs plus tard. Trois habitudes l'évitent${NBSP}: masquer les rangs déjà faits avec une règle aimantée ou une simple bande de papier posée juste au-dessus de la ligne en cours, de sorte que le rang travaillé reste en bas de la zone visible${NBSP}; photographier le diagramme et l'agrandir sur un téléphone, ce qui permet aussi de le suivre avec le doigt${NBSP}; et poser un marqueur toutes les dix mailles sur l'ouvrage, pour recompter un segment court plutôt que le rang entier. Sur un motif qui se répète, encadrer au crayon la seule répétition de base évite de relire chaque fois la grille complète.`,
     seeAlso: 'À lire aussi',
     linkPattern: 'Comment lire un patron de crochet',
     linkCraft: 'Crochet ou tricot : par lequel commencer',
@@ -82,6 +86,8 @@ const COPY: Record<Locale, GuideCopy> = {
     h2Why: 'Do you need a chart if the pattern already gives the text?',
     bodyWhy:
       'The two complement each other more than they replace one another: the text gives the precise stitch-by-stitch instruction, the chart gives the overall shape and lets you spot at a glance where the current row sits in the whole piece. For a repeating motif (a lace pattern, a cable panel), the chart shows in a single image what the text describes across several nested repeat lines — many knitters find it faster to follow than the text once the principle clicks. A chart also crosses languages without translation: a treble crochet symbol reads the same in a Japanese, German or French magazine, which explains its popularity in patterns published internationally.',
+    h2Track: 'How do you keep your place in a large chart?',
+    bodyTrack: `On a dense chart the eye slips from one row to the next, and the mistake only shows up two rows later. Three habits prevent it: cover the finished rows with a magnetic ruler or a plain strip of paper laid just above the current line, so the row you are working stays at the bottom edge of what you can see; photograph the chart and zoom in on a phone, which also lets you follow it with a finger; and place a stitch marker every ten stitches in the work, so a miscount means recounting a short segment instead of the whole row. On a repeating motif, pencilling a box around the base repeat saves rereading the full chart every time.`,
     seeAlso: 'Read next',
     linkPattern: 'How to read a crochet pattern',
     linkCraft: 'Crochet or knitting: which to start with',
@@ -116,6 +122,9 @@ const COPY: Record<Locale, GuideCopy> = {
 
       <h2>{{ c.h2Why }}</h2>
       <p>{{ c.bodyWhy }}</p>
+
+      <h2>{{ c.h2Track }}</h2>
+      <p>{{ c.bodyTrack }}</p>
 
       <h2>{{ c.seeAlso }}</h2>
       <ul>

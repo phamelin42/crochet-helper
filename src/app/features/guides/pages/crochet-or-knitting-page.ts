@@ -25,6 +25,8 @@ interface GuideCopy {
   readonly h2Both: string;
   readonly bodyBoth: string;
   readonly h2Tools: string;
+  readonly h2First: string;
+  readonly bodyFirst: string;
   readonly bodyTools: string;
   readonly seeAlso: string;
   readonly linkPattern: string;
@@ -52,6 +54,8 @@ const COPY: Record<Locale, GuideCopy> = {
     bodyBoth: `Pas pour commencer${NBSP}: apprendre une seule technique jusqu'à l'aisance donne de meilleurs résultats que jongler entre les deux dès le départ. Beaucoup de personnes qui pratiquent les deux ont commencé par l'une, s'y sont senties à l'aise, puis ont ajouté l'autre pour les projets où elle convient mieux — une bordure, une finition, un tissu plus extensible. Rien n'oblige à choisir définitivement${NBSP}: le crochet et le tricot se rejoignent d'ailleurs sur beaucoup de notions communes, à commencer par la lecture d'un patron.`,
     h2Tools: `Quel matériel faut-il pour commencer${NBSP}?`,
     bodyTools: `Le crochet demande le moins de matériel${NBSP}: un crochet à la bonne taille pour le fil choisi, une paire de ciseaux, et une aiguille à laine pour rentrer les fils en fin d'ouvrage — de quoi commencer pour moins de dix euros. Le tricot demande une paire d'aiguilles adaptée au fil (ou un jeu de plusieurs tailles, utile pour comparer l'échantillon), des marqueurs de maille pour repérer un repère dans le rang, et la même aiguille à laine pour les finitions. Dans les deux cas, mieux vaut un fil clair et de gros calibre pour les premiers essais${NBSP}: les mailles s'y voient bien, et les erreurs se repèrent avant de s'accumuler.`,
+    h2First: `Combien de temps avant de terminer un premier ouvrage${NBSP}?`,
+    bodyFirst: `Au crochet, une lingette ou un carré de couverture se termine souvent dans la même soirée que celle où l'on apprend la maille serrée${NBSP}: c'est ce retour rapide qui fait tenir la pratique. Un amigurumi simple demande deux à trois soirées, un bonnet une semaine à raison d'une heure par jour. Au tricot, le même carré prend plus longtemps parce qu'il faut d'abord apprivoiser deux aiguilles et rattraper les mailles qui s'échappent, mais le rythme s'accélère nettement une fois le geste acquis${NBSP}: comptez une à deux semaines pour une écharpe simple. Dans les deux cas, mieux vaut un petit objet fini qu'un grand projet abandonné au tiers — un ouvrage terminé apprend plus qu'un ouvrage parfait resté en chantier.`,
     seeAlso: 'À lire aussi',
     linkPattern: 'Comment lire un patron de crochet',
     linkChart: 'Comment lire un diagramme de crochet',
@@ -82,6 +86,8 @@ const COPY: Record<Locale, GuideCopy> = {
     h2Tools: 'What gear do you need to get started?',
     bodyTools:
       'Crochet needs the least gear: a hook sized for the chosen yarn, a pair of scissors, and a yarn needle to weave in ends once the piece is done — enough to get started for under ten pounds. Knitting needs a pair of needles matched to the yarn (or a set of several sizes, useful for comparing gauge), stitch markers to flag a point in the row, and the same yarn needle for finishing. Either way, a light-coloured, chunky yarn works best for a first try: the stitches show up clearly, and mistakes get caught before they pile up.',
+    h2First: 'How long before you finish a first piece?',
+    bodyFirst: `With crochet, a dishcloth or a blanket square is often finished the same evening you learn single crochet: that quick result is what keeps beginners going. A simple amigurumi takes two or three evenings, a hat about a week at an hour a day. Knitting the same square takes longer at first, because two needles need taming and dropped stitches have to be caught, but the pace picks up sharply once the movement settles: count on one to two weeks for a plain scarf. Either way, a small finished object beats a large one abandoned a third of the way through — a piece you complete teaches you more than a perfect piece left on the hook.`,
     seeAlso: 'Read next',
     linkPattern: 'How to read a crochet pattern',
     linkChart: 'How to read a crochet chart',
@@ -116,6 +122,9 @@ const COPY: Record<Locale, GuideCopy> = {
 
       <h2>{{ c.h2Tools }}</h2>
       <p>{{ c.bodyTools }}</p>
+
+      <h2>{{ c.h2First }}</h2>
+      <p>{{ c.bodyFirst }}</p>
 
       <h2>{{ c.seeAlso }}</h2>
       <ul>

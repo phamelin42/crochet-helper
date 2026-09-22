@@ -101,6 +101,14 @@ export const routes: Routes = [
     routesFor(locale).map((route) => ({ ...route, path: locale })),
   ),
   ...routesFor(DEFAULT_LOCALE),
+  // Page d'équipe, sans version anglaise : déclarée ici plutôt que dans
+  // `route-paths.json`, qui ne décrit que des paires de langues.
+  {
+    path: 'design-system',
+    loadComponent: () =>
+      import('./features/design-system/design-system-page').then((m) => m.DesignSystemPage),
+    data: { locale: 'fr' },
+  },
   {
     path: '**',
     loadComponent: () => import('./features/reader/pages/reader-page').then((m) => m.ReaderPage),

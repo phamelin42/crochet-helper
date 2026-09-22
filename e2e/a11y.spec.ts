@@ -20,6 +20,9 @@ const ROUTES = [
   ]),
   { name: 'terme du glossaire', path: '/glossary/sc' },
   { name: 'terme du glossaire (fr)', path: '/fr/glossaire/ms' },
+  // Route déclarée directement dans `app.routes.ts`, pas dans `route-paths.json`
+  // (page d'équipe sans version anglaise) : elle échapperait sinon à l'audit.
+  { name: 'vitrine du design system', path: '/design-system' },
 ];
 
 /**

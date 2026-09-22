@@ -72,6 +72,9 @@ Existant : `Button` (directive sur `<button>`/`<a>`), `InputField`, `Icon`,
 `Tile`, `Checkbox`, `Segmented`, `Dialog`, `Disclosure`, `TooltipHost` +
 `TooltipService`.
 
+Vitrine à jour de chaque jeton et chaque composant sur `/design-system` (page
+d'équipe, non indexée).
+
 ## Pièges déjà rencontrés en relecture
 
 Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une fiche.

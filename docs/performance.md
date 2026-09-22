@@ -51,6 +51,22 @@ CLS < 0,05. Le LCP augmente légèrement (le rendu attend désormais la police
 préchargée plutôt que d'afficher immédiatement la police de secours) ; le
 compromis est délibéré — voir plus bas.
 
+## Vérification indépendante (relecture)
+
+Les deux tableaux ci-dessus ont été reproduits en relecture, sur le même profil
+mobile bridé, avec un script distinct : `main` avant la fiche donne 0,338 /
+0,338 / 0,713 et la branche donne 0 / 0 / 0,028 — les mêmes chiffres.
+
+L'attribution des gains a été vérifiée en retirant chaque correctif un par un
+et en remesurant : sans le préchargement de police, le CLS remonte à 0,33 sur
+les trois pages ; sans la réservation de la navigation française, `/fr/glossaire/ms`
+remonte à 0,67 ; retirer `.tool-slot` ne change rien dans un navigateur sans
+API `wakeLock`, ce qui confirme la note du §1 (précaution, pas correctif).
+
+`e2e/perf.spec.ts` fige ces seuils (CLS ≤ 0,05, LCP ≤ 2 s sur les trois pages)
+et tourne dans la CI : une régression casse le build, elle n'attend plus une
+relecture.
+
 ## Changements appliqués, et leur gain mesuré
 
 Diagnostic : le CLS venait de deux causes distinctes, trouvées en inspectant

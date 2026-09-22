@@ -96,13 +96,20 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   sitemap (`tools/generate-sitemap.mjs` les exclut).
 - **Français soigné** : article devant un nom de maille (« désigne _la_ maille
   serrée »), espaces insécables avant `: ; ? !` et dans « ».
-- **Bundle initial ≤ 320 kB (erreur de build au-delà).** Code non nécessaire au
+- **Bundle initial ≤ 335 kB (erreur de build au-delà).** Angular (core, router,
+  service worker) en occupe déjà ~305 kB : la marge réelle est d'une trentaine de
+  kilo-octets, à ne pas gaspiller. Code non nécessaire au
   premier affichage → `import()` ; textes propres à une page paresseuse → dans
   la page, pas dans `translations.ts` (qui est dans le bundle initial) ; CSS
   d'impression → `print.css`, chargée à part. `ng build --stats-json` dit ce qui pèse.
 - **Une fiche qui énumère des formes ou des valeurs** (« deux à douze, FR et
   EN », « chaque forme du tableau ») : le test les parcourt **toutes** (boucle),
   pas un échantillon.
+- **Service worker** : tout script qui réécrit un fichier de `dist/` après
+  `ng build` doit passer **avant** la régénération de `ngsw.json` (`ngsw-config`
+  dans `npm run build`), sinon le worker passe en mode dégradé et ne sert plus
+  rien hors ligne. `tools/check-ngsw.mjs` le vérifie. Tester hors ligne en
+  lisant `/ngsw/state` (« Driver state: NORMAL »), pas seulement le statut HTTP.
 - **Impression** : vérifier sur un vrai PDF (Chromium `page.pdf`), pas sur
   `innerText`, qui renvoie aussi le texte des éléments masqués.
 

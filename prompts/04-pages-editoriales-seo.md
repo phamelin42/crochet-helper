@@ -21,7 +21,7 @@ pré-rendues, maillées avec le lecteur.
 
 - `src/app/features/glossary/glossary-page.ts` (le modèle à suivre : contenu par
   langue, `SeoService`, JSON-LD)
-- `src/app/core/i18n/route-paths.ts`
+- `src/app/core/i18n/route-paths.json`
 - `src/app/app.routes.ts`
 - `src/app/core/seo/seo.service.ts`
 - `tools/generate-sitemap.mjs`
@@ -33,7 +33,8 @@ pré-rendues, maillées avec le lecteur.
    `Record<Locale, …>`, `SeoService.apply(...)` dans le constructeur.
 2. Étendre `ROUTE_PATHS` avec les trois entrées, puis `app.routes.ts` — les
    routes se génèrent déjà pour les deux langues, n'écris pas deux arbres.
-3. Mettre à jour `ALTERNATES` dans `tools/generate-sitemap.mjs`.
+3. Rien à faire pour le sitemap : `tools/generate-sitemap.mjs` déduit les paires
+   de langues de `route-paths.json`. Vérifier seulement que les six pages y figurent.
 4. **Le contenu compte plus que le code.** Chaque page : 700 à 1000 mots utiles,
    un `<h1>` unique, des `<h2>` qui reprennent des formulations de recherche
    réelles, des exemples concrets tirés du domaine (« Rang 3 : [ms, aug] x 6 (18) »

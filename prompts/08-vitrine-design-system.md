@@ -17,7 +17,7 @@ chaque composant dans tous ses états.
 - `src/styles/nocturne.css`
 - Tous les fichiers de `src/app/shared/ui/`
 - `src/app/features/glossary/glossary-page.ts` (structure d'une page)
-- `src/app/app.routes.ts`, `src/app/core/i18n/route-paths.ts`
+- `src/app/app.routes.ts`, `src/app/core/i18n/route-paths.json`
 
 ## À faire
 

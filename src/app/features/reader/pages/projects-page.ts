@@ -1,7 +1,6 @@
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
-import { TranslationKey } from '../../../core/i18n/translations';
 import { DEFAULT_LOCALE, Locale } from '../../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
 import { SeoService } from '../../../core/seo/seo.service';
@@ -31,6 +30,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
  */
 const COPY = {
   fr: {
+    'ui.cancel': 'Annuler',
     'ui.delete': 'Supprimer',
     'ui.deleteConfirmAction': 'Supprimer définitivement',
     'ui.deleteConfirmBody':
@@ -54,6 +54,7 @@ const COPY = {
     'ui.untitledProject': 'Projet sans titre',
   },
   en: {
+    'ui.cancel': 'Cancel',
     'ui.delete': 'Delete',
     'ui.deleteConfirmAction': 'Delete permanently',
     'ui.deleteConfirmBody':
@@ -193,8 +194,7 @@ export class ProjectsPage {
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
 
-  protected t = (key: LocalKey | TranslationKey): string =>
-    key in COPY.fr ? COPY[this.locale][key as LocalKey] : this.i18n.t(key as TranslationKey);
+  protected t = (key: LocalKey): string => COPY[this.locale][key];
 
   protected readonly renameOpen = signal(false);
   protected readonly renameTarget = signal<Project | null>(null);

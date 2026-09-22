@@ -1,0 +1,46 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.csr.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "resources": {
+        "files": [
+          "/index.html",
+          "/index.csr.html",
+          "/*/index.html",
+          "/fr/*/index.html",
+          "/fr/index.html",
+          "/manifest.webmanifest",
+          "/*.css",
+          "/*.js",
+          "/media/*.woff2"
+        ]
+      }
+    },
+    {
+      "name": "glossary-pages",
+      "installMode": "lazy",
+      "updateMode": "lazy",
+      "resources": {
+        "files": ["/glossary/*/index.html", "/fr/glossaire/*/index.html"]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/favicon.svg",
+          "/logo.svg",
+          "/icon-256.png",
+          "/apple-touch-icon.png",
+          "/icons/*.png"
+        ]
+      }
+    }
+  ]
+}

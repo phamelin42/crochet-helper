@@ -60,7 +60,7 @@ Tests ciblés pendant les corrections : `npx ng test --no-watch --include='<glob
 
 **Les tests protègent-ils vraiment ?** Plutôt que de relire les specs, casser le
 code et voir si elles échouent — c'est plus sûr et moins cher en tokens :
-`.claude/skills/relecture-fiche/mutate.sh <fichier> "<ancien>" "<nouveau>" "<nom>" [glob]`.
+`bash .claude/skills/relecture-fiche/mutate.sh <fichier> "<ancien>" "<nouveau>" "<nom>" [glob]`.
 Viser les invariants de la fiche et les pièges de `CLAUDE.md`. Une mutation
 qui « SURVIT » = un test à écrire (ou une mutation équivalente : le dire).
 « INVALIDE » = la mutation ne compile pas, la reformuler (changer une valeur,
@@ -113,6 +113,11 @@ Puis une entrée de 3 lignes dans `journal.md` (défauts · coûts · améliorat
 faite). Garde `CLAUDE.md` et ce skill courts : fusionner plutôt qu'ajouter, et
 supprimer une consigne devenue inutile. La rétro figure dans le message final à
 Phil, en deux lignes.
+
+**Préparer la fiche suivante** (quelques minutes, évite un lot raté) : la
+relire contre l'état actuel du code — URL, fichiers cités, budget, pièges
+connus — et la corriger dans le même bundle. La fiche 05, périmée, a coûté 200
+échanges à l'agent.
 
 Mets à jour `claude/etat-du-projet.md` (outil Projects) : fiche en cours, action en attente.
 

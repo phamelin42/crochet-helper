@@ -39,3 +39,9 @@ coûteuses (→ script). Élaguer les entrées de plus de dix fiches.
 - Défauts : liste de matériel numérotée avalée comme étapes (ancien, mais contraire à la fiche) ; nombres en lettres testés sur un échantillon seulement (« douze », « seven » non couverts).
 - Coûts : `mutate.sh` lancé sur une base rouge (tout « tué » à tort) ; remplacement Python cassé par Prettier ; `npm ci` en tâche de fond qui vide `node_modules`.
 - Amélioration : `mutate.sh` exige une base verte et signale les mutations qui ne compilent pas ; sondage des fonctions pures par esbuild + comparaison avec l'ancienne version ; piège « énumération → test exhaustif ».
+
+## 05 — Mode hors ligne (PWA)
+
+- Défauts : **service worker dégradé en production** (empreintes de `ngsw.json` périmées par `strip-event-dispatch.mjs`) ; icônes d'installation au logo d'Angular ; 110 pages préchargées à l'installation. Agent à 200 échanges sans commit.
+- Coûts : fiche périmée (`/lecteur`, « six pages ») et budget 320 kB devenu un plancher (Angular ≈ 305 kB) → l'agent s'est épuisé à grappiller ; premier test hors ligne faux positif (statut 200 sans lire l'état du worker).
+- Amélioration : `ngsw.json` régénéré après post-traitement + `tools/check-ngsw.mjs` ; budget 325/335 kB ; fiches 04/08/09 remises à jour ; `lot-suivant` : commits fréquents, fiche contredite → le code fait foi, blocage → brouillon ; relecture : **mettre à jour la fiche suivante avant de lancer le lot**.

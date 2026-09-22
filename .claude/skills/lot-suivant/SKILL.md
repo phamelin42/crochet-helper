@@ -79,6 +79,17 @@ qu'en vrac, dans un seul commit.
 Quand une fiche contient une section « Décisions déjà prises », applique-les
 telles quelles : elles ont été vérifiées. Ne refais pas l'exploration.
 
+**Commite au moins toutes les 25 à 30 actions**, même inachevé : la fiche 05 a
+épuisé ses 200 échanges sans un seul commit, et tout a été sauvé en vrac.
+
+**Si la fiche contredit le code** (URL, nom de fichier, nombre de pages) : le
+code et `CLAUDE.md` font foi. Adapte, et signale l'écart dans la PR.
+
+**Si une contrainte bloque** (budget du bundle, test impossible à satisfaire)
+et qu'une vingtaine d'échanges n'y suffisent pas : arrête de contourner.
+Commite, crée `.pilote/brouillon`, et explique le blocage dans la PR — une
+décision humaine coûte moins cher que cent échanges.
+
 ## 4. Vérifier
 
 `npm run verify` doit être vert. Cette commande enchaîne lint, format, tests et

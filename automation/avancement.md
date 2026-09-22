@@ -24,7 +24,7 @@ branche.
 | 06 — Partage et impression           | Terminée | —   | 2026-09-22 |
 | 02 — Tests du lecteur                | Terminée | —   | 2026-09-22 |
 | 03 — Formats supplémentaires         | Terminée | —   | 2026-09-22 |
-| 05 — Mode hors ligne (PWA)           | À faire  | —   | —          |
+| 05 — Mode hors ligne (PWA)           | Terminée | —   | 2026-09-22 |
 | 07 — Audit d'accessibilité           | À faire  | —   | —          |
 | 09 — Performance et Core Web Vitals  | À faire  | —   | —          |
 | 04 — Pages éditoriales               | À faire  | —   | —          |

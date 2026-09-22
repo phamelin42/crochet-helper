@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build && node tools/generate-sitemap.mjs && node tools/strip-event-dispatch.mjs && node tools/check-csp.mjs && node tools/check-prerender.mjs && node tools/check-styles.mjs",
+    "build": "ng build && node tools/generate-sitemap.mjs && node tools/strip-event-dispatch.mjs && ngsw-config dist/fil-patterns/browser ngsw-config.json / && node tools/check-csp.mjs && node tools/check-prerender.mjs && node tools/check-styles.mjs && node tools/check-ngsw.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
@@ -24,6 +24,7 @@
     "@angular/platform-browser": "^22.1.0",
     "@angular/platform-server": "^22.1.0",
     "@angular/router": "^22.1.0",
+    "@angular/service-worker": "^22.1.0",
     "@angular/ssr": "^22.1.7",
     "@fontsource-variable/inter": "^5.3.0",
     "express": "^5.1.0",

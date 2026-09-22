@@ -12,6 +12,7 @@ import { PatternImport } from '../components/pattern-import';
 import { PrintView } from '../components/print-view';
 import { ReaderCounters } from '../components/reader-counters';
 import { StepView } from '../components/step-view';
+import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 
 const SEO: Record<Locale, { title: string; description: string }> = {
@@ -63,15 +64,15 @@ const SEO: Record<Locale, { title: string; description: string }> = {
 
     <fil-print-view />
 
-    <fil-dialog [(open)]="linkConfirmOpen" [label]="i18n.t('ui.linkImportTitle')">
-      <h2 class="dialog-title">{{ i18n.t('ui.linkImportTitle') }}</h2>
-      <p class="dialog-body">{{ i18n.t('ui.linkImportBody') }}</p>
+    <fil-dialog [(open)]="linkConfirmOpen" [label]="t('ui.linkImportTitle')">
+      <h2 class="dialog-title">{{ t('ui.linkImportTitle') }}</h2>
+      <p class="dialog-body">{{ t('ui.linkImportBody') }}</p>
       <div class="dialog-actions">
         <button type="button" filButton="secondary" (click)="cancelLinkImport()">
-          {{ i18n.t('ui.cancel') }}
+          {{ t('ui.cancel') }}
         </button>
         <button type="button" filButton="primary" (click)="confirmLinkImport()">
-          {{ i18n.t('ui.linkImportAction') }}
+          {{ t('ui.linkImportAction') }}
         </button>
       </div>
     </fil-dialog>
@@ -83,6 +84,8 @@ export class ReaderPage {
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
   private readonly platformId = inject(PLATFORM_ID);
+
+  protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
 
   protected readonly linkConfirmOpen = signal(false);
   private pendingLinkSource: string | null = null;

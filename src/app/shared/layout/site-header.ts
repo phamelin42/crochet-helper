@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { localePrefix } from '../../core/i18n/locale';
+import { UpdateService } from '../../core/platform/update.service';
 import { WakeLockService } from '../../core/platform/wake-lock.service';
 import { Button } from '../ui/button/button';
 import { Icon } from '../ui/icon/icon';
@@ -72,6 +73,12 @@ import { Icon } from '../ui/icon/icon';
     </nav>
 
     <div class="tools">
+      @if (update.updateAvailable()) {
+        <button type="button" filButton="secondary" (click)="update.activateUpdate()">
+          {{ i18n.t('ui.update') }}
+        </button>
+      }
+
       @if (wakeLock.supported()) {
         <button
           type="button"
@@ -105,6 +112,7 @@ import { Icon } from '../ui/icon/icon';
 export class SiteHeader {
   protected readonly i18n = inject(I18nService);
   protected readonly wakeLock = inject(WakeLockService);
+  protected readonly update = inject(UpdateService);
 
   /** Lien vers l'accueil de l'autre langue — une vraie URL, pas un état interne. */
   protected otherLanguageHref(): string {

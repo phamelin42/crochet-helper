@@ -52,6 +52,30 @@ if (vercelCsp !== netlifyCsp) {
   process.exit(1);
 }
 
+/**
+ * La mesure d'audience charge `${ANALYTICS_ORIGIN}/script.js` et lui poste ses
+ * événements : l'origine doit figurer dans `script-src` ET `connect-src`, sans
+ * quoi le navigateur bloque la mesure en silence (voir
+ * `docs/adr-001-mesure-audience.md`). Rien ne relie la constante TypeScript aux
+ * en-têtes des hébergeurs : ce contrôle est ce lien.
+ */
+const analyticsOrigin = readFileSync('src/app/core/analytics/analytics.config.ts', 'utf8').match(
+  /ANALYTICS_ORIGIN\s*=\s*'([^']*)'/,
+)?.[1];
+
+if (analyticsOrigin) {
+  for (const directive of ['script-src', 'connect-src']) {
+    const sources = vercelCsp.match(new RegExp(`${directive}([^;]*)`))?.[1] ?? '';
+    if (!sources.split(/\s+/).includes(analyticsOrigin)) {
+      console.error(
+        `\nL'origine de mesure ${analyticsOrigin} est absente de ${directive} dans la CSP.\n` +
+          `Ajoute-la dans vercel.json ET netlify.toml, à l'identique.\n`,
+      );
+      process.exit(1);
+    }
+  }
+}
+
 /** `onload="…"`, `onclick="…"` : relèvent de `script-src`, pas de `style-src`. */
 const INLINE_HANDLER = /\son[a-z]+\s*=\s*["']/i;
 

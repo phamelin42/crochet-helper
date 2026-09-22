@@ -180,4 +180,25 @@ describe('parsePattern', () => {
     expect(pattern.pieces.map((p) => p.name)).toEqual(['']);
     expect(pattern.total).toBe(1);
   });
+
+  it("déduit reps d'une consigne « Repeat rows 2-5 four more times » écrite en lettres", () => {
+    const pattern = parsePattern(
+      ['Row 1: k2, p2', 'Repeat rows 2-5 four more times.'].join('\n'),
+    );
+    const steps = pattern.pieces[0].steps;
+    expect(steps[1].reps).toBe(4);
+  });
+
+  it("déduit reps d'une consigne « Répéter les rangs 2 à 5 quatre fois » en français", () => {
+    const pattern = parsePattern(
+      ['Rang 1 : m2, m2 env', 'Répéter les rangs 2 à 5 quatre fois.'].join('\n'),
+    );
+    const steps = pattern.pieces[0].steps;
+    expect(steps[1].reps).toBe(4);
+  });
+
+  it('déduit reps en chiffres dans une consigne de répétition', () => {
+    const pattern = parsePattern(['Row 1: k2, p2', 'Repeat rows 2-5 10 more times.'].join('\n'));
+    expect(pattern.pieces[0].steps[1].reps).toBe(10);
+  });
 });

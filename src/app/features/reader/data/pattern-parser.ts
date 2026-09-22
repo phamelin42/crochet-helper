@@ -169,15 +169,54 @@ function isHeading(line: string): boolean {
   return /^[A-ZÀ-ÝŒ0-9(«"]/.test(bare) || bare === bare.toLocaleUpperCase();
 }
 
+/** Nombres de deux à douze écrits en toutes lettres, français et anglais. */
+const NUMBER_WORDS: Record<string, number> = {
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+  eleven: 11,
+  twelve: 12,
+  deux: 2,
+  trois: 3,
+  quatre: 4,
+  cinq: 5,
+  sept: 7,
+  huit: 8,
+  neuf: 9,
+  dix: 10,
+  onze: 11,
+  douze: 12,
+};
+
+/**
+ * « 6 times », « four more times », « quatre fois » : un compte de répétition
+ * en chiffres ou en toutes lettres, avec un éventuel mot de liaison
+ * (« more », « de plus ») entre le nombre et « times »/« fois ».
+ */
+const REPEAT_COUNT = new RegExp(
+  `\\b(\\d{1,2}|${Object.keys(NUMBER_WORDS).join('|')})\\b(?:\\s+(?:more|de\\s+plus))?\\s+(?:times?|fois)\\b`,
+  'i',
+);
+
 /**
  * Nombre de répétitions d'une étape : d'abord l'étendue du libellé
- * (« Rangs 3-6 » → 4), sinon un « x6 » ou « 6 fois » dans le corps.
+ * (« Rangs 3-6 » → 4), sinon un « x6 », un « 6 times » ou un « quatre fois »
+ * dans le corps.
  */
 function repeatTarget(range: number, body: string): number {
   if (range) return range;
-  const match =
-    body.match(/[x×]\s*(\d{1,2})\b/i) ?? body.match(/\b(\d{1,2})\s*(?:times|fois|x)\b/i);
-  return match ? Number.parseInt(match[1], 10) : 0;
+  const direct = body.match(/[x×]\s*(\d{1,2})\b/i);
+  if (direct) return Number.parseInt(direct[1], 10);
+  const worded = REPEAT_COUNT.exec(body);
+  if (!worded) return 0;
+  const raw = worded[1].toLowerCase();
+  return NUMBER_WORDS[raw] ?? Number.parseInt(raw, 10);
 }
 
 /** Jetons qui trahissent une consigne de maille plutôt qu'une phrase de conseil. */

@@ -84,7 +84,13 @@ telles quelles : elles ont été vérifiées. Ne refais pas l'exploration.
 `npm run verify` doit être vert. Cette commande enchaîne lint, format, tests et
 build avec pré-rendu.
 
-Si elle échoue, corrige la cause. **Ne désactive jamais une règle de lint, ne
+Puis relis **ton propre diff** (`git diff main --stat`, puis les fichiers de
+code) contre la section « Pièges déjà rencontrés » de `CLAUDE.md`, point par
+point : chacun a déjà été livré une fois par une exécution précédente. Pour
+chaque test que tu as écrit, vérifie qu'il décrit ce que la lectrice doit
+obtenir, pas ce que ton code fait.
+
+Si `verify` échoue, corrige la cause. **Ne désactive jamais une règle de lint, ne
 marque jamais un test en `skip`, ne contourne jamais `check-csp.mjs` ou
 `check-prerender.mjs` pour faire passer la commande.** Si tu n'y arrives pas
 après plusieurs tentatives, commite quand même ce qui est fait, crée le fichier
@@ -106,7 +112,9 @@ Puis écris :
   - **Les critères d'acceptation de la fiche**, chacun coché ou non, honnêtement ;
   - **Le poids du bundle** avant et après, si la fiche touche au code applicatif ;
   - **Ce qui reste**, y compris ce que tu as choisi de ne pas faire et pourquoi ;
-  - **Les points à relire en priorité** — là où tu as hésité.
+  - **Les points à relire en priorité** — là où tu as hésité ;
+  - **Ce qui t'a coûté des échanges** — commande ratée, information manquante
+    dans la fiche ou dans `CLAUDE.md`. Ça sert à améliorer les prochaines fiches.
 
 Termine sur ta branche, pas sur `main` : c'est la branche courante que le
 workflow publie.

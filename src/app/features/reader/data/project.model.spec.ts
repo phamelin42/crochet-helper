@@ -48,6 +48,16 @@ describe('deriveProjectName', () => {
 });
 
 describe('legacyToProject', () => {
+  it('nomme le projet migré d’après le titre détecté, comme un projet neuf', () => {
+    const project = legacyToProject(
+      { source: 'Amigurumi chat\nRang 1 : 6 ms' },
+      'Amigurumi chat',
+      'id',
+      0,
+    );
+    expect(project.name).toBe('Amigurumi chat');
+  });
+
   it('préserve intégralement le patron, les compteurs et le chronomètre', () => {
     const project = legacyToProject(
       {
@@ -60,6 +70,7 @@ describe('legacyToProject', () => {
         elapsed: 125_000,
         expandAbbreviations: true,
       },
+      '',
       'legacy-id',
       1_700_000_000_000,
     );
@@ -81,7 +92,7 @@ describe('legacyToProject', () => {
   });
 
   it('comble les champs absents sans lever', () => {
-    const project = legacyToProject({ source: 'Rang 1' }, 'id', 0);
+    const project = legacyToProject({ source: 'Rang 1' }, '', 'id', 0);
     expect(project.done).toEqual({});
     expect(project.reps).toEqual({});
     expect(project.elapsed).toBe(0);

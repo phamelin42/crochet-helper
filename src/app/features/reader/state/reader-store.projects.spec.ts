@@ -3,10 +3,12 @@ import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import {
+  FakeControl,
   installFakeIndexedDb,
   uninstallFakeIndexedDb,
 } from '../../../core/storage/testing/fake-indexed-db';
 import { BACKUP_SCHEMA_VERSION, Project } from '../data/project.model';
+import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import { ReaderStore } from './reader-store';
 
 function projectFixture(overrides: Partial<Project> = {}): Project {
@@ -29,9 +31,10 @@ function projectFixture(overrides: Partial<Project> = {}): Project {
 
 describe('ReaderStore — projets', () => {
   let track: ReturnType<typeof vi.fn>;
+  let idb: FakeControl;
 
   beforeEach(() => {
-    installFakeIndexedDb();
+    idb = installFakeIndexedDb();
     track = vi.fn();
     localStorage.clear();
     TestBed.configureTestingModule({
@@ -128,25 +131,37 @@ describe('ReaderStore — projets', () => {
     expect(store.currentId()).toBe('a');
   });
 
-  it('exporte puis réimporte tous les projets à l’identique', async () => {
+  it('exporte puis réimporte tous les projets à l’identique sur un profil vide', async () => {
     const store = TestBed.inject(ReaderStore);
-    const projects = [projectFixture({ id: 'a' }), projectFixture({ id: 'b' })];
+    const projects = [
+      projectFixture({ id: 'a', name: 'Chat', done: { '0:0': true }, reps: { '0:0': 2 } }),
+      projectFixture({ id: 'b', name: 'Écharpe', elapsed: 90_000, lastOpenedAt: 5 }),
+    ];
     store.projects.set(projects);
+    const text = await store.exportBackup().text();
 
-    const blob = store.exportBackup();
-    const file = new File([await blob.text()], 'sauvegarde.json', { type: 'application/json' });
-    store.projects.set([]);
+    // Profil vide : autre base, autre magasin.
+    uninstallFakeIndexedDb();
+    idb = installFakeIndexedDb();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: PLATFORM_ID, useValue: 'browser' },
+        { provide: AnalyticsService, useValue: { track } },
+      ],
+    });
+    const fresh = TestBed.inject(ReaderStore);
+    await fresh.initialize();
 
-    const ok = await store.importBackup(file);
+    const ok = await fresh.importBackup(new File([text], 'sauvegarde.json'));
 
     expect(ok).toBe(true);
-    expect(store.projects().length).toBe(2);
-    expect(
-      store
-        .projects()
-        .map((p) => p.id)
-        .sort(),
-    ).toEqual(['a', 'b']);
+    expect(fresh.sortedProjects()).toEqual(
+      [...projects].sort((x, y) => y.lastOpenedAt - x.lastOpenedAt),
+    );
+    // Et c'est bien écrit : une nouvelle session les relit.
+    const reloaded = TestBed.inject(ProjectStoreService);
+    expect((await reloaded.list<Project>()).length).toBe(2);
   });
 
   it('fusionne un import sans perdre les projets déjà présents', async () => {
@@ -191,5 +206,100 @@ describe('ReaderStore — projets', () => {
     const file = new File(['pas du json'], 'sauvegarde.json', { type: 'application/json' });
 
     await expect(store.importBackup(file)).resolves.toBe(false);
+  });
+
+  it('garde l’ancien patron si IndexedDB refuse l’écriture, et l’affiche quand même', async () => {
+    localStorage.setItem(
+      'fil.reader.v1',
+      JSON.stringify({ source: 'Rang 1 : 6 ms', stepIndex: 0, elapsed: 7_000 }),
+    );
+    idb.failWrites = true;
+
+    const store = TestBed.inject(ReaderStore);
+    await store.initialize();
+
+    expect(store.source()).toBe('Rang 1 : 6 ms');
+    expect(store.elapsed()).toBe(7_000);
+    expect(localStorage.getItem('fil.reader.v1')).not.toBeNull();
+    expect(localStorage.getItem('fil.storage.migrated')).toBeNull();
+  });
+
+  it('ouvre un nouveau projet quand on charge un autre patron, sans toucher au premier', async () => {
+    const store = TestBed.inject(ReaderStore);
+    await store.initialize();
+    store.load('Rang 1 : 6 ms\nRang 2 : 12 ms');
+    const first = store.currentId();
+    store.advance();
+    await vi.waitFor(() => expect(store.projects().length).toBe(1));
+
+    store.load('Rang 1 : 8 ms');
+
+    expect(store.currentId()).not.toBe(first);
+    await vi.waitFor(() => expect(store.projects().length).toBe(2));
+    const kept = store.projects().find((p) => p.id === first)!;
+    expect(kept.source).toBe('Rang 1 : 6 ms\nRang 2 : 12 ms');
+    expect(kept.done).toEqual({ '0:0': true });
+  });
+
+  it('recharger le même patron garde le projet', async () => {
+    const store = TestBed.inject(ReaderStore);
+    await store.initialize();
+    store.load('Rang 1 : 6 ms');
+    const id = store.currentId();
+
+    store.load('Rang 1 : 6 ms');
+
+    expect(store.currentId()).toBe(id);
+  });
+
+  it('affiche la version importée du projet ouvert quand elle est plus récente', async () => {
+    const store = TestBed.inject(ReaderStore);
+    store.projects.set([projectFixture({ id: 'a', lastOpenedAt: 1_000 })]);
+    store.resumeProject('a');
+    const touched = store.projects()[0].lastOpenedAt;
+
+    const newer = projectFixture({
+      id: 'a',
+      stepIndex: 0,
+      elapsed: 60_000,
+      lastOpenedAt: touched + 1,
+    });
+    const file = new File(
+      [JSON.stringify({ version: BACKUP_SCHEMA_VERSION, projects: [newer] })],
+      'b.json',
+    );
+
+    await expect(store.importBackup(file)).resolves.toBe(true);
+    expect(store.elapsed()).toBe(60_000);
+  });
+
+  it('n’importe rien si l’écriture échoue', async () => {
+    const store = TestBed.inject(ReaderStore);
+    store.projects.set([projectFixture({ id: 'a' })]);
+    idb.failWrites = true;
+    const file = new File(
+      [JSON.stringify({ version: BACKUP_SCHEMA_VERSION, projects: [projectFixture({ id: 'b' })] })],
+      'b.json',
+    );
+
+    await expect(store.importBackup(file)).resolves.toBe(false);
+    expect(store.projects().map((p) => p.id)).toEqual(['a']);
+  });
+
+  it('ne ressuscite pas un projet supprimé pendant que le chronomètre tourne', async () => {
+    const store = TestBed.inject(ReaderStore);
+    await store.initialize();
+    store.load('Rang 1 : 6 ms\nRang 2 : 12 ms');
+    const id = store.currentId()!;
+    store.startTimer();
+    await vi.waitFor(() => expect(store.projects().length).toBe(1));
+
+    await store.removeProject(id);
+    TestBed.tick();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(store.running()).toBe(false);
+    expect(store.projects()).toEqual([]);
+    expect(await TestBed.inject(ProjectStoreService).list()).toEqual([]);
   });
 });

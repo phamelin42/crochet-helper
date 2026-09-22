@@ -1,7 +1,8 @@
 /**
  * Fausse IndexedDB minimale pour les tests : jsdom n'implémente pas l'API, et
  * la fiche interdit toute dépendance nouvelle. Couvre uniquement ce dont
- * `ProjectStoreService` se sert — `put`, `getAll`, `delete` — avec des
+ * `ProjectStoreService` se sert — `put`, `getAll`, `delete`, transactions
+ * atomiques et annulation — avec des
  * callbacks asynchrones (microtâches), comme le ferait un vrai navigateur.
  */
 
@@ -24,15 +25,18 @@ class FakeOpenRequest extends FakeRequest {
 }
 
 class FakeObjectStore {
-  constructor(private readonly entry: StoreEntry) {}
+  constructor(
+    private readonly entry: StoreEntry,
+    private readonly tx: FakeTransaction,
+  ) {}
 
   put(value: unknown): FakeRequest {
     const request = new FakeRequest();
     const key = this.entry.keyPath
       ? (value as Record<string, unknown>)[this.entry.keyPath]
       : undefined;
+    this.tx.stage(() => this.entry.data.set(key, value));
     queueMicrotask(() => {
-      this.entry.data.set(key, value);
       request.result = key;
       request.onsuccess?.(new Event('success'));
     });
@@ -50,54 +54,84 @@ class FakeObjectStore {
 
   delete(key: unknown): FakeRequest {
     const request = new FakeRequest();
-    queueMicrotask(() => {
-      this.entry.data.delete(key);
-      request.onsuccess?.(new Event('success'));
-    });
+    this.tx.stage(() => this.entry.data.delete(key));
+    queueMicrotask(() => request.onsuccess?.(new Event('success')));
     return request;
   }
 }
 
 /**
- * `oncomplete` se déclenche deux microtâches après la création, toujours
- * après la requête émise juste après `transaction(...)` (une microtâche) :
- * assez pour notre usage, une seule requête par transaction.
+ * Les écritures sont mises de côté et appliquées ensemble à la validation,
+ * deux microtâches après la création — après les requêtes émises juste après
+ * `transaction(...)`. Si `failWrites` est levé, la transaction est annulée
+ * (`abort`, comme un quota dépassé) et aucune écriture n'est appliquée.
  */
 class FakeTransaction {
   oncomplete: Listener = null;
   onerror: Listener = null;
+  onabort: Listener = null;
+  private readonly staged: (() => void)[] = [];
 
-  constructor(private readonly stores: Map<string, StoreEntry>) {
-    queueMicrotask(() => queueMicrotask(() => this.oncomplete?.(new Event('complete'))));
+  constructor(
+    private readonly stores: Map<string, StoreEntry>,
+    private readonly control: FakeControl,
+  ) {
+    queueMicrotask(() =>
+      queueMicrotask(() => {
+        if (this.staged.length && this.control.failWrites) {
+          this.onabort?.(new Event('abort'));
+          return;
+        }
+        this.staged.forEach((write) => write());
+        this.oncomplete?.(new Event('complete'));
+      }),
+    );
+  }
+
+  stage(write: () => void): void {
+    this.staged.push(write);
   }
 
   objectStore(name: string): FakeObjectStore {
     const entry = this.stores.get(name);
     if (!entry) throw new Error(`magasin introuvable : ${name}`);
-    return new FakeObjectStore(entry);
+    return new FakeObjectStore(entry, this);
   }
+}
+
+/** Commandes de test : simuler un quota dépassé sur les écritures. */
+export interface FakeControl {
+  failWrites: boolean;
 }
 
 class FakeDatabase {
   readonly objectStoreNames = { contains: (name: string) => this.stores.has(name) };
 
-  constructor(private readonly stores: Map<string, StoreEntry>) {}
+  onversionchange: Listener = null;
 
-  createObjectStore(name: string, options?: { keyPath?: string }): FakeObjectStore {
-    const entry: StoreEntry = { keyPath: options?.keyPath, data: new Map() };
-    this.stores.set(name, entry);
-    return new FakeObjectStore(entry);
+  constructor(
+    private readonly stores: Map<string, StoreEntry>,
+    private readonly control: FakeControl,
+  ) {}
+
+  createObjectStore(name: string, options?: { keyPath?: string }): void {
+    this.stores.set(name, { keyPath: options?.keyPath, data: new Map() });
   }
 
   transaction(): FakeTransaction {
-    return new FakeTransaction(this.stores);
+    return new FakeTransaction(this.stores, this.control);
+  }
+
+  close(): void {
+    /* rien à libérer */
   }
 }
 
-/** Installe une fausse `indexedDB` globale, base vide. */
-export function installFakeIndexedDb(): void {
+/** Installe une fausse `indexedDB` globale, base vide, et renvoie ses commandes. */
+export function installFakeIndexedDb(): FakeControl {
+  const control: FakeControl = { failWrites: false };
   const stores = new Map<string, StoreEntry>();
-  const db = new FakeDatabase(stores);
+  const db = new FakeDatabase(stores, control);
   const fakeFactory = {
     open(): FakeOpenRequest {
       const request = new FakeOpenRequest();
@@ -110,6 +144,7 @@ export function installFakeIndexedDb(): void {
     },
   };
   (globalThis as { indexedDB?: unknown }).indexedDB = fakeFactory;
+  return control;
 }
 
 export function uninstallFakeIndexedDb(): void {

@@ -61,7 +61,19 @@ function alternatesFor(route) {
   ].join('\n');
 }
 
-const routes = (await findPages(ROOT)).sort();
+/**
+ * Une page marquée `noindex` (« Mes projets », propre à chaque appareil) n'a
+ * rien à faire au sitemap : Search Console signale en erreur toute URL soumise
+ * qu'on lui interdit d'indexer.
+ */
+async function isIndexable(route) {
+  const html = await readFile(join(ROOT, route, 'index.html'), 'utf8');
+  return !/<meta name="robots" content="[^"]*noindex/.test(html);
+}
+
+const allRoutes = (await findPages(ROOT)).sort();
+const routes = [];
+for (const route of allRoutes) if (await isIndexable(route)) routes.push(route);
 const today = new Date().toISOString().slice(0, 10);
 
 const body = routes

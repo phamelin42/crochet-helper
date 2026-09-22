@@ -46,11 +46,19 @@ function truncate(value: string): string {
   return value.length > MAX_NAME_LENGTH ? `${value.slice(0, MAX_NAME_LENGTH - 1)}…` : value;
 }
 
-/** Construit le premier projet à partir de l'ancien état localStorage unique. */
-export function legacyToProject(legacy: LegacyReaderState, id: string, now: number): Project {
+/**
+ * Construit le premier projet à partir de l'ancien état localStorage unique.
+ * `title` est le titre détecté par le parseur, comme pour un projet créé ensuite.
+ */
+export function legacyToProject(
+  legacy: LegacyReaderState,
+  title: string,
+  id: string,
+  now: number,
+): Project {
   return {
     id,
-    name: deriveProjectName('', legacy.source ?? ''),
+    name: deriveProjectName(title, legacy.source ?? ''),
     source: legacy.source ?? '',
     image: legacy.image ?? '',
     pieceIndex: legacy.pieceIndex ?? 0,

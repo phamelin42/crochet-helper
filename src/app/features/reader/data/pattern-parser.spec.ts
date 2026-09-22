@@ -113,9 +113,11 @@ describe('parsePattern', () => {
 
   it('lit une numérotation nue comme des étapes en l’absence de libellé de rang', () => {
     const pattern = parsePattern(
-      ['1. 6 ms dans un cercle magique', '2) inc dans chaque m (12)', '3 - 1 ms dans chaque m'].join(
-        '\n',
-      ),
+      [
+        '1. 6 ms dans un cercle magique',
+        '2) inc dans chaque m (12)',
+        '3 - 1 ms dans chaque m',
+      ].join('\n'),
     );
     expect(pattern.pieces[0].steps.map((s) => s.label)).toEqual(['1', '2', '3']);
     expect(pattern.total).toBe(3);
@@ -182,9 +184,7 @@ describe('parsePattern', () => {
   });
 
   it("déduit reps d'une consigne « Repeat rows 2-5 four more times » écrite en lettres", () => {
-    const pattern = parsePattern(
-      ['Row 1: k2, p2', 'Repeat rows 2-5 four more times.'].join('\n'),
-    );
+    const pattern = parsePattern(['Row 1: k2, p2', 'Repeat rows 2-5 four more times.'].join('\n'));
     const steps = pattern.pieces[0].steps;
     expect(steps[1].reps).toBe(4);
   });

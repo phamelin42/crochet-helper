@@ -77,6 +77,12 @@
   --reader-step-sm: clamp(19px, 2.4vw, 25px);
 
   color-scheme: dark;
+  /* Impression : encre noire sur papier blanc, quel que soit le thème. */
+  --print-ink: #000;
+  --print-paper: #fff;
+  --print-small: 0.875rem;
+  /* Largeur du champ de filtre du glossaire. */
+  --glossary-filter-width: 320px;
 }
 
 /* Mode « assombri » : lecture prolongée, faible luminosité ambiante. */

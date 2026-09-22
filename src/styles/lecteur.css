@@ -685,3 +685,25 @@ textarea.src-input {
   justify-content: space-between;
   gap: var(--space-3);
 }
+
+/* Panneau d'import du lecteur. */
+.import-host {
+  display: block;
+}
+
+/* Glossaire : champ de filtre étroit, tableau détaché du filtre. */
+.glossary-filter {
+  max-width: var(--glossary-filter-width);
+}
+.glossary-table {
+  margin-top: var(--space-6);
+}
+
+/* Vue d'impression (PrintView) : dans le DOM, invisible à l'écran. Ses règles
+ * d'impression vivent dans print.css, chargée à part — et *avant* cette
+ * feuille : un masquage sans media l'emporterait à l'impression. */
+@media screen {
+  .print-only {
+    display: none;
+  }
+}

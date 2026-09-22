@@ -69,7 +69,7 @@ const COPY: Record<Locale, GuideCopy> = {
       'Crochet works with a single hook and a single active loop at a time: each stitch finishes before the next one starts, which makes the work easy to set down and pick back up without a stitch marker. Knitting works with two needles and keeps every stitch of a row active at once, threaded on the needle; an unfinished row can unravel if a stitch slips off. The resulting fabric differs too: crochet produces a denser, more structured fabric, knitting a softer, stretchier one, closer to what off-the-shelf clothing is made from.',
     h2Easier: 'Which is easier to start with?',
     bodyEasier:
-      "Crochet has a fair reputation for a faster start: a single active loop forgives a mistake — you just undo the last stitch — and early round projects (a coaster, a small amigurumi) need few different stitches. Knitting requires mastering two basic moves (knit and purl) before a piece takes shape, and a dropped stitch can run down several rows before it is caught. Neither craft is hard on its own: crochet just has a shorter learning curve over the first ten hours.",
+      'Crochet has a fair reputation for a faster start: a single active loop forgives a mistake — you just undo the last stitch — and early round projects (a coaster, a small amigurumi) need few different stitches. Knitting requires mastering two basic moves (knit and purl) before a piece takes shape, and a dropped stitch can run down several rows before it is caught. Neither craft is hard on its own: crochet just has a shorter learning curve over the first ten hours.',
     h2Projects: 'Which projects suit crochet better? Which suit knitting?',
     bodyProjects:
       'Crochet excels at round, structured shapes worked in a single piece: amigurumi, baskets, doilies, bags that need to hold their shape. Knitting suits garments worn close to the body better: sweaters, socks, hats, anything that needs to stretch with movement. The two techniques also combine within the same piece: a crochet edging often finishes a knitted garment, and some designers alternate between the two within a single piece to make use of each texture.',
@@ -78,10 +78,10 @@ const COPY: Record<Locale, GuideCopy> = {
       'Yes, the same yarn works for both crafts, but they do not use it in the same quantity: crochet generally uses 20 to 30% more yarn than knitting for an equivalent area, because each single crochet wraps more yarn than a knit stitch. A pattern always states the yardage needed; when converting a project from one craft to the other, it is safer to buy extra. Weight and fibre matter too: a yarn that knits up soft can crochet stiff if the hook chosen is too small for its thickness.',
     h2Both: 'Do you need to learn both?',
     bodyBoth:
-      "Not to get started: learning one craft to fluency gives better results than juggling both from day one. Many people who practise both started with one, grew comfortable with it, then added the other for the projects it suits better — an edging, a finish, a stretchier fabric. Nothing forces a permanent choice: crochet and knitting share plenty of common ground anyway, starting with how to read a pattern.",
+      'Not to get started: learning one craft to fluency gives better results than juggling both from day one. Many people who practise both started with one, grew comfortable with it, then added the other for the projects it suits better — an edging, a finish, a stretchier fabric. Nothing forces a permanent choice: crochet and knitting share plenty of common ground anyway, starting with how to read a pattern.',
     h2Tools: 'What gear do you need to get started?',
     bodyTools:
-      "Crochet needs the least gear: a hook sized for the chosen yarn, a pair of scissors, and a yarn needle to weave in ends once the piece is done — enough to get started for under ten pounds. Knitting needs a pair of needles matched to the yarn (or a set of several sizes, useful for comparing gauge), stitch markers to flag a point in the row, and the same yarn needle for finishing. Either way, a light-coloured, chunky yarn works best for a first try: the stitches show up clearly, and mistakes get caught before they pile up.",
+      'Crochet needs the least gear: a hook sized for the chosen yarn, a pair of scissors, and a yarn needle to weave in ends once the piece is done — enough to get started for under ten pounds. Knitting needs a pair of needles matched to the yarn (or a set of several sizes, useful for comparing gauge), stitch markers to flag a point in the row, and the same yarn needle for finishing. Either way, a light-coloured, chunky yarn works best for a first try: the stitches show up clearly, and mistakes get caught before they pile up.',
     seeAlso: 'Read next',
     linkPattern: 'How to read a crochet pattern',
     linkChart: 'How to read a crochet chart',
@@ -119,8 +119,12 @@ const COPY: Record<Locale, GuideCopy> = {
 
       <h2>{{ c.seeAlso }}</h2>
       <ul>
-        <li><a [routerLink]="hrefOf('guideReadingPattern')">{{ c.linkPattern }}</a></li>
-        <li><a [routerLink]="hrefOf('guideReadingChart')">{{ c.linkChart }}</a></li>
+        <li>
+          <a [routerLink]="hrefOf('guideReadingPattern')">{{ c.linkPattern }}</a>
+        </li>
+        <li>
+          <a [routerLink]="hrefOf('guideReadingChart')">{{ c.linkChart }}</a>
+        </li>
       </ul>
 
       <div class="navrow">

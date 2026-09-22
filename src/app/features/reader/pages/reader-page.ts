@@ -154,7 +154,8 @@ export class ReaderPage {
   private readonly platformId = inject(PLATFORM_ID);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
-  protected readonly guides = GUIDES[(this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE];
+  protected readonly guides =
+    GUIDES[(this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE];
 
   protected readonly linkConfirmOpen = signal(false);
   private pendingLinkSource: string | null = null;

@@ -78,10 +78,10 @@ const COPY: Record<Locale, GuideCopy> = {
       'A knitting grid works on the same principle as a crochet chart, but each square stands for a stitch rather than a drawn symbol: a blank square or a dot for knit, a horizontal dash for purl, arrows or crossed squares for a cable. For colourwork, each square colour matches a yarn colour, and the whole grid forms the finished motif — no need to read a key line by line, the picture speaks for itself. Reading follows the same alternating rule: knit rows right to left, purl rows left to right, unless the grid states otherwise at the top.',
     h2Mismatch: 'The chart and the text disagree: which do you follow?',
     bodyMismatch:
-      "The text takes precedence when the two disagree: a printing error is more likely to hit an isolated symbol on a dense grid than a line of text, and errata published by designers almost always correct the text first. The chart still gives the best overview: useful for checking the overall shape of the piece and catching a counting mistake before it builds up over several rows.",
+      'The text takes precedence when the two disagree: a printing error is more likely to hit an isolated symbol on a dense grid than a line of text, and errata published by designers almost always correct the text first. The chart still gives the best overview: useful for checking the overall shape of the piece and catching a counting mistake before it builds up over several rows.',
     h2Why: 'Do you need a chart if the pattern already gives the text?',
     bodyWhy:
-      "The two complement each other more than they replace one another: the text gives the precise stitch-by-stitch instruction, the chart gives the overall shape and lets you spot at a glance where the current row sits in the whole piece. For a repeating motif (a lace pattern, a cable panel), the chart shows in a single image what the text describes across several nested repeat lines — many knitters find it faster to follow than the text once the principle clicks. A chart also crosses languages without translation: a treble crochet symbol reads the same in a Japanese, German or French magazine, which explains its popularity in patterns published internationally.",
+      'The two complement each other more than they replace one another: the text gives the precise stitch-by-stitch instruction, the chart gives the overall shape and lets you spot at a glance where the current row sits in the whole piece. For a repeating motif (a lace pattern, a cable panel), the chart shows in a single image what the text describes across several nested repeat lines — many knitters find it faster to follow than the text once the principle clicks. A chart also crosses languages without translation: a treble crochet symbol reads the same in a Japanese, German or French magazine, which explains its popularity in patterns published internationally.',
     seeAlso: 'Read next',
     linkPattern: 'How to read a crochet pattern',
     linkCraft: 'Crochet or knitting: which to start with',
@@ -119,8 +119,12 @@ const COPY: Record<Locale, GuideCopy> = {
 
       <h2>{{ c.seeAlso }}</h2>
       <ul>
-        <li><a [routerLink]="hrefOf('guideReadingPattern')">{{ c.linkPattern }}</a></li>
-        <li><a [routerLink]="hrefOf('guideCrochetOrKnitting')">{{ c.linkCraft }}</a></li>
+        <li>
+          <a [routerLink]="hrefOf('guideReadingPattern')">{{ c.linkPattern }}</a>
+        </li>
+        <li>
+          <a [routerLink]="hrefOf('guideCrochetOrKnitting')">{{ c.linkCraft }}</a>
+        </li>
       </ul>
 
       <div class="navrow">

@@ -71,7 +71,7 @@ const COPY: Record<Locale, GuideCopy> = {
         a: `Un rang se travaille à plat, en tournant l'ouvrage à chaque fin de ligne${NBSP}; un tour (ou «${NBSP}rond${NBSP}») se travaille en spirale ou en cercle fermé, sans tourner, ce qui donne une pièce tubulaire ou plate sans couture. Le patron précise lequel des deux il attend${NBSP}: la mention change souvent d'un tour à l'autre dans une même pièce.`,
       },
       {
-        q: "Que faire si le patron ne donne pas le nombre de mailles attendu ?",
+        q: 'Que faire si le patron ne donne pas le nombre de mailles attendu ?',
         a: `Remontez au dernier rang où le compte correspondait, et reprenez le tricot ou le crochet à partir de là. Défaire deux rangs coûte moins cher que de continuer sur un décompte faux, qui s'aggrave à chaque rang suivant.`,
       },
       {
@@ -115,7 +115,7 @@ const COPY: Record<Locale, GuideCopy> = {
       'The same letters do not stand for the same stitch on both sides of the Atlantic: a US “dc” (double crochet) becomes a UK “tr” (treble), and UK “dc” then means single crochet. A pattern that uses “sc” is almost always American — that abbreviation does not exist in British notation. Conversely, “htr” or “trtr” give away a British pattern. The US ↔ UK converter on this site maps every term, in both directions.',
     h2Start: 'Where should a beginner start?',
     bodyStart:
-      "Pick a short pattern, worked in the round, with few sizes and few stitch changes — a coaster or a small amigurumi works well. Read the whole pattern before starting: check the materials, the gauge, and whether rows are numbered continuously or restart with every piece. Then paste the text into the reader on this site: it splits the pattern into steps, shows one row at a time in large type, and counts stitches for you.",
+      'Pick a short pattern, worked in the round, with few sizes and few stitch changes — a coaster or a small amigurumi works well. Read the whole pattern before starting: check the materials, the gauge, and whether rows are numbered continuously or restart with every piece. Then paste the text into the reader on this site: it splits the pattern into steps, shows one row at a time in large type, and counts stitches for you.',
     faqTitle: 'Frequently asked questions',
     faq: [
       {
@@ -131,8 +131,8 @@ const COPY: Record<Locale, GuideCopy> = {
         a: "For a worn garment, yes: a gauge tighter or looser than the pattern's changes the finished size by several centimetres. For anything without a size constraint — a bag, a blanket, an amigurumi — an approximate gauge is not a problem.",
       },
       {
-        q: "Why do some patterns not count the starting turning chain as a stitch?",
-        a: 'It depends on the stitch height and the designer\'s habit: a turning chain sometimes stands in for the row\'s first stitch, and is counted as one; other times it only raises the work and stays uncounted. Patterns usually clarify this once, at the top of a section.',
+        q: 'Why do some patterns not count the starting turning chain as a stitch?',
+        a: "It depends on the stitch height and the designer's habit: a turning chain sometimes stands in for the row's first stitch, and is counted as one; other times it only raises the work and stays uncounted. Patterns usually clarify this once, at the top of a section.",
       },
     ],
     seeAlso: 'Read next',
@@ -157,7 +157,9 @@ const COPY: Record<Locale, GuideCopy> = {
 
       <h2>{{ c.h2Row }}</h2>
       <p>{{ c.bodyRowIntro }}</p>
-      <p><code>{{ c.exampleRow }}</code></p>
+      <p>
+        <code>{{ c.exampleRow }}</code>
+      </p>
       <ul>
         @for (line of c.bodyRowBreakdown; track line) {
           <li>{{ line }}</li>
@@ -181,8 +183,12 @@ const COPY: Record<Locale, GuideCopy> = {
 
       <h2>{{ c.seeAlso }}</h2>
       <ul>
-        <li><a [routerLink]="hrefOf('guideReadingChart')">{{ c.linkChart }}</a></li>
-        <li><a [routerLink]="hrefOf('guideCrochetOrKnitting')">{{ c.linkCraft }}</a></li>
+        <li>
+          <a [routerLink]="hrefOf('guideReadingChart')">{{ c.linkChart }}</a>
+        </li>
+        <li>
+          <a [routerLink]="hrefOf('guideCrochetOrKnitting')">{{ c.linkCraft }}</a>
+        </li>
       </ul>
 
       <div class="navrow">

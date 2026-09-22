@@ -27,7 +27,7 @@ branche.
 | 05 — Mode hors ligne (PWA)           | Terminée | —   | 2026-09-22 |
 | 07 — Audit d'accessibilité           | Terminée | —   | 2026-09-22 |
 | 09 — Performance et Core Web Vitals  | Terminée | —   | 2026-09-22 |
-| 04 — Pages éditoriales               | À faire  | —   | —          |
+| 04 — Pages éditoriales               | Terminée | —   | 2026-09-22 |
 | 08 — Vitrine du design system        | À faire  | —   | —          |
 
 ## États possibles

@@ -14,7 +14,17 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Chromium déjà installé ailleurs (conteneur de relecture) : évite de
+        // télécharger celui de Playwright. Sans la variable, rien ne change.
+        launchOptions: { executablePath: process.env['PW_CHROMIUM'] || undefined },
+      },
+    },
+  ],
   webServer: {
     command: `node e2e/static-server.mjs ${PORT}`,
     url: `http://localhost:${PORT}`,

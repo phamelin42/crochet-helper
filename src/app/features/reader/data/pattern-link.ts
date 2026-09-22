@@ -8,6 +8,17 @@
 const FORMAT_COMPRESSED = '1';
 const FORMAT_RAW = '0';
 
+/**
+ * Plafonds de décodage. Le lien vient d'un tiers : quelques kilo-octets
+ * compressés peuvent se décompresser en centaines de mégaoctets (« bombe de
+ * décompression ») et faire tomber l'onglet. Un vrai patron tient largement
+ * sous 256 Ko de texte, et un lien utile sous 16 000 caractères.
+ */
+const MAX_ENCODED_LENGTH = 16_000;
+const MAX_DECODED_BYTES = 256_000;
+
+class TooLargeError extends Error {}
+
 function supportsCompression(): boolean {
   return typeof CompressionStream !== 'undefined' && typeof DecompressionStream !== 'undefined';
 }
@@ -28,9 +39,30 @@ async function compress(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array<Arra
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
+/** Décompresse en s'arrêtant dès que `MAX_DECODED_BYTES` est dépassé. */
 async function decompress(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
-  const stream = toReadableStream(bytes).pipeThrough(new DecompressionStream('deflate-raw'));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+  const reader = toReadableStream(bytes)
+    .pipeThrough(new DecompressionStream('deflate-raw'))
+    .getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > MAX_DECODED_BYTES) {
+      await reader.cancel();
+      throw new TooLargeError();
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return out;
 }
 
 function bytesToBase64Url(bytes: Uint8Array<ArrayBuffer>): string {
@@ -61,9 +93,11 @@ export async function encodePattern(source: string): Promise<string> {
 export async function decodePattern(encoded: string): Promise<string | null> {
   const format = encoded.at(0);
   if (format !== FORMAT_COMPRESSED && format !== FORMAT_RAW) return null;
+  if (encoded.length > MAX_ENCODED_LENGTH) return null;
   try {
     const bytes = base64UrlToBytes(encoded.slice(1));
     const raw = format === FORMAT_COMPRESSED ? await decompress(bytes) : bytes;
+    if (raw.length > MAX_DECODED_BYTES) return null;
     return new TextDecoder('utf-8', { fatal: true }).decode(raw);
   } catch {
     return null;

@@ -110,4 +110,28 @@ describe('parsePattern', () => {
     expect(step.reps).toBe(5);
     expect(step.body).toBe('(rep rnd 11)');
   });
+
+  it('lit une numérotation nue comme des étapes en l’absence de libellé de rang', () => {
+    const pattern = parsePattern(
+      ['1. 6 ms dans un cercle magique', '2) inc dans chaque m (12)', '3 - 1 ms dans chaque m'].join(
+        '\n',
+      ),
+    );
+    expect(pattern.pieces[0].steps.map((s) => s.label)).toEqual(['1', '2', '3']);
+    expect(pattern.total).toBe(3);
+  });
+
+  it('ne lit pas une numérotation nue comme des étapes quand un vrai libellé de rang existe', () => {
+    const pattern = parsePattern(
+      [
+        'You will need:',
+        '1. 4mm hook',
+        '2. green yarn',
+        'Instructions:',
+        'Rang 1 : 6 ms dans un cercle magique',
+      ].join('\n'),
+    );
+    expect(pattern.materials).toEqual(['1. 4mm hook', '2. green yarn']);
+    expect(pattern.total).toBe(1);
+  });
 });

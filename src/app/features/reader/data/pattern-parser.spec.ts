@@ -123,6 +123,24 @@ describe('parsePattern', () => {
     expect(pattern.total).toBe(3);
   });
 
+  it('garde une liste de fournitures numérotée dans le matériel', () => {
+    const pattern = parsePattern(
+      [
+        'Coaster',
+        'Materials:',
+        '1. Cotton yarn',
+        '2. 4 mm hook',
+        '1. Make a magic ring, 6 sc.',
+        '2. Inc in each st around.',
+        '3) Sc, inc around.',
+      ].join('\n'),
+    );
+
+    expect(pattern.materials).toEqual(['1. Cotton yarn', '2. 4 mm hook']);
+    expect(pattern.total).toBe(3);
+    expect(pattern.pieces[0].steps[0].body).toBe('Make a magic ring, 6 sc.');
+  });
+
   it('ne lit pas une numérotation nue comme des étapes quand un vrai libellé de rang existe', () => {
     const pattern = parsePattern(
       [
@@ -195,6 +213,42 @@ describe('parsePattern', () => {
     );
     const steps = pattern.pieces[0].steps;
     expect(steps[1].reps).toBe(4);
+  });
+
+  it('lit les nombres de deux à douze en lettres, en anglais comme en français', () => {
+    const en = [
+      'two',
+      'three',
+      'four',
+      'five',
+      'six',
+      'seven',
+      'eight',
+      'nine',
+      'ten',
+      'eleven',
+      'twelve',
+    ];
+    const fr = [
+      'deux',
+      'trois',
+      'quatre',
+      'cinq',
+      'six',
+      'sept',
+      'huit',
+      'neuf',
+      'dix',
+      'onze',
+      'douze',
+    ];
+    const repsOf = (line: string): number => {
+      const steps = parsePattern(`Row 1: sc across\n${line}`).pieces[0].steps;
+      return steps[steps.length - 1].reps;
+    };
+
+    en.forEach((word, i) => expect(repsOf(`Repeat row 1 ${word} times.`), word).toBe(i + 2));
+    fr.forEach((word, i) => expect(repsOf(`Répéter le rang 1 ${word} fois.`), word).toBe(i + 2));
   });
 
   it('déduit reps en chiffres dans une consigne de répétition', () => {

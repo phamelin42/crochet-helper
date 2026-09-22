@@ -100,6 +100,9 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   premier affichage → `import()` ; textes propres à une page paresseuse → dans
   la page, pas dans `translations.ts` (qui est dans le bundle initial) ; CSS
   d'impression → `print.css`, chargée à part. `ng build --stats-json` dit ce qui pèse.
+- **Une fiche qui énumère des formes ou des valeurs** (« deux à douze, FR et
+  EN », « chaque forme du tableau ») : le test les parcourt **toutes** (boucle),
+  pas un échantillon.
 - **Impression** : vérifier sur un vrai PDF (Chromium `page.pdf`), pas sur
   `innerText`, qui renvoie aussi le texte des éléments masqués.
 

@@ -33,3 +33,9 @@ coûteuses (→ script). Élaguer les entrées de plus de dix fiches.
 - Défauts : aucun. Six mutations (sens de `move`, remise à zéro de `load`, garde `<textarea>`, nouveau projet au chargement, plancher des répétitions, arrêt du chrono) toutes tuées.
 - Coûts : 2e fiche lancée alors que `finitions-16` n'était pas mergée → relecture sur base fusionnée, livraison repoussée.
 - Amélioration : garde-fou dans `lot-suivant.yml` (refus si une branche `finitions-*` a des commits hors `main`) ; `mutate.sh` ajouté au skill pour vérifier des tests sans les relire.
+
+## 03 — Formats supplémentaires
+
+- Défauts : liste de matériel numérotée avalée comme étapes (ancien, mais contraire à la fiche) ; nombres en lettres testés sur un échantillon seulement (« douze », « seven » non couverts).
+- Coûts : `mutate.sh` lancé sur une base rouge (tout « tué » à tort) ; remplacement Python cassé par Prettier ; `npm ci` en tâche de fond qui vide `node_modules`.
+- Amélioration : `mutate.sh` exige une base verte et signale les mutations qui ne compilent pas ; sondage des fonctions pures par esbuild + comparaison avec l'ancienne version ; piège « énumération → test exhaustif ».

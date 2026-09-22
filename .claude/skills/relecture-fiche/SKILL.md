@@ -62,7 +62,16 @@ Tests ciblés pendant les corrections : `npx ng test --no-watch --include='<glob
 code et voir si elles échouent — c'est plus sûr et moins cher en tokens :
 `.claude/skills/relecture-fiche/mutate.sh <fichier> "<ancien>" "<nouveau>" "<nom>" [glob]`.
 Viser les invariants de la fiche et les pièges de `CLAUDE.md`. Une mutation
-qui « SURVIT » = un test à écrire.
+qui « SURVIT » = un test à écrire (ou une mutation équivalente : le dire).
+« INVALIDE » = la mutation ne compile pas, la reformuler (changer une valeur,
+pas la structure). Le script refuse de partir sur une base rouge.
+
+**Fonctions pures de `data/` (parseur…)** : les essayer sur des entrées
+réalistes plutôt que lire leurs tests. Un fichier `probe.ts` qui importe la
+fonction et affiche le résultat, puis :
+`node_modules/.bin/esbuild probe.ts --bundle --platform=node --outfile=probe.js && node probe.js`.
+Comparer avec la version d'avant la fiche (`git worktree add <dossier> <commit>`)
+pour distinguer régression et défaut ancien.
 
 E2E sous CSP de production, à 360 px :
 
@@ -120,6 +129,10 @@ Mets à jour `claude/etat-du-projet.md` (outil Projects) : fiche en cours, actio
   compter les pages de `page.pdf()` (`/Type /Page`).
 - Un bouton dans un `Disclosure` replié est introuvable par Playwright : ouvrir
   d'abord le panneau.
+- `npm ci` en arrière-plan vide `node_modules` pendant son exécution : attendre
+  la fin de `verify` avant d'utiliser `node_modules/.bin`.
+- Prettier reformate les lignes longues : relire la ligne (`grep -n`) avant un
+  remplacement Python sur du code déjà formaté.
 - Poids du bundle : `npx ng build --stats-json`, puis lire
   `dist/fil-patterns/stats.json` (`outputs[main].inputs[*].bytesInOutput`).
 

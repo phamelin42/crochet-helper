@@ -297,6 +297,8 @@ export function parsePattern(raw: string): Pattern {
   let piece: MutablePiece | null = null;
   let pending: string[] = [];
   let inMaterials = false;
+  /** Dernier numéro nu lu dans la liste de fournitures ; 0 hors liste. */
+  let lastMaterialNumber = 0;
   let inAside = false;
   let asideIsAbbrevTable = false;
   let seenStep = false;
@@ -331,6 +333,7 @@ export function parsePattern(raw: string): Pattern {
 
     if (MAT.test(line) || MAT_LOOSE.test(line)) {
       inMaterials = true;
+      lastMaterialNumber = 0;
       inAside = false;
       continue;
     }
@@ -381,7 +384,16 @@ export function parsePattern(raw: string): Pattern {
         materials.length > 0 &&
         ((isHeading(line) && !/\d/.test(line) && line.split(/\s+/).length <= 3) ||
           (/:$/.test(line) && !DANGLING.test(bare) && bare.split(/\s+/).length <= 4));
-      if (!isRow && !isPieceHeading) {
+      // Une liste de fournitures est souvent numérotée (« 1. Cotton yarn »).
+      // Une ligne numérotée y reste une fourniture, sauf si la numérotation
+      // repart en arrière (« 1. » après « 2. ») : c'est alors la première
+      // étape des instructions qui commence.
+      const bareMaterial = ROW.test(line) ? null : BARE_ROW.exec(line);
+      const bareNumber = bareMaterial ? Number.parseInt(bareMaterial[1], 10) : 0;
+      const restarts = bareMaterial !== null && bareNumber <= lastMaterialNumber;
+      const endsMaterials = bareMaterial ? restarts : isRow;
+      if (!endsMaterials && !isPieceHeading) {
+        if (bareMaterial) lastMaterialNumber = bareNumber;
         materials.push(line.replace(BULLET, ''));
         continue;
       }

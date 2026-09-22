@@ -43,6 +43,9 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2) var(--space-4);
+  /* Hauteur de ligne fixe (plutôt que `normal`, qui dépend des métriques de
+     la police active) : rend la réservation `2lh` ci-dessous stable. */
+  line-height: 1.75;
 }
 /* Un intitulé de navigation ne se coupe jamais (« US ↔ UK », « My projects ») :
  * c'est la ligne entière qui passe à la suivante. */
@@ -53,6 +56,16 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+/* Réserve la place du bouton « garder l'écran allumé » : sa présence dépend
+   d'une capacité du navigateur, inconnaissable au pré-rendu. Sans cet
+   emplacement de taille fixe, son apparition après l'hydratation décale tout
+   l'en-tête (mêmes dimensions que `.btn-icon`). */
+.tool-slot {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  flex: none;
 }
 
 main {
@@ -65,6 +78,13 @@ main {
   .wrap,
   .nav {
     padding-inline: calc(var(--gutter) + env(safe-area-inset-left, 0px));
+  }
+  /* Une fois la page hydratée, la navigation en français (libellés plus
+     longs) peut tenir sur une ligne de moins qu'au premier rendu. Réserver
+     deux lignes évite que tout le reste de la page ne remonte (CLS mesuré
+     ≈ 0,67 sur `/fr/glossaire/ms` sans cette réservation). */
+  .nav-links {
+    min-height: 2lh;
   }
   main {
     padding-bottom: var(--space-6);

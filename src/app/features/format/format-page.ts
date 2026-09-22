@@ -31,7 +31,7 @@ import { FORMAT_PROMPT } from './format-prompt';
         <p>{{ c.step1Body }}</p>
 
         <div class="prompt-box">
-          <pre>{{ prompt }}</pre>
+          <pre tabindex="0">{{ prompt }}</pre>
           <button type="button" filButton="primary" (click)="copy()">
             {{ copied() ? c.copied : c.copy }}
           </button>

@@ -48,3 +48,7 @@ Thumbs.db
 
 # Échanges entre l’agent et le workflow qui le publie
 /.pilote
+
+# Sorties de Playwright (npm run test:a11y)
+/test-results
+/playwright-report

@@ -40,7 +40,7 @@ survol. C'est un outil qu'on regarde à un mètre de distance, crochet en main.
 
 ```
 src/styles/          tokens.css (jetons) · nocturne.css (classes du DS) · lecteur.css (mise en page)
-src/app/core/        i18n · seo · storage · theme · platform — services transverses, sans UI
+src/app/core/        i18n · seo · storage · platform · analytics — services transverses, sans UI
 src/app/shared/ui/   composants et directives réutilisables, sans logique métier
 src/app/shared/layout, pipes, directives
 src/app/features/<nom>/
@@ -105,6 +105,9 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
 - **Une fiche qui énumère des formes ou des valeurs** (« deux à douze, FR et
   EN », « chaque forme du tableau ») : le test les parcourt **toutes** (boucle),
   pas un échantillon.
+- **Un garde-fou non branché ne garde rien.** Tout test ou contrôle créé pour
+  empêcher une régression (axe, reflow, budget…) tourne dans la CI ou dans
+  `npm run verify`, sinon il n'est jamais relancé.
 - **Service worker** : tout script qui réécrit un fichier de `dist/` après
   `ng build` doit passer **avant** la régénération de `ngsw.json` (`ngsw-config`
   dans `npm run build`), sinon le worker passe en mode dégradé et ne sert plus

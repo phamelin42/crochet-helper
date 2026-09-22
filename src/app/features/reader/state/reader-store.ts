@@ -6,41 +6,51 @@ import {
   effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
 import { AnalyticsService, roundToHundred } from '../../../core/analytics/analytics.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
+import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import { DEMO_PATTERN } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
 import { PdfEmptyTextError, normalizePdfPages } from '../data/pdf-normalize';
 import { EMPTY_PATTERN, PatternPiece, PatternStep } from '../data/pattern.model';
+import {
+  BACKUP_SCHEMA_VERSION,
+  LegacyReaderState,
+  Project,
+  ProjectBackup,
+  deriveProjectName,
+  legacyToProject,
+  mergeProjects,
+  parseBackup,
+} from '../data/project.model';
 
-const KEY = 'fil.reader.v1';
-/** Au-delà, l'image n'est pas persistée : le quota localStorage est ~5 Mo. */
-const MAX_PERSISTED_IMAGE = 1_500_000;
-
-interface PersistedState {
-  source: string;
-  image: string;
-  pieceIndex: number;
-  stepIndex: number;
-  done: Record<string, boolean>;
-  reps: Record<string, number>;
-  elapsed: number;
-  expandAbbreviations: boolean;
-}
+/** Ancien état unique, écrit avant la fiche 16 : sert de source de migration. */
+const LEGACY_KEY = 'fil.reader.v1';
+/** Marque la migration comme faite — évite de la rejouer, et de ressusciter
+ *  un patron qu'on aurait supprimé depuis. */
+const MIGRATION_FLAG = 'fil.storage.migrated';
+/** Pointeur — léger — vers le projet actif ; le reste vit dans IndexedDB. */
+const CURRENT_ID_KEY = 'fil.currentProjectId';
 
 /**
  * État du lecteur : le patron courant, la position dans les étapes, les
- * compteurs de répétition, l'avancement et le chronomètre de session.
+ * compteurs de répétition, l'avancement et le chronomètre de session — ainsi
+ * que la liste des projets enregistrés.
  *
  * Tout est dérivé de `source` : le patron n'est jamais stocké sous forme
  * découpée, il est reparsé, ce qui garantit qu'une amélioration du parseur
- * profite aux patrons déjà enregistrés. La restauration se fait après le
- * premier rendu pour ne pas casser l'hydratation du HTML pré-rendu.
+ * profite aux patrons déjà enregistrés. Chaque projet est persisté dans
+ * IndexedDB (voir `ProjectStoreService`), sans quota pratique ; seul
+ * l'identifiant du projet actif vit dans `localStorage`. La restauration se
+ * fait après le premier rendu pour ne pas casser l'hydratation du HTML
+ * pré-rendu.
  */
 @Service()
 export class ReaderStore {
   private readonly storage = inject(LocalStorageService);
+  private readonly projectStore = inject(ProjectStoreService);
   private readonly analytics = inject(AnalyticsService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -63,6 +73,15 @@ export class ReaderStore {
   readonly pdfImporting = signal(false);
   readonly pdfError = signal<'vide' | 'erreur' | null>(null);
 
+  /** Projet actif, `null` avant tout patron chargé. */
+  readonly currentId = signal<string | null>(null);
+  /** Nom choisi explicitement pour le projet actif ; `null` tant qu'il suit le titre du patron. */
+  private readonly nameOverride = signal<string | null>(null);
+  readonly projects = signal<readonly Project[]>([]);
+  readonly sortedProjects = computed(() =>
+    [...this.projects()].sort((a, b) => b.lastOpenedAt - a.lastOpenedAt),
+  );
+
   readonly pattern = computed(() => (this.source() ? parsePattern(this.source()) : EMPTY_PATTERN));
   readonly pieces = computed<readonly PatternPiece[]>(() => this.pattern().pieces);
   readonly piece = computed<PatternPiece | null>(() => this.pieces()[this.pieceIndex()] ?? null);
@@ -71,6 +90,9 @@ export class ReaderStore {
   readonly stepCount = computed(() => this.steps().length);
   readonly total = computed(() => this.pattern().total);
   readonly materials = computed(() => this.pattern().materials);
+  readonly currentName = computed(
+    () => this.nameOverride() ?? deriveProjectName(this.pattern().title, this.source()),
+  );
 
   readonly positionKey = computed(() => `${this.pieceIndex()}:${this.stepIndex()}`);
   readonly currentReps = computed(() => this.reps()[this.positionKey()] ?? 0);
@@ -90,61 +112,197 @@ export class ReaderStore {
 
   constructor() {
     afterNextRender(() => {
-      this.restore();
-      this.restored.set(true);
+      void this.initialize();
     });
 
+    // Persiste le projet actif à chaque changement de contenu, de position ou
+    // de compteur. `untracked` isole la lecture de `projects` : sinon l'écriture
+    // qu'on y fait à la fin de `persist()` redéclencherait cet effet en boucle.
     effect(() => {
-      const snapshot = this.snapshot();
+      this.source();
+      this.image();
+      this.pieceIndex();
+      this.stepIndex();
+      this.done();
+      this.reps();
+      this.elapsed();
+      this.expandAbbreviations();
+      this.currentId();
+      this.nameOverride();
       if (!this.restored()) return;
-      this.storage.write(KEY, snapshot);
+      void this.persist();
+    });
+
+    // Le pointeur vers le projet actif est la seule donnée qui reste dans
+    // localStorage : assez petite pour ne jamais dépasser son quota.
+    effect(() => {
+      const id = this.currentId();
+      if (!this.restored()) return;
+      if (id) this.storage.write(CURRENT_ID_KEY, id);
+      else this.storage.remove(CURRENT_ID_KEY);
     });
 
     this.destroyRef.onDestroy(() => this.stopTimer());
   }
 
-  private readonly snapshot = computed<PersistedState>(() => ({
-    source: this.source(),
-    image: this.image().length <= MAX_PERSISTED_IMAGE ? this.image() : '',
-    pieceIndex: this.pieceIndex(),
-    stepIndex: this.stepIndex(),
-    done: this.done(),
-    reps: this.reps(),
-    elapsed: this.elapsed(),
-    expandAbbreviations: this.expandAbbreviations(),
-  }));
+  /**
+   * Migre l'ancien état localStorage si besoin, charge la liste des projets
+   * depuis IndexedDB et reprend le projet pointé. Appelé une fois après le
+   * premier rendu ; public pour que les tests puissent l'attendre directement.
+   */
+  async initialize(): Promise<void> {
+    await this.migrateLegacyState();
+    const list = await this.projectStore.list<Project>();
+    this.projects.set(list);
+    const pointer = this.storage.read<string>(CURRENT_ID_KEY);
+    const project = pointer ? list.find((p) => p.id === pointer) : undefined;
+    if (project) {
+      this.hydrate(project);
+      this.analytics.track('session_resumed');
+    }
+    this.restored.set(true);
+  }
 
-  private restore(): void {
-    const saved = this.storage.read<Partial<PersistedState>>(KEY);
-    if (!saved) return;
-    if (saved.source) this.analytics.track('session_resumed');
-    this.source.set(saved.source ?? '');
-    this.image.set(saved.image ?? '');
-    this.done.set(saved.done ?? {});
-    this.reps.set(saved.reps ?? {});
-    this.elapsed.set(saved.elapsed ?? 0);
-    this.expandAbbreviations.set(saved.expandAbbreviations ?? false);
-    this.pieceIndex.set(Math.min(saved.pieceIndex ?? 0, Math.max(0, this.pieces().length - 1)));
-    this.stepIndex.set(Math.min(saved.stepIndex ?? 0, Math.max(0, this.stepCount() - 1)));
+  private async migrateLegacyState(): Promise<void> {
+    if (this.storage.read<boolean>(MIGRATION_FLAG)) return;
+    const legacy = this.storage.read<LegacyReaderState>(LEGACY_KEY);
+    if (legacy?.source) {
+      const project = legacyToProject(legacy, crypto.randomUUID(), Date.now());
+      const persisted = await this.projectStore.put(project);
+      // IndexedDB indisponible pour l'instant : on retente à la prochaine
+      // visite plutôt que d'effacer le seul exemplaire du patron.
+      if (!persisted) return;
+      this.storage.write(CURRENT_ID_KEY, project.id);
+    }
+    this.storage.write(MIGRATION_FLAG, true);
+    this.storage.remove(LEGACY_KEY);
+  }
+
+  private async persist(): Promise<void> {
+    const id = this.currentId();
+    if (!id) return;
+    const now = Date.now();
+    const existing = untracked(() => this.projects()).find((p) => p.id === id);
+    const project: Project = {
+      id,
+      name: this.currentName(),
+      source: this.source(),
+      image: this.image(),
+      pieceIndex: this.pieceIndex(),
+      stepIndex: this.stepIndex(),
+      done: this.done(),
+      reps: this.reps(),
+      elapsed: this.elapsed(),
+      expandAbbreviations: this.expandAbbreviations(),
+      createdAt: existing?.createdAt ?? now,
+      lastOpenedAt: existing?.lastOpenedAt ?? now,
+    };
+    await this.projectStore.put(project);
+    this.projects.update((list) => [...list.filter((p) => p.id !== id), project]);
+  }
+
+  private hydrate(project: Project, touch = false): void {
+    this.currentId.set(project.id);
+    this.nameOverride.set(project.name || null);
+    this.source.set(project.source);
+    this.image.set(project.image);
+    this.done.set(project.done);
+    this.reps.set(project.reps);
+    this.elapsed.set(project.elapsed);
+    this.expandAbbreviations.set(project.expandAbbreviations);
+    this.pieceIndex.set(Math.min(project.pieceIndex, Math.max(0, this.pieces().length - 1)));
+    this.stepIndex.set(Math.min(project.stepIndex, Math.max(0, this.stepCount() - 1)));
+    if (touch) {
+      const touched: Project = { ...project, lastOpenedAt: Date.now() };
+      this.projects.update((list) => list.map((p) => (p.id === touched.id ? touched : p)));
+    }
+  }
+
+  /** Reprend un projet enregistré : c'est le clic « Reprendre » de l'écran de liste. */
+  resumeProject(id: string): void {
+    const project = this.projects().find((p) => p.id === id);
+    if (!project) return;
+    this.stopTimer();
+    this.hydrate(project, true);
+    this.analytics.track('project_resumed');
+  }
+
+  async renameProject(id: string, name: string): Promise<void> {
+    const trimmed = name.trim();
+    const project = this.projects().find((p) => p.id === id);
+    if (!project) return;
+    const updated: Project = { ...project, name: trimmed };
+    if (id === this.currentId()) this.nameOverride.set(trimmed || null);
+    await this.projectStore.put(updated);
+    this.projects.update((list) => list.map((p) => (p.id === id ? updated : p)));
+  }
+
+  async removeProject(id: string): Promise<void> {
+    await this.projectStore.remove(id);
+    this.projects.update((list) => list.filter((p) => p.id !== id));
+    if (id === this.currentId()) {
+      this.stopTimer();
+      this.currentId.set(null);
+      this.nameOverride.set(null);
+      this.elapsed.set(0);
+      this.image.set('');
+      this.load('');
+    }
+  }
+
+  /** Fichier `.json` téléchargeable, tous les projets, avec le numéro de schéma. */
+  exportBackup(): Blob {
+    const backup: ProjectBackup = { version: BACKUP_SCHEMA_VERSION, projects: this.projects() };
+    this.analytics.track('backup_exported', { projects: this.projects().length });
+    return new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
   }
 
   /**
-   * Charge un texte de patron. `keepPosition` sert à la restauration ;
-   * `origine` distingue un patron collé, un PDF importé et l'exemple : seul un
-   * patron collé compte comme `pattern_pasted`.
+   * Réimporte une sauvegarde : fusion, jamais écrasement — un doublon garde la
+   * version la plus récemment ouverte. Refuse en bloc un fichier dont le
+   * numéro de schéma est inconnu.
    */
-  load(text: string, keepPosition = false, origine: 'saisie' | 'pdf' | 'exemple' = 'saisie'): void {
+  async importBackup(file: File): Promise<boolean> {
+    let raw: unknown;
+    try {
+      raw = JSON.parse(await file.text());
+    } catch {
+      return false;
+    }
+    const backup = parseBackup(raw);
+    if (!backup) return false;
+
+    const merged = mergeProjects(this.projects(), backup.projects);
+    await Promise.all(merged.map((project) => this.projectStore.put(project)));
+    this.projects.set(merged);
+
+    const id = this.currentId();
+    if (id) {
+      const refreshed = merged.find((p) => p.id === id);
+      if (refreshed && refreshed.source !== this.source()) this.hydrate(refreshed);
+    }
+
+    this.analytics.track('backup_imported', { projects: backup.projects.length });
+    return true;
+  }
+
+  /**
+   * Charge un texte de patron. `origine` distingue un patron collé, un PDF
+   * importé et l'exemple : seul un patron collé compte comme `pattern_pasted`.
+   * Un texte non vide sans projet actif en ouvre un nouveau.
+   */
+  load(text: string, origine: 'saisie' | 'pdf' | 'exemple' = 'saisie'): void {
     this.pdfError.set(null);
     this.source.set(text);
-    if (!keepPosition) {
-      this.pieceIndex.set(0);
-      this.stepIndex.set(0);
-      this.done.set({});
-      this.reps.set({});
-    }
-    this.pieceIndex.update((i) => Math.min(i, Math.max(0, this.pieces().length - 1)));
-    this.stepIndex.update((i) => Math.min(i, Math.max(0, this.stepCount() - 1)));
+    this.pieceIndex.set(0);
+    this.stepIndex.set(0);
+    this.done.set({});
+    this.reps.set({});
     if (!text) return;
+    if (!this.currentId()) {
+      this.currentId.set(crypto.randomUUID());
+      this.analytics.track('project_created');
+    }
     if (origine === 'saisie') {
       this.analytics.track('pattern_pasted', { length: roundToHundred(text.length) });
     }
@@ -156,7 +314,7 @@ export class ReaderStore {
   }
 
   loadDemo(): void {
-    this.load(DEMO_PATTERN, false, 'exemple');
+    this.load(DEMO_PATTERN, 'exemple');
   }
 
   /**
@@ -171,7 +329,7 @@ export class ReaderStore {
       const { extractPdfPages } = await import('../data/pdf-extract');
       const pages = await extractPdfPages(file);
       const text = normalizePdfPages(pages);
-      this.load(text, false, 'pdf');
+      this.load(text, 'pdf');
       this.analytics.track('pdf_imported', { pages: pages.length });
     } catch (error) {
       const raison = error instanceof PdfEmptyTextError ? 'vide' : 'erreur';
@@ -182,10 +340,17 @@ export class ReaderStore {
     }
   }
 
+  /**
+   * Vide le lecteur sans supprimer le projet en cours de son historique : il
+   * reste dans la liste, dans l'état où il a été laissé. Un texte collé
+   * ensuite ouvre un nouveau projet.
+   */
   clear(): void {
     this.stopTimer();
     this.elapsed.set(0);
     this.image.set('');
+    this.currentId.set(null);
+    this.nameOverride.set(null);
     this.load('');
   }
 

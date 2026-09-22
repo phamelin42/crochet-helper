@@ -14,7 +14,15 @@ export type AnalyticsEvent =
   /** Première modification du rang d'essai d'une page d'abréviation. */
   | 'term_tried'
   /** Conversion d'un patron entier d'une convention US/UK à l'autre. */
-  | 'conversion_run';
+  | 'conversion_run'
+  /** Un patron collé, tapé ou importé ouvre un nouveau projet. */
+  | 'project_created'
+  /** Reprise d'un projet depuis l'écran de liste. */
+  | 'project_resumed'
+  /** Téléchargement du fichier de sauvegarde de tous les projets. */
+  | 'backup_exported'
+  /** Réimport réussi d'un fichier de sauvegarde. */
+  | 'backup_imported';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

@@ -56,6 +56,29 @@ export const FR = {
   'ui.abbrev': 'Abréviations',
   'nav.format': 'Bien formater',
   'nav.converter': 'US ↔ UK',
+  'nav.projects': 'Mes projets',
+  'ui.projectsTitle': 'Mes projets',
+  'ui.projectsLead':
+    'Reprenez un patron en cours, ou démarrez-en un nouveau. Tout reste sur cet appareil : exportez une sauvegarde pour la retrouver ailleurs.',
+  'ui.newProject': 'Nouveau projet',
+  'ui.projectsEmpty': 'Aucun projet enregistré pour le moment. Collez un patron pour commencer.',
+  'ui.untitledProject': 'Projet sans titre',
+  'ui.resume': 'Reprendre',
+  'ui.rename': 'Renommer',
+  'ui.renameLabel': 'Nom du projet',
+  'ui.delete': 'Supprimer',
+  'ui.deleteConfirmTitle': 'Supprimer ce projet ?',
+  'ui.deleteConfirmBody':
+    'Le patron, la progression et le chronomètre de ce projet seront définitivement supprimés.',
+  'ui.deleteConfirmAction': 'Supprimer définitivement',
+  'ui.cancel': 'Annuler',
+  'ui.save': 'Enregistrer',
+  'ui.exportBackup': 'Exporter une sauvegarde',
+  'ui.importBackup': 'Importer une sauvegarde',
+  'ui.importOk': 'Sauvegarde importée : les projets ont été fusionnés avec ceux déjà présents.',
+  'ui.importInvalid':
+    "Ce fichier n'est pas une sauvegarde valide pour cette version de l'application.",
+  'ui.lastOpened': 'Ouvert le',
 } as const;
 
 export type TranslationKey = keyof typeof FR;
@@ -112,6 +135,27 @@ export const EN: Record<TranslationKey, string> = {
   'ui.abbrev': 'Abbreviations',
   'nav.format': 'Formatting',
   'nav.converter': 'US ↔ UK',
+  'nav.projects': 'My projects',
+  'ui.projectsTitle': 'My projects',
+  'ui.projectsLead':
+    'Resume a pattern in progress, or start a new one. Everything stays on this device: export a backup to take it elsewhere.',
+  'ui.newProject': 'New project',
+  'ui.projectsEmpty': 'No project saved yet. Paste a pattern to get started.',
+  'ui.untitledProject': 'Untitled project',
+  'ui.resume': 'Resume',
+  'ui.rename': 'Rename',
+  'ui.renameLabel': 'Project name',
+  'ui.delete': 'Delete',
+  'ui.deleteConfirmTitle': 'Delete this project?',
+  'ui.deleteConfirmBody': "This project's pattern, progress and timer will be permanently deleted.",
+  'ui.deleteConfirmAction': 'Delete permanently',
+  'ui.cancel': 'Cancel',
+  'ui.save': 'Save',
+  'ui.exportBackup': 'Export a backup',
+  'ui.importBackup': 'Import a backup',
+  'ui.importOk': 'Backup imported: the projects were merged with the ones already here.',
+  'ui.importInvalid': "This file isn't a valid backup for this version of the app.",
+  'ui.lastOpened': 'Opened on',
 };
 
 export const TRANSLATIONS: Record<Locale, Record<TranslationKey, string>> = { fr: FR, en: EN };

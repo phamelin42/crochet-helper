@@ -4,8 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ReaderStore } from '../state/reader-store';
 import { ReaderPage } from './reader-page';
 
-const PATTERN =
-  'Rang 1 : 6 ms dans un cercle magique (6)\nRang 2 : 1 aug dans chaque m (12)';
+const PATTERN = 'Rang 1 : 6 ms dans un cercle magique (6)\nRang 2 : 1 aug dans chaque m (12)';
 
 function setup() {
   TestBed.configureTestingModule({

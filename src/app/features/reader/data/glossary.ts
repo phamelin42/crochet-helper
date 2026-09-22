@@ -12,7 +12,8 @@ export interface GlossaryEntry {
   /**
    * Convention à laquelle appartient cette définition, quand l'abréviation
    * désigne une hauteur de maille qui diffère entre les deux : `sc` et `hdc`
-   * n'existent qu'en notation américaine, `htr` qu'en notation britannique.
+   * n'existent qu'en notation américaine, `htr` et `trtr` qu'en notation
+   * britannique.
    * Des lettres comme `dc`, `tr` ou `dtr` sont réutilisées par les deux
    * conventions pour des mailles différentes — la définition ici est
    * l'américaine ; le convertisseur (`features/converter/data/convert-terms.ts`)
@@ -236,6 +237,15 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     lang: 'en',
     region: 'US',
     example: 'Row 5: ch 5 (counts as dtr), dtr in each st across, turn (20)',
+  },
+  {
+    term: 'trtr',
+    fr: 'triple bride',
+    en: 'triple treble crochet',
+    craft: 'crochet',
+    lang: 'en',
+    region: 'UK',
+    example: 'Row 5: ch 5 (counts as trtr), trtr in each st across, turn (20)',
   },
   {
     term: 'mc',

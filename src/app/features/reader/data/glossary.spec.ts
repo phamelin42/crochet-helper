@@ -28,6 +28,7 @@ describe('glossaire', () => {
     ['htr', 'htr'],
     ['tr', 'tr'],
     ['dtr', 'dtr'],
+    ['trtr', 'trtr'],
     ['mc', 'mc'],
     ['sl st', 'sl-st'],
     ['ss', 'ss'],

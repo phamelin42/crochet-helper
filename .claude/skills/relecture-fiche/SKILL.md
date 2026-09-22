@@ -77,17 +77,35 @@ IndexedDB), écris un script court dans `$E` sur le modèle de `smoke.mjs`.
   Le bundle passe aussi pour `.claude/` et `.github/`, que le pont refuse
   d'écrire directement.
 
-## 4. S'améliorer
+## 4. Rétro — obligatoire à chaque PR, même sans défaut
 
-Avant de conclure, si la relecture a trouvé un défaut **d'un type nouveau** :
+Deux questions, deux actions, dans le même bundle :
 
-- ajoute-le en une ligne à « Pièges déjà rencontrés » de `CLAUDE.md` (c'est ce
-  qui empêche l'agent du pilote de le refaire) ;
-- si une étape de ce skill a coûté des allers-retours, corrige ce skill ou ses
-  scripts dans le même bundle.
-  Garde `CLAUDE.md` court : on fusionne des lignes plutôt qu'on n'en ajoute.
+1. **Quel défaut la fiche a-t-elle livré ?** Type nouveau → une ligne dans
+   « Pièges déjà rencontrés » de `CLAUDE.md` (l'agent du pilote la lira avant la
+   prochaine fiche). Type déjà listé → la ligne n'a pas suffi : la rendre plus
+   concrète, ou transformer le piège en **contrôle automatique** (test, règle de
+   lint, vérification dans `tools/`), qui coûte zéro token en relecture.
+2. **Qu'est-ce qui m'a coûté des tokens ou des allers-retours ?** (commande
+   ratée, fichier lu en entier pour rien, script réécrit, erreur d'outillage.)
+   → corriger ce skill, ses scripts, ou « Erreurs d'outillage connues » ci-dessous.
+
+Puis une entrée de 3 lignes dans `journal.md` (défauts · coûts · amélioration
+faite). Garde `CLAUDE.md` et ce skill courts : fusionner plutôt qu'ajouter, et
+supprimer une consigne devenue inutile. La rétro figure dans le message final à
+Phil, en deux lignes.
 
 Mets à jour `claude/etat-du-projet.md` (outil Projects) : fiche en cours, action en attente.
+
+## Erreurs d'outillage connues
+
+- `npx vitest` seul échoue (« TestBed.initTestEnvironment ») : passer par `ng test`.
+- `pkill -f <motif>` dans une commande qui contient ce motif tue son propre shell :
+  lancer les serveurs sur un port neuf plutôt que de les tuer.
+- Un script ESM hors du dossier où `playwright-core` est installé ne le trouve
+  pas : `smoke.mjs` le charge avec `createRequire(process.cwd())`.
+- Playwright `text=Convert` matche aussi le titre : utiliser `getByRole('button', { name, exact: true })`.
+- `git push` et l'API GitHub renvoient 403 : ne pas réessayer, livrer en bundle.
 
 ## 5. Dire à Phil quoi faire — toujours, en liste numérotée
 
@@ -112,3 +130,5 @@ Modèle, à adapter :
 5. **Lancer la fiche suivante** : Actions → **Lot suivant** → Run workflow sur `main`.
 6. **Revenir** : « relis la fiche <nn+1> » quand sa PR est ouverte (idéalement
    **avant** de la merger : les corrections vont alors dans la même PR).
+
+Puis la rétro, en deux lignes : ce que j'ai amélioré pour la prochaine fois.

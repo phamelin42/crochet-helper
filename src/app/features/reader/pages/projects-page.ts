@@ -110,6 +110,7 @@ type LocalKey = keyof typeof COPY.fr;
         type="file"
         accept="application/json,.json"
         class="visually-hidden"
+        [attr.aria-label]="t('ui.importBackup')"
         (change)="onImport($event)"
       />
     </div>

@@ -12,6 +12,7 @@
     "test:ci": "ng test --no-watch",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test:a11y": "ng build && playwright test",
     "verify": "npm run lint && npm run format:check && npm run test:ci && npm run build"
   },
   "private": true,
@@ -36,7 +37,9 @@
     "@angular/build": "^22.1.7",
     "@angular/cli": "^22.1.7",
     "@angular/compiler-cli": "^22.1.0",
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
     "angular-eslint": "22.5.0",

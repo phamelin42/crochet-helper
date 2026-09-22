@@ -124,7 +124,7 @@ const COPY: Record<Locale, ConverterCopy> = {
       @if (result(); as r) {
         <p class="card-body">{{ c.directionOf(r.from, r.to) }}</p>
         <div class="prompt-box">
-          <pre>{{ r.text }}</pre>
+          <pre tabindex="0">{{ r.text }}</pre>
         </div>
 
         @if (r.replacements.length) {

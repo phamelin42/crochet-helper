@@ -394,7 +394,7 @@ textarea.src-input {
   margin: 0;
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: color-mix(in srgb, var(--color-text) 52%, transparent);
+  color: var(--color-text-label);
 }
 .tile .big {
   font-family: var(--font-heading);
@@ -406,7 +406,7 @@ textarea.src-input {
 }
 .tile .big .sub {
   font-size: 17px;
-  color: color-mix(in srgb, var(--color-text) 45%, transparent);
+  color: var(--color-text-label);
 }
 .tile .row {
   display: flex;
@@ -695,8 +695,15 @@ textarea.src-input {
 .glossary-filter {
   max-width: var(--glossary-filter-width);
 }
-.glossary-table {
+/* Le tableau peut être plus large que l'écran (quatre colonnes de texte) :
+ * il défile seul plutôt que d'élargir la page entière, seule exception que
+ * WCAG 1.4.10 (reflow) accorde aux tableaux de données. */
+.glossary-table-scroll {
   margin-top: var(--space-6);
+  overflow-x: auto;
+}
+.glossary-table-scroll .glossary-table {
+  margin-top: 0;
 }
 
 /* Vue d'impression (PrintView) : dans le DOM, invisible à l'écran. Ses règles

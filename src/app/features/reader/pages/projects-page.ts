@@ -96,7 +96,13 @@ const SEO: Record<Locale, { title: string; description: string }> = {
       <h2 class="dialog-title">{{ t('ui.rename') }}</h2>
       <div class="field">
         <label for="rename-input">{{ t('ui.renameLabel') }}</label>
-        <input filInput id="rename-input" #renameField [value]="renameTarget()?.name ?? ''" />
+        <input
+          filInput
+          id="rename-input"
+          #renameField
+          [value]="renameTarget()?.name ?? ''"
+          (keydown.enter)="saveRename(renameField.value)"
+        />
       </div>
       <div class="dialog-actions">
         <button type="button" filButton="secondary" (click)="renameOpen.set(false)">
@@ -120,27 +126,6 @@ const SEO: Record<Locale, { title: string; description: string }> = {
         </button>
       </div>
     </fil-dialog>
-  `,
-  styles: `
-    .projects-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-2);
-      margin-bottom: var(--space-4);
-    }
-    .projects-list {
-      display: grid;
-      gap: var(--space-2);
-      padding: 0;
-      margin: 0;
-      list-style: none;
-    }
-    .projects-list .card {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-3);
-    }
   `,
 })
 export class ProjectsPage {
@@ -218,9 +203,10 @@ export class ProjectsPage {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `fil-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `pattern-reader-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
-    URL.revokeObjectURL(url);
+    // Révoquer dans la même tâche peut annuler le téléchargement (Safari, Firefox).
+    setTimeout(() => URL.revokeObjectURL(url));
   }
 
   protected async onImport(event: Event): Promise<void> {

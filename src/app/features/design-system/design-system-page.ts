@@ -64,8 +64,8 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
     <section class="hero">
       <h1>Vitrine du design system</h1>
       <p>
-        Nocturne, jeton par jeton et composant par composant. Page interne, non indexée : elle
-        n'a rien à faire dans un moteur de recherche.
+        Nocturne, jeton par jeton et composant par composant. Page interne, non indexée : elle n’a
+        rien à faire dans un moteur de recherche.
       </p>
       <div class="ds-toolbar">
         <fil-segmented
@@ -98,22 +98,22 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
           <div class="ds-type-row">
             @switch (tag) {
               @case ('h1') {
-                <h1>Maille en l'air</h1>
+                <h1>Maille en l’air</h1>
               }
               @case ('h2') {
-                <h2>Maille en l'air</h2>
+                <h2>Maille en l’air</h2>
               }
               @case ('h3') {
-                <h3>Maille en l'air</h3>
+                <h3>Maille en l’air</h3>
               }
               @case ('h4') {
-                <h4>Maille en l'air</h4>
+                <h4>Maille en l’air</h4>
               }
               @case ('h5') {
-                <h5>Maille en l'air</h5>
+                <h5>Maille en l’air</h5>
               }
               @case ('h6') {
-                <h6>Maille en l'air</h6>
+                <h6>Maille en l’air</h6>
               }
             }
             <code class="text-muted">{{ tag }} — {{ computedValues()[tag] }}</code>
@@ -206,7 +206,8 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
           <p class="card-meta">zone de texte</p>
           <div class="field">
             <label for="ds-input-textarea">Note</label>
-            <textarea filInput id="ds-input-textarea" rows="3">Rang 1 : 6 ms dans un cercle magique</textarea>
+            <textarea filInput id="ds-input-textarea" rows="3">
+Rang 1 : 6 ms dans un cercle magique</textarea>
           </div>
         </div>
         <div class="card">
@@ -235,10 +236,18 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
       <h3>Checkbox</h3>
       <div class="grid-cards">
         <div class="card">
-          <fil-checkbox [checked]="checkboxA()" (checkedChange)="checkboxA.set($event)" label="Compter les rangs" />
+          <fil-checkbox
+            [checked]="checkboxA()"
+            (checkedChange)="checkboxA.set($event)"
+            label="Compter les rangs"
+          />
         </div>
         <div class="card">
-          <fil-checkbox [checked]="checkboxB()" (checkedChange)="checkboxB.set($event)" label="Garder l'écran allumé" />
+          <fil-checkbox
+            [checked]="checkboxB()"
+            (checkedChange)="checkboxB.set($event)"
+            label="Garder l’écran allumé"
+          />
         </div>
         <div class="card">
           <p class="card-meta">désactivée</p>
@@ -291,7 +300,7 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
         <div class="card">
           <p class="card-meta">variante « import »</p>
           <fil-disclosure label="Importer un patron" variant="import" state="3 étapes">
-            <p>Contenu du panneau d'import.</p>
+            <p>Contenu du panneau d’import.</p>
           </fil-disclosure>
         </div>
       </div>
@@ -354,23 +363,27 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
 
       <h3>Button</h3>
       <div class="prompt-box">
-        <pre tabindex="0">&lt;button type="button" filButton="primary"&gt;Étiquette&lt;/button&gt;</pre>
+        <pre tabindex="0">
+&lt;button type="button" filButton="primary"&gt;Étiquette&lt;/button&gt;</pre>
       </div>
 
       <h3>InputField</h3>
       <div class="prompt-box">
-        <pre tabindex="0">&lt;input filInput type="text" /&gt;
+        <pre tabindex="0">
+&lt;input filInput type="text" /&gt;
 &lt;textarea filInput rows="3"&gt;&lt;/textarea&gt;</pre>
       </div>
 
       <h3>Checkbox</h3>
       <div class="prompt-box">
-        <pre tabindex="0">&lt;fil-checkbox [checked]="accepted()" (checkedChange)="accepted.set($event)" label="Étiquette" /&gt;</pre>
+        <pre tabindex="0">
+&lt;fil-checkbox [checked]="accepted()" (checkedChange)="accepted.set($event)" label="Étiquette" /&gt;</pre>
       </div>
 
       <h3>Segmented</h3>
       <div class="prompt-box">
-        <pre tabindex="0">&lt;fil-segmented
+        <pre tabindex="0">
+&lt;fil-segmented
   name="unique-name"
   label="Étiquette du groupe"
   [options]="options"
@@ -381,21 +394,24 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
 
       <h3>Tile</h3>
       <div class="prompt-box">
-        <pre tabindex="0">&lt;fil-tile label="Rang"&gt;
+        <pre tabindex="0">
+&lt;fil-tile label="Rang"&gt;
   &lt;div class="big"&gt;12&lt;span class="sub"&gt; / 24&lt;/span&gt;&lt;/div&gt;
 &lt;/fil-tile&gt;</pre>
       </div>
 
       <h3>Disclosure</h3>
       <div class="prompt-box">
-        <pre tabindex="0">&lt;fil-disclosure label="Matériel" variant="mats"&gt;
+        <pre tabindex="0">
+&lt;fil-disclosure label="Matériel" variant="mats"&gt;
   &lt;ul&gt;&lt;li&gt;...&lt;/li&gt;&lt;/ul&gt;
 &lt;/fil-disclosure&gt;</pre>
       </div>
 
       <h3>Dialog</h3>
       <div class="prompt-box">
-        <pre tabindex="0">&lt;fil-dialog [(open)]="open" label="Titre accessible"&gt;
+        <pre tabindex="0">
+&lt;fil-dialog [(open)]="open" label="Titre accessible"&gt;
   &lt;h2 class="dialog-title"&gt;Titre&lt;/h2&gt;
   &lt;div class="dialog-actions"&gt;...&lt;/div&gt;
 &lt;/fil-dialog&gt;</pre>
@@ -408,7 +424,8 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
 
       <h3>Infobulle du glossaire</h3>
       <div class="prompt-box">
-        <pre tabindex="0">&lt;span
+        <pre tabindex="0">
+&lt;span
   class="abbr"
   tabindex="0"
   role="button"
@@ -471,7 +488,8 @@ export class DesignSystemPage {
     this.i18n.setLocale(this.locale);
     this.seo.apply({
       title: 'Vitrine du design system — Pattern Reader',
-      description: "Page interne : chaque jeton et chaque composant de Nocturne, dans tous ses états.",
+      description:
+        'Page interne : chaque jeton et chaque composant de Nocturne, dans tous ses états.',
       path: PATH,
       locale: this.locale,
       noIndex: true,
@@ -495,12 +513,7 @@ export class DesignSystemPage {
   private measure(): void {
     const root = getComputedStyle(this.doc.documentElement);
     const values: Record<string, string> = {};
-    for (const token of [
-      ...COLOR_TOKENS,
-      ...SPACE_TOKENS,
-      ...RADIUS_TOKENS,
-      ...SHADOW_TOKENS,
-    ]) {
+    for (const token of [...COLOR_TOKENS, ...SPACE_TOKENS, ...RADIUS_TOKENS, ...SHADOW_TOKENS]) {
       values[token] = root.getPropertyValue(`--${token}`).trim();
     }
     const scale = this.typeScale()?.nativeElement;

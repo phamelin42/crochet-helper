@@ -17,6 +17,8 @@ export interface PatternStep {
   readonly after?: readonly string[];
   /** Nombre de répétitions attendu, déduit du libellé ou du corps ; 0 si inconnu. */
   readonly reps: number;
+  /** Endroit ou envers, quand le libellé du rang le précise ; absent sinon. */
+  readonly side?: 'rs' | 'ws';
 }
 
 /** Un élément à réaliser (le corps, une oreille, une manche…). */

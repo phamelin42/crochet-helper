@@ -53,6 +53,18 @@ const ASIDE_INLINE =
 /** Consigne de répétition autonome, rattachée à l'étape précédente. */
 const REPEAT = /^(repeat|rep\.?|r[ée]p[èe]te|r[ée]p[ée]t\w*|work)\b/i;
 
+/** Indication endroit/envers en tête de corps : « (RS): », « (envers) : ». */
+const SIDE = /^\(\s*(rs|ws|endroit|envers)\s*\)\s*:?\s*/i;
+
+const SIDE_VALUE: Record<string, 'rs' | 'ws'> = { rs: 'rs', endroit: 'rs', ws: 'ws', envers: 'ws' };
+
+/** Détache un suffixe endroit/envers du début d'un texte de rang. */
+function extractSide(text: string): { side?: 'rs' | 'ws'; rest: string } {
+  const match = SIDE.exec(text);
+  if (!match) return { rest: text };
+  return { side: SIDE_VALUE[match[1].toLowerCase()], rest: text.slice(match[0].length) };
+}
+
 const BULLET = /^[-–—•*·§o]\s+/;
 
 /** Cases à cocher des patrons imprimables : « [_] », « [ ] », « [x][x] ». */
@@ -254,13 +266,14 @@ export function parsePattern(raw: string): Pattern {
   const lastStep = (): PatternStep | null =>
     piece && piece.steps.length ? piece.steps[piece.steps.length - 1] : null;
 
-  const addStep = (label: string, rawBody: string, range: number): void => {
+  const addStep = (label: string, rawBody: string, range: number, side?: 'rs' | 'ws'): void => {
     const target = piece ?? newPiece('');
     const { body, tip } = splitTip(rawBody);
     target.steps.push({
       label,
       body,
       ...(tip ? { tip } : {}),
+      ...(side ? { side } : {}),
       notes: pending.slice(),
       reps: repeatTarget(range, rawBody),
     });
@@ -338,7 +351,8 @@ export function parsePattern(raw: string): Pattern {
       const label = (to ? `${word} ${from}–${to}` : `${word} ${from}`).replace(/^./, (c) =>
         c.toUpperCase(),
       );
-      addStep(label, line.slice(row[0].length).trim() || line, to ? Math.max(0, to - from + 1) : 0);
+      const { side, rest } = extractSide(line.slice(row[0].length));
+      addStep(label, rest.trim() || line, to ? Math.max(0, to - from + 1) : 0, side);
       continue;
     }
 
@@ -347,11 +361,8 @@ export function parsePattern(raw: string): Pattern {
       const from = Number.parseInt(bare[1], 10);
       const to = bare[2] ? Number.parseInt(bare[2], 10) : 0;
       const label = to ? `${from}–${to}` : String(from);
-      addStep(
-        label,
-        line.slice(bare[0].length).trim() || line,
-        to ? Math.max(0, to - from + 1) : 0,
-      );
+      const { side, rest } = extractSide(line.slice(bare[0].length));
+      addStep(label, rest.trim() || line, to ? Math.max(0, to - from + 1) : 0, side);
       continue;
     }
 

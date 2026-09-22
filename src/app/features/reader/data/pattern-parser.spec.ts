@@ -89,4 +89,17 @@ describe('parsePattern', () => {
     const pattern = parsePattern('Rang 1 : ms &amp; brides&nbsp;(6)');
     expect(pattern.pieces[0].steps[0].body).toBe('ms & brides (6)');
   });
+
+  it("détache l'indication endroit/envers du libellé de rang", () => {
+    const pattern = parsePattern('Row 1 (RS): k2, p2');
+    const step = pattern.pieces[0].steps[0];
+    expect(step.label).toBe('Row 1');
+    expect(step.side).toBe('rs');
+    expect(step.body).toBe('k2, p2');
+  });
+
+  it("reconnaît l'indication envers en français", () => {
+    const pattern = parsePattern('Rang 2 (envers) : m2, m2 env');
+    expect(pattern.pieces[0].steps[0].side).toBe('ws');
+  });
 });

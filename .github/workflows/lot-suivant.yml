@@ -57,15 +57,26 @@ jobs:
           node-version: 24
           cache: npm
 
-      - run: npm ci
+      # Aucune fiche « À faire » sans branche ouverte : l'agent ne ferait
+      # que le constater, en tours payés. On s'arrête avant npm ci.
+      - id: garde
+        name: Y a-t-il une fiche à exécuter ?
+        run: |
+          node tools/pilote.mjs garde-lot prompts/README.md automation/avancement.md \
+            "$(git branch -r --format='%(refname:short)')" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - if: steps.garde.outputs.agir == 'true'
+        run: npm ci
 
       - name: Préparer l'espace de travail de l'agent
+        if: steps.garde.outputs.agir == 'true'
         run: |
           git config --global user.name "Pilote automatique"
           git config --global user.email "pilote-automatique@users.noreply.github.com"
           mkdir -p .pilote
 
       - id: claude
+        if: steps.garde.outputs.agir == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -139,6 +150,19 @@ jobs:
             exit 1
           fi
           echo "PR ouverte : $url" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Noter le coût
+        if: always() && steps.garde.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EXECUTION: ${{ steps.claude.outputs.execution_file }}
+          RAISON: ${{ steps.garde.outputs.raison }}
+        run: |
+          export DISTANT="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          cout=$(node tools/pilote.mjs cout lot "${EXECUTION:--}" "$RAISON")
+          echo "$cout" >> "$GITHUB_STEP_SUMMARY"
+          tools/publier-rapports.sh "Coût du lot" --ligne automation/couts.md "$cout" || true
 
       # Filet de sécurité : si l'agent ou la publication échoue, tout son
       # travail, commité ou non, reste téléchargeable depuis la page de

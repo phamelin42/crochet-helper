@@ -70,7 +70,14 @@ jobs:
             echo '</details>'
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
+      # Sans données ou sous 100 visites sur 8 jours, l'agent n'apprendrait
+      # rien : la garde écrit le constat elle-même, sans consommer de tours.
+      - id: garde
+        name: Faut-il un agent ?
+        run: node tools/pilote.mjs garde-rapport .pilote/umami.json | tee -a "$GITHUB_STEP_SUMMARY"
+
       - id: claude
+        if: steps.garde.outputs.agir == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -79,37 +86,28 @@ jobs:
             --max-turns 15
             --allowedTools "Read,Glob,Grep,Write"
 
-      - name: Publier le rapport et ouvrir l'issue
-        if: always() && steps.claude.outcome != 'skipped'
+      - name: Publier le rapport, le coût et ouvrir l'issue
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
+          EXECUTION: ${{ steps.claude.outputs.execution_file }}
+          RAISON: ${{ steps.garde.outputs.raison }}
         run: |
           set -euo pipefail
-          distant="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          export DISTANT="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
           jour=$(node -p 'require("./.pilote/umami.json").fin')
+          cout=$(node tools/pilote.mjs cout rapport "${EXECUTION:--}" "$RAISON")
 
+          # Les rapports vivent sur leur propre branche : main est protégée,
+          # et une PR par jour noierait les vraies relectures.
           if ls reports/*.md >/dev/null 2>&1; then
             cat reports/*.md >> "$GITHUB_STEP_SUMMARY"
-            git config --global user.name "Pilote automatique"
-            git config --global user.email "pilote-automatique@users.noreply.github.com"
-            # Les rapports vivent sur leur propre branche : main est protégée,
-            # et une PR par jour noierait les vraies relectures.
-            r="$RUNNER_TEMP/rapports"
-            if git fetch -q --depth 1 "$distant" rapports 2>/dev/null; then
-              git worktree add -q "$r" FETCH_HEAD
-            else
-              git worktree add -q --orphan -b rapports "$r"
-            fi
-            mkdir -p "$r/reports"
-            cp reports/*.md "$r/reports/"
-            git -C "$r" add reports
-            if ! git -C "$r" diff --cached --quiet; then
-              git -C "$r" commit -qm "Rapport du $jour"
-              git -C "$r" push -q "$distant" HEAD:refs/heads/rapports
-            fi
+            tools/publier-rapports.sh "Rapport du $jour" \
+              --copier reports reports --ligne automation/couts.md "$cout"
           else
-            echo "::warning::L'agent n'a écrit aucun rapport."
+            echo "::warning::Aucun rapport écrit."
+            tools/publier-rapports.sh "Coût du $jour" --ligne automation/couts.md "$cout"
           fi
 
           if [ -s .pilote/issue-titre.txt ]; then

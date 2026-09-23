@@ -54,7 +54,7 @@ URL avant d'accumuler du référencement.
 | 08  | Vitrine du design system           | documente ce qui existe, quand ça a cessé de bouger          |
 | 21  | Mesurer le retour et la profondeur | le critère d'arrêt du plan n'est pas mesuré — rétention      |
 | 18  | Matériel : en-têtes élargis        | activation : le premier découpage fait rester ou partir      |
-| 22  | Liste d'attente                    | revenu : le signal qui décide du lot 8, inerte sans URL      |
+| 22  | Liste d'attente                    | revenu : le signal qui décide du lot 8 (formulaire Tally)    |
 | 23  | Kit pour les créatrices            | acquisition : le canal le mieux noté n'a aucun support       |
 | 17  | Tailles de crochet mm ↔ US         | acquisition : requête fréquente, page qui reçoit ce public   |
 | 19  | Envoyer un projet                  | acquisition : boucle de recommandation, progression comprise |

@@ -11,6 +11,14 @@ en étapes, affiche **une seule instruction à la fois en très grand**, compte 
 rangs et les répétitions, chronomètre la session et explique les abréviations au
 survol. C'est un outil qu'on regarde à un mètre de distance, crochet en main.
 
+## Objectif et entonnoir
+
+Public : des personnes de 50 à 70 ans, souvent sur tablette, qui suivent un
+patron chez elles. L'objectif n'est pas la visite mais **l'habitude** : revenir
+au prochain ouvrage. Chaque fiche nomme, sous son titre, l'étape qu'elle sert —
+acquisition, activation, rétention ou revenu — et une fiche qui n'en sert
+aucune n'a pas sa place dans la table d'ordre.
+
 ## Contraintes non négociables
 
 1. **Aucun back-end.** Tout se passe dans le navigateur : parsing, état,
@@ -56,6 +64,12 @@ Règles de dépendance : `features` → `shared` → `core`. Jamais l'inverse, e
 de dépendance croisée entre deux `features` (sauf `data/`, qui est du domaine
 partagé et peut être importé).
 
+**Toute API navigateur passe par `core/platform` ou `core/storage`**
+(`window`, `document`, `navigator`, `location`, `history`, presse-papiers,
+stockage) : c'est ce qui rend le build empaquetable en application native et
+testable sans navigateur. Code existant à migrer, sans urgence :
+`pattern-import.ts`, `reader-page.ts`, `format-page.ts`, `projects-page.ts`.
+
 ## Le design system avant tout composant
 
 Le style vient du projet Claude Design « Lecteur de patterns » (système
@@ -99,9 +113,10 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   sitemap (`tools/generate-sitemap.mjs` les exclut).
 - **Français soigné** : article devant un nom de maille (« désigne _la_ maille
   serrée »), espaces insécables avant `: ; ? !` et dans « ».
-- **Bundle initial ≤ 335 kB (erreur de build au-delà).** Angular (core, router,
-  service worker) en occupe déjà ~305 kB : la marge réelle est d'une trentaine de
-  kilo-octets, à ne pas gaspiller. Code non nécessaire au
+- **Bundle initial : le budget fait foi dans `angular.json`** (`budgets`,
+  type `initial` : avertissement puis erreur), pas un chiffre recopié ici.
+  Angular (core, router, service worker) en occupe l'essentiel : la marge se
+  compte en kilo-octets, à ne pas gaspiller. Code non nécessaire au
   premier affichage → `import()` ; textes propres à une page paresseuse → dans
   la page, pas dans `translations.ts` (qui est dans le bundle initial) ; CSS
   d'impression → `print.css`, chargée à part. `ng build --stats-json` dit ce qui pèse.
@@ -132,6 +147,20 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   lisant `/ngsw/state` (« Driver state: NORMAL »), pas seulement le statut HTTP.
 - **Impression** : vérifier sur un vrai PDF (Chromium `page.pdf`), pas sur
   `innerText`, qui renvoie aussi le texte des éléments masqués.
+
+## Économie de tokens
+
+Une exécution du pilote a un nombre d'échanges limité, et chaque fichier lu en
+entier les consomme.
+
+- Lire les fichiers **listés par la fiche**, et seulement eux ; le reste se
+  trouve par `grep -n`.
+- Avant d'ouvrir un fichier de plus de 300 lignes : `grep -n` pour viser la
+  partie utile, puis lecture par plage.
+- Jamais `glossary.ts` ni `translations.ts` en entier : `grep -n "<clé>"`.
+- Tests ciblés pendant le travail (`npx ng test --no-watch --include='<glob>'`),
+  **un seul** `npm run verify` à la fin.
+- Noter dans la PR le nombre d'échanges consommés et ce qui les a coûtés.
 
 ## Vérification
 

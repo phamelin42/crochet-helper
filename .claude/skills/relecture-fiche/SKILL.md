@@ -106,6 +106,12 @@ IndexedDB), écris un script court dans `$E` sur le modèle de `smoke.mjs`.
 
 ## 4. Rétro — obligatoire à chaque PR, même sans défaut
 
+**D'abord, la section « Ce qui t'a coûté des échanges » de la PR.** Chaque
+point qu'elle cite produit, dans le même bundle ou la même PR de relecture,
+**soit** un piège dans `CLAUDE.md` (si c'est vrai pour toute fiche), **soit**
+une correction de la fiche suivante concernée (si c'est une information
+manquante). Un point laissé sans suite reviendra à la prochaine exécution.
+
 Deux questions, deux actions, dans le même bundle :
 
 1. **Quel défaut la fiche a-t-elle livré ?** Type nouveau → une ligne dans

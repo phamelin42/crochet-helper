@@ -1,5 +1,7 @@
 # 20 — Comptes et paiement : cadrage
 
+**Étape d'entonnoir servie : revenu.**
+
 > **Fiche de cadrage. Elle ne s'exécute pas.** La monétisation (lot 8) est gelée
 > par décision explicite. Cette fiche décrit le problème et les décisions à
 > prendre ; elle n'autorise ni code, ni dépendance, ni compte chez un

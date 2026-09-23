@@ -58,13 +58,22 @@ jobs:
           git config --global user.name "Pilote automatique"
           git config --global user.email "pilote-automatique@users.noreply.github.com"
 
+      # Sans données, ou trafic sous le plancher avec déjà trois fiches en
+      # attente : rien à proposer qui ne double la file.
+      - id: garde
+        name: Faut-il un agent ?
+        run: |
+          node tools/pilote.mjs garde-hebdo .pilote/umami.json automation/avancement.md |
+            tee -a "$GITHUB_STEP_SUMMARY"
+
       - id: claude
+        if: steps.garde.outputs.agir == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: '/amelioration-hebdo'
           claude_args: >-
-            --max-turns 120
+            --max-turns 60
             --allowedTools "Read,Glob,Grep,Edit,MultiEdit,Write,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(git:*),Bash(ls:*)"
 
       - name: Publier les branches et ouvrir les PR
@@ -78,9 +87,11 @@ jobs:
           liste=""
           for branche in $(git branch --format='%(refname:short)' | grep -E '^hebdo-[a-z0-9-]+$' || true); do
             if [ -z "$(git log --oneline origin/main.."$branche")" ]; then continue; fi
-            # Un workflow modifié dans une PR s'exécute avec les secrets du dépôt.
-            if git diff --name-only origin/main.."$branche" | grep -qE '^(\.github|\.claude)/'; then
-              echo "::error::$branche modifie .github/ ou .claude/ : publication refusée."
+            # Le point hebdo n'écrit que des fiches : au plus trois fichiers,
+            # tous dans prompts/ (skill amelioration-hebdo, § 3).
+            fichiers=$(git diff --name-only origin/main.."$branche")
+            if echo "$fichiers" | grep -qvE '^prompts/' || [ "$(echo "$fichiers" | wc -l)" -gt 3 ]; then
+              echo "::error::$branche touche autre chose que prompts/ ou plus de trois fichiers : publication refusée."
               continue
             fi
             git push -q "$distant" "$branche:refs/heads/$branche"
@@ -99,3 +110,16 @@ jobs:
               --title "$(head -n 1 .pilote/issue-titre.txt)" \
               --body-file "$RUNNER_TEMP/corps.md"
           fi
+
+      - name: Noter le coût
+        if: always() && steps.garde.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EXECUTION: ${{ steps.claude.outputs.execution_file }}
+          RAISON: ${{ steps.garde.outputs.raison }}
+        run: |
+          export DISTANT="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          cout=$(node tools/pilote.mjs cout hebdo "${EXECUTION:--}" "$RAISON")
+          echo "$cout" >> "$GITHUB_STEP_SUMMARY"
+          tools/publier-rapports.sh "Coût du point hebdo" --ligne automation/couts.md "$cout" || true

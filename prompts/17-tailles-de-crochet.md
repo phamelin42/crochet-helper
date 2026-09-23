@@ -1,5 +1,7 @@
 # 17 — Tailles de crochet mm ↔ US dans le convertisseur
 
+**Étape d'entonnoir servie : acquisition.**
+
 ## Pourquoi
 
 Après la convention des mailles, la deuxième erreur d'un patron étranger est

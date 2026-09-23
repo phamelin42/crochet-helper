@@ -44,6 +44,20 @@ qui ne traverse pas fiablement les jours, ce chiffre serait inventé. Donne
 `sessions_par_visiteur` à la place, sans l'appeler fidélité (voir
 `docs/pilote-automatique.md`, « Ce que les chiffres ne disent pas »).
 
+### Retour et profondeur
+
+Si les fenêtres de `.pilote/umami.json` portent `retour` et `profondeur`
+(ajoutés par la fiche 21), ajoute sous l'entonnoir deux lignes :
+
+- **retour** : `retour.par_tranche` (1 j, 2-7 j, 8-30 j, 31 j et plus) et
+  `retour.part_des_visiteurs`, comparée à la référence. C'est le chiffre qui
+  décide du plan : donne-le en premier dans « Ce qui a changé » s'il bouge ;
+- **profondeur** : `profondeur` aux paliers 5, 20, 50 étapes, et
+  `part_des_decoupages_5`.
+
+Mêmes règles que l'entonnoir : ce sont des occurrences, et rien ne s'interprète
+sous 30 visiteuses. Clés absentes : n'en parle pas.
+
 ### Entonnoir vide malgré des pages vues
 
 Si **tous** les compteurs de `periode.evenements` valent 0 alors que

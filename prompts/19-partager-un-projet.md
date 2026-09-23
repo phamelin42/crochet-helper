@@ -1,5 +1,7 @@
 # 19 — Envoyer un projet à une autre personne
 
+**Étape d'entonnoir servie : acquisition (boucle de recommandation).**
+
 ## Pourquoi
 
 Le permalien de la fiche 06 transmet un **patron**, sans la progression. Or on
@@ -86,7 +88,7 @@ Les ajouter à l'union `AnalyticsEvent` **et** à `EVENEMENTS` dans
 
 ## Critères d'acceptation
 
-- `npm run verify` vert, bundle initial ≤ 335 kB (`project-link.ts` chargé par
+- `npm run verify` vert, bundle initial sous le budget d'`angular.json` (`project-link.ts` chargé par
   `import()`, comme `pattern-link.ts` aujourd'hui).
 - Un lien créé dans un navigateur ouvre, dans un autre profil, un projet à la
   même étape, avec les mêmes rangs cochés.

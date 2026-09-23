@@ -68,7 +68,9 @@ export class ReaderStore {
   readonly pieceIndex = signal(0);
   readonly stepIndex = signal(0);
   /** Paliers de profondeur déjà atteints par le projet courant — évite de réémettre. */
-  private readonly depthsReached = signal<ReadonlySet<(typeof DEPTH_THRESHOLDS)[number]>>(new Set());
+  private readonly depthsReached = signal<ReadonlySet<(typeof DEPTH_THRESHOLDS)[number]>>(
+    new Set(),
+  );
   readonly done = signal<Record<string, boolean>>({});
   readonly reps = signal<Record<string, number>>({});
   readonly elapsed = signal(0);

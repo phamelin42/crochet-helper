@@ -1,9 +1,12 @@
 # Phase 1 — Construction.
 #
-# L'agent exécute la fiche suivante de prompts/ et commite en local, sans
-# droit d'écriture sur GitHub. L'étape suivante, écrite ici et donc hors de
-# portée de l'agent, publie la branche, lance la CI dessus et ouvre la PR avec
-# le jeton du workflow (celui de l'app Claude est révoqué à la fin de son étape).
+# Deux jobs, deux machines. `construire` fait tourner l'agent **sans aucun
+# droit d'écriture** : il commite en local et ne livre qu'un artefact (un
+# bundle git et ses fichiers `.pilote/`). `publier` repart d'un checkout
+# propre de main, sur une machine que l'agent n'a jamais touchée, traite
+# l'artefact comme une donnée non fiable, et seul lui détient le jeton qui
+# pousse la branche, lance la CI et ouvre la PR. Un agent qui aurait réécrit
+# un script, `.git/config` ou un binaire de sa machine n'atteint rien ici.
 name: Lot suivant
 
 on:
@@ -20,11 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write
-      id-token: write
-      actions: write # lancer la CI sur la branche publiée
+      contents: read
+      id-token: write # jeton de l'app Claude, révoqué à la fin de son étape
+    outputs:
+      agir: ${{ steps.garde.outputs.agir }}
+      raison: ${{ steps.garde.outputs.raison }}
+      issue_agent: ${{ steps.claude.outcome }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -85,34 +89,88 @@ jobs:
             --max-turns 200
             --allowedTools "Read,Glob,Grep,Edit,MultiEdit,Write,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(git:*),Bash(ls:*)"
 
-      - id: publier
-        name: Publier la branche et ouvrir la PR
-        if: always() && steps.claude.outcome != 'skipped'
+      # Tout ce qui sort de cette machine est une donnée : le job suivant la
+      # valide. Un travail inachevé (limite de tours, délai) est commité ici
+      # pour être ouvert en brouillon plutôt que perdu avec la machine.
+      - name: Empaqueter le travail de l'agent
+        if: always() && steps.claude.outcome != 'skipped' && steps.garde.outputs.agir == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
           ISSUE_AGENT: ${{ steps.claude.outcome }}
+          EXECUTION: ${{ steps.claude.outputs.execution_file }}
         run: |
-          set -euo pipefail
-          distant="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
-
-          # Une décision humaine manquait : l'agent a rédigé la question.
-          if [ -s .pilote/issue-titre.txt ]; then
-            gh issue create --repo "$REPO" \
-              --title "$(head -n 1 .pilote/issue-titre.txt)" \
-              --body-file .pilote/issue-corps.md
-          fi
-
-          branche=$(git branch --show-current)
-
-          # L'agent a été interrompu (limite de tours, délai) : on commite ce
-          # qu'il n'avait pas commité, pour l'ouvrir en brouillon plutôt que de
-          # le perdre avec la machine.
+          a="$RUNNER_TEMP/artefact"
+          mkdir -p "$a"
+          branche=$(git branch --show-current || true)
           if [ "$ISSUE_AGENT" != "success" ] && [ -n "$(git status --porcelain)" ] &&
             [[ "$branche" =~ ^[0-9]{2}-[a-z0-9-]+$ ]]; then
             git add -A
-            git commit -qm "Sauvegarder le travail inachevé de l'agent"
+            git commit -qm "Sauvegarder le travail inachevé de l'agent" || true
           fi
+          printf '%s\n' "$branche" > "$a/branche.txt"
+          if [[ "$branche" =~ ^[0-9]{2}-[a-z0-9-]+$ ]]; then
+            git bundle create "$a/travail.bundle" "refs/heads/$branche" ^origin/main || true
+          fi
+          git add -A && git diff --cached origin/main > "$a/travail.patch" || true
+          cp -r .pilote "$a/pilote" 2>/dev/null || true
+          cp "$EXECUTION" "$a/execution.json" 2>/dev/null || true
+
+      - if: always() && steps.claude.outcome != 'skipped' && steps.garde.outputs.agir == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: travail-agent
+          path: ${{ runner.temp }}/artefact
+          retention-days: 14
+
+  publier:
+    needs: construire
+    if: always() && needs.construire.outputs.agir != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write # lancer la CI sur la branche publiée
+    steps:
+      # Checkout de main, jamais du travail de l'agent : c'est ce code-ci qui
+      # s'exécute avec le jeton.
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - if: needs.construire.outputs.agir == 'true'
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: travail-agent
+          path: ${{ runner.temp }}/artefact
+
+      - id: publier
+        name: Publier la branche et ouvrir la PR
+        if: needs.construire.outputs.agir == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ISSUE_AGENT: ${{ needs.construire.outputs.issue_agent }}
+        run: |
+          set -euo pipefail
+          a="$RUNNER_TEMP/artefact"
+          p="$a/pilote"
+          distant="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+
+          # Une décision humaine manquait : l'agent a rédigé la question.
+          if [ -s "$p/issue-titre.txt" ] && [ -f "$p/issue-corps.md" ]; then
+            gh issue create --repo "$REPO" \
+              --title "$(head -n 1 "$p/issue-titre.txt" | cut -c1-200)" \
+              --body-file "$p/issue-corps.md"
+          fi
+
+          branche=$(head -n 1 "$a/branche.txt" 2>/dev/null || true)
           if [ -z "$branche" ] || [ "$branche" = "main" ]; then
             echo "Pas de branche de travail : rien à publier." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
@@ -121,64 +179,54 @@ jobs:
             echo "::error::Nom de branche inattendu, publication refusée : $branche"
             exit 1
           fi
-          if [ -z "$(git log --oneline origin/main..HEAD)" ]; then
+          if [ ! -s "$a/travail.bundle" ]; then
+            echo "Branche $branche sans commit : rien à publier." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git fetch -q "$a/travail.bundle" "refs/heads/$branche:refs/heads/$branche"
+          if [ -z "$(git log --oneline origin/main.."$branche")" ]; then
             echo "Branche $branche sans commit : rien à publier." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
           # Un workflow modifié dans une PR s'exécute avec les secrets du dépôt :
           # l'agent n'a pas le droit de toucher à sa propre configuration.
-          if git diff --name-only origin/main..HEAD | grep -qE '^(\.github|\.claude)/'; then
+          if git diff --name-only origin/main..."$branche" | grep -qE '^(\.github|\.claude)/'; then
             echo "::error::La branche modifie .github/ ou .claude/ : publication refusée."
             exit 1
           fi
 
-          git push --quiet "$distant" "HEAD:refs/heads/$branche"
+          git push --quiet "$distant" "refs/heads/$branche:refs/heads/$branche"
           # Un push fait avec ce jeton ne déclenche aucun workflow : on lance la CI
           # explicitement, son résultat s'attache au dernier commit de la branche.
           gh workflow run ci.yml --repo "$REPO" --ref "$branche"
 
-          titre=$(head -n 1 .pilote/pr-titre.txt 2>/dev/null || git log -1 --format=%s)
-          [ -s .pilote/pr-corps.md ] || git log --format='- %s' origin/main..HEAD > .pilote/pr-corps.md
+          titre=$(head -n 1 "$p/pr-titre.txt" 2>/dev/null | cut -c1-200 || true)
+          [ -n "$titre" ] || titre=$(git log -1 --format=%s "$branche")
+          corps="$RUNNER_TEMP/pr-corps.md"
+          if [ -s "$p/pr-corps.md" ]; then cp "$p/pr-corps.md" "$corps"; else
+            git log --format='- %s' origin/main.."$branche" > "$corps"; fi
           brouillon=()
-          if [ -f .pilote/brouillon ] || [ "$ISSUE_AGENT" != "success" ]; then
+          if [ -f "$p/brouillon" ] || [ "$ISSUE_AGENT" != "success" ]; then
             brouillon=(--draft)
           fi
           if ! url=$(gh pr create --repo "$REPO" --base main --head "$branche" \
-            --title "$titre" --body-file .pilote/pr-corps.md "${brouillon[@]}"); then
+            --title "$titre" --body-file "$corps" "${brouillon[@]}"); then
             echo "::error::La branche $branche est poussée, mais GitHub a refusé d'ouvrir la PR. Active « Allow GitHub Actions to create and approve pull requests » dans Settings → Actions → General."
             exit 1
           fi
           echo "PR ouverte : $url" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Noter le coût
-        if: always() && steps.garde.outcome == 'success'
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          EXECUTION: ${{ steps.claude.outputs.execution_file }}
-          RAISON: ${{ steps.garde.outputs.raison }}
+          RAISON: ${{ needs.construire.outputs.raison }}
         run: |
           export DISTANT="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
-          cout=$(node tools/pilote.mjs cout lot "${EXECUTION:--}" "$RAISON")
+          execution="$RUNNER_TEMP/artefact/execution.json"
+          [ -f "$execution" ] || execution=-
+          cout=$(node tools/pilote.mjs cout lot "$execution" "$RAISON")
           echo "$cout" >> "$GITHUB_STEP_SUMMARY"
           tools/publier-rapports.sh "Coût du lot" --ligne automation/couts.md "$cout" || true
-
-      # Filet de sécurité : si l'agent ou la publication échoue, tout son
-      # travail, commité ou non, reste téléchargeable depuis la page de
-      # l'exécution — en patch lisible et en bundle git.
-      - name: Conserver le travail de l'agent
-        if: failure() && (steps.claude.outcome == 'failure' || steps.publier.outcome == 'failure')
-        run: |
-          git add -A
-          git diff --cached origin/main > "$RUNNER_TEMP/travail-agent.patch" || true
-          git bundle create "$RUNNER_TEMP/travail-agent.bundle" --all || true
-
-      - if: failure() && (steps.claude.outcome == 'failure' || steps.publier.outcome == 'failure')
-        uses: actions/upload-artifact@v4
-        with:
-          name: travail-agent
-          path: |
-            ${{ runner.temp }}/travail-agent.patch
-            ${{ runner.temp }}/travail-agent.bundle
-          retention-days: 14

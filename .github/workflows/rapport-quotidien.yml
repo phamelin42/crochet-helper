@@ -2,8 +2,10 @@
 #
 # Le workflow lit Umami sur la veille avec tools/umami.mjs (seule étape qui
 # voit les secrets), l'agent écrit le rapport à partir de ce JSON sans réseau
-# ni droit d'écriture, puis la dernière étape publie le rapport sur la branche
-# `rapports` et ouvre l'issue si l'agent l'a demandée.
+# ni droit d'écriture. Le job `publier`, sur une autre machine et depuis un
+# checkout propre de main, publie le rapport sur la branche `rapports` et
+# ouvre l'issue si l'agent l'a demandée : l'agent n'atteint jamais le code qui
+# détient le jeton d'écriture.
 name: Rapport quotidien
 
 on:
@@ -20,10 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: write
-      issues: write
-      pull-requests: read
-      id-token: write
+      contents: read
+      id-token: write # jeton de l'app Claude, révoqué à la fin de son étape
+    outputs:
+      fin: ${{ steps.garde.outputs.fin }}
+      raison: ${{ steps.garde.outputs.raison }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -74,7 +77,9 @@ jobs:
       # rien : la garde écrit le constat elle-même, sans consommer de tours.
       - id: garde
         name: Faut-il un agent ?
-        run: node tools/pilote.mjs garde-rapport .pilote/umami.json | tee -a "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo "fin=$(node -p 'require("./.pilote/umami.json").fin')" >> "$GITHUB_OUTPUT"
+          node tools/pilote.mjs garde-rapport .pilote/umami.json | tee -a "$GITHUB_STEP_SUMMARY"
 
       - id: claude
         if: steps.garde.outputs.agir == 'true'
@@ -86,32 +91,85 @@ jobs:
             --max-turns 15
             --allowedTools "Read,Glob,Grep,Write"
 
-      - name: Publier le rapport, le coût et ouvrir l'issue
+      - name: Empaqueter le rapport
         if: always()
+        env:
+          EXECUTION: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          a="$RUNNER_TEMP/artefact"
+          mkdir -p "$a"
+          cp -r reports "$a/reports" 2>/dev/null || true
+          cp .pilote/issue-titre.txt .pilote/issue-corps.md "$a/" 2>/dev/null || true
+          cp "$EXECUTION" "$a/execution.json" 2>/dev/null || true
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport
+          path: ${{ runner.temp }}/artefact
+          retention-days: 7
+
+  publier:
+    needs: rapport
+    if: always() && needs.rapport.outputs.fin != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: read
+    steps:
+      # Checkout de main, jamais le travail de l'agent : c'est ce code-ci qui
+      # s'exécute avec le jeton.
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: rapport
+          path: ${{ runner.temp }}/artefact
+
+      - name: Publier le rapport, le coût et ouvrir l'issue
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          EXECUTION: ${{ steps.claude.outputs.execution_file }}
-          RAISON: ${{ steps.garde.outputs.raison }}
+          FIN: ${{ needs.rapport.outputs.fin }}
+          RAISON: ${{ needs.rapport.outputs.raison }}
         run: |
           set -euo pipefail
+          a="$RUNNER_TEMP/artefact"
           export DISTANT="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
-          jour=$(node -p 'require("./.pilote/umami.json").fin')
-          cout=$(node tools/pilote.mjs cout rapport "${EXECUTION:--}" "$RAISON")
+          [[ "$FIN" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::Date inattendue : $FIN"; exit 1; }
+          execution="$a/execution.json"
+          [ -f "$execution" ] || execution=-
+          cout=$(node tools/pilote.mjs cout rapport "$execution" "$RAISON")
 
           # Les rapports vivent sur leur propre branche : main est protégée,
-          # et une PR par jour noierait les vraies relectures.
-          if ls reports/*.md >/dev/null 2>&1; then
-            cat reports/*.md >> "$GITHUB_STEP_SUMMARY"
-            tools/publier-rapports.sh "Rapport du $jour" \
-              --copier reports reports --ligne automation/couts.md "$cout"
+          # et une PR par jour noierait les vraies relectures. Seul le
+          # rapport du jour, fichier ordinaire et de taille raisonnable,
+          # quitte l'artefact : l'agent ne peut ni réécrire un rapport passé ni
+          # glisser autre chose sur la branche.
+          rapport="$a/reports/$FIN.md"
+          mkdir -p "$RUNNER_TEMP/publie"
+          if [ -f "$rapport" ] && [ ! -L "$rapport" ] && [ "$(stat -c %s "$rapport")" -lt 100000 ]; then
+            cp "$rapport" "$RUNNER_TEMP/publie/"
+            cat "$rapport" >> "$GITHUB_STEP_SUMMARY"
+            tools/publier-rapports.sh "Rapport du $FIN" \
+              --copier "$RUNNER_TEMP/publie" reports --ligne automation/couts.md "$cout"
           else
             echo "::warning::Aucun rapport écrit."
-            tools/publier-rapports.sh "Coût du $jour" --ligne automation/couts.md "$cout"
+            tools/publier-rapports.sh "Coût du $FIN" --ligne automation/couts.md "$cout"
           fi
 
-          if [ -s .pilote/issue-titre.txt ]; then
-            cp .pilote/issue-corps.md "$RUNNER_TEMP/corps.md"
+          if [ -s "$a/issue-titre.txt" ] && [ -f "$a/issue-corps.md" ]; then
+            cp "$a/issue-corps.md" "$RUNNER_TEMP/corps.md"
             {
               echo
               echo "### PR en attente de relecture"
@@ -119,6 +177,6 @@ jobs:
                 --template '{{range .}}- #{{.number}} {{.title}}{{"\n"}}{{else}}Aucune.{{"\n"}}{{end}}'
             } >> "$RUNNER_TEMP/corps.md"
             gh issue create --repo "$REPO" \
-              --title "$(head -n 1 .pilote/issue-titre.txt)" \
+              --title "$(head -n 1 "$a/issue-titre.txt" | cut -c1-200)" \
               --body-file "$RUNNER_TEMP/corps.md"
           fi

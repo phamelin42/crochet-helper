@@ -65,6 +65,8 @@ for (const theme of THEMES) {
       await page.addInitScript(() => document.documentElement.setAttribute('data-dim', 'true'));
     }
     await page.goto('/');
+    // Avant l'hydratation, le clic serait perdu (pas de rejeu d'événements).
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
     await page.getByRole('button', { name: 'Example', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
 

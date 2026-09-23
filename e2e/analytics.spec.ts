@@ -30,6 +30,12 @@ async function emis(page: Page): Promise<Emis[]> {
   return page.evaluate(() => window.__evenements.splice(0));
 }
 
+/** Avant l'hydratation, un clic est perdu : attendre que l'application soit prête. */
+async function ouvrir(page: Page, chemin: string): Promise<void> {
+  await page.goto(chemin);
+  await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+}
+
 function noms(liste: Emis[]): string[] {
   return liste.map(([nom]) => nom);
 }
@@ -57,7 +63,7 @@ test.afterEach(() => {
 test('coller un patron, avancer de deux étapes, survoler une abréviation, revenir', async ({
   page,
 }) => {
-  await page.goto('/');
+  await ouvrir(page, '/');
   await page.locator('#pattern-source').fill(DEMO_PATTERN);
   await page.getByRole('button', { name: 'Split into steps', exact: true }).click();
   const next = page.getByRole('button', { name: 'Next', exact: true });
@@ -87,12 +93,13 @@ test('coller un patron, avancer de deux étapes, survoler une abréviation, reve
   // Revenir sur la page rouvre le projet : l'événement part au démarrage,
   // avant toute action — celui qu'une file d'attente absente perdait.
   await page.reload();
+  await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
   await expect(next).toBeVisible();
   await expect.poll(async () => noms(await emis(page))).toContain('session_resumed');
 });
 
 test('lancer une conversion US → UK', async ({ page }) => {
-  await page.goto('/us-uk-converter');
+  await ouvrir(page, '/us-uk-converter');
   await page.locator('#converter-input').fill('Row 2: ch 2, sc in each st across, turn (18)');
   await page.getByRole('button', { name: 'Convert', exact: true }).click();
   await expect(page.getByText('dc in each st across')).toBeVisible();

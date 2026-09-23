@@ -154,6 +154,12 @@ Le paquet initial actuel (320,21 ko bruts) reste sous les deux seuils, avec
 une marge d'environ 8 ko — volontairement laissée pour la fiche 04 (pages
 éditoriales), qui vient juste après dans `prompts/README.md`.
 
+**Relevé le 23/09/2026** : avertissement à 325 kB (erreur inchangée à 328 kB).
+Le paquet est à 322,43 kB, dont 95 % d'Angular (`docs/audit-2026-09.md`, § 3) :
+il ne restait que 0,57 kB avant l'avertissement, et plus rien d'important à
+tailler côté application. Décision de Phil, pour laisser passer les fiches 21
+et 22 ; l'échec à 328 kB reste le garde-fou.
+
 ## Intégration continue
 
 `.github/workflows/ci.yml` fait déjà tourner `npm run build` comme étape à

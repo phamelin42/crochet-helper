@@ -12,14 +12,14 @@ dans le lecteur, une fois qu'elles ont lu quelques étapes.
 ## Objectif
 
 À partir de la **troisième étape lue** d'un projet, une ligne discrète sous les
-commandes du lecteur propose un lien externe vers un formulaire. Tant que l'URL
-du formulaire n'est pas fournie, rien ne s'affiche.
+commandes du lecteur propose un lien externe vers le formulaire Tally. Si
+l'URL est vidée, rien ne s'affiche.
 
-## Décision humaine requise
+## Décision déjà prise
 
-L'URL du formulaire (Tally ou Google Forms) est choisie par Phil. Elle vit dans
-une constante, **vide par défaut** : vide = composant inerte, pas de lien, pas
-d'événement. Ne jamais inventer d'URL, même d'exemple, dans le code livré.
+URL du formulaire, choisie par Phil le 23/09/2026 : `https://tally.so/r/A7Z2ve`.
+Elle vit dans une constante ; la vider rend le composant inerte (pas de lien,
+pas d'événement). Aucune autre URL, même d'exemple, dans le code livré.
 
 ## Fichiers à lire
 
@@ -34,7 +34,7 @@ d'événement. Ne jamais inventer d'URL, même d'exemple, dans le code livré.
 
    ```ts
    /** Formulaire externe de la liste d'attente. Vide = rien ne s'affiche. */
-   export const WAITLIST_URL = '';
+   export const WAITLIST_URL = 'https://tally.so/r/A7Z2ve';
    ```
 
 2. Texte, exactement :
@@ -56,7 +56,7 @@ d'événement. Ne jamais inventer d'URL, même d'exemple, dans le code livré.
 
 ## Tests
 
-- URL vide : rien dans le DOM, aucun événement (test de composant).
+- URL vide (injectée dans le test) : rien dans le DOM, aucun événement.
 - URL renseignée (injectée dans le test) : absente aux étapes 1 et 2, présente à 3.
 - Masquée : ne revient pas après rechargement.
 - Le lien ne part que vers l'URL configurée ; aucune requête réseau à l'affichage.
@@ -64,8 +64,8 @@ d'événement. Ne jamais inventer d'URL, même d'exemple, dans le code livré.
 ## Critères d'acceptation
 
 - `npm run verify` vert ; bundle initial sous l'avertissement d'`angular.json`.
-- Audit axe vert sur le lecteur chargé (la ligne est invisible tant que l'URL
-  est vide : l'auditer avec l'URL injectée).
+- Audit axe vert sur le lecteur chargé **à l'étape 3 ou au-delà**, là où la
+  ligne est visible (ajouter ce cas à `e2e/a11y.spec.ts`).
 - La CSP n'est pas modifiée : un lien sortant n'est pas un appel réseau.
 
 ## Hors périmètre

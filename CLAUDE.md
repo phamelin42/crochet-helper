@@ -116,6 +116,15 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
 - **Un garde-fou non branché ne garde rien.** Tout test ou contrôle créé pour
   empêcher une régression (axe, reflow, budget…) tourne dans la CI ou dans
   `npm run verify`, sinon il n'est jamais relancé.
+- **Un événement de mesure se déclare deux fois** : dans `AnalyticsEvent`
+  (`core/analytics`) et dans `EVENEMENTS` (`tools/umami.mjs`), sinon il est
+  collecté mais n'apparaît dans aucun rapport. `tools/evenements.test.mjs` le
+  vérifie.
+- **Workflow du pilote** (claude-code-action) lancé sur une branche : l'étape
+  de l'agent est sautée, le fichier doit être identique à celui de `main`. Sur
+  branche, on ne valide que les étapes d'avant l'agent ; l'agent se valide par
+  `workflow_dispatch` sur `main` après merge. Pour comprendre une exécution,
+  lire son résumé (données lues, forme des réponses d'Umami) avant de relancer.
 - **Service worker** : tout script qui réécrit un fichier de `dist/` après
   `ng build` doit passer **avant** la régénération de `ngsw.json` (`ngsw-config`
   dans `npm run build`), sinon le worker passe en mode dégradé et ne sert plus

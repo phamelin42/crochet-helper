@@ -69,3 +69,9 @@ coûteuses (→ script). Élaguer les entrées de plus de dix fiches.
 - Défauts : aucun. L'agent a suivi les consignes ajoutées par les rétros précédentes (commits au fil de l'eau, page ajoutée elle-même à l'audit axe, corrections a11y avant de rendre) et ses deux tests résistent aux mutations.
 - Coûts : contrôle d'abord écrit en spec Angular, impossible faute de types Node → déplacé dans `tools/` ; premier contrôle trop permissif (`includes`), repéré par un contrôle négatif.
 - Amélioration : `tools/check-showcase.mjs` — le build échoue si un composant de `shared/ui` manque à la vitrine, ce que la fiche faisait vérifier à l'œil ; piège correspondant dans CLAUDE.md ; deux erreurs d'outillage notées.
+
+## Pilote Umami — premier passage réel
+
+- Défauts : secret `UMAMI_URL` mal saisi (`.co`), masqué par « fetch failed » ; le premier rapport attribuait l'entonnoir à des personnes (« aucune n'a fourni de patron »). Événements à 0 sur deux jours : non tranché, à vérifier à la main.
+- Coûts : recherche d'un bundle jamais déposé ; trois exécutions pour voir la forme des réponses ; agent sauté sur branche (workflow ≠ `main`) ; une mutation restée en place après `revert` + `reset`.
+- Amélioration : cause réseau dans `erreur`, mode `forme` et données lues dans le résumé du job, forme Umami 3 figée en test ; `tools/evenements.test.mjs` ; pièges « événement déclaré deux fois » et « workflow sur branche » ; skill : tester le push avant de livrer en bundle.

@@ -44,6 +44,20 @@ qui ne traverse pas fiablement les jours, ce chiffre serait inventé. Donne
 `sessions_par_visiteur` à la place, sans l'appeler fidélité (voir
 `docs/pilote-automatique.md`, « Ce que les chiffres ne disent pas »).
 
+### Entonnoir vide malgré des pages vues
+
+Si **tous** les compteurs de `periode.evenements` valent 0 alors que
+`periode.stats.pages_vues` est au-dessus de 0, deux lectures sont possibles et
+un seul jour ne permet pas de trancher : personne n'a rien fait, ou la mesure
+des événements est cassée. Ne choisis pas. Écris exactement cette ligne sous
+l'entonnoir, sans rien y ajouter :
+
+`Entonnoir vide malgré des pages vues : aucune action mesurée, ou mesure des événements cassée.`
+
+Le lendemain, `.pilote/rapport-veille.md` (le rapport précédent, s'il existe)
+dira si la ligne y figurait déjà ; c'est la seule façon de savoir que le cas
+dure (voir § 4).
+
 ## 3. Écrire le rapport
 
 Fichier `reports/AAAA-MM-JJ.md`, daté de `fin`. Structure :
@@ -67,8 +81,18 @@ du bruit, et le dire est plus honnête que de broder.
   (et la référence compte au moins 30 visiteuses par jour) ;
 - un `taux_depuis_precedent` de l'entonnoir est inférieur de plus de 20 points
   à celui de `reference` ;
-- un événement est à 0 dans `periode` alors qu'il est au-dessus de 0 dans
-  `reference` ;
+- l'entonnoir est vide **deux jours d'affilée avec du trafic** : la ligne
+  « Entonnoir vide malgré des pages vues » figure dans `.pilote/rapport-veille.md`
+  et s'applique encore aujourd'hui, avec au moins 10 visiteuses **chacun** des
+  deux jours (en dessous, une journée sans action est plausible). Titre :
+  `Rapport du JJ/MM — entonnoir vide deux jours de suite`. Un seul jour vide,
+  ou sans rapport de la veille : la ligne, pas d'issue ;
+- un événement est à 0 dans `periode` alors qu'il a eu **au moins 7
+  occurrences** dans `reference` (une par jour en moyenne) et que `periode`
+  compte au moins 30 visiteuses. Les premiers jours du dispositif, la
+  référence est vide : aucune alerte possible, c'est voulu. Si **tous** les
+  événements sont à 0, c'est le cas « entonnoir vide » ci-dessus, pas une
+  alerte par événement ;
 - une erreur est visible dans les données (page 404 en tête, événement absent).
 
 Sinon : écris le rapport, n'ouvre rien. Un rapport quotidien qui notifie tous

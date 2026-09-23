@@ -43,9 +43,9 @@ d'avance, même si la suivante paraît triviale.
 
 ## 2. Vérifier qu'elle est exécutable
 
-Une seule fiche attend aujourd'hui une décision humaine : la **11**, tant que le
-nom de domaine n'est pas choisi. La fiche **10**, elle, est exécutable : elle
-prévoit une constante d'origine vide qui rend la mesure inerte en attendant.
+Une seule fiche attend aujourd'hui une décision humaine : la **20** (comptes
+et paiement), fiche de cadrage marquée « Bloquée » tant que le lot 8 est gelé.
+Ne l'exécute jamais, même partiellement.
 
 Si une fiche exige une décision qui n'est écrite nulle part :
 

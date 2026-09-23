@@ -40,7 +40,18 @@ export const EVENEMENTS = [
   'project_resumed',
   'backup_exported',
   'backup_imported',
+  'returning_visit_1d',
+  'returning_visit_2_7d',
+  'returning_visit_8_30d',
+  'returning_visit_31d',
+  'reading_depth_5',
+  'reading_depth_20',
+  'reading_depth_50',
 ];
+
+/** Sept noms distincts : la tranche ou le palier vit dans le nom, pas dans une propriété. */
+const RETOUR_TRANCHES = ['1d', '2_7d', '8_30d', '31d'];
+const PROFONDEUR_PALIERS = [5, 20, 50];
 
 /** Umami 2 nomme « url » ce qu'Umami 3 nomme « path ». */
 const TYPES_PAGE = ['path', 'url'];
@@ -109,6 +120,11 @@ function nombre(v) {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
+/** `null` quand le dénominateur vaut 0 : un taux ne se calcule pas sur rien. */
+function ratio(a, b, chiffres) {
+  return b > 0 ? Number((a / b).toFixed(chiffres)) : null;
+}
+
 /** Umami 2 : `{ pageviews: { value, prev } }` ; Umami 3 : `{ pageviews: 12 }`. */
 export function lireStats(brut) {
   if (typeof brut !== 'object' || brut === null) throw new Error('statistiques illisibles');
@@ -117,7 +133,6 @@ export function lireStats(brut) {
   const sessions = nombre(brut.visits);
   const rebonds = nombre(brut.bounces);
   const dureeTotale = nombre(brut.totaltime);
-  const ratio = (a, b, chiffres) => (b > 0 ? Number((a / b).toFixed(chiffres)) : null);
   return {
     visiteurs,
     sessions,
@@ -165,6 +180,20 @@ async function lireFenetre(lire, f, detail) {
   const evenements = Object.fromEntries(EVENEMENTS.map((e) => [e, 0]));
   for (const { nom, nombre: n } of evenementsBruts) if (nom in evenements) evenements[nom] = n;
 
+  const retours = RETOUR_TRANCHES.map((t) => evenements[`returning_visit_${t}`]);
+  const retour = {
+    par_tranche: Object.fromEntries(RETOUR_TRANCHES.map((t, i) => [t, retours[i]])),
+    part_des_visiteurs: ratio(
+      retours.reduce((a, b) => a + b, 0),
+      stats.visiteurs,
+      2,
+    ),
+  };
+  const profondeur = {
+    ...Object.fromEntries(PROFONDEUR_PALIERS.map((p) => [p, evenements[`reading_depth_${p}`]])),
+    part_des_decoupages_5: ratio(evenements.reading_depth_5, evenements.pattern_parsed, 2),
+  };
+
   const sortie = {
     debut: f.debut,
     fin: f.fin,
@@ -176,6 +205,8 @@ async function lireFenetre(lire, f, detail) {
       pages_vues: Number((stats.pages_vues / f.jours).toFixed(1)),
     },
     evenements,
+    retour,
+    profondeur,
     entonnoir: entonnoir(stats, evenements),
     pages: null,
     provenances: null,

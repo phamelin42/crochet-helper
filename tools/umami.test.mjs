@@ -198,6 +198,11 @@ const FORME_FENETRE = {
   },
   moyenne_journaliere: { visiteurs: 'number', sessions: 'number', pages_vues: 'number' },
   evenements: Object.fromEntries(EVENEMENTS.map((e) => [e, 'number'])),
+  retour: {
+    par_tranche: { '1d': 'number', '2_7d': 'number', '8_30d': 'number', '31d': 'number' },
+    part_des_visiteurs: 'number',
+  },
+  profondeur: { 5: 'number', 20: 'number', 50: 'number', part_des_decoupages_5: 'number' },
   entonnoir: ['4 éléments', { cran: 'string', nombre: 'number', taux_depuis_precedent: 'null' }],
 };
 const ENTETE = {
@@ -257,6 +262,11 @@ test('Umami 3 : les chiffres figés arrivent aux bons endroits', async () => {
     duree_moyenne_session_s: 5,
   });
   assert.equal(r.periode.evenements.pattern_pasted, 2);
+  assert.deepEqual(r.periode.retour, {
+    par_tranche: { '1d': 1, '2_7d': 0, '8_30d': 0, '31d': 0 },
+    part_des_visiteurs: 0.33,
+  });
+  assert.deepEqual(r.periode.profondeur, { 5: 1, 20: 0, 50: 0, part_des_decoupages_5: 0.5 });
   assert.deepEqual(r.periode.pages[1], { nom: '/fr/glossaire/ms', nombre: 2 });
   assert.deepEqual(
     r.periode.entonnoir.map((c) => c.nombre),

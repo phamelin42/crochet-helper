@@ -12,7 +12,9 @@
     "event": [
       { "x": "pattern_pasted", "y": 2 },
       { "x": "pattern_parsed", "y": 2 },
-      { "x": "step_advanced", "y": 9 }
+      { "x": "step_advanced", "y": 9 },
+      { "x": "returning_visit_1d", "y": 1 },
+      { "x": "reading_depth_5", "y": 1 }
     ],
     "path": [
       { "x": "/", "y": 3 },

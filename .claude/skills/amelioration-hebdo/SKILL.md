@@ -11,10 +11,17 @@ autorisée à proposer des changements de sa propre initiative.
 
 ## 1. Rassembler
 
-- Les rapports de `reports/` sur 7 et 28 jours.
-- Les données Umami agrégées sur ces deux fenêtres (variables `UMAMI_*`).
-- Les Core Web Vitals, mesurés sur le site en production, sur mobile.
-- Le poids du bundle actuel, comparé à celui d'il y a quatre semaines.
+- `.pilote/umami.json`, produit par `tools/umami.mjs` : `periode` (7 derniers
+  jours), `reference` (les 7 jours d'avant, sans chevauchement) et `mois`
+  (28 jours). Tu n'as ni réseau ni secret : n'appelle aucune API. `ok: false`
+  → écris-le en une ligne dans l'issue, n'ouvre aucune PR, termine.
+- Les rapports quotidiens, recopiés dans `.pilote/reports/`, et les quatre
+  derniers points hebdomadaires dans `.pilote/points.json`.
+- Les limites listées dans `limites` : pas de taux de retour (Umami ne suit
+  pas une visiteuse d'un jour à l'autre), entonnoir en occurrences. Ne conclus
+  rien sur la fidélité.
+- Le poids du bundle actuel (`npx ng build --stats-json`), comparé à celui
+  noté dans le point d'il y a quatre semaines.
 - Le jalon en cours dans le business plan, via `prompts/README.md` et
   `automation/avancement.md`.
 
@@ -44,33 +51,40 @@ passe à autre chose.
 
 ## 3. Mettre en œuvre
 
-Pour chaque action retenue, ouvre **une PR séparée**. Jamais une PR fourre-tout :
-elles doivent pouvoir être acceptées ou refusées indépendamment.
+Pour chaque action retenue, **une branche séparée** partant de `main`, nommée
+`hebdo-<slug>` (minuscules, chiffres, tirets), avec ses commits et
+`npm run verify` vert. Jamais une branche fourre-tout : elles doivent pouvoir
+être acceptées ou refusées indépendamment. Écris son titre de PR dans
+`.pilote/<branche>.titre` et sa description dans `.pilote/<branche>.md`. Tu
+n'as aucun droit sur GitHub : le workflow pousse ces branches et ouvre les PR.
+Ne touche ni à `.github/` ni à `.claude/` — la branche serait refusée.
 
-Est auto-fusionnable — et seulement si la CI est verte :
+Aucune PR n'est fusionnée automatiquement. Indique dans chaque description sa
+catégorie. Est « relecture rapide » :
 
 - ajout d'entrées au glossaire ;
 - correction de fautes dans les traductions ;
 - mise à jour de dépendance en version corrective ;
 - métadonnées SEO : `title`, description, JSON-LD ;
-- le rapport lui-même.
 
-Tout le reste ouvre une PR **en attente de relecture humaine**, et tu ne la
-fusionnes pas : parseur, stockage, routes, CSP, design, `tokens.css`,
+Tout le reste est « relecture approfondie » : parseur, stockage, routes, CSP, design, `tokens.css`,
 dépendances majeures, toute nouvelle fonctionnalité.
 
-Dans le doute sur la catégorie, c'est de la relecture humaine.
+Dans le doute sur la catégorie, c'est de la relecture approfondie.
 
 ## 4. Rendre compte
 
-Ouvre une issue `Point hebdomadaire — semaine du JJ/MM` contenant :
+Écris le titre `Point hebdomadaire — semaine du JJ/MM` dans
+`.pilote/issue-titre.txt` et le corps dans `.pilote/issue-corps.md` (le
+workflow y ajoute la liste des PR ouvertes) :
 
 1. Ce qui a changé cette semaine, en trois lignes.
 2. Les trois actions, au format ci-dessus.
-3. Les PR ouvertes, avec pour chacune : auto-fusionnable ou en attente.
+3. Les branches préparées, avec pour chacune sa catégorie de relecture.
 4. **Les vérifications faites il y a deux semaines** : les seuils annoncés
    alors ont-ils été atteints ? Dire qu'une action n'a rien donné est plus utile
    que d'en proposer une nouvelle.
+5. Le poids du bundle, pour la comparaison dans quatre semaines.
 
 Le point 4 est ce qui empêche le dispositif de tourner à vide. Ne le saute pas,
 même quand la réponse est décevante.

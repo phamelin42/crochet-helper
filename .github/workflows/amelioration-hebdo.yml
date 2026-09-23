@@ -1,12 +1,15 @@
 # Phase 3 — Amélioration continue.
-# Analyse 7 et 28 jours, propose au maximum trois actions, ouvre les PR.
+#
+# Même modèle que « Lot suivant » : le workflow prépare les données (Umami sur
+# 7 et 28 jours par tools/umami.mjs, rapports de la branche `rapports`),
+# l'agent travaille sans secret ni droit d'écriture et commite chaque action
+# sur une branche locale `hebdo-<slug>` ; la dernière étape publie ces
+# branches, lance la CI dessus, ouvre une PR par branche et l'issue du point.
 name: Amelioration hebdomadaire
 
 on:
-  # En pause : sera réactivé quand Umami sera installé et la phase recâblée
-  # (voir docs/pilote-automatique.md). Lancé à la main, l'agent n'a aucun outil.
-  # schedule:
-  #   - cron: '0 4 * * 1' # lundi 06h00 heure de Paris
+  schedule:
+    - cron: '0 4 * * 1' # lundi 06h00 heure de Paris (04h00 UTC en été)
   workflow_dispatch:
 
 concurrency:
@@ -16,17 +19,18 @@ concurrency:
 jobs:
   ameliorer:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     permissions:
       contents: write
       pull-requests: write
       issues: write
       id-token: write
-      actions: read
+      actions: write # lancer la CI sur les branches publiées
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
@@ -35,12 +39,63 @@ jobs:
 
       - run: npm ci
 
-      - uses: anthropics/claude-code-action@v1
+      - name: Lire Umami et les rapports
         env:
           UMAMI_URL: ${{ secrets.UMAMI_URL }}
           UMAMI_TOKEN: ${{ secrets.UMAMI_TOKEN }}
           UMAMI_WEBSITE_ID: ${{ secrets.UMAMI_WEBSITE_ID }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p .pilote
+          node tools/umami.mjs hebdo > .pilote/umami.json
+          if git fetch -q "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" rapports 2>/dev/null; then
+            git archive FETCH_HEAD reports | tar -x -C .pilote
+          fi
+          # Le point d'il y a deux semaines annonçait des seuils à vérifier.
+          gh issue list --repo "$REPO" --state all --limit 4 \
+            --search 'in:title "Point hebdomadaire"' --json title,body,createdAt > .pilote/points.json
+          git config --global user.name "Pilote automatique"
+          git config --global user.email "pilote-automatique@users.noreply.github.com"
+
+      - id: claude
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: '/amelioration-hebdo'
-          claude_args: '--max-turns 40'
+          claude_args: >-
+            --max-turns 120
+            --allowedTools "Read,Glob,Grep,Edit,MultiEdit,Write,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(git:*),Bash(ls:*)"
+
+      - name: Publier les branches et ouvrir les PR
+        if: always() && steps.claude.outcome != 'skipped'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          distant="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          liste=""
+          for branche in $(git branch --format='%(refname:short)' | grep -E '^hebdo-[a-z0-9-]+$' || true); do
+            if [ -z "$(git log --oneline origin/main.."$branche")" ]; then continue; fi
+            # Un workflow modifié dans une PR s'exécute avec les secrets du dépôt.
+            if git diff --name-only origin/main.."$branche" | grep -qE '^(\.github|\.claude)/'; then
+              echo "::error::$branche modifie .github/ ou .claude/ : publication refusée."
+              continue
+            fi
+            git push -q "$distant" "$branche:refs/heads/$branche"
+            gh workflow run ci.yml --repo "$REPO" --ref "$branche"
+            titre=$(head -n 1 ".pilote/$branche.titre" 2>/dev/null || git log -1 --format=%s "$branche")
+            [ -s ".pilote/$branche.md" ] || git log --format='- %s' origin/main.."$branche" > ".pilote/$branche.md"
+            url=$(gh pr create --repo "$REPO" --base main --head "$branche" \
+              --title "$titre" --body-file ".pilote/$branche.md")
+            liste="$liste- $titre — $url"$'\n'
+          done
+
+          if [ -s .pilote/issue-titre.txt ]; then
+            cp .pilote/issue-corps.md "$RUNNER_TEMP/corps.md"
+            printf '\n### PR ouvertes par ce point\n%s' "${liste:-Aucune.}" >> "$RUNNER_TEMP/corps.md"
+            gh issue create --repo "$REPO" \
+              --title "$(head -n 1 .pilote/issue-titre.txt)" \
+              --body-file "$RUNNER_TEMP/corps.md"
+          fi

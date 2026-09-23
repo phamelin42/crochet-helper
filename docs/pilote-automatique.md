@@ -92,28 +92,55 @@ create and approve pull requests**. Aucun workflow du dépôt n'approuve de PR.
 Tant qu'elle n'est pas prise, l'agent saute la fiche 11 et continue. La fiche 10
 n'attend rien : elle livre une mesure inerte, activée plus tard par une constante.
 
-## 7. Umami, quand tu es prêt
+## 7. Brancher Umami
 
-Une fois Umami installé et le site créé dans son interface, ajoute trois secrets
-au dépôt :
+Umami tourne sur `https://analytics.patternreader.com`
+(`docs/adr-001-mesure-audience.md`). Ajoute trois secrets au dépôt
+(_Settings → Secrets and variables → Actions_) :
 
-- `UMAMI_URL` — l'origine de ton instance
-- `UMAMI_TOKEN` — un jeton d'API en lecture
-- `UMAMI_WEBSITE_ID` — l'identifiant du site
+- `UMAMI_URL` — `https://analytics.patternreader.com`
+- `UMAMI_WEBSITE_ID` — `ANALYTICS_SITE_ID` de `analytics.config.ts`
+- `UMAMI_TOKEN` — le jeton renvoyé par `POST /api/auth/login` sur l'instance
 
-Les phases 2 et 3 (rapport quotidien, amélioration hebdomadaire) sont **en
-pause** : leur planification est commentée dans leurs workflows. Elles seront
-recâblées sur le même modèle que la phase 1 — l'agent analyse des fichiers
-préparés par le workflow, sans accès réseau ni secret — et testées contre ton
-instance Umami réelle avant d'être réactivées.
+Puis lance « Rapport quotidien » à la main pour valider la chaîne : le résumé
+de l'exécution affiche `ok: true` et le rapport.
+
+Les phases 2 et 3 suivent le modèle de la phase 1. Seule l'étape
+`node tools/umami.mjs` voit les secrets ; elle imprime un JSON de forme fixe
+dans `.pilote/umami.json`, que l'agent lit sans réseau ni droit d'écriture.
+C'est le seul fichier à corriger quand Umami change de version majeure, et
+c'est ce qui rend les chiffres comparables d'un jour à l'autre. Sans secrets
+ou API injoignable, le script sort `ok: false` et le rapport le dit : le job
+ne passe jamais au rouge pour ça.
+
+- Les rapports quotidiens sont publiés sur la branche `rapports` (pas de PR :
+  `main` est protégée, et une PR par jour noierait les relectures). Une issue
+  n'est ouverte que si quelque chose a bougé.
+- Le point hebdomadaire prépare une branche `hebdo-<slug>` par action ; le
+  workflow les pousse, lance la CI et ouvre une PR par branche, plus l'issue
+  du point. Aucune n'est fusionnée automatiquement.
+
+La veille est comparée aux 7 jours qui la **précèdent**, sans elle — une
+moyenne qui contient le jour mesuré atténue l'écart qu'on cherche.
+
+### Ce que les chiffres ne disent pas
+
+- **La fidélité.** Umami identifie une visite par une empreinte technique
+  (sans cookie) qui ne traverse pas fiablement les jours : un taux de retour à
+  7 jours serait inventé. Le rapport donne `sessions / visiteurs`, qui n'en est
+  pas un. Mesurer le retour demanderait un identifiant persistant, donc un
+  bandeau de consentement : c'est une décision produit, pas un réglage.
+- **Des personnes, dans l'entonnoir.** Les crans comptent des occurrences
+  d'événements ; les taux sont des ordres de grandeur.
+- **Le total exact.** Une partie des bloqueurs écarte le traceur : plancher.
 
 ## Ce qui se passe ensuite
 
-| Quand             | Quoi                                                     | État     |
-| ----------------- | -------------------------------------------------------- | -------- |
-| Dimanche 5h       | Une fiche exécutée, une PR ouverte                       | Actif    |
-| Tous les jours 5h | Rapport écrit ; issue seulement si quelque chose a bougé | En pause |
-| Lundi 6h          | Point hebdomadaire et jusqu'à trois propositions         | En pause |
+| Quand             | Quoi                                                     | État  |
+| ----------------- | -------------------------------------------------------- | ----- |
+| Dimanche 5h       | Une fiche exécutée, une PR ouverte                       | Actif |
+| Tous les jours 5h | Rapport écrit ; issue seulement si quelque chose a bougé | Actif |
+| Lundi 6h          | Point hebdomadaire et jusqu'à trois propositions         | Actif |
 
 Aucune fusion automatique n'est câblée : toutes les PR attendent ta relecture.
 

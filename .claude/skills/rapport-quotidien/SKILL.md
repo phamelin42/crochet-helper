@@ -8,42 +8,44 @@ description: Lit les données Umami de la veille, écrit le rapport dans reports
 Tu écris le rapport d'usage de la veille pour une personne qui a dix minutes par
 semaine à y consacrer. Tout ce qui n'aide pas à décider est du bruit.
 
-## 1. Récupérer les données
+## 1. Lire les données
 
-Les variables d'environnement `UMAMI_URL`, `UMAMI_TOKEN` et `UMAMI_WEBSITE_ID`
-sont disponibles. L'API d'Umami est documentée sur `docs.umami.is` — lis la
-référence avant d'appeler, les chemins changent entre versions majeures.
+Le workflow a déjà interrogé Umami : tout est dans `.pilote/umami.json`, produit
+par `tools/umami.mjs`. N'appelle aucune API, n'essaie pas d'en savoir plus que
+ce fichier — tu n'as ni réseau ni secret, et c'est voulu : les chiffres restent
+comparables d'un jour à l'autre.
 
-Si les variables sont absentes ou l'API injoignable : écris un rapport qui le dit
-en deux lignes, n'ouvre pas d'issue, et termine. Ce n'est pas un échec de job.
+- `ok: false` : écris un rapport de deux lignes qui recopie `erreur`, n'ouvre
+  pas d'issue, et termine. Ce n'est pas un échec.
+- `periode` : la veille (`fin`), heure de Paris. `stats` (visiteurs, sessions,
+  pages vues, sessions par visiteur, taux de rebond, durée moyenne de session),
+  `pages` et `provenances` (cinq premières), `evenements` (chaque événement
+  instrumenté, à 0 s'il n'a pas eu lieu), `entonnoir`.
+- `reference` : les 7 jours **précédant** la veille, sans elle.
+  Compare `periode.stats` à `reference.moyenne_journaliere`.
+- `limites` : à reprendre en pied de rapport, une ligne chacune.
 
-Récupère, pour la journée d'hier :
+## 2. L'entonnoir
 
-- visiteuses uniques, sessions, pages vues ;
-- durée moyenne de session et taux de rebond ;
-- les cinq pages les plus vues, et leur provenance ;
-- **tous les événements nommés**, avec leur nombre.
-
-Puis les mêmes chiffres sur les 7 jours précédents, pour comparer.
-
-## 2. Reconstituer l'entonnoir
-
-C'est le cœur du rapport. À partir des événements :
+C'est le cœur du rapport :
 
 ```
-arrivée → patron fourni (collé ou PDF) → découpage réussi → 3 étapes franchies
+arrivée → patron fourni (collé ou PDF) → découpage réussi → étape franchie
 ```
 
-Donne le nombre et le taux de passage à chaque cran. L'endroit où ça chute le
-plus est l'information la plus utile de la journée.
+Recopie les nombres et `taux_depuis_precedent` de `periode.entonnoir`. Ce sont
+des occurrences d'événements, pas des personnes : écris « 30 patrons fournis »,
+jamais « 30 visiteuses ont fourni un patron ». L'endroit où ça chute le plus
+est l'information la plus utile de la journée.
 
-Ajoute le **taux de retour à 7 jours** — la part des visiteuses revenues au
-moins une fois dans la semaine. C'est le seul indicateur qui prédise un futur
-abonnement ; traite-le comme le chiffre principal, pas comme un bonus.
+Pas de taux de retour : Umami identifie une visite par une empreinte technique
+qui ne traverse pas fiablement les jours, ce chiffre serait inventé. Donne
+`sessions_par_visiteur` à la place, sans l'appeler fidélité (voir
+`docs/pilote-automatique.md`, « Ce que les chiffres ne disent pas »).
 
 ## 3. Écrire le rapport
 
-Fichier `reports/AAAA-MM-JJ.md`. Structure :
+Fichier `reports/AAAA-MM-JJ.md`, daté de `fin`. Structure :
 
 1. **Une phrase** qui dit ce qui s'est passé. Pas « voici le rapport du… ».
 2. Le tableau des chiffres, avec l'écart à la semaine précédente.
@@ -60,23 +62,27 @@ du bruit, et le dire est plus honnête que de broder.
 
 **Ouvre une issue seulement si l'un de ces cas est vrai :**
 
-- le trafic a varié de plus de 40 % par rapport à la moyenne des 7 jours ;
-- un cran de l'entonnoir a chuté de plus de 20 points ;
-- une fonctionnalité instrumentée n'a été utilisée aucune fois alors qu'elle
-  l'avait été les jours précédents ;
-- une erreur est visible dans les données (page 404 en tête, événement absent) ;
-- c'est lundi — un point hebdomadaire part de toute façon.
+- le trafic a varié de plus de 40 % par rapport à `reference.moyenne_journaliere`
+  (et la référence compte au moins 30 visiteuses par jour) ;
+- un `taux_depuis_precedent` de l'entonnoir est inférieur de plus de 20 points
+  à celui de `reference` ;
+- un événement est à 0 dans `periode` alors qu'il est au-dessus de 0 dans
+  `reference` ;
+- une erreur est visible dans les données (page 404 en tête, événement absent).
 
-Sinon : commite le rapport, n'ouvre rien. Un rapport quotidien qui notifie tous
+Sinon : écris le rapport, n'ouvre rien. Un rapport quotidien qui notifie tous
 les jours pour ne rien dire cesse d'être lu en un mois, et ce jour-là le
 dispositif entier ne sert plus à rien.
 
-Titre de l'issue : `Rapport du JJ/MM — <la phrase qui résume>`. Corps : le
-rapport en entier, plus la liste des PR ouvertes en attente de relecture.
+Tu n'as aucun droit sur GitHub : pour ouvrir l'issue, écris son titre sur une
+ligne dans `.pilote/issue-titre.txt` — `Rapport du JJ/MM — <la phrase qui
+résume>` — et le rapport en entier dans `.pilote/issue-corps.md`. Le workflow
+l'ouvre, y ajoute la liste des PR en attente, et publie le rapport sur la
+branche `rapports`. Ne commite rien.
 
 ## 5. Ne fais pas
 
-Ne modifie aucun code dans cette exécution. Ne propose pas d'améliorations : ça
+N'écris rien hors de `reports/` et `.pilote/`. Ne propose pas d'améliorations : ça
 relève du rapport hebdomadaire, qui a le recul nécessaire. Ne stocke jamais de
 donnée personnelle dans le rapport — pas d'adresse IP, pas d'identifiant de
 session, pas de contenu de patron.

@@ -1,12 +1,14 @@
 # Phase 2 — Observation.
-# Lit Umami sur J-1, écrit le rapport, ouvre une issue si quelque chose a bougé.
+#
+# Le workflow lit Umami sur la veille avec tools/umami.mjs (seule étape qui
+# voit les secrets), l'agent écrit le rapport à partir de ce JSON sans réseau
+# ni droit d'écriture, puis la dernière étape publie le rapport sur la branche
+# `rapports` et ouvre l'issue si l'agent l'a demandée.
 name: Rapport quotidien
 
 on:
-  # En pause : sera réactivé quand Umami sera installé et la phase recâblée
-  # (voir docs/pilote-automatique.md). Lancé à la main, l'agent n'a aucun outil.
-  # schedule:
-  #   - cron: '0 3 * * *' # 05h00 heure de Paris
+  schedule:
+    - cron: '0 3 * * *' # 05h00 heure de Paris (03h00 UTC en été)
   workflow_dispatch:
 
 concurrency:
@@ -19,21 +21,82 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: write
-      pull-requests: write
       issues: write
+      pull-requests: read
       id-token: write
-      actions: read
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 1
+          persist-credentials: false
 
-      - uses: anthropics/claude-code-action@v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # Ne fait jamais échouer le job : sans secrets ou API injoignable, le
+      # JSON porte ok: false et le rapport le dit.
+      - name: Lire Umami
         env:
           UMAMI_URL: ${{ secrets.UMAMI_URL }}
           UMAMI_TOKEN: ${{ secrets.UMAMI_TOKEN }}
           UMAMI_WEBSITE_ID: ${{ secrets.UMAMI_WEBSITE_ID }}
+        run: |
+          mkdir -p .pilote reports
+          node tools/umami.mjs quotidien > .pilote/umami.json
+          node -e 'const r=require("./.pilote/umami.json"); console.log(`ok: ${r.ok} · ${r.fin} · ${r.erreur ?? ""}`)' | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - id: claude
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: '/rapport-quotidien'
-          claude_args: '--max-turns 25'
+          claude_args: >-
+            --max-turns 15
+            --allowedTools "Read,Glob,Grep,Write"
+
+      - name: Publier le rapport et ouvrir l'issue
+        if: always() && steps.claude.outcome != 'skipped'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          distant="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          jour=$(node -p 'require("./.pilote/umami.json").fin')
+
+          if ls reports/*.md >/dev/null 2>&1; then
+            cat reports/*.md >> "$GITHUB_STEP_SUMMARY"
+            git config --global user.name "Pilote automatique"
+            git config --global user.email "pilote-automatique@users.noreply.github.com"
+            # Les rapports vivent sur leur propre branche : main est protégée,
+            # et une PR par jour noierait les vraies relectures.
+            r="$RUNNER_TEMP/rapports"
+            if git fetch -q --depth 1 "$distant" rapports 2>/dev/null; then
+              git worktree add -q "$r" FETCH_HEAD
+            else
+              git worktree add -q --orphan -b rapports "$r"
+            fi
+            mkdir -p "$r/reports"
+            cp reports/*.md "$r/reports/"
+            git -C "$r" add reports
+            if ! git -C "$r" diff --cached --quiet; then
+              git -C "$r" commit -qm "Rapport du $jour"
+              git -C "$r" push -q "$distant" HEAD:refs/heads/rapports
+            fi
+          else
+            echo "::warning::L'agent n'a écrit aucun rapport."
+          fi
+
+          if [ -s .pilote/issue-titre.txt ]; then
+            cp .pilote/issue-corps.md "$RUNNER_TEMP/corps.md"
+            {
+              echo
+              echo "### PR en attente de relecture"
+              gh pr list --repo "$REPO" --state open --json number,title \
+                --template '{{range .}}- #{{.number}} {{.title}}{{"\n"}}{{else}}Aucune.{{"\n"}}{{end}}'
+            } >> "$RUNNER_TEMP/corps.md"
+            gh issue create --repo "$REPO" \
+              --title "$(head -n 1 .pilote/issue-titre.txt)" \
+              --body-file "$RUNNER_TEMP/corps.md"
+          fi

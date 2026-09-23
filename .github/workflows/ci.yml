@@ -35,6 +35,9 @@ jobs:
       - name: Tests unitaires
         run: npm run test:ci
 
+      - name: Tests des outils
+        run: npm run test:tools
+
       - name: Build de production + pré-rendu
         run: npm run build
 

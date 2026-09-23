@@ -47,6 +47,16 @@ l'ensemble cohérent :
   (ou l'inverse), ou si elle porte une barre finale — le service concatène
   `/script.js`.
 
+Le traceur ne se charge que sur `patternreader.com` (`ANALYTICS_HOSTNAMES`) :
+jusqu'au 24/09/2026, les tests de la CI le chargeaient depuis `localhost`, et
+7 visites sur 10 du 23/09 venaient d'eux. Les chiffres antérieurs sont donc
+gonflés. Un événement émis avant la fin du chargement du traceur (reprise de
+session au démarrage, patron ouvert par un lien) attend dans une file bornée
+au lieu d'être perdu. En développement seulement, la console signale un
+traceur non chargé ou un événement refusé, par son nom, jamais ses données.
+`e2e/analytics.spec.ts` vérifie sur le site construit que les parcours réels
+émettent les événements attendus, et qu'aucun test ne contacte le collecteur.
+
 Vider `ANALYTICS_ORIGIN` reste le moyen de tout éteindre : le service
 redevient inerte, aucun script n'est chargé, et les contrôles ci-dessus
 s'effacent d'eux-mêmes.

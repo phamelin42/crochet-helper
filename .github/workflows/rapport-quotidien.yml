@@ -34,6 +34,21 @@ jobs:
         with:
           node-version: 24
 
+      # Le rapport précédent : seule mémoire de l'agent d'un jour à l'autre,
+      # pour savoir si un entonnoir vide dure (skill rapport-quotidien, § 4).
+      - name: Rapport de la veille
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p .pilote
+          veille=$(date -d "$(TZ=Europe/Paris date +%F) -2 days" +%F)
+          if git fetch -q --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" rapports 2>/dev/null; then
+            git show "FETCH_HEAD:reports/$veille.md" > .pilote/rapport-veille.md 2>/dev/null ||
+              rm -f .pilote/rapport-veille.md
+          fi
+          echo "Rapport de la veille ($veille) : $([ -s .pilote/rapport-veille.md ] && echo trouvé || echo absent)"
+
       # Ne fait jamais échouer le job : sans secrets ou API injoignable, le
       # JSON porte ok: false et le rapport le dit.
       - name: Lire Umami

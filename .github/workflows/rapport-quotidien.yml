@@ -45,6 +45,15 @@ jobs:
           mkdir -p .pilote reports
           node tools/umami.mjs quotidien > .pilote/umami.json
           node -e 'const r=require("./.pilote/umami.json"); console.log(`ok: ${r.ok} · ${r.fin} · ${r.erreur ?? ""}`)' | tee -a "$GITHUB_STEP_SUMMARY"
+          # Agrégats seulement (ni IP, ni identifiant) : de quoi vérifier le
+          # rapport contre les données sans relancer le job.
+          {
+            echo '<details><summary>Données lues</summary>'
+            echo; echo '```json'; cat .pilote/umami.json; echo '```'
+            echo; echo 'Forme des réponses brutes :'
+            echo; echo '```json'; node tools/umami.mjs forme; echo '```'
+            echo '</details>'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
       - id: claude
         uses: anthropics/claude-code-action@v1

@@ -120,6 +120,12 @@ ne passe jamais au rouge pour ça.
   workflow les pousse, lance la CI et ouvre une PR par branche, plus l'issue
   du point. Aucune n'est fusionnée automatiquement.
 
+Le résumé de chaque exécution de « Rapport quotidien » montre, repliés, le
+JSON lu par l'agent et la **forme** des réponses brutes d'Umami (clés et
+types, sans valeurs, `node tools/umami.mjs forme`). Après une mise à jour
+d'Umami, c'est là qu'on voit ce qui a changé ; `tools/fixtures/umami-v3.json`
+fige la forme relevée sur l'instance (Umami 3, `type=path` et non `url`).
+
 La veille est comparée aux 7 jours qui la **précèdent**, sans elle — une
 moyenne qui contient le jour mesuré atténue l'écart qu'on cherche.
 

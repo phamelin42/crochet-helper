@@ -4,6 +4,7 @@
 //
 //   node tools/umami.mjs quotidien [AAAA-MM-JJ]   # défaut : hier, heure de Paris
 //   node tools/umami.mjs hebdo     [AAAA-MM-JJ]   # défaut : semaine finie hier
+//   node tools/umami.mjs forme                    # structure des réponses brutes, sans valeurs
 //
 // La forme du JSON est fixe : mêmes clés, dans le même ordre, que l'API
 // réponde ou non. Sans secrets, API injoignable ou réponse aberrante : `ok`
@@ -276,11 +277,58 @@ export function decrire(e) {
   return causes.length ? `${e.message} (${causes.join(' ← ')})` : e.message;
 }
 
+/** Structure d'une valeur, sans aucune valeur : clés, types, longueurs. */
+export function structure(v, profondeur = 0) {
+  if (Array.isArray(v)) {
+    return v.length ? [`${v.length} éléments`, structure(v[0], profondeur + 1)] : [];
+  }
+  if (v === null) return 'null';
+  if (typeof v !== 'object' || profondeur > 3) return typeof v;
+  return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, structure(x, profondeur + 1)]));
+}
+
+/**
+ * Mode `forme` : pour chaque appel que fait le script, le statut HTTP et la
+ * structure de la réponse brute. Sert à voir d'un coup d'œil ce qu'une
+ * nouvelle version d'Umami a changé, sans exposer un seul chiffre.
+ */
+export async function forme({ env, fetch, maintenant = Date.now() }) {
+  const { UMAMI_URL: url, UMAMI_TOKEN: jeton, UMAMI_WEBSITE_ID: site } = env;
+  if (!url || !jeton || !site) return { ok: false, erreur: 'Secrets absents.' };
+  const f = fenetre(decaler(dateParis(maintenant), -1), 1);
+  const temps = { startAt: f.startAt, endAt: f.endAt };
+  const lire = client({ url, jeton, site, fetch });
+  const appels = {
+    stats: ['stats', temps],
+    'metrics?type=event': ['metrics', { ...temps, type: 'event' }],
+    'metrics?type=path': ['metrics', { ...temps, type: 'path', limit: 5 }],
+    'metrics?type=url': ['metrics', { ...temps, type: 'url', limit: 5 }],
+    'metrics?type=referrer': ['metrics', { ...temps, type: 'referrer', limit: 5 }],
+  };
+  const sortie = { ok: true, jour: f.debut, reponses: {} };
+  for (const [nom, [chemin, params]] of Object.entries(appels)) {
+    try {
+      sortie.reponses[nom] = structure(await lire(chemin, params));
+    } catch (e) {
+      sortie.reponses[nom] = `erreur : ${decrire(e)}`.replaceAll(jeton, '***');
+    }
+  }
+  return sortie;
+}
+
 async function principal() {
   const [mode = 'quotidien', date] = process.argv.slice(2);
   let sortie;
-  if (!['quotidien', 'hebdo'].includes(mode) || (date && !/^\d{4}-\d{2}-\d{2}$/.test(date))) {
-    sortie = { ok: false, erreur: 'Usage : node tools/umami.mjs quotidien|hebdo [AAAA-MM-JJ]' };
+  if (mode === 'forme') {
+    sortie = await forme({ env: process.env, fetch: globalThis.fetch });
+  } else if (
+    !['quotidien', 'hebdo'].includes(mode) ||
+    (date && !/^\d{4}-\d{2}-\d{2}$/.test(date))
+  ) {
+    sortie = {
+      ok: false,
+      erreur: 'Usage : node tools/umami.mjs quotidien|hebdo [AAAA-MM-JJ] | forme',
+    };
   } else {
     sortie = await collecter({ mode, date, env: process.env, fetch: globalThis.fetch });
   }

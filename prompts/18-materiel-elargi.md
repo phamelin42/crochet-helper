@@ -1,5 +1,7 @@
 # 18 — Reconnaître plus d'en-têtes de matériel
 
+**Étape d'entonnoir servie : activation.**
+
 ## Pourquoi
 
 Quand l'en-tête de la liste de matériel n'est pas reconnu, rien n'est perdu,

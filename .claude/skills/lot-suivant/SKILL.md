@@ -72,7 +72,9 @@ même et dis pourquoi dans la description de la PR.
 
 Commits découpés par intention, message en français à l'impératif, **faits au
 fil de l'eau** : dès qu'une étape tient debout, commite-la. Une exécution dispose
-d'un nombre limité d'échanges (200). Si elle s'arrête en route, le workflow
+d'au plus 200 échanges ; **vise moins de 120**, en suivant « Économie de tokens »
+de `CLAUDE.md` (fichiers listés par la fiche seulement, `grep` avant tout
+fichier long, tests ciblés). Si elle s'arrête en route, le workflow
 ouvre en brouillon ce que tu as commité ; ce qui ne l'était pas n'est sauvé
 qu'en vrac, dans un seul commit.
 
@@ -93,7 +95,9 @@ décision humaine coûte moins cher que cent échanges.
 ## 4. Vérifier
 
 `npm run verify` doit être vert. Cette commande enchaîne lint, format, tests et
-build avec pré-rendu.
+build avec pré-rendu : lance-la **une fois**, à la fin, après les tests ciblés
+(`npx ng test --no-watch --include='<glob>'`). La relancer après chaque petite
+correction coûte des dizaines d'échanges.
 
 Puis relis **ton propre diff** (`git diff main --stat`, puis les fichiers de
 code) contre la section « Pièges déjà rencontrés » de `CLAUDE.md`, point par
@@ -124,8 +128,9 @@ Puis écris :
   - **Le poids du bundle** avant et après, si la fiche touche au code applicatif ;
   - **Ce qui reste**, y compris ce que tu as choisi de ne pas faire et pourquoi ;
   - **Les points à relire en priorité** — là où tu as hésité ;
-  - **Ce qui t'a coûté des échanges** — commande ratée, information manquante
-    dans la fiche ou dans `CLAUDE.md`. Ça sert à améliorer les prochaines fiches.
+  - **Ce qui t'a coûté des échanges** — leur nombre approximatif, puis commande
+    ratée, information manquante dans la fiche ou dans `CLAUDE.md`. La relecture
+    en tire un piège ou une correction de fiche.
 
 Termine sur ta branche, pas sur `main` : c'est la branche courante que le
 workflow publie.

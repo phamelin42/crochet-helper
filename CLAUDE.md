@@ -140,6 +140,11 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   branche, on ne valide que les étapes d'avant l'agent ; l'agent se valide par
   `workflow_dispatch` sur `main` après merge. Pour comprendre une exécution,
   lire son résumé (données lues, forme des réponses d'Umami) avant de relancer.
+- **Ce qui suit un agent ne tourne pas sur sa machine.** Dans un workflow du
+  pilote, l'agent peut modifier tout fichier de son runner (scripts de
+  `tools/`, `.git/config`, hooks) : une étape qui détient un jeton d'écriture
+  vit dans un autre job, repart d'un checkout de `main` et ne lit l'artefact
+  de l'agent que comme une donnée (noms validés, tailles bornées).
 - **Service worker** : tout script qui réécrit un fichier de `dist/` après
   `ng build` doit passer **avant** la régénération de `ngsw.json` (`ngsw-config`
   dans `npm run build`), sinon le worker passe en mode dégradé et ne sert plus

@@ -102,7 +102,7 @@ lectrices qui vont loin dans un patron.
 ## Critères d'acceptation
 
 - `npm run verify` vert, bundle initial sous l'avertissement d'`angular.json`
-  (marge ~0,6 kB au 23/09 : `visit-age.ts` doit rester minuscule, ou être
+  (avertissement relevé à 325 kB le 23/09, bundle à 322,4 kB : marge ~2,6 kB : `visit-age.ts` doit rester minuscule, ou être
   chargé par `import()` avec le traceur).
 - `docs/adr-001-mesure-audience.md` : deux lignes sur ce qui est stocké en local
   et pourquoi ce n'est pas un identifiant (une date, jamais transmise).

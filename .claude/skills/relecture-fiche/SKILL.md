@@ -25,9 +25,13 @@ fichier, et tu termines **toujours** par la liste d'actions de Phil.
 - Idem pour toute branche `finitions-*` encore présente :
   `git log --oneline origin/main..origin/finitions-<nn>`.
 
-Pas de `gh` ni d'API GitHub dans le conteneur : l'état des PR se déduit des
-branches. Le push direct est refusé (403) tant que Phil n'a pas ajouté le dépôt
-aux sources de la session.
+**Tester le push d'abord** (`git push` d'une branche de travail) : dans une
+session cloud qui a le dépôt en source, il passe, et les outils GitHub (MCP)
+ouvrent la PR, lancent un workflow, lisent ses journaux — livrer ainsi. Sinon
+(403), pas de `gh` : l'état des PR se déduit des branches et on livre en
+bundle (§ 3). Un bundle annoncé par une autre session mais absent de
+`/mnt/user-data` et des pièces jointes n'arrivera pas : ne pas le chercher,
+reconstruire depuis sa description.
 
 ## 1. Lire ciblé
 
@@ -94,7 +98,7 @@ IndexedDB), écris un script court dans `$E` sur le modèle de `smoke.mjs`.
   par intention, en français, avec les trailers de session.
 - Chaque défaut corrigé a son test. Un test qui figeait un bug est **inversé**,
   pas supprimé.
-- Livraison : `git bundle create /mnt/user-data/outputs/finitions-fiche-<nn>.bundle <tête-distante>..revue-<nn>`,
+- Livraison, si le push est refusé : `git bundle create /mnt/user-data/outputs/finitions-fiche-<nn>.bundle <tête-distante>..revue-<nn>`,
   puis `device_commit_files` à la racine du clone de Phil
   (`C:\Users\phamelin\Desktop\pornhub\Phil-projects\projects\fil-patterns`).
   Le bundle passe aussi pour `.claude/` et `.github/`, que le pont refuse
@@ -136,6 +140,13 @@ Mets à jour `claude/etat-du-projet.md` (outil Projects) : fiche en cours, actio
   pas : `smoke.mjs` le charge avec `createRequire(process.cwd())`.
 - Playwright `text=Convert` matche aussi le titre : utiliser `getByRole('button', { name, exact: true })`.
 - `git push` et l'API GitHub renvoient 403 : ne pas réessayer, livrer en bundle.
+- `git checkout <fichier>` ne restaure pas un fichier non suivi, et `git revert`
+  suivi d'un `reset` peut garder la mutation : après une mutation manuelle,
+  `grep` l'original avant de continuer (ou passer par `mutate.sh`).
+- Umami (`analytics.patternreader.com`) et les journaux bruts d'Actions
+  (`*.blob.core.windows.net`) sont refusés par le proxy du conteneur : lancer le
+  workflow sur une branche (`actions_run_trigger`) et lire le journal avec
+  `get_job_logs` (`tail_lines` ciblé), pas `curl`.
 - `innerText` renvoie le texte d'un élément `display: none` : pour l'impression,
   compter les pages de `page.pdf()` (`/Type /Page`).
 - Un bouton dans un `Disclosure` replié est introuvable par Playwright : ouvrir

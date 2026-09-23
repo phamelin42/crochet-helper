@@ -2,9 +2,11 @@
 #
 # Même modèle que « Lot suivant » : le workflow prépare les données (Umami sur
 # 7 et 28 jours par tools/umami.mjs, rapports de la branche `rapports`),
-# l'agent travaille sans secret ni droit d'écriture et commite chaque action
-# sur une branche locale `hebdo-<slug>` ; la dernière étape publie ces
-# branches, lance la CI dessus, ouvre une PR par branche et l'issue du point.
+# l'agent travaille sans secret ni droit d'écriture et commite ses fiches sur
+# une branche locale `hebdo-<slug>`. Le job `publier`, sur une autre machine
+# et depuis un checkout propre de main, reçoit ces branches en bundle, les
+# valide comme des données non fiables, les pousse, lance la CI, ouvre les PR
+# et l'issue du point : l'agent n'atteint jamais le code qui a le jeton.
 name: Amelioration hebdomadaire
 
 on:
@@ -21,11 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write
-      id-token: write
-      actions: write # lancer la CI sur les branches publiées
+      contents: read
+      issues: read # les points hebdomadaires précédents
+      id-token: write # jeton de l'app Claude, révoqué à la fin de son étape
+    outputs:
+      agir: ${{ steps.garde.outputs.agir }}
+      raison: ${{ steps.garde.outputs.raison }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -76,50 +79,113 @@ jobs:
             --max-turns 60
             --allowedTools "Read,Glob,Grep,Edit,MultiEdit,Write,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(git:*),Bash(ls:*)"
 
+      - name: Empaqueter les fiches de l'agent
+        if: always() && steps.claude.outcome != 'skipped' && steps.garde.outputs.agir == 'true'
+        env:
+          EXECUTION: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          a="$RUNNER_TEMP/artefact"
+          mkdir -p "$a"
+          refs=$(git for-each-ref --format='%(refname)' 'refs/heads/hebdo-*' || true)
+          if [ -n "$refs" ]; then
+            # shellcheck disable=SC2086
+            git bundle create "$a/hebdo.bundle" $refs ^origin/main || true
+          fi
+          cp -r .pilote "$a/pilote" 2>/dev/null || true
+          cp "$EXECUTION" "$a/execution.json" 2>/dev/null || true
+
+      - if: always() && steps.claude.outcome != 'skipped' && steps.garde.outputs.agir == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: hebdo
+          path: ${{ runner.temp }}/artefact
+          retention-days: 14
+
+  publier:
+    needs: ameliorer
+    if: always() && needs.ameliorer.outputs.agir != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write # lancer la CI sur les branches publiées
+    steps:
+      # Checkout de main, jamais le travail de l'agent : c'est ce code-ci qui
+      # s'exécute avec le jeton.
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - if: needs.ameliorer.outputs.agir == 'true'
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: hebdo
+          path: ${{ runner.temp }}/artefact
+
       - name: Publier les branches et ouvrir les PR
-        if: always() && steps.claude.outcome != 'skipped'
+        if: needs.ameliorer.outputs.agir == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          a="$RUNNER_TEMP/artefact"
+          p="$a/pilote"
           distant="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
           liste=""
-          for branche in $(git branch --format='%(refname:short)' | grep -E '^hebdo-[a-z0-9-]+$' || true); do
+          branches=""
+          if [ -s "$a/hebdo.bundle" ]; then
+            branches=$(git bundle list-heads "$a/hebdo.bundle" | awk '{print $2}' |
+              sed -n 's#^refs/heads/\(hebdo-[a-z0-9-]*\)$#\1#p')
+          fi
+          for branche in $branches; do
+            git fetch -q "$a/hebdo.bundle" "refs/heads/$branche:refs/heads/$branche"
             if [ -z "$(git log --oneline origin/main.."$branche")" ]; then continue; fi
             # Le point hebdo n'écrit que des fiches : au plus trois fichiers,
             # tous dans prompts/ (skill amelioration-hebdo, § 3).
-            fichiers=$(git diff --name-only origin/main.."$branche")
+            fichiers=$(git diff --name-only origin/main..."$branche")
             if echo "$fichiers" | grep -qvE '^prompts/' || [ "$(echo "$fichiers" | wc -l)" -gt 3 ]; then
               echo "::error::$branche touche autre chose que prompts/ ou plus de trois fichiers : publication refusée."
               continue
             fi
-            git push -q "$distant" "$branche:refs/heads/$branche"
+            git push -q "$distant" "refs/heads/$branche:refs/heads/$branche"
             gh workflow run ci.yml --repo "$REPO" --ref "$branche"
-            titre=$(head -n 1 ".pilote/$branche.titre" 2>/dev/null || git log -1 --format=%s "$branche")
-            [ -s ".pilote/$branche.md" ] || git log --format='- %s' origin/main.."$branche" > ".pilote/$branche.md"
+            titre=$(head -n 1 "$p/$branche.titre" 2>/dev/null | cut -c1-200 || true)
+            [ -n "$titre" ] || titre=$(git log -1 --format=%s "$branche")
+            corps="$RUNNER_TEMP/$branche.md"
+            if [ -s "$p/$branche.md" ]; then cp "$p/$branche.md" "$corps"; else
+              git log --format='- %s' origin/main.."$branche" > "$corps"; fi
             url=$(gh pr create --repo "$REPO" --base main --head "$branche" \
-              --title "$titre" --body-file ".pilote/$branche.md")
+              --title "$titre" --body-file "$corps")
             liste="$liste- $titre — $url"$'\n'
           done
 
-          if [ -s .pilote/issue-titre.txt ]; then
-            cp .pilote/issue-corps.md "$RUNNER_TEMP/corps.md"
+          if [ -s "$p/issue-titre.txt" ] && [ -f "$p/issue-corps.md" ]; then
+            cp "$p/issue-corps.md" "$RUNNER_TEMP/corps.md"
             printf '\n### PR ouvertes par ce point\n%s' "${liste:-Aucune.}" >> "$RUNNER_TEMP/corps.md"
             gh issue create --repo "$REPO" \
-              --title "$(head -n 1 .pilote/issue-titre.txt)" \
+              --title "$(head -n 1 "$p/issue-titre.txt" | cut -c1-200)" \
               --body-file "$RUNNER_TEMP/corps.md"
           fi
 
       - name: Noter le coût
-        if: always() && steps.garde.outcome == 'success'
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          EXECUTION: ${{ steps.claude.outputs.execution_file }}
-          RAISON: ${{ steps.garde.outputs.raison }}
+          RAISON: ${{ needs.ameliorer.outputs.raison }}
         run: |
           export DISTANT="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
-          cout=$(node tools/pilote.mjs cout hebdo "${EXECUTION:--}" "$RAISON")
+          execution="$RUNNER_TEMP/artefact/execution.json"
+          [ -f "$execution" ] || execution=-
+          cout=$(node tools/pilote.mjs cout hebdo "$execution" "$RAISON")
           echo "$cout" >> "$GITHUB_STEP_SUMMARY"
           tools/publier-rapports.sh "Coût du point hebdo" --ligne automation/couts.md "$cout" || true

@@ -10,10 +10,11 @@
     "lint": "ng lint",
     "build:app": "ng build",
     "test:ci": "ng test --no-watch",
+    "test:tools": "node --test \"tools/**/*.test.mjs\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:a11y": "ng build && playwright test",
-    "verify": "npm run lint && npm run format:check && npm run test:ci && npm run build"
+    "verify": "npm run lint && npm run format:check && npm run test:ci && npm run test:tools && npm run build"
   },
   "private": true,
   "packageManager": "npm@11.19.1",

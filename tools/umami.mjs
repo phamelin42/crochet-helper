@@ -1,0 +1,284 @@
+// Seul point de contact avec l'API d'Umami. Les workflows du pilote
+// (rapport quotidien, point hebdomadaire) le lancent avec les secrets, puis
+// l'agent lit le JSON imprimé, sans réseau ni secret.
+//
+//   node tools/umami.mjs quotidien [AAAA-MM-JJ]   # défaut : hier, heure de Paris
+//   node tools/umami.mjs hebdo     [AAAA-MM-JJ]   # défaut : semaine finie hier
+//
+// La forme du JSON est fixe : mêmes clés, dans le même ordre, que l'API
+// réponde ou non. Sans secrets, API injoignable ou réponse aberrante : `ok`
+// vaut false, `erreur` dit pourquoi, et le code de sortie reste 0 — un
+// rapport qui dit « pas de données » vaut mieux qu'un job rouge.
+//
+// Quand Umami change de version majeure, c'est ce fichier seul qu'on corrige
+// (voir `lireStats` et `TYPES_PAGE`).
+import { pathToFileURL } from 'node:url';
+
+export const FUSEAU = 'Europe/Paris';
+const DELAI_MS = 15_000;
+/** Une réponse d'agrégats tient en quelques kilo-octets ; au-delà, on refuse. */
+const TAILLE_MAX = 1_000_000;
+const JOUR_MS = 86_400_000;
+
+/**
+ * Événements instrumentés (`AnalyticsEvent`, core/analytics). Toujours
+ * présents dans la sortie, à 0 s'ils n'ont pas eu lieu : une fonctionnalité
+ * qui cesse d'être utilisée doit se voir comme un 0, pas comme une clé absente.
+ */
+export const EVENEMENTS = [
+  'pattern_pasted',
+  'pdf_imported',
+  'pdf_failed',
+  'pattern_parsed',
+  'step_advanced',
+  'glossary_hover',
+  'session_resumed',
+  'term_tried',
+  'conversion_run',
+  'project_created',
+  'project_resumed',
+  'backup_exported',
+  'backup_imported',
+];
+
+/** Umami 2 nomme « url » ce qu'Umami 3 nomme « path ». */
+const TYPES_PAGE = ['path', 'url'];
+
+// ---------------------------------------------------------------- dates
+
+function decalageParis(instant) {
+  const nom = new Intl.DateTimeFormat('en-US', { timeZone: FUSEAU, timeZoneName: 'longOffset' })
+    .formatToParts(new Date(instant))
+    .find((p) => p.type === 'timeZoneName').value; // « GMT+02:00 »
+  const m = /GMT([+-])(\d{2}):(\d{2})/.exec(nom);
+  if (!m) return 0;
+  return (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) * 60_000;
+}
+
+/** Instant UTC de minuit, heure de Paris, pour la date civile donnée. */
+export function minuitParis(date) {
+  const [a, mo, j] = date.split('-').map(Number);
+  const naif = Date.UTC(a, mo - 1, j);
+  const essai = naif - decalageParis(naif);
+  return naif - decalageParis(essai);
+}
+
+/** Date civile à Paris (AAAA-MM-JJ) de l'instant donné. */
+export function dateParis(instant) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: FUSEAU }).format(new Date(instant));
+}
+
+export function decaler(date, jours) {
+  const [a, mo, j] = date.split('-').map(Number);
+  return new Date(Date.UTC(a, mo - 1, j) + jours * JOUR_MS).toISOString().slice(0, 10);
+}
+
+/** Fenêtre de `jours` jours civils finissant le `dernier` inclus. */
+export function fenetre(dernier, jours) {
+  const debut = decaler(dernier, -(jours - 1));
+  return {
+    debut,
+    fin: dernier,
+    jours,
+    startAt: minuitParis(debut),
+    endAt: minuitParis(decaler(dernier, 1)) - 1,
+  };
+}
+
+/**
+ * Fenêtres comparées. La référence précède toujours la période sans la
+ * chevaucher : comparer hier à une moyenne qui contient hier atténue
+ * précisément l'écart qu'on cherche à voir.
+ */
+export function fenetres(mode, dernier) {
+  if (mode === 'quotidien') {
+    return { periode: fenetre(dernier, 1), reference: fenetre(decaler(dernier, -1), 7) };
+  }
+  return {
+    periode: fenetre(dernier, 7),
+    reference: fenetre(decaler(dernier, -7), 7),
+    mois: fenetre(dernier, 28),
+  };
+}
+
+// ---------------------------------------------------------------- API
+
+function nombre(v) {
+  const n = typeof v === 'object' && v !== null ? v.value : v;
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+/** Umami 2 : `{ pageviews: { value, prev } }` ; Umami 3 : `{ pageviews: 12 }`. */
+export function lireStats(brut) {
+  if (typeof brut !== 'object' || brut === null) throw new Error('statistiques illisibles');
+  const pagesVues = nombre(brut.pageviews);
+  const visiteurs = nombre(brut.visitors);
+  const sessions = nombre(brut.visits);
+  const rebonds = nombre(brut.bounces);
+  const dureeTotale = nombre(brut.totaltime);
+  const ratio = (a, b, chiffres) => (b > 0 ? Number((a / b).toFixed(chiffres)) : null);
+  return {
+    visiteurs,
+    sessions,
+    pages_vues: pagesVues,
+    sessions_par_visiteur: ratio(sessions, visiteurs, 2),
+    taux_rebond: ratio(rebonds, sessions, 3),
+    duree_moyenne_session_s: ratio(dureeTotale, sessions, 0),
+  };
+}
+
+function lireMetriques(brut) {
+  if (!Array.isArray(brut)) throw new Error('métriques illisibles');
+  return brut
+    .filter((l) => l && typeof l.x === 'string')
+    .map((l) => ({ nom: l.x, nombre: nombre(l.y) }));
+}
+
+function client({ url, jeton, site, fetch }) {
+  const base = `${url.replace(/\/+$/, '')}/api/websites/${encodeURIComponent(site)}`;
+  return async function lire(chemin, params) {
+    const qs = new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)]));
+    const rep = await fetch(`${base}/${chemin}?${qs}`, {
+      headers: { Authorization: `Bearer ${jeton}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(DELAI_MS),
+    });
+    const texte = await rep.text();
+    if (!rep.ok) {
+      const e = new Error(`${chemin} : HTTP ${rep.status}`);
+      e.statut = rep.status;
+      throw e;
+    }
+    if (texte.length > TAILLE_MAX) throw new Error(`${chemin} : réponse trop grande`);
+    try {
+      return JSON.parse(texte);
+    } catch {
+      throw new Error(`${chemin} : réponse non JSON`);
+    }
+  };
+}
+
+async function lireFenetre(lire, f, detail) {
+  const temps = { startAt: f.startAt, endAt: f.endAt };
+  const stats = lireStats(await lire('stats', temps));
+  const evenementsBruts = lireMetriques(await lire('metrics', { ...temps, type: 'event' }));
+  const evenements = Object.fromEntries(EVENEMENTS.map((e) => [e, 0]));
+  for (const { nom, nombre: n } of evenementsBruts) if (nom in evenements) evenements[nom] = n;
+
+  const sortie = {
+    debut: f.debut,
+    fin: f.fin,
+    jours: f.jours,
+    stats,
+    moyenne_journaliere: {
+      visiteurs: Number((stats.visiteurs / f.jours).toFixed(1)),
+      sessions: Number((stats.sessions / f.jours).toFixed(1)),
+      pages_vues: Number((stats.pages_vues / f.jours).toFixed(1)),
+    },
+    evenements,
+    entonnoir: entonnoir(stats, evenements),
+    pages: null,
+    provenances: null,
+  };
+  if (detail) {
+    sortie.pages = await lirePages(lire, temps);
+    sortie.provenances = lireMetriques(
+      await lire('metrics', { ...temps, type: 'referrer', limit: 5 }),
+    ).slice(0, 5);
+  }
+  return sortie;
+}
+
+async function lirePages(lire, temps) {
+  let derniere;
+  for (const type of TYPES_PAGE) {
+    try {
+      return lireMetriques(await lire('metrics', { ...temps, type, limit: 5 })).slice(0, 5);
+    } catch (e) {
+      if (e.statut !== 400) throw e;
+      derniere = e;
+    }
+  }
+  throw derniere;
+}
+
+/**
+ * Crans de l'entonnoir, en occurrences d'événements (Umami ne dit pas combien
+ * de personnes distinctes ont déclenché un événement). Les taux sont donc
+ * des ordres de grandeur, pas des parts de visiteurs.
+ */
+export function entonnoir(stats, ev) {
+  const crans = [
+    { cran: 'arrivee', nombre: stats.visiteurs },
+    { cran: 'patron_fourni', nombre: ev.pattern_pasted + ev.pdf_imported },
+    { cran: 'decoupage_reussi', nombre: ev.pattern_parsed },
+    { cran: 'etape_franchie', nombre: ev.step_advanced },
+  ];
+  return crans.map((c, i) => ({
+    ...c,
+    taux_depuis_precedent:
+      i === 0 || crans[i - 1].nombre === 0
+        ? null
+        : Number((c.nombre / crans[i - 1].nombre).toFixed(3)),
+  }));
+}
+
+// ---------------------------------------------------------------- sortie
+
+export async function collecter({ mode, date, env, fetch, maintenant = Date.now() }) {
+  const dernier = date ?? decaler(dateParis(maintenant), -1);
+  const f = fenetres(mode, dernier);
+  const sortie = {
+    ok: false,
+    erreur: null,
+    mode,
+    /** Dernier jour couvert, même quand l'API ne répond pas. */
+    fin: dernier,
+    fuseau: FUSEAU,
+    genere_le: new Date(maintenant).toISOString(),
+    periode: null,
+    reference: null,
+    mois: null,
+    limites: [
+      'Les chiffres sont un plancher : une partie des bloqueurs écarte le traceur.',
+      "Umami identifie une visite par une empreinte technique qui ne traverse pas fiablement les jours : aucun taux de retour n'est calculable.",
+      "L'entonnoir compte des occurrences d'événements, pas des personnes.",
+    ],
+  };
+
+  const { UMAMI_URL: url, UMAMI_TOKEN: jeton, UMAMI_WEBSITE_ID: site } = env;
+  if (!url || !jeton || !site) {
+    sortie.erreur = 'Secrets UMAMI_URL, UMAMI_TOKEN ou UMAMI_WEBSITE_ID absents.';
+    return sortie;
+  }
+  try {
+    const lire = client({ url, jeton, site, fetch });
+    sortie.periode = await lireFenetre(lire, f.periode, true);
+    sortie.reference = await lireFenetre(lire, f.reference, false);
+    if (f.mois) sortie.mois = await lireFenetre(lire, f.mois, true);
+    sortie.ok = true;
+  } catch (e) {
+    sortie.periode = sortie.reference = sortie.mois = null;
+    sortie.erreur = `API Umami : ${e instanceof Error ? e.message : String(e)}`.replaceAll(
+      jeton,
+      '***',
+    );
+  }
+  return sortie;
+}
+
+async function principal() {
+  const [mode = 'quotidien', date] = process.argv.slice(2);
+  let sortie;
+  if (!['quotidien', 'hebdo'].includes(mode) || (date && !/^\d{4}-\d{2}-\d{2}$/.test(date))) {
+    sortie = { ok: false, erreur: 'Usage : node tools/umami.mjs quotidien|hebdo [AAAA-MM-JJ]' };
+  } else {
+    sortie = await collecter({ mode, date, env: process.env, fetch: globalThis.fetch });
+  }
+  process.stdout.write(`${JSON.stringify(sortie, null, 2)}\n`);
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  principal().catch((e) => {
+    process.stdout.write(`${JSON.stringify({ ok: false, erreur: String(e) })}\n`);
+  });
+}

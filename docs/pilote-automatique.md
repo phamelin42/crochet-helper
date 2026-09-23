@@ -1,8 +1,12 @@
 # Pilote automatique — ce qui tourne (état au 23/09/2026)
 
-Trois workflows GitHub Actions, tous sans fusion automatique. Chaque agent
-travaille sans réseau, sans secret et sans droit d'écriture : c'est l'étape
-suivante du workflow, hors de sa portée, qui publie. Avant chaque agent, une
+Trois workflows GitHub Actions, tous sans fusion automatique. Chacun a **deux
+jobs sur deux machines** : l'agent tourne dans le premier, sans droit
+d'écriture, et ne livre qu'un artefact (bundle git, fichiers `.pilote/`,
+rapport) ; le second, `publier`, repart d'un checkout propre de `main`, valide
+cet artefact comme une donnée non fiable, et seul lui détient le jeton qui
+publie. Un agent qui réécrirait un script, `.git/config` ou un binaire de sa
+machine n'atteint pas le code qui écrit sur GitHub. Avant chaque agent, une
 **garde** (`tools/pilote.mjs`) décide s'il y a quelque chose à faire ; sinon
 l'agent n'est pas appelé et ne coûte rien.
 

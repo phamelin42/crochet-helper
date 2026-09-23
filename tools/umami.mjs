@@ -258,12 +258,22 @@ export async function collecter({ mode, date, env, fetch, maintenant = Date.now(
     sortie.ok = true;
   } catch (e) {
     sortie.periode = sortie.reference = sortie.mois = null;
-    sortie.erreur = `API Umami : ${e instanceof Error ? e.message : String(e)}`.replaceAll(
-      jeton,
-      '***',
-    );
+    sortie.erreur = `API Umami : ${decrire(e)}`.replaceAll(jeton, '***');
   }
   return sortie;
+}
+
+/**
+ * `fetch` de Node ne dit que « fetch failed » : la cause utile (DNS, refus de
+ * connexion, certificat, délai) est dans `cause`, parfois sur deux niveaux.
+ */
+export function decrire(e) {
+  if (!(e instanceof Error)) return String(e);
+  const causes = [];
+  for (let c = e.cause, n = 0; c && n < 3; c = c.cause, n++) {
+    causes.push([c.code, c.message].filter(Boolean).join(' '));
+  }
+  return causes.length ? `${e.message} (${causes.join(' ← ')})` : e.message;
 }
 
 async function principal() {

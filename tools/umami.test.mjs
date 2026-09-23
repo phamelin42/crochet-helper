@@ -153,6 +153,18 @@ test('une API en échec ne lève jamais et ne divulgue pas le jeton', async () =
   }
 });
 
+test('une erreur réseau dit sa cause, pas seulement « fetch failed »', async () => {
+  const fetch = async () => {
+    const cause = Object.assign(new Error('getaddrinfo ENOTFOUND analytics.example'), {
+      code: 'ENOTFOUND',
+    });
+    throw new TypeError('fetch failed', { cause });
+  };
+  const r = await collecter({ mode: 'quotidien', date: '2026-09-22', env: ENV, fetch });
+  assert.equal(r.ok, false);
+  assert.match(r.erreur, /fetch failed \(ENOTFOUND /);
+});
+
 test('une réponse démesurée est refusée', async () => {
   const fetch = async () => ({ ok: true, status: 200, text: async () => 'x'.repeat(2_000_000) });
   const r = await collecter({ mode: 'quotidien', date: '2026-09-22', env: ENV, fetch });

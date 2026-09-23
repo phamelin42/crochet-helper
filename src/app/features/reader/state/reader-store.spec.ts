@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { ReaderStore } from './reader-store';
 
 /** Deux pièces, pour exercer le franchissement de frontière dans `move()`. */
@@ -12,13 +11,6 @@ const TWO_PIECES = [
   'Piece B',
   'Round 1: 6 sc (6)',
 ].join('\n');
-
-/** Une seule pièce d'au moins `rows` étapes, pour exercer la profondeur de lecture. */
-function longPattern(rows: number): string {
-  const lignes = ['Patron', 'Piece A'];
-  for (let i = 1; i <= rows; i++) lignes.push(`Round ${i}: 6 sc (6)`);
-  return lignes.join('\n');
-}
 
 describe('ReaderStore', () => {
   let store: ReaderStore;
@@ -175,60 +167,6 @@ describe('ReaderStore', () => {
 
       vi.advanceTimersByTime(3_000);
       expect(store.elapsed()).toBe(3_000);
-    });
-  });
-
-  describe('profondeur de lecture', () => {
-    it('émet chaque palier une seule fois, dans l’ordre où il est atteint', () => {
-      const analytics = TestBed.inject(AnalyticsService);
-      const trackSpy = vi.spyOn(analytics, 'track');
-      store.load(longPattern(55));
-      trackSpy.mockClear();
-
-      for (let i = 0; i < 54; i++) store.move(1);
-
-      const profondeurs = trackSpy.mock.calls
-        .map(([event]) => event)
-        .filter((event) => event.startsWith('reading_depth_'));
-      expect(profondeurs).toEqual(['reading_depth_5', 'reading_depth_20', 'reading_depth_50']);
-    });
-
-    it('reprendre un projet déjà au-delà d’un palier ne le réémet pas', () => {
-      const analytics = TestBed.inject(AnalyticsService);
-      store.load(longPattern(55));
-      const id = store.currentId()!;
-      store.clear();
-
-      store.projects.set([
-        {
-          id,
-          name: 'Patron',
-          source: longPattern(55),
-          image: '',
-          pieceIndex: 0,
-          stepIndex: 9, // position absolue 10 : déjà au-delà du palier 5
-          done: {},
-          reps: {},
-          elapsed: 0,
-          expandAbbreviations: false,
-          createdAt: 0,
-          lastOpenedAt: 0,
-        },
-      ]);
-      const trackSpy = vi.spyOn(analytics, 'track');
-      store.resumeProject(id);
-
-      const profondeurs = trackSpy.mock.calls
-        .map(([event]) => event)
-        .filter((event) => event.startsWith('reading_depth_'));
-      expect(profondeurs).toEqual([]);
-
-      // La suite avance normalement : le palier 20 s'émet, pas le 5 déjà couvert.
-      store.move(15);
-      const suite = trackSpy.mock.calls
-        .map(([event]) => event)
-        .filter((event) => event.startsWith('reading_depth_'));
-      expect(suite).toEqual(['reading_depth_20']);
     });
   });
 

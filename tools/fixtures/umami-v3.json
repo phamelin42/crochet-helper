@@ -1,0 +1,27 @@
+{
+  "_source": "Forme relevée sur analytics.patternreader.com (Umami 3) le 23/09/2026 par `node tools/umami.mjs forme` ; valeurs inventées.",
+  "stats": {
+    "pageviews": 11,
+    "visitors": 3,
+    "visits": 3,
+    "bounces": 0,
+    "totaltime": 15,
+    "comparison": { "pageviews": 0, "visitors": 0, "visits": 0, "bounces": 0, "totaltime": 0 }
+  },
+  "metrics": {
+    "event": [
+      { "x": "pattern_pasted", "y": 2 },
+      { "x": "pattern_parsed", "y": 2 },
+      { "x": "step_advanced", "y": 9 }
+    ],
+    "path": [
+      { "x": "/", "y": 3 },
+      { "x": "/fr/glossaire/ms", "y": 2 },
+      { "x": "/format-your-pattern", "y": 1 },
+      { "x": "/glossary", "y": 1 },
+      { "x": "/my-projects", "y": 1 }
+    ],
+    "url": "HTTP 400",
+    "referrer": []
+  }
+}

@@ -1,8 +1,9 @@
 // Lancé par `npm run verify` (`npm run test:tools`) : le rapport quotidien lit
 // ce que ce script imprime, il doit rester juste quand Umami change.
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { EVENEMENTS, collecter, fenetres, minuitParis } from './umami.mjs';
+import { EVENEMENTS, collecter, fenetres, minuitParis, structure } from './umami.mjs';
 
 const ENV = {
   UMAMI_URL: 'https://analytics.example/',
@@ -170,4 +171,107 @@ test('une réponse démesurée est refusée', async () => {
   const r = await collecter({ mode: 'quotidien', date: '2026-09-22', env: ENV, fetch });
   assert.equal(r.ok, false);
   assert.match(r.erreur, /trop grande/);
+});
+
+// Données figées dans la forme réelle de l'instance (Umami 3) : si Umami ou
+// le script changent, c'est ici que ça casse, sans réseau.
+const FIGE = JSON.parse(readFileSync(new URL('./fixtures/umami-v3.json', import.meta.url), 'utf8'));
+
+function instanceFigee(u) {
+  if (u.pathname.endsWith('/stats')) return [200, FIGE.stats];
+  const rep = FIGE.metrics[u.searchParams.get('type')];
+  return typeof rep === 'string' ? [400, { error: rep }] : [200, rep];
+}
+
+/** Clés et types de la sortie, dans l'ordre : c'est le contrat lu par les agents. */
+const FORME_FENETRE = {
+  debut: 'string',
+  fin: 'string',
+  jours: 'number',
+  stats: {
+    visiteurs: 'number',
+    sessions: 'number',
+    pages_vues: 'number',
+    sessions_par_visiteur: 'number',
+    taux_rebond: 'number',
+    duree_moyenne_session_s: 'number',
+  },
+  moyenne_journaliere: { visiteurs: 'number', sessions: 'number', pages_vues: 'number' },
+  evenements: Object.fromEntries(EVENEMENTS.map((e) => [e, 'number'])),
+  entonnoir: ['4 éléments', { cran: 'string', nombre: 'number', taux_depuis_precedent: 'null' }],
+};
+const ENTETE = {
+  ok: 'boolean',
+  erreur: 'null',
+  mode: 'string',
+  fin: 'string',
+  fuseau: 'string',
+  genere_le: 'string',
+};
+const LIMITES = ['3 éléments', 'string'];
+
+test('forme de sortie figée, quotidien et hebdo, contre la forme réelle d’Umami 3', async () => {
+  const pages = ['5 éléments', { nom: 'string', nombre: 'number' }];
+  const attendu = {
+    quotidien: {
+      ...ENTETE,
+      periode: { ...FORME_FENETRE, pages, provenances: [] },
+      reference: { ...FORME_FENETRE, pages: 'null', provenances: 'null' },
+      mois: 'null',
+      limites: LIMITES,
+    },
+    hebdo: {
+      ...ENTETE,
+      periode: { ...FORME_FENETRE, pages, provenances: [] },
+      reference: { ...FORME_FENETRE, pages: 'null', provenances: 'null' },
+      mois: { ...FORME_FENETRE, pages, provenances: [] },
+      limites: LIMITES,
+    },
+  };
+  for (const mode of ['quotidien', 'hebdo']) {
+    const r = await collecter({
+      mode,
+      date: '2026-09-22',
+      env: ENV,
+      fetch: faussesApi(instanceFigee).fetch,
+    });
+    assert.equal(r.ok, true, r.erreur);
+    // JSON.stringify compare aussi l'ordre des clés.
+    assert.equal(JSON.stringify(structure(r)), JSON.stringify(attendu[mode]), mode);
+  }
+});
+
+test('Umami 3 : les chiffres figés arrivent aux bons endroits', async () => {
+  const r = await collecter({
+    mode: 'quotidien',
+    date: '2026-09-22',
+    env: ENV,
+    fetch: faussesApi(instanceFigee).fetch,
+  });
+  assert.deepEqual(r.periode.stats, {
+    visiteurs: 3,
+    sessions: 3,
+    pages_vues: 11,
+    sessions_par_visiteur: 1,
+    taux_rebond: 0,
+    duree_moyenne_session_s: 5,
+  });
+  assert.equal(r.periode.evenements.pattern_pasted, 2);
+  assert.deepEqual(r.periode.pages[1], { nom: '/fr/glossaire/ms', nombre: 2 });
+  assert.deepEqual(
+    r.periode.entonnoir.map((c) => c.nombre),
+    [3, 2, 2, 9],
+  );
+});
+
+test('sortie en échec : mêmes clés de premier niveau, dans le même ordre', async () => {
+  const ok = await collecter({
+    mode: 'hebdo',
+    date: '2026-09-22',
+    env: ENV,
+    fetch: faussesApi(instanceFigee).fetch,
+  });
+  const ko = await collecter({ mode: 'hebdo', date: '2026-09-22', env: {}, fetch: null });
+  assert.deepEqual(Object.keys(ko), Object.keys(ok));
+  for (const k of ['periode', 'reference', 'mois']) assert.equal(ko[k], null, k);
 });

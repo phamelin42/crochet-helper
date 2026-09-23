@@ -35,7 +35,8 @@ arrivée → patron fourni (collé ou PDF) → découpage réussi → étape fra
 
 Recopie les nombres et `taux_depuis_precedent` de `periode.entonnoir`. Ce sont
 des occurrences d'événements, pas des personnes : écris « 30 patrons fournis »,
-jamais « 30 visiteuses ont fourni un patron ». L'endroit où ça chute le plus
+jamais « 30 visiteuses ont fourni un patron », ni « aucune visiteuse n'a fourni
+de patron » (écris « 0 patron fourni »). L'endroit où ça chute le plus
 est l'information la plus utile de la journée.
 
 Pas de taux de retour : Umami identifie une visite par une empreinte technique

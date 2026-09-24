@@ -60,7 +60,7 @@ gain : deux fois plus de surface indexable, dans deux marchés distincts.
 
 ## 4. Le design system reste du CSS global
 
-Les classes de _Nocturne_ (`.btn`, `.card`, `.input`, `.seg`, `.tile`…) vivent
+Les classes de _Hanami_ (`.btn`, `.card`, `.input`, `.seg`, `.tile`…) vivent
 en CSS global ; les composants de `shared/ui` ne font que les habiller.
 
 L'alternative — réécrire chaque règle en style de composant — aurait dupliqué le

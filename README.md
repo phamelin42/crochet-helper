@@ -6,13 +6,13 @@ vos répétitions, chronomètre la session et traduit les abréviations au survo
 
 Pas de compte, pas de serveur, pas de réseau : le patron reste sur l'appareil.
 
-|             |                                                                             |
-| ----------- | --------------------------------------------------------------------------- |
-| Framework   | Angular 22 — standalone, signaux, zoneless                                  |
-| Rendu       | pré-rendu statique (SSG) de toutes les routes, en français et en anglais    |
-| Hébergement | n'importe quel hébergeur de fichiers statiques (Netlify, Vercel, Pages)     |
-| Tests       | Vitest                                                                      |
-| Design      | système _Nocturne_, importé du projet Claude Design « Lecteur de patterns » |
+|             |                                                                                      |
+| ----------- | ------------------------------------------------------------------------------------ |
+| Framework   | Angular 22 — standalone, signaux, zoneless                                           |
+| Rendu       | pré-rendu statique (SSG) de toutes les routes, en français et en anglais             |
+| Hébergement | n'importe quel hébergeur de fichiers statiques (Netlify, Vercel, Pages)              |
+| Tests       | Vitest                                                                               |
+| Design      | système _Hanami_ 花見 — washi clair, accents des couleurs traditionnelles japonaises |
 
 ## Démarrer
 

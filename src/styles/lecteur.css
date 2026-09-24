@@ -1,5 +1,5 @@
 /* ============================================================================
-   Couche applicative — mise en page du lecteur, au-dessus des jetons Nocturne.
+   Couche applicative — mise en page du lecteur, au-dessus des jetons Hanami.
    Portée du fichier `lecteur.css` du design : les sélecteurs d'identifiant ont
    été convertis en classes pour rester composables côté Angular.
    ========================================================================== */
@@ -7,7 +7,7 @@
 /* Gouttière unique pour l'en-tête et le contenu : le texte respirait mal
    contre les bords, en particulier sur téléphone. */
 :root {
-  --gutter: 25px;
+  --gutter: 24px;
 }
 /* `display: block` est indispensable : ces deux classes sont posées sur des
    hôtes de composants (`fil-reader-page`, `fil-site-header`), et un élément
@@ -20,29 +20,50 @@
   margin: 0 auto;
   padding: 0 var(--gutter);
 }
+/* En-tête : une bande de papier kōzo posée sur le washi, liens en pastilles. */
 .nav {
-  display: block;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: var(--space-4) var(--gutter);
+  display: flex;
+  flex-wrap: wrap;
+  /* Même largeur que le contenu de `.wrap`, à toutes les tailles d'écran. */
+  width: min(calc(1100px - 2 * var(--gutter)), calc(100% - 2 * var(--nav-inset, var(--gutter))));
+  margin: var(--space-4) auto var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  gap: var(--space-3) var(--space-5);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 .nav-brand {
-  display: flex;
-  align-items: baseline;
+  display: inline-flex;
+  align-items: center;
   gap: var(--space-2);
+  margin-right: 0;
 }
-.nav-brand small {
-  font-family: var(--font-body);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+/* Logo : une pelote sakura, ses brins, le crochet kikyō planté dedans. */
+.brand-mark {
+  flex: none;
+  fill: none;
+  stroke-linecap: round;
+}
+.bm-ball {
+  fill: var(--color-sakura);
+}
+.bm-yarn {
+  stroke: var(--color-surface);
+  stroke-width: 3;
+  opacity: 0.75;
+}
+.bm-hook {
+  stroke: var(--color-kikyo);
+  stroke-width: 5;
 }
 .nav-links {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-4);
+  flex: 1 1 auto;
+  gap: var(--space-1) var(--space-1);
   /* Hauteur de ligne fixe (plutôt que `normal`, qui dépend des métriques de
      la police active) : rend la réservation `2lh` ci-dessous stable. */
   line-height: 1.75;
@@ -56,6 +77,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  margin-left: auto;
 }
 /* Réserve la place du bouton « garder l'écran allumé » : sa présence dépend
    d'une capacité du navigateur, inconnaissable au pré-rendu. Sans cet
@@ -69,29 +91,33 @@
 }
 
 main {
-  padding-bottom: var(--space-8);
+  padding-bottom: var(--space-10);
 }
 
-/* Sur téléphone, le contenu touchait les bords de l'écran : on élargit la
-   gouttière et on tient compte de l'encoche. */
+/* Sur téléphone, l'en-tête garde ses marges et tient compte de l'encoche. */
 @media (max-width: 640px) {
-  .wrap,
+  .wrap {
+    padding-inline: calc(var(--gutter) * 0.75 + env(safe-area-inset-left, 0px));
+  }
   .nav {
-    padding-inline: calc(var(--gutter) + env(safe-area-inset-left, 0px));
+    --nav-inset: calc(var(--gutter) * 0.5);
+    padding-inline: var(--space-4);
   }
   /* Une fois la page hydratée, la navigation en français (libellés plus
      longs) peut tenir sur une ligne de moins qu'au premier rendu. Réserver
      deux lignes évite que tout le reste de la page ne remonte (CLS mesuré
      ≈ 0,67 sur `/fr/glossaire/ms` sans cette réservation). */
   .nav-links {
+    order: 3;
+    flex-basis: 100%;
     min-height: 2lh;
   }
   main {
-    padding-bottom: var(--space-6);
+    padding-bottom: var(--space-8);
   }
 }
 section + section {
-  margin-top: var(--space-6);
+  margin-top: var(--space-8);
 }
 
 h6.kicker {
@@ -99,87 +125,89 @@ h6.kicker {
   align-items: center;
   gap: var(--space-2);
   margin: 0 0 var(--space-3);
-  color: color-mix(in srgb, var(--color-text) 60%, transparent);
 }
 h6.kicker b {
-  color: var(--color-accent);
+  color: var(--color-sakura-ink);
   font-weight: inherit;
 }
 
-/* — import — */
+/* — import — une carte claire, repliable. */
 .import {
+  margin: var(--space-4) 0 var(--space-6);
   background: var(--color-surface);
+  border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
 }
 .import > summary {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-4) var(--space-5);
   cursor: pointer;
   list-style: none;
-  font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 15px;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: 18px;
+  color: var(--color-text-strong);
 }
 .import > summary::-webkit-details-marker {
   display: none;
 }
 .import > summary .chev {
   margin-left: auto;
-  display: flex;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--color-sakura-pale);
+  color: var(--color-sakura-ink);
   transition: transform 0.18s ease;
-  color: color-mix(in srgb, var(--color-text) 55%, transparent);
 }
 .import[open] > summary .chev {
   transform: rotate(180deg);
 }
 .import > summary:hover {
-  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+  background: var(--color-overlay);
 }
 .import > summary .state {
   font-family: var(--font-body);
-  font-weight: 400;
-  font-size: 12px;
-  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-wakaba-pale);
+  color: var(--color-wakaba-ink);
 }
 /* Une seule colonne : la seconde accueillait le diagramme, retiré depuis. Elle
    laissait 260 px de vide à droite du champ de saisie. */
 .import-body {
   display: block;
-  padding: 0 var(--gutter) var(--space-4);
+  padding: 0 var(--space-5) var(--space-5);
 }
 .import-body .field,
 .import-body textarea.src-input {
   width: 100%;
 }
 textarea.src-input {
-  min-height: 170px;
-  line-height: 1.5;
-  font-size: 13.5px;
+  min-height: 180px;
+  line-height: 1.55;
+  font-size: var(--text-sm);
+  background: var(--color-bg);
 }
 .import-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-top: var(--space-3);
-}
-/* Sépare l'import du lecteur : un filet fin plutôt qu'un simple blanc, pour
-   que la limite reste lisible quand le champ est replié. */
-.import {
-  margin-bottom: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--color-border, color-mix(in srgb, currentColor 15%, transparent));
-}
-.reader {
-  margin-top: 10px;
+  margin-top: var(--space-4);
 }
 .hint {
-  font-size: 11.5px;
-  color: color-mix(in srgb, var(--color-text) 55%, transparent);
-  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-label);
+  margin: var(--space-3) 0 0;
 }
 .drop {
   display: flex;
@@ -190,65 +218,73 @@ textarea.src-input {
   text-align: center;
   min-height: 170px;
   padding: var(--space-4);
-  border: 1px dashed var(--color-divider);
+  border: 2px dashed var(--color-line);
   border-radius: var(--radius-md);
   cursor: pointer;
-  color: color-mix(in srgb, var(--color-text) 70%, transparent);
-  font-size: 12.5px;
+  color: var(--color-text-label);
+  font-size: var(--text-sm);
 }
 .drop:hover,
 .drop.over {
-  border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border-color: var(--color-sakura);
+  background: var(--color-sakura-pale);
 }
 .drop svg {
-  width: 22px;
-  height: 22px;
-  color: var(--color-accent);
+  width: 24px;
+  height: 24px;
+  color: var(--color-sakura-ink);
 }
 .drop img {
   max-height: 120px;
   border-radius: var(--radius-sm);
 }
 
-/* — lecteur — */
-.reader {
+/* — lecteur — la scène : une grande carte lumineuse, dégradé sakura → kikyō,
+   une pelote et son crochet dans le coin (fichier statique : rien dans le
+   bundle). Le bandeau `.hero` des autres pages porte le
+   même papier fleuri. */
+.reader,
+.hero {
   position: relative;
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-md);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-sakura-pale) 80%, var(--color-surface)),
+    var(--color-surface) 45%,
+    color-mix(in srgb, var(--color-kikyo-pale) 70%, var(--color-surface))
+  );
+  overflow: hidden;
+}
+.reader::before,
+.hero::before {
+  content: '';
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-2);
+  width: 220px;
+  height: 184px;
+  background: url(/illustrations/pelote.svg) no-repeat right bottom / contain;
+  pointer-events: none;
+}
+.reader {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
-  padding: var(--space-8) 0 var(--space-6);
-}
-.reader::before {
-  content: '';
-  position: absolute;
-  left: -6%;
-  top: 0;
-  width: min(560px, 70%);
-  aspect-ratio: 1;
-  background: radial-gradient(
-    circle at 30% 30%,
-    color-mix(in srgb, var(--color-accent) 13%, transparent),
-    transparent 68%
-  );
-  pointer-events: none;
-  z-index: 0;
 }
 .reader > * {
   position: relative;
-  z-index: 1;
-}
-.reader.has-img {
-  grid-template-columns: minmax(0, 1fr) 290px;
 }
 
 .pieces {
   display: flex;
   gap: var(--space-2);
   align-items: center;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding: 2px 2px var(--space-1);
 }
 .pieces .seg {
   flex: none;
@@ -261,57 +297,57 @@ textarea.src-input {
 .stepmeta {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
   flex-wrap: wrap;
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 .steplabel {
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-}
-.steplabel::after {
-  content: '';
-  display: inline-block;
-  width: 34px;
-  height: 1px;
-  background: var(--color-accent);
-  vertical-align: middle;
-  margin-left: var(--space-3);
-  opacity: 0.7;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-sakura-pale);
+  color: var(--color-sakura-ink);
 }
 .piecename {
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-kikyo-pale);
+  color: var(--color-kikyo-ink);
+}
+.abbr-toggle {
+  order: 3;
+  margin-left: auto;
 }
 .note {
   display: flex;
   gap: var(--space-2);
-  font-size: 13px;
-  line-height: 1.5;
-  color: color-mix(in srgb, var(--color-text) 72%, transparent);
-  border-left: 1px solid var(--color-accent-700);
-  padding-left: var(--space-3);
-  margin-bottom: var(--space-4);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  border-left: 4px solid var(--color-asagi);
+  background: color-mix(in srgb, var(--color-asagi-pale) 70%, transparent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-5);
   max-width: 60ch;
 }
 .step-body {
-  font-family: var(--font-heading);
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
   font-size: var(--reader-step);
-  line-height: 1.24;
-  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--color-text-strong);
   text-wrap: pretty;
   margin: 0;
-  max-width: 26ch;
-  min-height: calc(var(--reader-step) * 2.1);
+  max-width: 28ch;
+  min-height: calc(var(--reader-step) * 2.2);
 }
 .step-body.empty {
   font-size: var(--reader-step-sm);
-  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  color: var(--color-text-label);
   max-width: 34ch;
   font-weight: 400;
   font-family: var(--font-body);
@@ -329,18 +365,33 @@ textarea.src-input {
 .term-links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
+  gap: var(--space-2);
   list-style: none;
   padding: 0;
   margin: var(--space-3) 0 0;
 }
+.term-links a {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  text-decoration: none;
+  font-weight: 700;
+}
+.term-links a:hover {
+  background: var(--color-kikyo-pale);
+}
+/* Abréviation : soulignée de rose, pour inviter au survol. */
 .abbr {
-  color: var(--color-accent-300);
-  border-bottom: 1px dotted color-mix(in srgb, var(--color-accent) 70%, transparent);
+  color: inherit;
+  text-decoration: underline wavy var(--color-sakura);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.22em;
   cursor: help;
 }
 .abbr:hover {
-  color: var(--color-accent-200);
+  color: var(--color-sakura-ink);
 }
 
 /* Empilement vertical régulier d'un formulaire simple (convertisseur…). */
@@ -351,81 +402,78 @@ textarea.src-input {
 .navrow {
   display: flex;
   gap: var(--space-3);
-  margin-top: var(--space-6);
+  margin-top: var(--space-8);
   flex-wrap: wrap;
 }
 .btn-step {
-  min-height: 60px;
+  min-height: 64px;
   padding-inline: var(--space-6);
-  font-size: 15px;
+  font-size: 18px;
   flex: 1 1 150px;
-  max-width: 260px;
+  max-width: 280px;
 }
 .btn-step svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 .btn-step.next {
   flex-grow: 1.4;
 }
 
-/* — diagramme — */
-.figpanel {
-  align-self: start;
-}
-.figpanel figure {
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  padding: var(--space-2);
-  box-shadow: var(--shadow-sm);
-  cursor: zoom-in;
-}
-.figpanel img {
-  border-radius: var(--radius-sm);
-  width: 100%;
-}
-.figpanel .cap {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-  font-size: 11px;
-  color: color-mix(in srgb, var(--color-text) 55%, transparent);
-}
-
-/* — compteurs — */
+/* — compteurs — trois tuiles, trois couleurs : sakura (répétitions), wakaba
+   (fait), asagi (temps). La couleur dit le rôle avant même l'étiquette. */
 .meter {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
   align-items: stretch;
+  margin-top: var(--space-6);
 }
 .tile {
+  --tile-color: var(--color-kikyo);
+  --tile-pale: var(--color-kikyo-pale);
+  --tile-ink: var(--color-kikyo-ink);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
+  gap: var(--space-3);
+  padding: var(--space-5);
   border-radius: var(--radius-md);
   background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-line);
+  border-top: 6px solid var(--tile-color);
+  box-shadow: var(--shadow-md);
+}
+.meter > .tile:nth-child(3n + 1) {
+  --tile-color: var(--color-sakura);
+  --tile-pale: var(--color-sakura-pale);
+  --tile-ink: var(--color-sakura-ink);
+}
+.meter > .tile:nth-child(3n + 2) {
+  --tile-color: var(--color-wakaba);
+  --tile-pale: var(--color-wakaba-pale);
+  --tile-ink: var(--color-wakaba-ink);
+}
+.meter > .tile:nth-child(3n + 3) {
+  --tile-color: var(--color-asagi);
+  --tile-pale: var(--color-asagi-pale);
+  --tile-ink: var(--color-asagi-ink);
 }
 .tile h6 {
   margin: 0;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--color-text-label);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  color: var(--tile-ink);
 }
 .tile .big {
-  font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 34px;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: 40px;
   line-height: 1;
-  letter-spacing: -0.02em;
+  color: var(--color-text-strong);
   font-variant-numeric: tabular-nums;
 }
 .tile .big .sub {
-  font-size: 17px;
+  font-size: 20px;
   color: var(--color-text-label);
 }
 .tile .row {
@@ -436,23 +484,35 @@ textarea.src-input {
   flex-wrap: wrap;
 }
 .tile .row.tight {
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
-.jump {
-  width: 74px;
-  text-align: center;
+.tile .btn-secondary {
+  border-color: var(--tile-pale);
+  color: var(--tile-ink);
+}
+.tile .btn-secondary:hover:not(:disabled),
+.tile .btn[aria-pressed='true'] {
+  border-color: var(--tile-color);
+  background: var(--tile-pale);
+  color: var(--tile-ink);
 }
 .progress {
-  height: 3px;
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--color-text) 12%, transparent);
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-overlay);
   overflow: hidden;
 }
 .progress i {
   display: block;
   height: 100%;
-  background: var(--color-accent);
-  transition: width 0.2s ease;
+  border-radius: var(--radius-pill);
+  /* Un fil retors : deux tons en torsade. */
+  background: repeating-linear-gradient(
+    -55deg,
+    var(--color-sakura) 0 6px,
+    var(--color-sakura-ink) 6px 8px
+  );
+  transition: width 0.3s ease;
 }
 .reps {
   font-variant-numeric: tabular-nums;
@@ -461,6 +521,10 @@ textarea.src-input {
 /* — matériel — */
 .mats {
   margin-top: var(--space-6);
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
 }
 .mats > summary {
   display: flex;
@@ -468,52 +532,50 @@ textarea.src-input {
   gap: var(--space-2);
   cursor: pointer;
   list-style: none;
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  color: var(--color-yamabuki-ink);
   padding: var(--space-2) 0;
 }
 .mats > summary::-webkit-details-marker {
   display: none;
 }
-.mats > summary:hover {
-  color: var(--color-accent);
+.mats[open] > summary fil-icon {
+  transform: rotate(180deg);
 }
 .mats ul {
-  margin: var(--space-2) 0 0;
+  margin: var(--space-2) 0 var(--space-3);
   padding-left: var(--space-6);
   columns: 2;
   column-gap: var(--space-8);
-  font-size: 13.5px;
+  font-size: var(--text-base);
   line-height: 1.6;
   max-width: 70ch;
 }
 .mats li {
   break-inside: avoid;
-  margin-bottom: 2px;
+  margin-bottom: var(--space-1);
 }
-.foot {
-  margin-top: var(--space-8);
-  font-size: 11px;
-  color: color-mix(in srgb, var(--color-text) 40%, transparent);
+.mats li::marker {
+  color: var(--color-yamabuki);
 }
-
 /* — infobulle + zoom — */
 .tip {
   position: fixed;
   z-index: 60;
-  max-width: min(280px, 80vw);
-  padding: var(--space-2) var(--space-3);
+  max-width: min(300px, 80vw);
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  background: var(--color-neutral-900);
-  color: var(--color-text);
-  box-shadow: var(--shadow-md);
-  font-size: 12.5px;
+  background: var(--color-tip-bg);
+  color: var(--color-tip-text);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-sm);
   line-height: 1.45;
   pointer-events: none;
   opacity: 0;
-  transform: translateY(3px);
+  transform: translateY(4px);
   transition:
     opacity 0.12s ease,
     transform 0.12s ease;
@@ -523,50 +585,63 @@ textarea.src-input {
   transform: none;
 }
 .tip b {
-  color: var(--color-accent-300);
-  font-weight: 500;
+  color: var(--color-tip-accent);
+  font-weight: 700;
 }
 
 .dialog.zoom {
   width: min(920px, 100%);
   gap: var(--space-2);
 }
-.zoomview {
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  background: var(--color-bg);
-  max-height: min(68vh, 620px);
-  display: grid;
-  place-items: center;
-  touch-action: none;
-  cursor: grab;
-}
-.zoomview img {
-  transform-origin: center;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-.zoomview.drag {
-  cursor: grabbing;
-}
-
 /* — contenu éditorial (pages SEO) — */
 .prose {
   max-width: 70ch;
 }
 .prose h2 {
-  margin-top: var(--space-8);
+  margin-top: var(--space-10);
 }
 .prose ul {
   padding-left: var(--space-6);
 }
+.prose li::marker,
+.tuto li::marker {
+  color: var(--color-sakura);
+}
 .hero {
-  padding: var(--space-8) 0 var(--space-6);
+  margin: var(--space-4) 0 var(--space-8);
+}
+.hero > * {
+  position: relative;
+}
+.hero > :last-child {
+  margin-bottom: 0;
 }
 .hero p {
   max-width: 60ch;
-  font-size: 17px;
-  color: color-mix(in srgb, var(--color-text) 78%, transparent);
+  font-size: 19px;
+}
+/* Accueil : le titre à gauche, l'illustration (une vraie image, indexable)
+   à droite ; au-dessus sur téléphone. */
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 250px);
+  align-items: center;
+  gap: var(--space-2) var(--space-6);
+  padding-block: var(--space-5);
+}
+/* Compact : le lecteur, en dessous, doit rester visible sans défiler. */
+.home-hero h1 {
+  font-size: clamp(24px, 4vw, 38px);
+}
+.home-hero p {
+  font-size: var(--text-base);
+}
+.home-hero::before {
+  content: none;
+}
+.home-hero img {
+  width: 100%;
+  height: auto;
 }
 .cta-row {
   display: flex;
@@ -574,27 +649,54 @@ textarea.src-input {
   flex-wrap: wrap;
   margin-top: var(--space-6);
 }
+/* Cartes de liens : chacune porte sa couleur en liseré, dans l'ordre du
+   nuancier. */
 .grid-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-4);
+}
+.grid-cards > .card {
+  border-top: 6px solid var(--color-sakura);
+}
+.grid-cards > .card:nth-child(5n + 2) {
+  border-top-color: var(--color-kikyo);
+}
+.grid-cards > .card:nth-child(5n + 3) {
+  border-top-color: var(--color-asagi);
+}
+.grid-cards > .card:nth-child(5n + 4) {
+  border-top-color: var(--color-wakaba);
+}
+.grid-cards > .card:nth-child(5n + 5) {
+  border-top-color: var(--color-yamabuki);
+}
+.card-title a {
+  color: var(--color-text-strong);
+  text-decoration-color: var(--color-sakura);
 }
 
 @media (max-width: 820px) {
-  .import-body,
-  .reader.has-img {
-    grid-template-columns: minmax(0, 1fr);
+  .reader::before,
+  .hero::before {
+    width: 130px;
+    opacity: 0.8;
   }
-  .figpanel {
-    order: -1;
+  /* L'illustration passe en vignette dans le coin, le titre s'écarte. */
+  .home-hero {
+    display: block;
   }
-  .figpanel img {
-    max-height: 230px;
-    width: auto;
-    margin: 0 auto;
+  .home-hero img {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 104px;
+  }
+  .home-hero h1 {
+    padding-right: 108px;
   }
   .reader {
-    padding-top: var(--space-6);
+    padding: var(--space-6) var(--space-5);
   }
   .step-body {
     max-width: none;
@@ -608,55 +710,44 @@ textarea.src-input {
 }
 
 @media (max-width: 520px) {
-  .nav {
-    flex-wrap: wrap;
-    gap: var(--space-2);
+  .reader,
+  .hero {
+    padding: var(--space-5) var(--space-4);
+  }
+  /* Trop étroit : la pelote passerait derrière le texte ou les boutons. */
+  .reader::before,
+  .hero::before {
+    content: none;
   }
   .btn-step {
-    min-height: 66px;
+    min-height: 68px;
   }
   .tile .big {
-    font-size: 30px;
+    font-size: 34px;
   }
 }
 
 .step-tip {
-  margin: var(--space-2) 0 0;
-  padding: var(--space-2) var(--space-3);
-  border-left: 3px solid color-mix(in srgb, var(--color-accent, currentColor) 50%, transparent);
-  background: color-mix(in srgb, currentColor 5%, transparent);
-  border-radius: 6px;
-  font-size: 0.95rem;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 4px solid var(--color-yamabuki);
+  background: color-mix(in srgb, var(--color-yamabuki-pale) 75%, transparent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: var(--text-base);
   line-height: 1.5;
+  max-width: 60ch;
 }
 .warn {
-  padding: var(--space-3);
-  border-radius: 8px;
-  background: color-mix(in srgb, currentColor 7%, transparent);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--color-momiji);
+  background: var(--color-momiji-pale);
 }
 .steps > li + li {
   margin-top: var(--space-5);
 }
-.mono {
-  font-size: 0.875rem;
-  overflow-wrap: anywhere;
-}
-
-.nav-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.brand-mark {
-  flex: none;
-  color: var(--color-accent-300);
-}
-.nav-brand {
-  align-items: center;
-}
-
 .tuto h2 {
-  margin-top: var(--space-6);
+  margin-top: var(--space-8);
 }
 .tuto ul {
   padding-left: var(--space-5);
@@ -671,11 +762,12 @@ textarea.src-input {
 .prompt-box pre {
   max-height: 18rem;
   overflow: auto;
-  padding: var(--space-3);
+  padding: var(--space-4);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, currentColor 6%, transparent);
+  border: 1px solid var(--color-line);
+  background: var(--color-overlay);
   font-size: 0.8125rem;
-  line-height: 1.5;
+  line-height: 1.6;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   -webkit-user-select: all;
@@ -690,20 +782,22 @@ textarea.src-input {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 .projects-list {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   padding: 0;
   margin: 0;
   list-style: none;
 }
 .projects-list .card {
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  border-left: 6px solid var(--color-sakura);
 }
 
 /* Panneau d'import du lecteur. */
@@ -736,7 +830,7 @@ textarea.src-input {
 }
 
 /* Vitrine du design system (`/design-system`) : uniquement la grille qui
- * présente les jetons, la page consomme les composants et classes Nocturne
+ * présente les jetons, la page consomme les composants et classes Hanami
  * existants pour tout le reste. */
 .ds-toolbar {
   display: flex;
@@ -769,9 +863,9 @@ textarea.src-input {
   overflow-x: auto;
 }
 .ds-swatch-chip {
-  height: 48px;
+  height: 56px;
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-line);
 }
 .ds-radius-box {
   width: 64px;
@@ -797,8 +891,8 @@ textarea.src-input {
 }
 .ds-bar {
   height: 14px;
-  background: var(--color-accent);
-  border-radius: var(--radius-sm);
+  background: linear-gradient(to right, var(--color-sakura), var(--color-kikyo));
+  border-radius: var(--radius-pill);
 }
 .ds-icon-grid {
   display: grid;
@@ -809,5 +903,5 @@ textarea.src-input {
 }
 .ds-icon-grid fil-icon {
   font-size: 28px;
-  color: var(--color-accent);
+  color: var(--color-sakura-ink);
 }

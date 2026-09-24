@@ -321,6 +321,7 @@ export class GlossaryTermPage {
   }
 
   protected show(event: Event, term: string, definition: string): void {
+    if (this.tooltips.isStationaryHover(event)) return;
     this.analytics.track('glossary_hover');
     this.tooltips.showFor(event.target as HTMLElement, term, definition);
   }

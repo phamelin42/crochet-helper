@@ -49,7 +49,7 @@ natif, Vitest, ESLint + Prettier. Pré-rendu statique de toutes les routes.
 
 ```
 src/styles/tokens.css        jetons (couleur, typo, espacement, ombres)
-src/styles/nocturne.css      classes du design system
+src/styles/hanami.css        classes du design system
 src/styles/lecteur.css       mise en page de l'application
 src/app/core/i18n/           langue, dictionnaires, chemins traduits
 src/app/core/seo/            SeoService (titre, canonique, hreflang, JSON-LD)

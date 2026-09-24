@@ -2,11 +2,12 @@ import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
- * Précharge le seul fichier de police utilisé au premier rendu.
+ * Précharge les deux fichiers de police utilisés au premier rendu : Karla
+ * (texte, navigation) et Zen Maru Gothic (titres, étape du lecteur).
  *
  * Pourquoi. `font-display: swap` (déjà actif par défaut chez Fontsource)
  * affiche du texte avec la police de secours du système, puis le fait passer
- * à Inter une fois le fichier téléchargé. Sur mobile avec un réseau lent, ce
+ * à la bonne police une fois le fichier téléchargé. Sur mobile avec un réseau lent, ce
  * remplacement arrive bien après le premier rendu et déplace les liens de
  * navigation d'une ligne à l'autre (leur largeur en texte change), ce que la
  * seule réservation de hauteur ne corrige pas : c'est chaque lien qui se
@@ -15,7 +16,7 @@ import { join } from 'node:path';
  * principal, de sorte que la police correcte est déjà prête au premier
  * rendu — plus de remplacement visible, donc plus de décalage.
  *
- * Un seul fichier suffit : le sous-ensemble « latin » couvre déjà les
+ * Un fichier par famille suffit : le sous-ensemble « latin » couvre déjà les
  * caractères latins de base et les lettres accentuées du français (é, è, à,
  * ç…), utilisées par les deux langues du site.
  */
@@ -23,16 +24,26 @@ import { join } from 'node:path';
 const ROOT = 'dist/fil-patterns/browser';
 const MEDIA_DIR = join(ROOT, 'media');
 
-const file = readdirSync(MEDIA_DIR).find((name) =>
-  /^inter-latin-wght-normal-.*\.woff2$/.test(name),
-);
+const PATTERNS = [
+  /^karla-latin-wght-normal-.*\.woff2$/,
+  /^zen-maru-gothic-latin-700-normal-.*\.woff2$/,
+];
 
-if (!file) {
-  console.error(`Aucun fichier "inter-latin-wght-normal-*.woff2" trouvé dans ${MEDIA_DIR}.`);
-  process.exit(1);
-}
+const media = readdirSync(MEDIA_DIR);
+const files = PATTERNS.map((pattern) => {
+  const file = media.find((name) => pattern.test(name));
+  if (!file) {
+    console.error(`Aucun fichier ${pattern} trouvé dans ${MEDIA_DIR}.`);
+    process.exit(1);
+  }
+  return file;
+});
 
-const LINK = `<link rel="preload" as="font" type="font/woff2" href="/media/${file}" crossorigin>`;
+const LINK = files
+  .map(
+    (file) => `<link rel="preload" as="font" type="font/woff2" href="/media/${file}" crossorigin>`,
+  )
+  .join('\n    ');
 
 function htmlFiles(dir) {
   return readdirSync(dir).flatMap((entry) => {
@@ -58,4 +69,4 @@ for (const path of htmlFiles(ROOT)) {
   touched++;
 }
 
-console.log(`Préchargement de police : ${file} ajouté à ${touched} page(s).`);
+console.log(`Préchargement de police : ${files.join(', ')} ajouté à ${touched} page(s).`);

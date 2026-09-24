@@ -1,0 +1,28 @@
+/* ============================================================================
+   Polices — Karla (texte, navigation) et Zen Maru Gothic (titres, étape du
+   lecteur), auto-hébergées depuis les paquets Fontsource.
+
+   Les @font-face sont écrits ici plutôt qu'importés des feuilles Fontsource :
+   seul le sous-ensemble latin sert (il couvre les accents du français), et
+   les autres — japonais surtout, plusieurs mégaoctets — seraient copiés dans
+   `media/` puis téléchargés par le service worker à l'installation.
+   `tools/preload-font.mjs` précharge ces deux fichiers.
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Karla Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('../../node_modules/@fontsource-variable/karla/files/karla-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Zen Maru Gothic';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url('../../node_modules/@fontsource/zen-maru-gothic/files/zen-maru-gothic-latin-700-normal.woff2')
+    format('woff2');
+}

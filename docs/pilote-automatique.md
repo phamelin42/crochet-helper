@@ -14,17 +14,22 @@ l'agent n'est pas appelé et ne coûte rien.
 
 | Quand (Paris)      | Workflow                  | Produit                                                | Garde : l'agent est sauté si…                                                                |
 | ------------------ | ------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| Dimanche 5 h       | Lot suivant               | une PR qui exécute la fiche suivante de `prompts/`     | aucune fiche « À faire » sans branche ouverte                                                |
+| Toutes les 5 h     | Lot suivant               | une PR qui exécute la fiche suivante de `prompts/`     | aucune fiche « À faire » sans branche ouverte                                                |
 | Tous les jours 5 h | Rapport quotidien         | `reports/AAAA-MM-JJ.md` sur la branche `rapports`      | pas de données, ou moins de 100 visites sur 8 jours (rapport de 2 lignes écrit par la garde) |
 | Lundi 6 h          | Amelioration hebdomadaire | une PR de fiches (≤ 3 fichiers `prompts/`) + une issue | pas de données, ou moins de 100 visites en 7 jours **et** déjà 3 fiches en attente           |
 
-Heures d'été ; les `cron` sont en UTC (03 h et 04 h).
+Les `cron` sont en UTC : « Toutes les 5 h » vaut `0 */5 * * *` (00, 05, 10, 15 et 20 h UTC) ; les autres lignes sont données en heures d'été (03 h et 04 h UTC). Aux créneaux sans travail, la garde saute l'agent : coût nul.
 
 ## Ce qui attend Phil
 
-- **Toutes les PR** : fiche exécutée (dimanche), fiches proposées (lundi).
-  Rien ne fusionne seul ; `main` exige une PR et la CI « Lint · format ·
-  tests · build ».
+- **Toutes les PR** : fiche exécutée (Lot suivant), fiches proposées (lundi).
+  `main` exige une PR et la CI « Lint · format · tests · build ».
+- **Fusion automatique** : les PR de Lot suivant et du point hebdo sont
+  fusionnées seules (squash) si la CI est verte, à condition que le dépôt ait
+  « Allow auto-merge » et le check requis activés côté réglages GitHub. Sinon,
+  ou pour un brouillon, elles restent en relecture manuelle comme avant, sans
+  échec du workflow : la raison est écrite dans le résumé d'exécution
+  (`tools/fusion-auto.sh`).
 - **Les issues** : rapport quotidien seulement si un seuil est franchi (skill
   `rapport-quotidien`, § 4), point hebdomadaire chaque lundi où l'agent tourne,
   « Décision requise » quand une fiche bloque.

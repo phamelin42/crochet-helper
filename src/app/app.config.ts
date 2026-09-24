@@ -1,7 +1,12 @@
-import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {
+  ApplicationConfig,
+  inject,
+  provideAppInitializer,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
-import { provideServiceWorker } from '@angular/service-worker';
+import { UpdateService } from './core/platform/update.service';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -23,9 +28,8 @@ export const appConfig: ApplicationConfig = {
     // la CSP, à régénérer à chaque montée de version d'Angular : trop de
     // maintenance pour ce que ça protège.
     provideClientHydration(),
-    provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable:30000',
-    }),
+    // Enregistre le service worker, sans `@angular/service-worker` côté page
+    // (voir `UpdateService`).
+    provideAppInitializer(() => void inject(UpdateService)),
   ],
 };

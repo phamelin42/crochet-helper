@@ -1,64 +1,78 @@
-import { PLATFORM_ID } from '@angular/core';
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { SwUpdate, VersionEvent } from '@angular/service-worker';
-import { Subject } from 'rxjs';
-import { describe, expect, it } from 'vitest';
-import { UpdateService } from './update.service';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { REGISTRATION_DELAY_MS, SERVICE_WORKER, UpdateService } from './update.service';
 
-function setup(platform: 'browser' | 'server', isEnabled: boolean) {
-  const versionUpdates = new Subject<VersionEvent>();
+/** Conteneur factice : un `EventTarget` pour les messages du worker. */
+function fakeContainer() {
+  const target = new EventTarget();
+  return Object.assign(target, {
+    startMessages: vi.fn(),
+    register: vi.fn(() => Promise.resolve({} as ServiceWorkerRegistration)),
+    post(data: unknown) {
+      target.dispatchEvent(new MessageEvent('message', { data }));
+    },
+  });
+}
+
+function setup(container: ReturnType<typeof fakeContainer> | null, stable = Promise.resolve()) {
   TestBed.configureTestingModule({
     providers: [
-      { provide: PLATFORM_ID, useValue: platform },
-      { provide: SwUpdate, useValue: { isEnabled, versionUpdates } },
+      { provide: SERVICE_WORKER, useValue: container },
+      { provide: ApplicationRef, useValue: { whenStable: () => stable } },
     ],
   });
-  return { service: TestBed.inject(UpdateService), versionUpdates };
+  return TestBed.inject(UpdateService);
 }
 
 describe('UpdateService', () => {
-  it('signale la mise à jour disponible quand le service worker en détecte une', () => {
-    const { service, versionUpdates } = setup('browser', true);
+  afterEach(() => vi.useRealTimers());
+
+  it('signale la mise à jour disponible quand le service worker en annonce une', () => {
+    const container = fakeContainer();
+    const service = setup(container);
 
     expect(service.updateAvailable()).toBe(false);
-    versionUpdates.next({
-      type: 'VERSION_READY',
-      currentVersion: { hash: 'a' },
-      latestVersion: { hash: 'b' },
-    });
+    container.post({ type: 'VERSION_READY', currentVersion: { hash: 'a' } });
 
     expect(service.updateAvailable()).toBe(true);
+    expect(container.startMessages).toHaveBeenCalled();
   });
 
-  it('ignore les événements qui ne sont pas une version prête', () => {
-    const { service, versionUpdates } = setup('browser', true);
+  it('ignore les messages qui ne sont pas une version prête', () => {
+    const container = fakeContainer();
+    const service = setup(container);
 
-    versionUpdates.next({ type: 'VERSION_DETECTED', version: { hash: 'a' } });
+    for (const data of [{ type: 'VERSION_DETECTED' }, { type: 'NO_NEW_VERSION_DETECTED' }, null]) {
+      container.post(data);
+    }
 
     expect(service.updateAvailable()).toBe(false);
   });
 
-  it('reste inerte côté serveur, même si le service worker est actif', () => {
-    const { service, versionUpdates } = setup('server', true);
+  it("enregistre le worker une fois l'application stable", async () => {
+    const container = fakeContainer();
+    setup(container);
 
-    versionUpdates.next({
-      type: 'VERSION_READY',
-      currentVersion: { hash: 'a' },
-      latestVersion: { hash: 'b' },
-    });
-
-    expect(service.updateAvailable()).toBe(false);
+    await vi.waitFor(() => expect(container.register).toHaveBeenCalledWith('/ngsw-worker.js'));
   });
 
-  it("reste inerte quand le service worker n'est pas actif", () => {
-    const { service, versionUpdates } = setup('browser', false);
+  it("enregistre le worker après le délai maximal si l'application ne se stabilise pas", async () => {
+    vi.useFakeTimers();
+    const container = fakeContainer();
+    setup(container, new Promise<void>(() => undefined));
 
-    versionUpdates.next({
-      type: 'VERSION_READY',
-      currentVersion: { hash: 'a' },
-      latestVersion: { hash: 'b' },
-    });
+    await vi.advanceTimersByTimeAsync(REGISTRATION_DELAY_MS - 1);
+    expect(container.register).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(container.register).toHaveBeenCalledTimes(1);
+  });
+
+  it('reste inerte sans service worker (pré-rendu, développement, navigateur sans support)', () => {
+    const service = setup(null);
 
     expect(service.updateAvailable()).toBe(false);
+    expect(() => service.activateUpdate()).not.toThrow();
   });
 });

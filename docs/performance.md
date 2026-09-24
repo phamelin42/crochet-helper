@@ -89,10 +89,10 @@ taille selon la capacité du navigateur.
 cause dominante était ailleurs. Corrigé quand même : conservé, la place
 réservée est correcte en soi et sans coût.
 
-### 2. Police Inter : remplacement de la police de secours
+### 2. Polices : remplacement de la police de secours
 
 `font-display: swap` (déjà actif par défaut chez Fontsource) affiche le
-texte avec la police système, puis le remplace par Inter une fois le fichier
+texte avec la police système, puis le remplace par la police du site une fois le fichier
 téléchargé. Sur réseau lent, ce remplacement survient après le premier rendu
 et change la largeur du texte de la navigation : le nombre de liens qui
 tiennent sur une ligne change, chaque lien se déplace individuellement (pas
@@ -100,8 +100,10 @@ seulement la hauteur du bloc).
 
 **Correctif** : `tools/preload-font.mjs` (nouveau, exécuté dans la chaîne de
 build avant `ngsw-config`) injecte un `<link rel="preload">` vers le seul
-fichier de police utilisé au premier rendu (`inter-latin-wght-normal-*.woff2`
-— le sous-ensemble « latin » couvre déjà les lettres accentuées du français).
+fichier de police par famille utilisé au premier rendu (à l'origine Inter ;
+depuis Hanami, `karla-latin-wght-normal-*.woff2` et
+`zen-maru-gothic-latin-700-normal-*.woff2` — le sous-ensemble « latin » couvre
+déjà les lettres accentuées du français).
 Le fichier est ainsi prêt avant le premier rendu ; il n'y a plus de police de
 secours visible à remplacer.
 

@@ -10,3 +10,4 @@
 | 2026-09-24 | lot | 74 tours | 2.62 $ | fiche 18 |
 | 2026-09-24 | rapport | agent sauté | — | 16 visites sur 8 jours |
 | 2026-09-24 | lot | 97 tours | 3.75 $ | fiche 18 |
+| 2026-09-24 | lot | 81 tours | 2.35 $ | fiche 22 |

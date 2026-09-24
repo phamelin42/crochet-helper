@@ -165,6 +165,7 @@ jobs:
               git log --format='- %s' origin/main.."$branche" > "$corps"; fi
             url=$(gh pr create --repo "$REPO" --base main --head "$branche" \
               --title "$titre" --body-file "$corps")
+            tools/fusion-auto.sh "$url"
             liste="$liste- $titre — $url"$'\n'
           done
 

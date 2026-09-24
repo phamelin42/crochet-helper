@@ -202,6 +202,8 @@ entier les consomme.
   **un seul** `npm run verify` à la fin.
 - Noter dans la PR le nombre d'échanges consommés et ce qui les a coûtés.
 
+- **Fusion automatique des PR du pilote.** Elle ne prend effet que si « Allow auto-merge » est coché, si le check « Lint · format · tests · build » est requis sur `main`, et si le job `publier` a `pull-requests: write`. Sinon `gh pr merge --auto` échoue : `tools/fusion-auto.sh` le note dans le résumé d'exécution (« fusion auto non activée ») sans faire échouer le workflow, et la PR attend en silence. Avec la protection « branche à jour » (`strict`), une PR restée derrière `main` ne fusionne pas non plus : la mettre à jour à la main.
+
 ## Vérification
 
 `npm run verify` = lint + format + tests + build avec pré-rendu. **Une tâche

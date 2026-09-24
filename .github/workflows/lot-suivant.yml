@@ -11,7 +11,7 @@ name: Lot suivant
 
 on:
   schedule:
-    - cron: '0 3 * * 0' # dimanche 05h00 heure de Paris (03h00 UTC en été)
+    - cron: '0 */5 * * *' # toutes les 5 h (UTC) ; la garde saute l'agent sans fiche à faire
   workflow_dispatch:
 
 concurrency:
@@ -217,6 +217,9 @@ jobs:
             exit 1
           fi
           echo "PR ouverte : $url" | tee -a "$GITHUB_STEP_SUMMARY"
+          # Une PR en brouillon (travail inachevé) ne peut pas fusionner seule.
+          if [ ${#brouillon[@]} -eq 0 ]; then tools/fusion-auto.sh "$url"; else
+            echo "Fusion auto non activée : PR en brouillon ($url)" | tee -a "$GITHUB_STEP_SUMMARY"; fi
 
       - name: Noter le coût
         if: always()

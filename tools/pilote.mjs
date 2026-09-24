@@ -6,8 +6,8 @@
 //   node tools/pilote.mjs garde-lot     prompts/README.md automation/avancement.md "<branches>"
 //   node tools/pilote.mjs cout <workflow> <execution_file|-> [raison]
 //
-// Les gardes écrivent `agir=true|false` et `raison=…` dans $GITHUB_OUTPUT et
-// ne font jamais échouer le job. `garde-rapport` écrit elle-même un rapport de
+// Les gardes écrivent `agir=true|false`, `raison=…` et `fiche=<numéro ou vide>`
+// dans $GITHUB_OUTPUT et ne font jamais échouer le job. `garde-rapport` écrit elle-même un rapport de
 // deux lignes quand elle saute l'agent : la série de `reports/` reste continue.
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -104,7 +104,7 @@ export function gardeLot(readme, avancement, branches) {
   );
   const fiche = ordreDesFiches(readme).find((n) => aFaire.has(n) && !ouvertes.has(n));
   return fiche
-    ? { agir: true, raison: `fiche ${fiche}` }
+    ? { agir: true, raison: `fiche ${fiche}`, fiche }
     : { agir: false, raison: 'aucune fiche « À faire » sans branche ouverte' };
 }
 
@@ -125,8 +125,8 @@ export function ligneCout({ date, workflow, execution, raison }) {
   return `| ${date} | ${workflow} | ${resultat.num_turns ?? '—'} tours | ${cout} | ${raison ?? '—'} |`;
 }
 
-function sortir({ agir, raison }) {
-  const lignes = `agir=${agir}\nraison=${raison.replace(/\n/g, ' ')}\n`;
+function sortir({ agir, raison, fiche }) {
+  const lignes = `agir=${agir}\nraison=${raison.replace(/\n/g, ' ')}\nfiche=${fiche ?? ''}\n`;
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, lignes);
   process.stdout.write(lignes);
 }

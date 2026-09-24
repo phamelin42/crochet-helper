@@ -73,12 +73,15 @@ test('avancement : seules les fiches « À faire » comptent, jamais une bloqué
 
 test('lot : la première fiche de l’ordre, à faire et sans branche', () => {
   assert.equal(gardeLot(README, AVANCEMENT, '').raison, 'fiche 21');
+  assert.equal(gardeLot(README, AVANCEMENT, '').fiche, '21');
   assert.equal(
     gardeLot(README, AVANCEMENT, 'origin/main origin/21-mesure-retour').raison,
     'fiche 18',
   );
+  assert.equal(gardeLot(README, AVANCEMENT, 'origin/21-a').fiche, '18');
   const rien = gardeLot(README, AVANCEMENT, 'origin/21-a origin/18-b origin/17-c');
   assert.equal(rien.agir, false);
+  assert.equal(rien.fiche, undefined);
 });
 
 test('lot : les tables réelles du dépôt donnent une fiche', () => {

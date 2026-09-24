@@ -37,9 +37,16 @@ Lis dans cet ordre :
 Puis liste les branches du dépôt : `git branch -r`. Une branche
 `origin/<numéro>-<slug>` signifie qu'une PR pour cette fiche attend relecture.
 
-La fiche à exécuter est **la première de la table d'ordre d'exécution qui est
-« À faire » et n'a pas de branche sur le dépôt**. Une seule. Ne prends pas
-d'avance, même si la suivante paraît triviale.
+**Numéro reçu en argument** (`$ARGUMENTS`, ex. `/lot-suivant 18`) : c'est la
+garde du workflow qui l'a choisi d'après la table d'ordre du README, qui fait
+autorité. Exécute cette fiche-là, sans la rediscuter ni la recalculer, même si
+ta propre lecture des tables désigne une autre fiche.
+
+**Sans argument** (lancement à la main) : la fiche à exécuter est **la première
+de la table d'ordre d'exécution qui est « À faire » et n'a pas de branche sur le
+dépôt**.
+
+Une seule fiche. Ne prends pas d'avance, même si la suivante paraît triviale.
 
 ## 2. Vérifier qu'elle est exécutable
 

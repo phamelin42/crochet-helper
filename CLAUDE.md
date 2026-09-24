@@ -138,6 +138,18 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   SVG, qui n'a ni `srcset` ni redimensionnement, une balise `<img>` native
   avec `width`, `height` et `fetchpriority` suffit. Cette règle l'emporte sur
   la convention Angular générale plus bas.
+- **`@defer` coûte 5,6 ko au bundle initial** (mesuré, même placé dans une
+  page paresseuse) : son moteur vit dans `@angular/core`, déjà dans le bundle
+  initial. Pour sortir du code du premier affichage, `import()` suffit.
+- **Service worker : ni `provideServiceWorker` ni `SwUpdate`** (~6 ko au
+  bundle initial). `core/platform/update.service.ts` enregistre
+  `ngsw-worker.js` et écoute `VERSION_READY` en natif.
+- **La page suivante se précharge seule** (`core/platform/route-prefetch.ts`) :
+  toute route de `app.routes.ts` est couverte (survol, focus, toucher, lien
+  visible), rien à brancher pour une nouvelle page.
+- **Cache HTTP `immutable` : seulement les fichiers à empreinte** (`vercel.json`,
+  `netlify.toml`). `print.css`, `ngsw-worker.js` et `pdf.worker.min.mjs`
+  gardent leur nom d'un build à l'autre et doivent être revalidés.
 - **Un survol peut venir de la page, pas de la personne** : quand l'étape
   change sous un curseur immobile, le navigateur émet `pointerenter`.
   `TooltipService.isStationaryHover` l'écarte ; tout nouvel élément à

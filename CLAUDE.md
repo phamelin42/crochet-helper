@@ -41,13 +41,13 @@ aucune n'a pas sa place dans la table d'ordre.
 5. **Aucune valeur brute de style.** Couleur, espacement, rayon, ombre, typo :
    uniquement des `var(--…)` définis dans `src/styles/tokens.css`. Ni
    `styles:` de composant ni attribut `style="…"` : les classes vont dans
-   `src/styles/lecteur.css` (mise en page) ou `nocturne.css` (design system).
+   `src/styles/lecteur.css` (mise en page) ou `hanami.css` (design system).
    Contrôlé par `tools/check-styles.mjs` au build.
 
 ## Architecture
 
 ```
-src/styles/          tokens.css (jetons) · nocturne.css (classes du DS) · lecteur.css (mise en page)
+src/styles/          tokens.css (jetons) · hanami.css (classes du DS) · lecteur.css (mise en page)
 src/app/core/        i18n · seo · storage · platform · analytics — services transverses, sans UI
 src/app/shared/ui/   composants et directives réutilisables, sans logique métier
 src/app/shared/layout, pipes, directives
@@ -72,10 +72,17 @@ testable sans navigateur. Code existant à migrer, sans urgence :
 
 ## Le design system avant tout composant
 
-Le style vient du projet Claude Design « Lecteur de patterns » (système
-_Nocturne_). Les classes (`.btn`, `.input`, `.card`, `.seg`, `.tile`, `.dialog`,
-`.hr`…) vivent en CSS global dans `src/styles/nocturne.css`, et les composants de
+Le style suit le système _Hanami_ 花見 : fond washi clair, encre violacée,
+accents tirés des couleurs traditionnelles japonaises (sakura, kikyō, yamabuki,
+wakaba, asagi, momiji). Maîtres mots : clarté, légèreté, joie, couleur. Les
+classes (`.btn`, `.input`, `.card`, `.seg`, `.tile`, `.tag`, `.dialog`, `.hr`…)
+vivent en CSS global dans `src/styles/hanami.css`, et les composants de
 `shared/ui` ne font que les habiller en Angular.
+
+Chaque accent a trois tons : `--color-<nom>` (vif, décor et remplissage, jamais
+seul sous du texte), `-pale` (fond) et `-ink` (texte, ≥ 4,5:1). Le rose
+`--color-primary` est réservé à l'action principale. Clair par défaut ; le
+sombre est un choix explicite (`data-dim`), jamais `prefers-color-scheme`.
 
 **Avant d'écrire un composant, cherche s'il existe déjà dans `shared/ui`.** S'il
 manque, ajoute-le là plutôt que d'écrire du style local. Un composant de

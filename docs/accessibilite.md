@@ -57,7 +57,7 @@ deux). L'ancien mélange à 52 % tombait à 4.48:1 côté assombri.
   de navigation, le bouton « garder l'écran allumé », le lien de langue, le
   panneau d'import, puis le contenu du lecteur dans l'ordre visuel. Ordre
   logique, aucun piège, focus toujours visible (`:focus-visible` global dans
-  `nocturne.css`).
+  `hanami.css`).
 - **Lien d'évitement** : premier `Tab` → focus sur `.skip-link` → `Entrée` →
   focus sur `<main id="main" tabindex="-1">`. Vérifié par script Playwright.
 - **Infobulle du glossaire** (`GlossaryText`) : chaque abréviation est un

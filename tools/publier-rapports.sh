@@ -47,6 +47,13 @@ for tentative in 1 2 3; do
         ;;
     esac
   done
+  # La branche ne contient ni package.json ni application : sans ce fichier,
+  # Vercel tente de la déployer à chaque rapport et échoue (`ng: command not
+  # found`). Vercel lit le vercel.json de la branche déployée, pas celui de main.
+  if [ ! -f "$r/vercel.json" ]; then
+    printf '{ "git": { "deploymentEnabled": false } }\n' > "$r/vercel.json"
+    git -C "$r" add vercel.json
+  fi
   if git -C "$r" diff --cached --quiet; then
     git worktree remove -f "$r"
     exit 0

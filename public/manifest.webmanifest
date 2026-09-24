@@ -4,8 +4,8 @@
   "description": "Read a crochet or knitting pattern one step at a time.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#161826",
-  "theme_color": "#161826",
+  "background_color": "#faf4ed",
+  "theme_color": "#faf4ed",
   "lang": "en",
   "icons": [
     {

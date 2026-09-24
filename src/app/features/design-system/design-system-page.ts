@@ -18,23 +18,26 @@ import { TooltipService } from '../../shared/ui/tooltip/tooltip.service';
 /** Page d'équipe uniquement : jamais de version anglaise, jamais indexée. */
 const PATH: LocalizedPath = { fr: '/design-system', en: '/design-system' };
 
-const RAMP = ['100', '200', '300', '400', '500', '600', '700', '800', '900'] as const;
+const HUES = ['sakura', 'kikyo', 'yamabuki', 'wakaba', 'asagi', 'momiji'] as const;
 
 /** Chaque jeton de couleur déclaré dans `tokens.css` — la liste fait foi, pas un échantillon. */
 const COLOR_TOKENS = [
   'color-bg',
   'color-surface',
+  'color-overlay',
+  'color-line',
   'color-text',
+  'color-text-strong',
   'color-text-label',
-  'color-accent',
-  'color-accent-2',
-  'color-divider',
-  ...RAMP.map((n) => `color-neutral-${n}`),
-  ...RAMP.map((n) => `color-accent-${n}`),
-  ...RAMP.map((n) => `color-accent-2-${n}`),
-  'color-section',
-  'color-section-glow',
-  'color-section-ghost',
+  ...HUES.flatMap((hue) => [`color-${hue}`, `color-${hue}-pale`, `color-${hue}-ink`]),
+  'color-primary',
+  'color-on-primary',
+  'color-link',
+  'color-focus',
+  'color-tip-bg',
+  'color-tip-text',
+  'color-tip-accent',
+  'color-scrim',
 ] as const;
 
 const SPACE_TOKENS = [
@@ -45,8 +48,9 @@ const SPACE_TOKENS = [
   'space-5',
   'space-6',
   'space-8',
+  'space-10',
 ] as const;
-const RADIUS_TOKENS = ['radius-sm', 'radius-md', 'radius-lg'] as const;
+const RADIUS_TOKENS = ['radius-sm', 'radius-md', 'radius-lg', 'radius-pill'] as const;
 const SHADOW_TOKENS = ['shadow-sm', 'shadow-md', 'shadow-lg'] as const;
 const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
 
@@ -64,8 +68,8 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
     <section class="hero">
       <h1>Vitrine du design system</h1>
       <p>
-        Nocturne, jeton par jeton et composant par composant. Page interne, non indexée : elle n’a
-        rien à faire dans un moteur de recherche.
+        Hanami 花見, jeton par jeton et composant par composant. Page interne, non indexée : elle
+        n’a rien à faire dans un moteur de recherche.
       </p>
       <div class="ds-toolbar">
         <fil-segmented
@@ -151,6 +155,17 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
             <code>--{{ token }}</code>
           </div>
         }
+      </div>
+
+      <h3>Pastilles</h3>
+      <p class="ds-caption">Classes <code>.tag</code> : une teinte par rôle, texte recalé AA.</p>
+      <div class="cta-row">
+        <span class="tag tag-sakura">Nouveau</span>
+        <span class="tag tag-kikyo">Sélection</span>
+        <span class="tag tag-yamabuki">En cours</span>
+        <span class="tag tag-wakaba">Terminé</span>
+        <span class="tag tag-asagi">Info</span>
+        <span class="tag">Neutre</span>
       </div>
     </section>
 
@@ -458,8 +473,8 @@ export class DesignSystemPage {
   protected readonly computedValues = signal<Record<string, string>>({});
 
   protected readonly themeOptions: SegmentedOption[] = [
-    { value: 0, label: 'Normal' },
-    { value: 1, label: 'Assombri' },
+    { value: 0, label: 'Clair' },
+    { value: 1, label: 'Sombre' },
   ];
   protected readonly theme = signal(0);
 
@@ -489,7 +504,7 @@ export class DesignSystemPage {
     this.seo.apply({
       title: 'Vitrine du design system — Pattern Reader',
       description:
-        'Page interne : chaque jeton et chaque composant de Nocturne, dans tous ses états.',
+        'Page interne : chaque jeton et chaque composant de Hanami, dans tous ses états.',
       path: PATH,
       locale: this.locale,
       noIndex: true,

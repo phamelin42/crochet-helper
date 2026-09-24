@@ -18,9 +18,7 @@
 
 body {
   margin: 0;
-  background-color: var(--color-bg);
-  background-image: var(--pattern-wave);
-  background-size: var(--pattern-wave-size);
+  background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body);
   font-size: var(--text-base);
@@ -28,6 +26,28 @@ body {
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
+}
+/* Fond tricoté : des colonnes de mailles en V, à peine visibles, derrière
+   tout le reste. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--color-sakura);
+  opacity: var(--pattern-strength);
+  mask: var(--pattern-knit);
+}
+/* Surpiqûre : un point avant en pointillés, à l'intérieur des surfaces
+   posées sur la page, comme un écusson cousu. */
+.card,
+.tile,
+.nav,
+.import,
+.mats {
+  outline: 2px dashed var(--color-sakura-pale);
+  outline-offset: -7px;
 }
 
 h1,
@@ -142,11 +162,11 @@ figcaption {
   border: 0;
 }
 
-/* — filet — un trait pointillé discret, comme une couture. */
+/* — filet — un point avant : des tirets de fil rose. */
 .hr {
   height: 0;
   border: 0;
-  border-top: 2px dotted var(--color-line);
+  border-top: 3px dashed var(--color-sakura);
   margin: var(--space-8) 0;
 }
 
@@ -482,9 +502,6 @@ textarea.input {
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--color-line);
   vertical-align: top;
-}
-.table tbody tr:hover {
-  background: color-mix(in srgb, var(--color-sakura-pale) 35%, transparent);
 }
 
 /* — boîte de dialogue — */

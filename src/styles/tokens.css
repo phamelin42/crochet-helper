@@ -57,15 +57,10 @@
   --color-tip-accent: #f7dbe5;
   --color-scrim: rgb(60 53 80 / 45%);
 
-  /* Motif de fond : vagues seigaiha à peine visibles, sur le seul fond de page. */
-  --pattern-wave: radial-gradient(
-    circle at 50% 100%,
-    transparent 11px,
-    color-mix(in srgb, var(--color-sakura) var(--pattern-strength), transparent) 11px 12px,
-    transparent 12.5px
-  );
-  --pattern-wave-size: 44px 22px;
-  --pattern-strength: 9%;
+  /* Motif de fond : des mailles de jersey (colonnes de V), en masque, colorées
+     et dosées par le thème. */
+  --pattern-knit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='18'%3E%3Cpath d='M4 3q1 8 7 12q6-4 7-12' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  --pattern-strength: 0.12;
 
   /* — typographie — */
   --font-display: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', system-ui, sans-serif;
@@ -150,7 +145,7 @@
   --color-tip-text: #232136;
   --color-tip-accent: #97445f;
   --color-scrim: rgb(10 8 20 / 60%);
-  --pattern-strength: 4%;
+  --pattern-strength: 0.07;
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 35%);
   --shadow-md: 0 1px 2px rgb(0 0 0 / 45%), 0 10px 30px -14px rgb(0 0 0 / 75%);

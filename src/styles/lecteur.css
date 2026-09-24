@@ -40,9 +40,23 @@
   gap: var(--space-2);
   margin-right: 0;
 }
+/* Logo : une pelote sakura, ses brins, le crochet kikyō planté dedans. */
 .brand-mark {
   flex: none;
-  color: var(--color-sakura-ink);
+  fill: none;
+  stroke-linecap: round;
+}
+.bm-ball {
+  fill: var(--color-sakura);
+}
+.bm-yarn {
+  stroke: var(--color-surface);
+  stroke-width: 3;
+  opacity: 0.75;
+}
+.bm-hook {
+  stroke: var(--color-kikyo);
+  stroke-width: 5;
 }
 .nav-links {
   display: flex;
@@ -226,7 +240,8 @@ textarea.src-input {
 }
 
 /* — lecteur — la scène : une grande carte lumineuse, dégradé sakura → kikyō,
-   un halo yamabuki dans le coin. Le bandeau `.hero` des autres pages porte le
+   une pelote et son crochet dans le coin (fichier statique : rien dans le
+   bundle). Le bandeau `.hero` des autres pages porte le
    même papier fleuri. */
 .reader,
 .hero {
@@ -247,16 +262,11 @@ textarea.src-input {
 .hero::before {
   content: '';
   position: absolute;
-  right: -80px;
-  bottom: -140px;
-  width: 340px;
-  height: 340px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--color-yamabuki) 24%, transparent),
-    transparent 62%
-  );
+  right: var(--space-3);
+  bottom: var(--space-2);
+  width: 220px;
+  height: 184px;
+  background: url(/illustrations/pelote.svg) no-repeat right bottom / contain;
   pointer-events: none;
 }
 .reader {
@@ -496,7 +506,12 @@ textarea.src-input {
   display: block;
   height: 100%;
   border-radius: var(--radius-pill);
-  background: linear-gradient(to right, var(--color-sakura), var(--color-yamabuki));
+  /* Un fil retors : deux tons en torsade. */
+  background: repeating-linear-gradient(
+    -55deg,
+    var(--color-sakura) 0 6px,
+    var(--color-sakura-ink) 6px 8px
+  );
   transition: width 0.3s ease;
 }
 .reps {
@@ -526,9 +541,6 @@ textarea.src-input {
 }
 .mats > summary::-webkit-details-marker {
   display: none;
-}
-.mats > summary:hover {
-  color: var(--color-text-strong);
 }
 .mats[open] > summary fil-icon {
   transform: rotate(180deg);
@@ -608,6 +620,29 @@ textarea.src-input {
   max-width: 60ch;
   font-size: 19px;
 }
+/* Accueil : le titre à gauche, l'illustration (une vraie image, indexable)
+   à droite ; au-dessus sur téléphone. */
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 250px);
+  align-items: center;
+  gap: var(--space-2) var(--space-6);
+  padding-block: var(--space-5);
+}
+/* Compact : le lecteur, en dessous, doit rester visible sans défiler. */
+.home-hero h1 {
+  font-size: clamp(24px, 4vw, 38px);
+}
+.home-hero p {
+  font-size: var(--text-base);
+}
+.home-hero::before {
+  content: none;
+}
+.home-hero img {
+  width: 100%;
+  height: auto;
+}
 .cta-row {
   display: flex;
   gap: var(--space-3);
@@ -642,6 +677,24 @@ textarea.src-input {
 }
 
 @media (max-width: 820px) {
+  .reader::before,
+  .hero::before {
+    width: 130px;
+    opacity: 0.8;
+  }
+  /* L'illustration passe en vignette dans le coin, le titre s'écarte. */
+  .home-hero {
+    display: block;
+  }
+  .home-hero img {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 104px;
+  }
+  .home-hero h1 {
+    padding-right: 108px;
+  }
   .reader {
     padding: var(--space-6) var(--space-5);
   }
@@ -660,6 +713,11 @@ textarea.src-input {
   .reader,
   .hero {
     padding: var(--space-5) var(--space-4);
+  }
+  /* Trop étroit : la pelote passerait derrière le texte ou les boutons. */
+  .reader::before,
+  .hero::before {
+    content: none;
   }
   .btn-step {
     min-height: 68px;

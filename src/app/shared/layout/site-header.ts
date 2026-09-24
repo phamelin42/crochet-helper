@@ -20,24 +20,13 @@ import { Icon } from '../ui/icon/icon';
   host: { class: 'nav' },
   template: `
     <a class="nav-brand" [routerLink]="i18n.link('reader')">
-      <svg
-        class="brand-mark"
-        viewBox="0 0 64 64"
-        width="28"
-        height="28"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="4"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <circle cx="30" cy="36" r="20" />
-        <path d="M16 22c8 6 13 15 15 27" />
-        <path d="M25 17c9 5 15 14 17 26" />
-        <path d="M11 32c11 1 20 8 24 19" />
-        <path d="M20 51 52 12" />
-        <path d="M44 10c5-2 9 1 8 5-1 3-5 4-7 2" />
+      <svg class="brand-mark" viewBox="0 0 64 64" width="32" height="32" aria-hidden="true">
+        <path class="bm-hook" d="M42 5 54 27M42 5c-2-3-7-3-7 1 0 2 3 3 4 1" />
+        <circle class="bm-ball" cx="30" cy="38" r="22" />
+        <path
+          class="bm-yarn"
+          d="M13 27c9 3 20 14 24 31M22 18c9 5 18 18 20 37M9 42c12 0 23 7 28 17"
+        />
       </svg>
       <span>Pattern Reader</span>
     </a>

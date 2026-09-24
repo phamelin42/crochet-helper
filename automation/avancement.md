@@ -29,7 +29,7 @@ branche.
 | 09 — Performance et Core Web Vitals     | Terminée                               | —   | 2026-09-22 |
 | 04 — Pages éditoriales                  | Terminée                               | —   | 2026-09-22 |
 | 08 — Vitrine du design system           | Terminée                               | —   | 2026-09-22 |
-| 17 — Tailles de crochet mm ↔ US         | À faire                                | —   | —          |
+| 17 — Tailles de crochet mm ↔ US         | Terminée                               | —   | 2026-09-24 |
 | 18 — Matériel : en-têtes élargis        | À faire                                | —   | —          |
 | 19 — Envoyer un projet                  | À faire                                | —   | —          |
 | 20 — Comptes et paiement (cadrage)      | Bloquée : lot 8 gelé, décision de Phil | —   | —          |

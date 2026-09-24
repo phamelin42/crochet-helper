@@ -45,7 +45,11 @@ export type AnalyticsEvent =
   /** Position absolue de 20 dans le patron atteinte pour la première fois. */
   | 'reading_depth_20'
   /** Position absolue de 50 dans le patron atteinte pour la première fois. */
-  | 'reading_depth_50';
+  | 'reading_depth_50'
+  /** Ligne de liste d'attente affichée, une fois par projet. */
+  | 'waitlist_shown'
+  /** Clic sur le lien externe de la liste d'attente. */
+  | 'waitlist_clicked';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

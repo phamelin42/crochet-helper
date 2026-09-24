@@ -10,6 +10,9 @@ import { Button } from '../../shared/ui/button/button';
 import { InputField } from '../../shared/ui/field/input';
 import { Segmented, SegmentedOption } from '../../shared/ui/segmented/segmented';
 import { ConversionResult, Region, convertTerms } from './data/convert-terms';
+import { HOOK_SIZES, annotateHookSizes } from './data/hook-sizes';
+
+const NBSP = ' ';
 
 interface ConverterCopy {
   readonly title: string;
@@ -30,13 +33,17 @@ interface ConverterCopy {
   directionOf(from: Region, to: Region): string;
   readonly backToReader: string;
   readonly backToGlossary: string;
+  readonly hookSizesTitle: string;
+  readonly hookSizesLead: string;
+  readonly hookSizesMm: string;
+  readonly hookSizesUs: string;
 }
 
 const COPY: Record<Locale, ConverterCopy> = {
   fr: {
-    title: `Convertisseur US ↔ UK — ${SITE_NAME}`,
+    title: `Convertisseur US ↔ UK et tailles de crochet — ${SITE_NAME}`,
     description:
-      'Convertissez un patron de crochet entier de la notation américaine à la britannique, ou inversement. sc, dc, hdc, tr, dtr, htr : les mêmes lettres désignent des mailles différentes selon la convention.',
+      'Convertissez un patron de crochet entier de la notation américaine à la britannique, ou inversement. sc, dc, hdc, tr, dtr, htr : les mêmes lettres désignent des mailles différentes selon la convention. Avec le tableau des tailles de crochet mm ↔ US.',
     h1: 'Convertisseur d’abréviations US ↔ UK',
     lead: '« dc » désigne une bride aux États-Unis et une maille serrée au Royaume-Uni : se tromper de convention ruine un ouvrage. Collez un patron entier, choisissez le sens, et vérifiez chaque remplacement avant de crocheter.',
     directionLabel: 'Sens de la conversion',
@@ -53,11 +60,15 @@ const COPY: Record<Locale, ConverterCopy> = {
     directionOf: (from, to) => `Notation ${from} convertie en notation ${to}.`,
     backToReader: 'Lire tout un patron pas à pas',
     backToGlossary: 'Toutes les abréviations',
+    hookSizesTitle: 'Tailles de crochet mm ↔ US',
+    hookSizesLead: `Un patron américain donne la taille du crochet par une lettre («${NBSP}G-6 hook${NBSP}») plutôt qu’en millimètres. Dans le texte converti, chaque taille reconnue reçoit son équivalent entre parenthèses${NBSP}; voici le tableau complet.`,
+    hookSizesMm: 'Diamètre (mm)',
+    hookSizesUs: 'Taille US',
   },
   en: {
-    title: `US ↔ UK crochet converter — ${SITE_NAME}`,
+    title: `US ↔ UK crochet converter and hook sizes — ${SITE_NAME}`,
     description:
-      'Convert a whole crochet pattern from US to UK notation, or the other way round. sc, dc, hdc, tr, dtr, htr: the same letters mean different stitches depending on the convention.',
+      'Convert a whole crochet pattern from US to UK notation, or the other way round. sc, dc, hdc, tr, dtr, htr: the same letters mean different stitches depending on the convention. With the mm ↔ US crochet hook size chart.',
     h1: 'US ↔ UK abbreviation converter',
     lead: '"dc" means double crochet in the US and single crochet in the UK: mixing up the convention ruins a piece. Paste a whole pattern, pick the direction, and check every replacement before you hook.',
     directionLabel: 'Conversion direction',
@@ -74,6 +85,11 @@ const COPY: Record<Locale, ConverterCopy> = {
     directionOf: (from, to) => `${from} notation converted to ${to} notation.`,
     backToReader: 'Read a whole pattern step by step',
     backToGlossary: 'All abbreviations',
+    hookSizesTitle: 'Crochet hook sizes mm ↔ US',
+    hookSizesLead:
+      'A US pattern gives the hook size as a letter ("G-6 hook") rather than in millimetres. In the converted text, every recognised size gets its equivalent in brackets; here is the full chart.',
+    hookSizesMm: 'Diameter (mm)',
+    hookSizesUs: 'US size',
   },
 };
 
@@ -155,6 +171,36 @@ const COPY: Record<Locale, ConverterCopy> = {
       }
     </section>
 
+    <section class="stack">
+      <h2>{{ c.hookSizesTitle }}</h2>
+      <p>{{ c.hookSizesLead }}</p>
+      <div class="glossary-table-scroll">
+        <table class="table">
+          <caption class="visually-hidden">
+            {{
+              c.hookSizesTitle
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">{{ c.hookSizesMm }}</th>
+              <th scope="col">{{ c.hookSizesUs }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (size of hookSizes; track size.us) {
+              <tr>
+                <td>{{ size.mm }} mm</td>
+                <td>
+                  <code>{{ size.us }}</code>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <div class="navrow">
       <a filButton="primary" [routerLink]="i18n.link('reader')">{{ c.backToReader }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('glossary')">{{ c.backToGlossary }}</a>
@@ -178,6 +224,7 @@ export class ConverterPage {
 
   protected readonly direction = signal(0);
   protected readonly source = signal('');
+  protected readonly hookSizes = HOOK_SIZES;
 
   /**
    * Dernière conversion demandée. Le résultat ne suit pas la frappe : il
@@ -212,12 +259,26 @@ export class ConverterPage {
   protected convert(): void {
     if (!this.source().trim()) return;
     const [from, to]: [Region, Region] = this.direction() === 0 ? ['US', 'UK'] : ['UK', 'US'];
-    const result = convertTerms(this.source(), from, to);
-    this.result.set({ ...result, from, to });
+    const terms = convertTerms(this.source(), from, to);
+    const hooks = annotateHookSizes(terms.text);
+    this.result.set({
+      text: hooks.text,
+      replacements: [
+        ...terms.replacements,
+        ...hooks.annotations.map((a) => ({
+          term: a.original,
+          replacement: `${a.original} (${a.added})`,
+        })),
+      ],
+      unmatched: [...terms.unmatched, ...hooks.unknown],
+      from,
+      to,
+    });
     this.analytics.track('conversion_run', {
       from,
       to,
-      replacements: result.replacements.length,
+      replacements: terms.replacements.length,
+      hooks: hooks.annotations.length,
     });
   }
 }

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { DEMO_PATTERN } from './demo-pattern';
+import mabelMarketBag from './fixtures/01-mabel-market-bag.txt?raw';
+import mushroomToteBag from './fixtures/02-mushroom-tote-bag.txt?raw';
+import pumpkinHarvestHat from './fixtures/03-pumpkin-harvest-hat.txt?raw';
+import lipBalmCase from './fixtures/04-lip-balm-case.txt?raw';
+import lipbalmMushroom from './fixtures/05-lipbalm-mushroom.txt?raw';
 import { parsePattern } from './pattern-parser';
 
 describe('parsePattern', () => {
@@ -254,5 +259,86 @@ describe('parsePattern', () => {
   it('déduit reps en chiffres dans une consigne de répétition', () => {
     const pattern = parsePattern(['Row 1: k2, p2', 'Repeat rows 2-5 10 more times.'].join('\n'));
     expect(pattern.pieces[0].steps[1].reps).toBe(10);
+  });
+
+  describe('en-têtes de matériel élargis', () => {
+    it.each([
+      ['Materials:', ['Materials:', '4 mm hook']],
+      ['Materials needed:', ['Materials needed:', '4 mm hook']],
+      ['Supplies needed:', ['Supplies needed:', '4 mm hook']],
+      ['MATERIALS', ['MATERIALS', '4 mm hook']],
+      ['Matériel :', ['Matériel :', '4 mm hook']],
+      ['Matériel nécessaire :', ['Matériel nécessaire :', '4 mm hook']],
+      ['Fournitures nécessaires :', ['Fournitures nécessaires :', '4 mm hook']],
+      ["What you'll need:", ["What you'll need:", '4 mm hook']],
+      ['What You Need', ['What You Need', '4 mm hook']],
+      ['Materials Needed', ['Materials Needed', '4 mm hook']],
+      ['Tools:', ['Tools:', '4 mm hook']],
+      ['Tools and materials:', ['Tools and materials:', '4 mm hook']],
+      ['Yarn:', ['Yarn:', '4 mm hook']],
+      ['Liste du matériel', ['Liste du matériel', '4 mm hook']],
+      ['Ce dont vous aurez besoin :', ['Ce dont vous aurez besoin :', '4 mm hook']],
+      ['**Materials**', ['**Materials**', '4 mm hook']],
+      ['# Materials', ['# Materials', '4 mm hook']],
+      ['• Materials:', ['• Materials:', '4 mm hook']],
+      ['Materials: 4 mm hook, 100 g DK yarn (sur une ligne)', ['Materials: 4 mm hook']],
+    ])(
+      'range « %s » dans Pattern.materials sans polluer le titre ni la première étape',
+      (_label, header) => {
+        const pattern = parsePattern(
+          [
+            'Tiny Bear',
+            ...header,
+            '100 g DK yarn',
+            'stitch markers',
+            'Round 1: 6 sc (6)',
+            'Round 2: 12 sc (12)',
+          ].join('\n'),
+        );
+        expect(pattern.materials).toEqual(['4 mm hook', '100 g DK yarn', 'stitch markers']);
+        expect(pattern.title).toBe('Tiny Bear');
+        expect(pattern.pieces[0].steps[0].notes).toEqual([]);
+        expect(pattern.total).toBe(2);
+      },
+    );
+
+    it('ne confond pas « Yarn over, pull through » avec un en-tête de matériel', () => {
+      const pattern = parsePattern(
+        ['Coussin', 'Round 1: 6 sc (6)', 'Yarn over, pull through.', 'Round 2: dec x 3 (3)'].join(
+          '\n',
+        ),
+      );
+      expect(pattern.materials).toEqual([]);
+      expect(pattern.total).toBe(2);
+    });
+
+    it('referme la section matériel dès un rang, même avec un nouvel en-tête', () => {
+      const pattern = parsePattern(['Yarn:', '4 mm hook', 'Round 1: 6 sc (6)'].join('\n'));
+      expect(pattern.materials).toEqual(['4 mm hook']);
+      expect(pattern.total).toBe(1);
+    });
+
+    it("n'absorbe plus l'en-tête de matériel dans le titre", () => {
+      const pattern = parsePattern(
+        ['Tiny Bear', "What you'll need:", '4 mm hook', 'Round 1: 6 sc (6)'].join('\n'),
+      );
+      expect(pattern.title).toBe('Tiny Bear');
+      expect(pattern.materials).toEqual(['4 mm hook']);
+      expect(pattern.pieces[0].steps[0].notes).toEqual([]);
+    });
+  });
+
+  describe('non-régression sur les patrons réels', () => {
+    it.each([
+      ['01-mabel-market-bag.txt', mabelMarketBag, 0, 0],
+      ['02-mushroom-tote-bag.txt', mushroomToteBag, 1, 4],
+      ['03-pumpkin-harvest-hat.txt', pumpkinHarvestHat, 3, 15],
+      ['04-lip-balm-case.txt', lipBalmCase, 1, 10],
+      ['05-lipbalm-mushroom.txt', lipbalmMushroom, 2, 16],
+    ])('« %s » garde le même nombre de rangs et de pièces', (_name, raw, pieces, total) => {
+      const pattern = parsePattern(raw as string);
+      expect(pattern.pieces.length).toBe(pieces);
+      expect(pattern.total).toBe(total);
+    });
   });
 });

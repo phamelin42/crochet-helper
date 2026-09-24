@@ -28,13 +28,27 @@ const ROW =
  */
 const BARE_ROW = /^(\d{1,3})(?!\d)(?:\s*[-–—]\s*(\d{1,3}))?\s*(?:[.):]\s+|\s+[-–—]\s+)/;
 
+/**
+ * Vocabulaire d'un en-tête de section matériel, français et anglais : verbe
+ * d'invitation (« what you'll need »), nom de la section (« materials »,
+ * « supplies », « tools »…) ou un des mots isolés qui l'annoncent seuls sur
+ * leur ligne (« yarn », « hook »).
+ */
+const MAT_WORDS =
+  "(?:what\\s+)?you(?:'ll|\\s+will)?\\s+need|materials?(?:\\s+needed)?|supplies(?:\\s+needed)?|notions|tools(?:\\s+and\\s+materials)?|yarn|hooks?|liste\\s+du\\s+mat[ée]riel|mat[ée]riel(?:\\s+(?:n[ée]cessaire|requis))?|fournitures(?:\\s+n[ée]cessaires?)?|il\\s+(?:vous\\s+)?faut|vous\\s+aurez\\s+besoin|ce\\s+dont\\s+vous\\s+(?:aurez|avez)\\s+besoin";
+
 /** En-tête de section matériel, sur sa propre ligne. */
-const MAT =
-  /^(you(?:'ll)?\s+will\s+need|you\s+need|materials?|supplies|notions|mat[ée]riel|fournitures|il\s+(?:vous\s+)?faut|vous\s+aurez\s+besoin)\b\s*:?\s*$/i;
+const MAT = new RegExp(`^(?:${MAT_WORDS})\\b\\s*:?\\s*$`, 'i');
 
 /** Même chose, mais suivie de texte sur la même ligne et terminée par « : ». */
-const MAT_LOOSE =
-  /^(you(?:'ll)?\s+will\s+need|materials?|supplies|mat[ée]riel|fournitures|il\s+vous\s+faut)\b.*:\s*$/i;
+const MAT_LOOSE = new RegExp(`^(?:${MAT_WORDS})\\b.*:\\s*$`, 'i');
+
+/**
+ * En-tête de matériel avec du contenu sur la même ligne (« Materials: 4 mm
+ * hook, 100 g DK yarn ») : le texte après « : » devient le premier élément de
+ * la liste, et la section reste ouverte pour les lignes suivantes.
+ */
+const MAT_INLINE = new RegExp(`^(?:${MAT_WORDS})\\s*:\\s*(\\S.*)$`, 'i');
 
 /** En-tête qui referme la section matériel et ouvre les instructions. */
 const INSTR = /^(instructions?|pattern|steps?|[ée]tapes?|r[ée]alisation)\s*:?\s*$/i;
@@ -69,6 +83,19 @@ function extractSide(text: string): { side?: 'rs' | 'ws'; rest: string } {
 }
 
 const BULLET = /^[-–—•*·§o]\s+/;
+
+/**
+ * Décorations à ignorer avant de reconnaître un en-tête de matériel : gras
+ * Markdown (`**Materials**`), titre (`# Materials`, `## Materials`) et puce
+ * (`• Materials:`).
+ */
+function stripHeaderDecoration(line: string): string {
+  return line
+    .replace(/^\*\*(.+)\*\*$/, '$1')
+    .replace(/^#{1,6}\s+/, '')
+    .replace(BULLET, '')
+    .trim();
+}
 
 /** Cases à cocher des patrons imprimables : « [_] », « [ ] », « [x][x] ». */
 const CHECKBOX = /^(?:\[[\s_xX]?\]\s*)+/;
@@ -115,17 +142,22 @@ const DANGLING =
 function unwrap(lines: readonly string[], hasKeywordRow: boolean): string[] {
   const out: string[] = [];
 
-  const opensStructure = (line: string): boolean =>
-    ROW.test(line) ||
-    (!hasKeywordRow && BARE_ROW.test(line)) ||
-    MAT.test(line) ||
-    MAT_LOOSE.test(line) ||
-    INSTR.test(line) ||
-    ASIDE.test(line) ||
-    ASIDE_INLINE.test(line) ||
-    ABBREV.test(line) ||
-    BRACKET_NOTE.test(line) ||
-    BULLET.test(line);
+  const opensStructure = (line: string): boolean => {
+    const header = stripHeaderDecoration(line);
+    return (
+      ROW.test(line) ||
+      (!hasKeywordRow && BARE_ROW.test(line)) ||
+      MAT.test(header) ||
+      MAT_LOOSE.test(header) ||
+      MAT_INLINE.test(header) ||
+      INSTR.test(line) ||
+      ASIDE.test(line) ||
+      ASIDE_INLINE.test(line) ||
+      ABBREV.test(line) ||
+      BRACKET_NOTE.test(line) ||
+      BULLET.test(line)
+    );
+  };
 
   const unclosedParen = (line: string): boolean =>
     (line.match(/\(/g) ?? []).length > (line.match(/\)/g) ?? []).length;
@@ -331,10 +363,19 @@ export function parsePattern(raw: string): Pattern {
     const next = lines[index + 1] ?? '';
     const nextIsRow = ROW.test(next) || (!hasKeywordRow && BARE_ROW.test(next));
 
-    if (MAT.test(line) || MAT_LOOSE.test(line)) {
+    const materialHeader = stripHeaderDecoration(line);
+    if (MAT.test(materialHeader) || MAT_LOOSE.test(materialHeader)) {
       inMaterials = true;
       lastMaterialNumber = 0;
       inAside = false;
+      continue;
+    }
+    const inlineMaterial = MAT_INLINE.exec(materialHeader);
+    if (inlineMaterial) {
+      inMaterials = true;
+      lastMaterialNumber = 0;
+      inAside = false;
+      materials.push(inlineMaterial[1].trim());
       continue;
     }
     if (INSTR.test(line)) {

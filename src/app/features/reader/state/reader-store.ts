@@ -343,6 +343,7 @@ export class ReaderStore {
     this.analytics.track('pattern_parsed', {
       steps: this.total(),
       pieces: this.pieces().length,
+      materials: this.materials().length,
       origine,
     });
   }

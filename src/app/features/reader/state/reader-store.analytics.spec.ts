@@ -47,6 +47,15 @@ describe('ReaderStore — mesure', () => {
     );
   });
 
+  it('compte les lignes rangées dans Pattern.materials, sans leur texte', () => {
+    store.load(['Materials:', '4 mm hook', '100 g yarn', 'Round 1: 6 sc (6)'].join('\n'));
+
+    expect(track).toHaveBeenLastCalledWith(
+      'pattern_parsed',
+      expect.objectContaining({ materials: 2 }),
+    );
+  });
+
   it("n'ouvre pas de nouveau projet quand on recharge le même patron", () => {
     store.load('Rang 1 : 6 ms');
     track.mockClear();

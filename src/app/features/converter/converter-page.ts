@@ -191,7 +191,9 @@ const COPY: Record<Locale, ConverterCopy> = {
             @for (size of hookSizes; track size.us) {
               <tr>
                 <td>{{ size.mm }} mm</td>
-                <td><code>{{ size.us }}</code></td>
+                <td>
+                  <code>{{ size.us }}</code>
+                </td>
               </tr>
             }
           </tbody>
@@ -263,7 +265,10 @@ export class ConverterPage {
       text: hooks.text,
       replacements: [
         ...terms.replacements,
-        ...hooks.annotations.map((a) => ({ term: a.original, replacement: `${a.original} (${a.added})` })),
+        ...hooks.annotations.map((a) => ({
+          term: a.original,
+          replacement: `${a.original} (${a.added})`,
+        })),
       ],
       unmatched: [...terms.unmatched, ...hooks.unknown],
       from,

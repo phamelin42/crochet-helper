@@ -15,9 +15,18 @@
           "/manifest.webmanifest",
           "/*.css",
           "/*.js",
+          "!/pdf-*.js",
           "/media/*.woff2",
           "/illustrations/*.svg"
         ]
+      }
+    },
+    {
+      "name": "pdf",
+      "installMode": "lazy",
+      "updateMode": "lazy",
+      "resources": {
+        "files": ["/pdf-*.js", "/pdf.worker.min.mjs"]
       }
     },
     {

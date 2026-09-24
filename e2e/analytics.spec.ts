@@ -134,5 +134,7 @@ test('lancer une conversion US → UK', async ({ page }) => {
   await page.getByRole('button', { name: 'Convert', exact: true }).click();
   await expect(page.getByText('dc in each st across')).toBeVisible();
 
-  expect(await emis(page)).toEqual([['conversion_run', { from: 'US', to: 'UK', replacements: 1 }]]);
+  expect(await emis(page)).toEqual([
+    ['conversion_run', { from: 'US', to: 'UK', replacements: 1, hooks: 0 }],
+  ]);
 });

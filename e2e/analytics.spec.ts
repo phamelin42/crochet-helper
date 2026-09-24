@@ -79,6 +79,7 @@ test('coller un patron, avancer de deux étapes, survoler une abréviation, reve
   expect(decoupage).toEqual({
     steps: expect.any(Number),
     pieces: expect.any(Number),
+    materials: expect.any(Number),
     origine: 'saisie',
   });
   expect(Number.isInteger(decoupage['steps']) && Number(decoupage['steps']) > 0).toBe(true);

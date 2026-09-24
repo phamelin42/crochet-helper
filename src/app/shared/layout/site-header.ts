@@ -43,7 +43,12 @@ import { Icon } from '../ui/icon/icon';
     </a>
 
     <nav class="nav-links" [attr.aria-label]="i18n.t('nav.home')">
-      <a [routerLink]="i18n.link('reader')" routerLinkActive="active" ariaCurrentWhenActive="page">
+      <a
+        [routerLink]="i18n.link('reader')"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
+      >
         {{ i18n.t('nav.reader') }}
       </a>
       <a
@@ -110,11 +115,6 @@ import { Icon } from '../ui/icon/icon';
         {{ i18n.other().toUpperCase() }}
       </a>
     </div>
-  `,
-  styles: `
-    .nav-links a.active {
-      color: var(--color-accent);
-    }
   `,
 })
 export class SiteHeader {

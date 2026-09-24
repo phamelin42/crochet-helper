@@ -157,6 +157,22 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
         }
       </div>
 
+      <h3>Illustrations</h3>
+      <p class="ds-caption">
+        SVG statiques de <code>public/illustrations</code> : hors bundle, lisibles dans les deux
+        thèmes. Images PNG (partage, icônes) : <code>node tools/generate-images.mjs</code>.
+      </p>
+      <div class="grid-cards">
+        <div class="card">
+          <img src="/illustrations/pelotes.svg" width="520" height="320" alt="" />
+          <code>pelotes.svg</code>
+        </div>
+        <div class="card">
+          <img src="/illustrations/pelote.svg" width="240" height="200" alt="" />
+          <code>pelote.svg</code>
+        </div>
+      </div>
+
       <h3>Pastilles</h3>
       <p class="ds-caption">Classes <code>.tag</code> : une teinte par rôle, texte recalé AA.</p>
       <div class="cta-row">

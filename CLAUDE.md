@@ -84,6 +84,13 @@ seul sous du texte), `-pale` (fond) et `-ink` (texte, ≥ 4,5:1). Le rose
 `--color-primary` est réservé à l'action principale. Clair par défaut ; le
 sombre est un choix explicite (`data-dim`), jamais `prefers-color-scheme`.
 
+L'univers du fil se dit partout, sans peser sur le bundle : illustrations en
+SVG statiques dans `public/illustrations/` (pelotes, crochet, aiguilles,
+fleurs), fond de mailles de jersey (`--pattern-knit`), surpiqûre en pointillés
+des surfaces, filets en point avant, barre de progression en fil retors.
+L'image de partage (`public/og/`) et les icônes se régénèrent par
+`node tools/generate-images.mjs` (hors build).
+
 **Avant d'écrire un composant, cherche s'il existe déjà dans `shared/ui`.** S'il
 manque, ajoute-le là plutôt que d'écrire du style local. Un composant de
 fonctionnalité qui définit ses propres couleurs ou ses propres boutons est à
@@ -127,6 +134,15 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   premier affichage → `import()` ; textes propres à une page paresseuse → dans
   la page, pas dans `translations.ts` (qui est dans le bundle initial) ; CSS
   d'impression → `print.css`, chargée à part. `ng build --stats-json` dit ce qui pèse.
+- **`NgOptimizedImage` coûte 5,5 ko au bundle initial** (mesuré) : pour un
+  SVG, qui n'a ni `srcset` ni redimensionnement, une balise `<img>` native
+  avec `width`, `height` et `fetchpriority` suffit. Cette règle l'emporte sur
+  la convention Angular générale plus bas.
+- **Un survol peut venir de la page, pas de la personne** : quand l'étape
+  change sous un curseur immobile, le navigateur émet `pointerenter`.
+  `TooltipService.isStationaryHover` l'écarte ; tout nouvel élément à
+  infobulle doit passer par lui, sinon l'infobulle s'ouvre seule et la mesure
+  compte un faux survol.
 - **Une fiche qui énumère des formes ou des valeurs** (« deux à douze, FR et
   EN », « chaque forme du tableau ») : le test les parcourt **toutes** (boucle),
   pas un échantillon.

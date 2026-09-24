@@ -1,7 +1,16 @@
-import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {
+  ApplicationConfig,
+  ApplicationRef,
+  Injector,
+  PLATFORM_ID,
+  inject,
+  provideAppInitializer,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
-import { provideServiceWorker } from '@angular/service-worker';
+import { UpdateService } from './core/platform/update.service';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -23,9 +32,18 @@ export const appConfig: ApplicationConfig = {
     // la CSP, à régénérer à chaque montée de version d'Angular : trop de
     // maintenance pour ce que ça protège.
     provideClientHydration(),
-    provideServiceWorker('ngsw-worker.js', {
-      enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable:30000',
+    // Services sans UI : le service worker (sans `@angular/service-worker`
+    // côté page, voir `UpdateService`) et l'anticipation de la page suivante.
+    // Cette dernière ne sert pas au premier affichage : son code arrive par
+    // `import()` une fois la page rendue, hors du bundle initial (2,2 ko).
+    provideAppInitializer(() => {
+      inject(UpdateService);
+      if (!isPlatformBrowser(inject(PLATFORM_ID))) return;
+      const injector = inject(Injector);
+      void inject(ApplicationRef)
+        .whenStable()
+        .then(() => import('./core/platform/route-prefetch'))
+        .then(({ RoutePrefetch }) => injector.get(RoutePrefetch));
     }),
   ],
 };

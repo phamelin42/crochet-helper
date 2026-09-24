@@ -59,6 +59,7 @@
                 }
               ],
               "outputHashing": "all",
+              "namedChunks": true,
               "optimization": {
                 "scripts": true,
                 "styles": {

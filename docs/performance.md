@@ -162,6 +162,54 @@ il ne restait que 0,57 kB avant l'avertissement, et plus rien d'important à
 tailler côté application. Décision de Phil, pour laisser passer les fiches 21
 et 22 ; l'échec à 328 kB reste le garde-fou.
 
+## Optimisation du 24/09/2026 : bundle, préchargement, cache
+
+Mesures `ng build` (bruts / transférés estimés) :
+
+| Paquet initial       | Avant     | Après     |
+| -------------------- | --------- | --------- |
+| `main`               | 297,81 kB | 292,25 kB |
+| Total `initial`      | 324,97 kB | 319,41 kB |
+| Transféré (estimé)   | 88,72 kB  | 87,37 kB  |
+| Marge avant l'alerte | 0,03 kB   | 5,59 kB   |
+
+1. **`@angular/service-worker` retiré du bundle** (−5,7 ko) : il ne servait
+   qu'à enregistrer le worker et à écouter un message. `UpdateService`
+   (`core/platform`) le fait en natif : enregistrement une fois l'application
+   stable (au plus 30 s, comme `registerWhenStable:30000`), écoute de
+   `VERSION_READY`, rechargement au clic. Le worker reste celui d'Angular.
+   Vérifié dans Chromium : worker actif, « Driver state: NORMAL », pages
+   servies hors ligne, bouton « Mettre à jour » affiché après une nouvelle
+   version, qui disparaît au rechargement.
+2. **Préchargement de la page suivante** (`core/platform/route-prefetch.ts`,
+   chargé par `import()` après le premier rendu : 0 octet initial). Au survol,
+   au focus ou au toucher d'un lien, le code de sa route part aussitôt ; quand
+   le navigateur est inactif, les routes des liens visibles suivent (sauf en
+   « économie de données » et en 2G). Vérifié : depuis `/fr/glossaire/ms`, la
+   navigation, puis le clic sur « Mes projets », ne déclenche **aucune**
+   requête JavaScript.
+3. **PDF.js hors de l'installation du service worker** : le worker
+   téléchargeait tout `/*.js` à la première visite, dont le morceau PDF.js
+   (432 ko, ~108 ko transférés) qui ne sert qu'à l'import d'un PDF. Les
+   morceaux portent désormais leur nom (`namedChunks`), et `pdf-*.js` et
+   `pdf.worker.min.mjs` vont dans un groupe paresseux : mis en cache au premier
+   usage, disponibles hors ligne ensuite (le worker PDF ne l'était jamais).
+4. **Cache HTTP** : `vercel.json` (l'hébergeur de production) ne posait aucun
+   `Cache-Control` ; chaque visite revalidait chaque fichier. Les fichiers à
+   empreinte (`*-XXXXXXXX.js|css`) et les polices sont désormais `immutable`
+   pour un an. `netlify.toml` marquait `print.css`, sans empreinte, immuable :
+   corrigé.
+
+**Compression** : Vercel et Netlify compressent déjà à la volée en Brotli (et
+en gzip pour les clients qui ne le prennent pas) tout le texte servi. Déposer
+des `.gz` dans `dist/` ne servirait à rien : aucun des deux ne les sert à la
+place des originaux.
+
+**Écarté après mesure** : `@defer` sur le livret d'impression et la boîte de
+confirmation d'un lien partagé. Il retire 3 ko de la page du lecteur, mais son
+moteur (dans `@angular/core`) entre dans le bundle initial de **toutes** les
+pages : +5,6 ko, au-delà de l'avertissement.
+
 ## Intégration continue
 
 `.github/workflows/ci.yml` fait déjà tourner `npm run build` comme étape à

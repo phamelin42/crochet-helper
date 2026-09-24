@@ -17,6 +17,21 @@ export interface PageSeo {
 }
 
 /**
+ * Image de partage et de résultat de recherche (1200 × 630, une par langue,
+ * générée par `tools/generate-images.mjs`).
+ */
+const SHARE_IMAGE: Record<Locale, { path: string; alt: string }> = {
+  en: {
+    path: '/og/pattern-reader-en.png',
+    alt: 'Pattern Reader — balls of yarn, a crochet hook and knitting needles',
+  },
+  fr: {
+    path: '/og/pattern-reader-fr.png',
+    alt: 'Pattern Reader — pelotes de laine, crochet et aiguilles à tricoter',
+  },
+};
+
+/**
  * Métadonnées de référencement d'une page : titre, description, canonique,
  * alternates hreflang, Open Graph et JSON-LD. Appelé depuis chaque page ; le
  * pré-rendu fige le résultat dans le HTML servi aux robots.
@@ -51,6 +66,16 @@ export class SeoService {
     });
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
 
+    const image = SHARE_IMAGE[seo.locale];
+    const imageUrl = this.origin + image.path;
+    this.meta.updateTag({ property: 'og:image', content: imageUrl });
+    this.meta.updateTag({ property: 'og:image:type', content: 'image/png' });
+    this.meta.updateTag({ property: 'og:image:width', content: '1200' });
+    this.meta.updateTag({ property: 'og:image:height', content: '630' });
+    this.meta.updateTag({ property: 'og:image:alt', content: image.alt });
+    this.meta.updateTag({ name: 'twitter:image', content: imageUrl });
+    this.meta.updateTag({ name: 'twitter:image:alt', content: image.alt });
+
     this.setLink('canonical', canonical);
 
     for (const locale of LOCALES) {
@@ -58,7 +83,12 @@ export class SeoService {
     }
     this.setLink('alternate', this.absolute(DEFAULT_LOCALE, seo.path), 'x-default');
 
-    this.setJsonLd(seo.jsonLd);
+    // Données structurées : l'image de la page, si elles n'en donnent pas.
+    this.setJsonLd(
+      seo.jsonLd && !('image' in seo.jsonLd) && !('@graph' in seo.jsonLd)
+        ? { ...seo.jsonLd, image: imageUrl }
+        : seo.jsonLd,
+    );
   }
 
   /** URL absolue d'une page dans une langue donnée. */

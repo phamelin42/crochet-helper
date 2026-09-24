@@ -282,22 +282,25 @@ describe('parsePattern', () => {
       ['# Materials', ['# Materials', '4 mm hook']],
       ['• Materials:', ['• Materials:', '4 mm hook']],
       ['Materials: 4 mm hook, 100 g DK yarn (sur une ligne)', ['Materials: 4 mm hook']],
-    ])('range « %s » dans Pattern.materials sans polluer le titre ni la première étape', (_label, header) => {
-      const pattern = parsePattern(
-        [
-          'Tiny Bear',
-          ...header,
-          '100 g DK yarn',
-          'stitch markers',
-          'Round 1: 6 sc (6)',
-          'Round 2: 12 sc (12)',
-        ].join('\n'),
-      );
-      expect(pattern.materials).toEqual(['4 mm hook', '100 g DK yarn', 'stitch markers']);
-      expect(pattern.title).toBe('Tiny Bear');
-      expect(pattern.pieces[0].steps[0].notes).toEqual([]);
-      expect(pattern.total).toBe(2);
-    });
+    ])(
+      'range « %s » dans Pattern.materials sans polluer le titre ni la première étape',
+      (_label, header) => {
+        const pattern = parsePattern(
+          [
+            'Tiny Bear',
+            ...header,
+            '100 g DK yarn',
+            'stitch markers',
+            'Round 1: 6 sc (6)',
+            'Round 2: 12 sc (12)',
+          ].join('\n'),
+        );
+        expect(pattern.materials).toEqual(['4 mm hook', '100 g DK yarn', 'stitch markers']);
+        expect(pattern.title).toBe('Tiny Bear');
+        expect(pattern.pieces[0].steps[0].notes).toEqual([]);
+        expect(pattern.total).toBe(2);
+      },
+    );
 
     it('ne confond pas « Yarn over, pull through » avec un en-tête de matériel', () => {
       const pattern = parsePattern(
@@ -317,7 +320,7 @@ describe('parsePattern', () => {
 
     it("n'absorbe plus l'en-tête de matériel dans le titre", () => {
       const pattern = parsePattern(
-        ["Tiny Bear", "What you'll need:", '4 mm hook', 'Round 1: 6 sc (6)'].join('\n'),
+        ['Tiny Bear', "What you'll need:", '4 mm hook', 'Round 1: 6 sc (6)'].join('\n'),
       );
       expect(pattern.title).toBe('Tiny Bear');
       expect(pattern.materials).toEqual(['4 mm hook']);

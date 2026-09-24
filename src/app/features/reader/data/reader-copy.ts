@@ -50,8 +50,7 @@ const FR = {
   'ui.linkImportBody':
     "Un patron est déjà en cours. L'ouvrir depuis ce lien remplace l'affichage actuel — le projet en cours reste enregistré dans « Mes projets ».",
   'ui.linkImportAction': 'Ouvrir le patron du lien',
-  'ui.waitlistText':
-    'Une version synchronisée entre vos appareils, 29 € par an — intéressée ?',
+  'ui.waitlistText': 'Une version synchronisée entre vos appareils, 29 € par an — intéressée ?',
   'ui.waitlistLink': 'En savoir plus',
   'ui.waitlistHide': 'Masquer',
 } as const;

@@ -79,6 +79,27 @@ for (const theme of THEMES) {
 }
 
 /**
+ * La ligne de liste d'attente (fiche 22) n'apparaît qu'à partir de la
+ * troisième étape lue : l'auditer là où elle est visible, pas seulement à
+ * l'étape 1 couverte par le test précédent.
+ */
+for (const theme of THEMES) {
+  test(`lecteur à la troisième étape — thème ${theme.name} — aucune violation axe sérieuse`, async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await page.getByRole('button', { name: 'Example', exact: true }).click();
+    const next = page.getByRole('button', { name: 'Next', exact: true });
+    await next.click();
+    await next.click();
+    await applyTheme(page, theme.dim);
+
+    expect(await seriousViolations(page)).toEqual([]);
+  });
+}
+
+/**
  * WCAG 1.4.10 (reflow) : à 320 px de large — l'équivalent d'un zoom à 400 %
  * sur un écran de 1280 px — aucune page ne défile horizontalement. Axe ne le
  * voit pas ; c'était vérifié à la main.

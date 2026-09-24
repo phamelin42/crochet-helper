@@ -36,7 +36,7 @@ import {
       color: inherit;
     }
     dialog::backdrop {
-      background: color-mix(in srgb, #292b31 60%, transparent);
+      background: var(--color-scrim);
     }
   `,
 })

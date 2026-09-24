@@ -26,26 +26,32 @@ const ROUTES = [
 ];
 
 /**
- * `data-dim` est le seul état que le thème assombri ajoute au DOM (voir
- * `tokens.css`) : le poser avant navigation suffit à auditer les jetons de
+ * `data-dim` est le seul état que le thème sombre ajoute au DOM (voir
+ * `tokens.css`) : le poser sur la page chargée suffit à auditer les jetons de
  * couleur qu'il redéfinit, sans dépendre d'une commande d'interface pour
- * le déclencher.
+ * le déclencher. Pas par `addInitScript` : le script tourne avant que
+ * `<html>` existe, l'attribut était perdu et l'audit « assombri » relisait
+ * en fait le thème clair.
  */
 const THEMES = [
-  { name: 'normal', dim: false },
-  { name: 'assombri', dim: true },
+  { name: 'clair', dim: false },
+  { name: 'sombre', dim: true },
 ] as const;
+
+async function applyTheme(page: Page, dim: boolean): Promise<void> {
+  if (!dim) return;
+  await page.evaluate(() => document.documentElement.setAttribute('data-dim', 'true'));
+  await expect(page.locator('html[data-dim="true"]')).toBeAttached();
+}
 
 for (const route of ROUTES) {
   for (const theme of THEMES) {
     test(`${route.name} — thème ${theme.name} — aucune violation axe sérieuse`, async ({
       page,
     }) => {
-      if (theme.dim) {
-        await page.addInitScript(() => document.documentElement.setAttribute('data-dim', 'true'));
-      }
       await page.goto(route.path);
       await expect(page.locator('main')).toBeVisible();
+      await applyTheme(page, theme.dim);
 
       expect(await seriousViolations(page)).toEqual([]);
     });
@@ -61,14 +67,12 @@ for (const theme of THEMES) {
   test(`lecteur avec un patron chargé — thème ${theme.name} — aucune violation axe sérieuse`, async ({
     page,
   }) => {
-    if (theme.dim) {
-      await page.addInitScript(() => document.documentElement.setAttribute('data-dim', 'true'));
-    }
     await page.goto('/');
     // Avant l'hydratation, le clic serait perdu (pas de rejeu d'événements).
     await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
     await page.getByRole('button', { name: 'Example', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
+    await applyTheme(page, theme.dim);
 
     expect(await seriousViolations(page)).toEqual([]);
   });

@@ -69,6 +69,23 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
   },
 };
 
+/**
+ * Bandeau d'accueil : le seul `<h1>` de la page, et une vraie image (pas un
+ * décor CSS) pour que l'illustration soit indexée.
+ */
+const HERO: Record<Locale, { title: string; lead: string; alt: string }> = {
+  fr: {
+    title: 'Votre patron de crochet ou de tricot, une étape à la fois',
+    lead: 'Collez un patron\u00a0: chaque rang s’affiche en grand, les répétitions se comptent et chaque abréviation s’explique au survol.',
+    alt: 'Pelotes de laine rose, violette et jaune, un crochet et des aiguilles à tricoter',
+  },
+  en: {
+    title: 'Your crochet or knitting pattern, one step at a time',
+    lead: 'Paste a pattern: each row shows in large print, your repeats are counted and every abbreviation is explained on hover.',
+    alt: 'Pink, purple and yellow balls of yarn with a crochet hook and knitting needles',
+  },
+};
+
 const SEO: Record<Locale, { title: string; description: string }> = {
   fr: {
     title: `Lecteur de patrons crochet et tricot — ${SITE_NAME}`,
@@ -100,6 +117,25 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     '(document:drop)': 'onDrop($event)',
   },
   template: `
+    <section class="hero home-hero">
+      <div>
+        <h1>{{ hero.title }}</h1>
+        <p>{{ hero.lead }}</p>
+      </div>
+      <!--
+        Balise native plutôt que NgOptimizedImage : pour un SVG, il n'apporte
+        ni srcset ni redimensionnement, et coûte 5,5 ko au bundle initial
+        (mesuré), dont la marge se compte en kilo-octets.
+      -->
+      <img
+        src="/illustrations/pelotes.svg"
+        width="520"
+        height="320"
+        fetchpriority="high"
+        [alt]="hero.alt"
+      />
+    </section>
+
     <fil-pattern-import />
 
     <section class="reader">
@@ -161,6 +197,7 @@ export class ReaderPage {
   private readonly platformId = inject(PLATFORM_ID);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
+  protected readonly hero = HERO[(this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE];
   protected readonly guides =
     GUIDES[(this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE];
 

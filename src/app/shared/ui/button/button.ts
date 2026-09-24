@@ -3,7 +3,7 @@ import { Directive, computed, input } from '@angular/core';
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 
 /**
- * Applique l'habillage Nocturne à un bouton ou un lien natifs.
+ * Applique l'habillage Hanami à un bouton ou un lien natifs.
  *
  * Directive plutôt que composant : on garde le `<button>` réel, donc son type,
  * son état désactivé, sa sémantique clavier et ses attributs ARIA, sans avoir à

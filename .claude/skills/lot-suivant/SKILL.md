@@ -140,6 +140,6 @@ workflow publie.
 - Aucun commit sur `main`, aucune tentative de `git push`.
 - Une seule fiche par exécution.
 - Aucune dépendance runtime nouvelle sauf si la fiche la nomme explicitement.
-- Aucune modification de `tokens.css` ou `nocturne.css` autre qu'un ajout de jeton manquant.
+- Aucune modification de `tokens.css` ou `hanami.css` autre qu'un ajout de jeton manquant.
 - Aucune modification de `.github/` ni de `.claude/`.
 - Face à une décision qui n'est écrite nulle part : rédiger la question dans `.pilote/`, s'arrêter.

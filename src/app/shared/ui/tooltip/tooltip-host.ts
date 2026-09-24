@@ -7,6 +7,7 @@ import { TooltipService } from './tooltip.service';
  */
 @Component({
   selector: 'fil-tooltip-host',
+  host: { '(document:pointerdown)': 'tooltips.notePress($event)' },
   template: `
     <div
       #box
@@ -24,7 +25,7 @@ import { TooltipService } from './tooltip.service';
   `,
 })
 export class TooltipHost {
-  private readonly tooltips = inject(TooltipService);
+  protected readonly tooltips = inject(TooltipService);
   private readonly box = viewChild<ElementRef<HTMLDivElement>>('box');
 
   protected readonly state = this.tooltips.state;

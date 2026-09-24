@@ -10,6 +10,7 @@
 
 @media print {
   fil-site-header,
+  body::before,
   .skip-link,
   fil-tooltip-host,
   fil-pattern-import,

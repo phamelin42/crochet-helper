@@ -61,6 +61,13 @@ Vider `ANALYTICS_ORIGIN` reste le moyen de tout éteindre : le service
 redevient inerte, aucun script n'est chargé, et les contrôles ci-dessus
 s'effacent d'eux-mêmes.
 
+Depuis la fiche 21, `localStorage` porte aussi `fil.firstVisit` et
+`fil.lastVisitDay` : deux dates civiles, jamais transmises, qui ne sortent du
+navigateur que sous forme d'une tranche d'ancienneté (`returning_visit_1d`…).
+Ce n'est pas un identifiant — rien ne relie deux visiteuses entre elles — et
+`fil.firstVisit` est réécrite après 13 mois, la durée maximale de l'exemption
+CNIL de mesure d'audience.
+
 Deux limites assumées : le tracker est servi depuis un sous-domaine du site,
 donc une partie des bloqueurs de publicité l'écarte — les chiffres sont un
 plancher, pas un compte exact. Et le collecteur partage la machine du serveur

@@ -33,6 +33,8 @@ const LEGACY_KEY = 'fil.reader.v1';
 const MIGRATION_FLAG = 'fil.storage.migrated';
 /** Pointeur — léger — vers le projet actif ; le reste vit dans IndexedDB. */
 const CURRENT_ID_KEY = 'fil.currentProjectId';
+/** Paliers de profondeur de lecture, en position absolue dans le patron. */
+const DEPTH_THRESHOLDS = [5, 20, 50] as const;
 
 /**
  * État du lecteur : le patron courant, la position dans les étapes, les
@@ -65,6 +67,10 @@ export class ReaderStore {
   readonly image = signal('');
   readonly pieceIndex = signal(0);
   readonly stepIndex = signal(0);
+  /** Paliers de profondeur déjà atteints par le projet courant — évite de réémettre. */
+  private readonly depthsReached = signal<ReadonlySet<(typeof DEPTH_THRESHOLDS)[number]>>(
+    new Set(),
+  );
   readonly done = signal<Record<string, boolean>>({});
   readonly reps = signal<Record<string, number>>({});
   readonly elapsed = signal(0);
@@ -92,6 +98,13 @@ export class ReaderStore {
   readonly step = computed<PatternStep | null>(() => this.steps()[this.stepIndex()] ?? null);
   readonly stepCount = computed(() => this.steps().length);
   readonly total = computed(() => this.pattern().total);
+  /** Position 1-indexée de l'étape courante dans l'ensemble des pièces. */
+  private readonly absoluteStep = computed(() => {
+    const pieces = this.pieces();
+    let position = this.stepIndex() + 1;
+    for (let i = 0; i < this.pieceIndex(); i++) position += pieces[i]?.steps.length ?? 0;
+    return position;
+  });
   readonly materials = computed(() => this.pattern().materials);
   readonly currentName = computed(
     () => this.nameOverride() ?? deriveProjectName(this.pattern().title, this.source()),
@@ -224,6 +237,7 @@ export class ReaderStore {
     this.expandAbbreviations.set(project.expandAbbreviations);
     this.pieceIndex.set(Math.min(project.pieceIndex, Math.max(0, this.pieces().length - 1)));
     this.stepIndex.set(Math.min(project.stepIndex, Math.max(0, this.stepCount() - 1)));
+    this.depthsReached.set(new Set(DEPTH_THRESHOLDS.filter((t) => this.absoluteStep() >= t)));
     if (touch) {
       const touched: Project = { ...project, lastOpenedAt: Date.now() };
       this.projects.update((list) => list.map((p) => (p.id === touched.id ? touched : p)));
@@ -317,6 +331,7 @@ export class ReaderStore {
     this.stepIndex.set(0);
     this.done.set({});
     this.reps.set({});
+    this.depthsReached.set(new Set());
     if (!text) return;
     if (!this.currentId()) {
       this.currentId.set(crypto.randomUUID());
@@ -403,6 +418,7 @@ export class ReaderStore {
     this.pieceIndex.set(pieceIndex);
     this.stepIndex.set(stepIndex);
     this.analytics.track('step_advanced');
+    this.checkDepth();
     if (!this.running()) this.startTimer();
   }
 
@@ -411,6 +427,21 @@ export class ReaderStore {
     if (!this.stepCount()) return;
     this.stepIndex.set(Math.max(0, Math.min(this.stepCount() - 1, oneBased - 1)));
     this.analytics.track('step_advanced');
+    this.checkDepth();
+  }
+
+  /**
+   * Émet un événement de profondeur la première fois que la position
+   * absolue atteint un palier, dans le projet courant. Une reprise au-delà
+   * d'un palier ne le réémet pas : `hydrate` initialise `depthsReached`.
+   */
+  private checkDepth(): void {
+    const position = this.absoluteStep();
+    const reached = this.depthsReached();
+    const franchis = DEPTH_THRESHOLDS.filter((t) => position >= t && !reached.has(t));
+    if (!franchis.length) return;
+    this.depthsReached.set(new Set([...reached, ...franchis]));
+    for (const t of franchis) this.analytics.track(`reading_depth_${t}`);
   }
 
   addRepeat(delta: number): void {

@@ -1,6 +1,6 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ANALYTICS_HOSTNAMES, ANALYTICS_ORIGIN, ANALYTICS_SITE_ID } from './analytics.config';
 import {
   ANALYTICS_HOSTNAMES_TOKEN,
@@ -164,6 +164,73 @@ describe('AnalyticsService — chargement du traceur', () => {
     const message = String(warn.mock.calls[0]?.[0]);
     expect(message).toContain('conversion_run');
     expect(message).not.toContain('7');
+  });
+});
+
+describe('AnalyticsService — retour', () => {
+  function setup(origin = 'https://stats.example.org'): AnalyticsService {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: PLATFORM_ID, useValue: 'browser' },
+        { provide: ANALYTICS_ORIGIN_TOKEN, useValue: origin },
+      ],
+    });
+    return TestBed.inject(AnalyticsService);
+  }
+
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (window as UmamiWindow).umami;
+  });
+
+  it("écrit fil.firstVisit et fil.lastVisitDay à la première visite, sans émettre d'événement", () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    const service = setup();
+    const track = stubUmami();
+
+    service['trackReturningVisit']();
+
+    expect(localStorage.getItem('fil.firstVisit')).toBe('"2026-09-23"');
+    expect(localStorage.getItem('fil.lastVisitDay')).toBe('"2026-09-23"');
+    expect(localStorage.length).toBe(2);
+    expect(track).not.toHaveBeenCalled();
+  });
+
+  it('émet returning_visit_1d le lendemain, une seule fois par jour', () => {
+    vi.setSystemTime(new Date('2026-09-22T10:00:00'));
+    setup()['trackReturningVisit']();
+
+    vi.setSystemTime(new Date('2026-09-23T09:00:00'));
+    const service = setup();
+    const track = stubUmami();
+    service['trackReturningVisit']();
+    service['trackReturningVisit']();
+
+    expect(track.mock.calls).toEqual([['returning_visit_1d', undefined]]);
+  });
+
+  it('une première visite de plus de 13 mois est remplacée par celle du jour', () => {
+    vi.setSystemTime(new Date('2025-01-01T00:00:00'));
+    setup()['trackReturningVisit']();
+
+    vi.setSystemTime(new Date('2026-09-23T00:00:00'));
+    setup()['trackReturningVisit']();
+
+    expect(localStorage.getItem('fil.firstVisit')).toBe('"2026-09-23"');
+  });
+
+  it("n'écrit aucun cookie", () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    const cookieAvant = document.cookie;
+
+    setup()['trackReturningVisit']();
+
+    expect(document.cookie).toBe(cookieAvant);
   });
 });
 

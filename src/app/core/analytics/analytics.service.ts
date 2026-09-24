@@ -7,7 +7,9 @@ import {
   isDevMode,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { LocalStorageService } from '../storage/local-storage.service';
 import { ANALYTICS_HOSTNAMES, ANALYTICS_ORIGIN, ANALYTICS_SITE_ID } from './analytics.config';
+import { daysSinceCivil, visitBucket } from './visit-age';
 
 /** Les seuls événements mesurés — une faute de frappe casse le build plutôt que de créer un événement fantôme. */
 export type AnalyticsEvent =
@@ -29,7 +31,21 @@ export type AnalyticsEvent =
   /** Téléchargement du fichier de sauvegarde de tous les projets. */
   | 'backup_exported'
   /** Réimport réussi d'un fichier de sauvegarde. */
-  | 'backup_imported';
+  | 'backup_imported'
+  /** Visite avec une première visite locale vieille de 1 jour. */
+  | 'returning_visit_1d'
+  /** Visite avec une première visite locale vieille de 2 à 7 jours. */
+  | 'returning_visit_2_7d'
+  /** Visite avec une première visite locale vieille de 8 à 30 jours. */
+  | 'returning_visit_8_30d'
+  /** Visite avec une première visite locale vieille de plus de 30 jours. */
+  | 'returning_visit_31d'
+  /** Position absolue de 5 dans le patron atteinte pour la première fois. */
+  | 'reading_depth_5'
+  /** Position absolue de 20 dans le patron atteinte pour la première fois. */
+  | 'reading_depth_20'
+  /** Position absolue de 50 dans le patron atteinte pour la première fois. */
+  | 'reading_depth_50';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;
@@ -67,6 +83,19 @@ const MAX_PENDING = 20;
 
 type Pending = [AnalyticsEvent, Record<string, string | number> | undefined];
 
+const FIRST_VISIT_KEY = 'fil.firstVisit';
+const LAST_VISIT_DAY_KEY = 'fil.lastVisitDay';
+/** 13 mois — durée maximale admise par l'exemption CNIL de mesure d'audience. */
+const VISIT_TTL_DAYS = 396;
+
+/** Date civile du jour, heure locale du navigateur. */
+function todayLocal(): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
 /**
  * Mesure d'audience minimale : quelques événements nommés, aucun contenu de
  * patron, aucun identifiant persistant. Inerte tant que `ANALYTICS_ORIGIN`
@@ -77,12 +106,16 @@ export class AnalyticsService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly origin = inject(ANALYTICS_ORIGIN_TOKEN);
   private readonly hostnames = inject(ANALYTICS_HOSTNAMES_TOKEN);
+  private readonly storage = inject(LocalStorageService);
   /** File d'attente tant que le traceur charge ; `null` sinon. */
   private pending: Pending[] | null = null;
 
   constructor() {
-    if (this.isBrowser && this.origin) {
-      afterNextRender(() => this.loadScript());
+    if (this.isBrowser) {
+      afterNextRender(() => {
+        this.trackReturningVisit();
+        if (this.origin) this.loadScript();
+      });
     }
   }
 
@@ -130,6 +163,26 @@ export class AnalyticsService {
     const queued = this.pending ?? [];
     this.pending = null;
     for (const [event, props] of queued) this.track(event, props);
+  }
+
+  /**
+   * Une date de première visite en `localStorage`, jamais transmise : seule
+   * une tranche d'ancienneté part au collecteur, au plus une fois par jour.
+   */
+  private trackReturningVisit(): void {
+    const today = todayLocal();
+    let firstVisit = this.storage.read<string>(FIRST_VISIT_KEY);
+    const age = firstVisit ? daysSinceCivil(firstVisit, today) : null;
+    if (firstVisit === null || age === null || age > VISIT_TTL_DAYS) {
+      firstVisit = today;
+      this.storage.write(FIRST_VISIT_KEY, today);
+    }
+    const bucket = visitBucket(firstVisit, today);
+    const lastVisitDay = this.storage.read<string>(LAST_VISIT_DAY_KEY);
+    if (bucket && lastVisitDay !== today) {
+      this.track(`returning_visit_${bucket}`);
+    }
+    this.storage.write(LAST_VISIT_DAY_KEY, today);
   }
 }
 

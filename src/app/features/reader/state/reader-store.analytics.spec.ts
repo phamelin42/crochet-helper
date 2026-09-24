@@ -70,4 +70,55 @@ describe('ReaderStore — mesure', () => {
 
     expect(track).not.toHaveBeenCalled();
   });
+
+  describe('profondeur de lecture', () => {
+    /** Une seule pièce d'au moins `rows` étapes. */
+    function longPattern(rows: number): string {
+      const lignes = ['Patron', 'Piece A'];
+      for (let i = 1; i <= rows; i++) lignes.push(`Round ${i}: 6 sc (6)`);
+      return lignes.join('\n');
+    }
+
+    const depths = () => events().filter((name) => String(name).startsWith('reading_depth_'));
+
+    it('émet chaque palier une seule fois, dans l’ordre où il est atteint', () => {
+      store.load(longPattern(55));
+      track.mockClear();
+
+      for (let i = 0; i < 54; i++) store.move(1);
+
+      expect(depths()).toEqual(['reading_depth_5', 'reading_depth_20', 'reading_depth_50']);
+    });
+
+    it('reprendre un projet déjà au-delà d’un palier ne le réémet pas', () => {
+      store.load(longPattern(55));
+      const id = store.currentId()!;
+      store.clear();
+
+      store.projects.set([
+        {
+          id,
+          name: 'Patron',
+          source: longPattern(55),
+          image: '',
+          pieceIndex: 0,
+          stepIndex: 9, // position absolue 10 : déjà au-delà du palier 5
+          done: {},
+          reps: {},
+          elapsed: 0,
+          expandAbbreviations: false,
+          createdAt: 0,
+          lastOpenedAt: 0,
+        },
+      ]);
+      track.mockClear();
+
+      store.resumeProject(id);
+      expect(depths()).toEqual([]);
+
+      // La suite avance normalement : le palier 20 s'émet, pas le 5 déjà couvert.
+      store.move(15);
+      expect(depths()).toEqual(['reading_depth_20']);
+    });
+  });
 });

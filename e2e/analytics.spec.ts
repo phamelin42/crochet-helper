@@ -98,6 +98,36 @@ test('coller un patron, avancer de deux étapes, survoler une abréviation, reve
   await expect.poll(async () => noms(await emis(page))).toContain('session_resumed');
 });
 
+test('avancer de cinq étapes émet reading_depth_5', async ({ page }) => {
+  await ouvrir(page, '/');
+  await page.locator('#pattern-source').fill(DEMO_PATTERN);
+  await page.getByRole('button', { name: 'Split into steps', exact: true }).click();
+  const next = page.getByRole('button', { name: 'Next', exact: true });
+  await expect(next).toBeEnabled();
+  await emis(page); // vide les événements du découpage
+
+  for (let i = 0; i < 4; i++) await next.click();
+
+  expect(noms(await emis(page))).toContain('reading_depth_5');
+});
+
+test('une visite le lendemain de la première émet returning_visit_1d', async ({ page }) => {
+  const hier = new Date();
+  hier.setDate(hier.getDate() - 1);
+  const hierCivil = [
+    hier.getFullYear(),
+    String(hier.getMonth() + 1).padStart(2, '0'),
+    String(hier.getDate()).padStart(2, '0'),
+  ].join('-');
+  await page.addInitScript((date) => {
+    localStorage.setItem('fil.firstVisit', JSON.stringify(date));
+  }, hierCivil);
+
+  await ouvrir(page, '/');
+
+  await expect.poll(async () => noms(await emis(page))).toContain('returning_visit_1d');
+});
+
 test('lancer une conversion US → UK', async ({ page }) => {
   await ouvrir(page, '/us-uk-converter');
   await page.locator('#converter-input').fill('Row 2: ch 2, sc in each st across, turn (18)');

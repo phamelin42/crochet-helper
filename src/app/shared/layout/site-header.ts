@@ -98,6 +98,18 @@ import { Icon } from '../ui/icon/icon';
       <a
         filButton="secondary"
         [iconOnly]="true"
+        href="https://discord.gg/DPYydhZRND"
+        target="_blank"
+        rel="noopener"
+        [attr.aria-label]="i18n.t('ui.discord')"
+        [title]="i18n.t('ui.discord')"
+      >
+        <fil-icon name="discord" />
+      </a>
+
+      <a
+        filButton="secondary"
+        [iconOnly]="true"
         [href]="otherLanguageHref()"
         [attr.hreflang]="i18n.other()"
       >

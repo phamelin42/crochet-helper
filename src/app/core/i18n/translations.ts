@@ -20,6 +20,7 @@ export const FR = {
   'nav.converter': 'US ↔ UK',
   'nav.projects': 'Mes projets',
   'ui.update': 'Mettre à jour',
+  'ui.discord': 'Rejoindre le Discord',
 } as const;
 
 export type TranslationKey = keyof typeof FR;
@@ -34,6 +35,7 @@ export const EN: Record<TranslationKey, string> = {
   'nav.converter': 'US ↔ UK',
   'nav.projects': 'My projects',
   'ui.update': 'Update',
+  'ui.discord': 'Join the Discord',
 };
 
 export const TRANSLATIONS: Record<Locale, Record<TranslationKey, string>> = { fr: FR, en: EN };

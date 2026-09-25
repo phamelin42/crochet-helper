@@ -12,13 +12,9 @@ import { ProjectStoreService } from '../../../core/storage/project-store.service
 import { ReaderStore } from './reader-store';
 
 /** Deux pièces, pour vérifier que la pièce reçue n'est pas la première par défaut. */
-const TWO_PIECES = [
-  'Patron',
-  'Piece A',
-  'Round 1: 6 sc (6)',
-  'Piece B',
-  'Round 1: 6 sc (6)',
-].join('\n');
+const TWO_PIECES = ['Patron', 'Piece A', 'Round 1: 6 sc (6)', 'Piece B', 'Round 1: 6 sc (6)'].join(
+  '\n',
+);
 
 function projectFixture(overrides: Partial<Project> = {}): Project {
   return {

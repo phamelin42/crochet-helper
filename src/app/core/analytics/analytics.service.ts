@@ -28,6 +28,10 @@ export type AnalyticsEvent =
   | 'project_created'
   /** Reprise d'un projet depuis l'écran de liste. */
   | 'project_resumed'
+  /** Lien de projet (patron et progression) copié — « Envoyer ce projet ». */
+  | 'project_shared'
+  /** Projet créé depuis un lien de projet reçu (`#j=`). */
+  | 'project_received'
   /** Téléchargement du fichier de sauvegarde de tous les projets. */
   | 'backup_exported'
   /** Réimport réussi d'un fichier de sauvegarde. */

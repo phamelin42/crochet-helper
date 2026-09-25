@@ -38,6 +38,8 @@ export const EVENEMENTS = [
   'conversion_run',
   'project_created',
   'project_resumed',
+  'project_shared',
+  'project_received',
   'backup_exported',
   'backup_imported',
   'returning_visit_1d',

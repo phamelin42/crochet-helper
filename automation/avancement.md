@@ -31,7 +31,7 @@ branche.
 | 08 — Vitrine du design system           | Terminée                               | —   | 2026-09-22 |
 | 17 — Tailles de crochet mm ↔ US         | Terminée                               | —   | 2026-09-24 |
 | 18 — Matériel : en-têtes élargis        | Terminée                               | —   | 2026-09-24 |
-| 19 — Envoyer un projet                  | À faire                                | —   | —          |
+| 19 — Envoyer un projet                  | Terminée                               | —   | 2026-09-25 |
 | 20 — Comptes et paiement (cadrage)      | Bloquée : lot 8 gelé, décision de Phil | —   | —          |
 | 21 — Mesurer le retour et la profondeur | Terminée                               | —   | 2026-09-23 |
 | 22 — Liste d'attente                    | Terminée                               | —   | 2026-09-24 |

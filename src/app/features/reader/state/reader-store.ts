@@ -13,6 +13,7 @@ import { LocalStorageService } from '../../../core/storage/local-storage.service
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import { DEMO_PATTERN } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
+import { SharedProgress } from '../data/project-link';
 import { PdfEmptyTextError, normalizePdfPages } from '../data/pdf-normalize';
 import { EMPTY_PATTERN, PatternPiece, PatternStep } from '../data/pattern.model';
 import {
@@ -351,6 +352,33 @@ export class ReaderStore {
 
   loadDemo(): void {
     this.load(DEMO_PATTERN, 'exemple');
+  }
+
+  /**
+   * Ouvre une copie d'un projet envoyé par une autre personne (`#j=`) : un
+   * identifiant neuf, systématiquement — le projet actif, s'il y en a un,
+   * reste intact dans la liste. Ouvrir deux fois le même lien crée deux
+   * projets distincts, plutôt que de deviner un doublon.
+   */
+  receiveSharedProject(progress: SharedProgress): void {
+    this.pdfError.set(null);
+    if (this.currentId()) this.detach();
+    this.source.set(progress.source);
+    this.pieceIndex.set(progress.pieceIndex);
+    this.stepIndex.set(progress.stepIndex);
+    this.done.set(progress.done);
+    this.reps.set(progress.reps);
+    this.depthsReached.set(new Set(DEPTH_THRESHOLDS.filter((t) => this.absoluteStep() >= t)));
+    this.currentId.set(crypto.randomUUID());
+    this.nameOverride.set(progress.name || null);
+    this.analytics.track('project_created');
+    this.analytics.track('pattern_parsed', {
+      steps: this.total(),
+      pieces: this.pieces().length,
+      materials: this.materials().length,
+      origine: 'lien',
+    });
+    this.analytics.track('project_received');
   }
 
   /**

@@ -90,6 +90,30 @@ jobs:
             --max-turns 200
             --allowedTools "Read,Glob,Grep,Edit,MultiEdit,Write,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(git:*),Bash(ls:*)"
 
+      # L'agent affirme avoir lancé `npm run verify` ; ici on le constate. Trois
+      # PR de suite ont échoué en CI sur un fichier écrit après sa vérification
+      # (le tableau d'avancement, réaligné par Prettier). Cette étape tourne sur
+      # LA MACHINE DE L'AGENT, jamais sur celle qui détient le jeton : elle ne
+      # produit qu'une donnée — verify vert ou non — dont le seul effet est
+      # d'ouvrir la PR en brouillon plutôt que de la lancer en fusion auto.
+      # Elle ne fait pas échouer le job : un travail rouge publié en brouillon
+      # est plus utile qu'un travail perdu avec la machine.
+      - id: verifier
+        name: Constater que verify est vert
+        if: always() && steps.claude.outcome == 'success' && steps.garde.outputs.agir == 'true'
+        run: |
+          if npm run verify; then
+            echo "verify : vert sur la branche de l'agent." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            mkdir -p .pilote
+            echo "verify a échoué sur la branche de l'agent" > .pilote/brouillon
+            {
+              echo "## verify rouge"
+              echo "La PR s'ouvre en brouillon : la fusion automatique est écartée."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::verify a échoué ; la PR sera ouverte en brouillon."
+          fi
+
       # Tout ce qui sort de cette machine est une donnée : le job suivant la
       # valide. Un travail inachevé (limite de tours, délai) est commité ici
       # pour être ouvert en brouillon plutôt que perdu avec la machine.

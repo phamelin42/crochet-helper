@@ -20,6 +20,7 @@ export const FR = {
   'nav.converter': 'US ↔ UK',
   'nav.projects': 'Mes projets',
   'ui.update': 'Mettre à jour',
+  'footer.designers': 'Vous créez des patrons ?',
   'ui.discord': 'Rejoindre le Discord',
 } as const;
 
@@ -35,6 +36,7 @@ export const EN: Record<TranslationKey, string> = {
   'nav.converter': 'US ↔ UK',
   'nav.projects': 'My projects',
   'ui.update': 'Update',
+  'footer.designers': 'Do you design patterns?',
   'ui.discord': 'Join the Discord',
 };
 

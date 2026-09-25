@@ -91,6 +91,12 @@ function routesFor(locale: Locale): Routes {
             ),
           data,
         },
+        {
+          path: strip(ROUTE_PATHS.forDesigners[locale]),
+          loadComponent: () =>
+            import('./features/designers/pages/for-designers-page').then((m) => m.ForDesignersPage),
+          data,
+        },
       ],
     },
   ];

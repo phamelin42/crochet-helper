@@ -46,6 +46,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         title: 'Crochet ou tricot : par lequel commencer ?',
         lead: 'Les différences entre les deux techniques, pour choisir la sienne.',
       },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.forDesigners.fr}`,
+        title: 'Vous créez des patrons ?',
+        lead: 'Un badge et un lien à offrir à vos clientes pour ouvrir votre patron directement dans le lecteur.',
+      },
     ],
   },
   en: {
@@ -65,6 +70,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.guideCrochetOrKnitting.en}`,
         title: 'Crochet or knitting: which to start with?',
         lead: 'The differences between the two crafts, to help you pick one.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.forDesigners.en}`,
+        title: 'Do you design patterns?',
+        lead: 'A badge and a link to give your customers, to open your pattern straight in the reader.',
       },
     ],
   },

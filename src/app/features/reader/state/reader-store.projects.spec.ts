@@ -11,6 +11,15 @@ import { BACKUP_SCHEMA_VERSION, Project } from '../data/project.model';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import { ReaderStore } from './reader-store';
 
+/** Deux pièces, pour vérifier que la pièce reçue n'est pas la première par défaut. */
+const TWO_PIECES = [
+  'Patron',
+  'Piece A',
+  'Round 1: 6 sc (6)',
+  'Piece B',
+  'Round 1: 6 sc (6)',
+].join('\n');
+
 function projectFixture(overrides: Partial<Project> = {}): Project {
   return {
     id: 'p',
@@ -97,6 +106,53 @@ describe('ReaderStore — projets', () => {
     expect(store.source()).toBe('Rang 1 : 6 ms');
     expect(store.elapsed()).toBe(5_000);
     expect(track).toHaveBeenCalledWith('project_resumed');
+  });
+
+  it('reçoit un projet partagé : identifiant neuf, projet actif intact dans la liste', () => {
+    const store = TestBed.inject(ReaderStore);
+    const active = projectFixture({ id: 'a', source: 'Rang 1 : 6 ms' });
+    store.projects.set([active]);
+    store.resumeProject('a');
+    const beforeReceive = store.projects().find((p) => p.id === 'a');
+
+    store.receiveSharedProject({
+      source: TWO_PIECES,
+      name: 'Projet envoyé',
+      pieceIndex: 1,
+      stepIndex: 0,
+      done: { '0:0': true },
+      reps: { '0:0': 2 },
+    });
+
+    expect(store.currentId()).not.toBeNull();
+    expect(store.currentId()).not.toBe('a');
+    expect(store.source()).toBe(TWO_PIECES);
+    expect(store.pieceIndex()).toBe(1);
+    expect(store.done()).toEqual({ '0:0': true });
+    expect(store.reps()).toEqual({ '0:0': 2 });
+    expect(store.projects().find((p) => p.id === 'a')).toEqual(beforeReceive);
+    expect(track).toHaveBeenCalledWith('project_received');
+  });
+
+  it('ouvrir le même lien de projet deux fois crée deux projets distincts', () => {
+    const store = TestBed.inject(ReaderStore);
+    const progress = {
+      source: 'Rang 1 : 6 ms',
+      name: 'Projet',
+      pieceIndex: 0,
+      stepIndex: 0,
+      done: {},
+      reps: {},
+    };
+
+    store.receiveSharedProject(progress);
+    const first = store.currentId();
+    store.receiveSharedProject(progress);
+    const second = store.currentId();
+
+    expect(first).not.toBeNull();
+    expect(second).not.toBeNull();
+    expect(second).not.toBe(first);
   });
 
   it('renomme un projet', async () => {

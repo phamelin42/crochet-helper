@@ -262,10 +262,15 @@ export class ReaderPage {
     }
   }
 
-  /** Lit `#p=…` au démarrage : un permalien de patron partagé, jamais un paramètre
-   *  de requête, pour qu'il ne parte ni dans les journaux serveur ni le `Referer`. */
+  /** Lit `#p=…` ou `#j=…` au démarrage : un permalien de patron ou de projet
+   *  partagé, jamais un paramètre de requête, pour qu'il ne parte ni dans les
+   *  journaux serveur ni le `Referer`. */
   private async loadFromFragment(): Promise<void> {
     const hash = window.location.hash;
+    if (hash.startsWith('#j=')) {
+      await this.loadSharedProject(hash.slice('#j='.length));
+      return;
+    }
     if (!hash.startsWith('#p=')) return;
     const { decodePattern } = await import('../data/pattern-link');
     const decoded = await decodePattern(hash.slice('#p='.length));
@@ -277,6 +282,17 @@ export class ReaderPage {
       return;
     }
     this.store.load(decoded, 'lien');
+  }
+
+  /** Un lien de projet (`#j=`) ouvre toujours une copie neuve, sans jamais
+   *  demander confirmation : le projet actif, lui, n'est pas remplacé — il
+   *  reste dans « Mes projets », intact. */
+  private async loadSharedProject(encoded: string): Promise<void> {
+    const { decodeProject } = await import('../data/project-link');
+    const decoded = await decodeProject(encoded);
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    if (!decoded) return;
+    this.store.receiveSharedProject(decoded);
   }
 
   /** Le patron en cours reste enregistré dans « Mes projets » : `clear()` ne le

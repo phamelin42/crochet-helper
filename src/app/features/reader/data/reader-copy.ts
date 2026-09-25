@@ -50,6 +50,9 @@ const FR = {
   'ui.linkImportBody':
     "Un patron est déjà en cours. L'ouvrir depuis ce lien remplace l'affichage actuel — le projet en cours reste enregistré dans « Mes projets ».",
   'ui.linkImportAction': 'Ouvrir le patron du lien',
+  'ui.sendProject': 'Envoyer ce projet',
+  'ui.projectShareHint': 'La personne recevra une copie. Vos progressions resteront séparées.',
+  'ui.projectLinkTooLong': 'Ce projet est trop long pour tenir dans un lien.',
   'ui.waitlistText': 'Une version synchronisée entre vos appareils, 29 € par an — intéressée ?',
   'ui.waitlistLink': 'En savoir plus',
   'ui.waitlistHide': 'Masquer',
@@ -99,6 +102,9 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.linkImportBody':
     'A pattern is already open. Opening this link replaces the current view — the current project stays saved in “My projects”.',
   'ui.linkImportAction': 'Open the pattern from the link',
+  'ui.sendProject': 'Send this project',
+  'ui.projectShareHint': 'They will get a copy. Your progress stays separate.',
+  'ui.projectLinkTooLong': 'This project is too long to fit in a link.',
   'ui.waitlistText': 'A version that syncs between devices for €29/year — interested?',
   'ui.waitlistLink': 'Tell me more',
   'ui.waitlistHide': 'Hide',

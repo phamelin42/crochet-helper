@@ -21,6 +21,7 @@ export const FR = {
   'nav.projects': 'Mes projets',
   'ui.update': 'Mettre à jour',
   'footer.designers': 'Vous créez des patrons ?',
+  'ui.discord': 'Rejoindre le Discord',
 } as const;
 
 export type TranslationKey = keyof typeof FR;
@@ -36,6 +37,7 @@ export const EN: Record<TranslationKey, string> = {
   'nav.projects': 'My projects',
   'ui.update': 'Update',
   'footer.designers': 'Do you design patterns?',
+  'ui.discord': 'Join the Discord',
 };
 
 export const TRANSLATIONS: Record<Locale, Record<TranslationKey, string>> = { fr: FR, en: EN };

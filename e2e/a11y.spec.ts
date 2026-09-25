@@ -4,6 +4,19 @@ import { join } from 'node:path';
 import { type Page, expect, test } from '@playwright/test';
 
 /**
+ * Audit mené **mouvement réduit**. Les boutons transitionnent leur
+ * `background-color` sur 0,12 s : en posant `data-dim` puis en lançant axe
+ * aussitôt, l'audit lisait des couleurs à mi-interpolation et rapportait de
+ * faux défauts de contraste — `.btn-secondary` mesuré à 1,80:1 alors qu'il vaut
+ * 7,70:1 au repos. Le test échouait donc sur du code correct, et seulement
+ * quand la machine lançait axe dans les 120 ms : un échec intermittent.
+ * `reducedMotion` déclenche la règle `prefers-reduced-motion` de
+ * `tokens.css`, qui ramène toute transition à 0,01 ms : les couleurs sont
+ * définitives dès le premier recalcul, sans attente arbitraire.
+ */
+test.use({ reducedMotion: 'reduce' });
+
+/**
  * Toutes les familles de page, dans les deux langues, **déduites de
  * `route-paths.json`** : une famille ajoutée par une fiche entre d'elle-même
  * dans l'audit. Les pages d'abréviation (`/glossary/:slug`) sont plus de cent

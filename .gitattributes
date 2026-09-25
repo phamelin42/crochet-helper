@@ -1,2 +1,9 @@
-# Scripts shell : fins de ligne LF, quel que soit le poste (Windows compris).
+# Fins de ligne LF dans la copie de travail, sur tous les postes (Windows
+# compris). Sans cette ligne, `core.autocrlf=true` rend `npm run format:check`
+# inutilisable en local : Prettier attend des LF (`endOfLine: "lf"`, sa valeur
+# par defaut) et signale alors la totalite du depot. Un controle qui crie au
+# loup sur 144 fichiers n'est plus lu, et les vrais ecarts partent en CI.
+* text=auto eol=lf
+
+# Scripts shell : LF, quel que soit le poste (Windows compris).
 *.sh text eol=lf

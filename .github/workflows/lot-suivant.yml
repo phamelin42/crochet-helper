@@ -90,28 +90,32 @@ jobs:
             --max-turns 200
             --allowedTools "Read,Glob,Grep,Edit,MultiEdit,Write,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(git:*),Bash(ls:*)"
 
-      # L'agent affirme avoir lancé `npm run verify` ; ici on le constate. Trois
-      # PR de suite ont échoué en CI sur un fichier écrit après sa vérification
-      # (le tableau d'avancement, réaligné par Prettier). Cette étape tourne sur
-      # LA MACHINE DE L'AGENT, jamais sur celle qui détient le jeton : elle ne
-      # produit qu'une donnée — verify vert ou non — dont le seul effet est
-      # d'ouvrir la PR en brouillon plutôt que de la lancer en fusion auto.
-      # Elle ne fait pas échouer le job : un travail rouge publié en brouillon
-      # est plus utile qu'un travail perdu avec la machine.
+      # L'agent affirme avoir lancé `npm run verify` ; ici on le constate, et on
+      # constate `verify:ci`, qui y ajoute l'audit Playwright — seul juge de
+      # l'accessibilité, absent de `verify`. Trois PR de suite ont échoué en CI
+      # sur un fichier écrit après la vérification de l'agent (le tableau
+      # d'avancement, réaligné par Prettier).
+      #
+      # Cette étape tourne sur LA MACHINE DE L'AGENT, jamais sur celle qui
+      # détient le jeton : elle ne produit qu'une donnée — vert ou non — dont le
+      # seul effet est d'ouvrir la PR en brouillon au lieu de la lancer en
+      # fusion auto. Elle ne fait pas échouer le job : un travail rouge publié
+      # en brouillon est plus utile qu'un travail perdu avec la machine.
       - id: verifier
-        name: Constater que verify est vert
+        name: Constater que verify:ci est vert
         if: always() && steps.claude.outcome == 'success' && steps.garde.outputs.agir == 'true'
         run: |
-          if npm run verify; then
-            echo "verify : vert sur la branche de l'agent." | tee -a "$GITHUB_STEP_SUMMARY"
+          npx playwright install --with-deps chromium
+          if npm run verify:ci; then
+            echo "verify:ci : vert sur la branche de l'agent." | tee -a "$GITHUB_STEP_SUMMARY"
           else
             mkdir -p .pilote
-            echo "verify a échoué sur la branche de l'agent" > .pilote/brouillon
+            echo "verify:ci a échoué sur la branche de l'agent" > .pilote/brouillon
             {
-              echo "## verify rouge"
+              echo "## verify:ci rouge"
               echo "La PR s'ouvre en brouillon : la fusion automatique est écartée."
             } >> "$GITHUB_STEP_SUMMARY"
-            echo "::warning::verify a échoué ; la PR sera ouverte en brouillon."
+            echo "::warning::verify:ci a échoué ; la PR sera ouverte en brouillon."
           fi
 
       # Tout ce qui sort de cette machine est une donnée : le job suivant la

@@ -15,6 +15,7 @@
     "format:check": "prettier --check .",
     "test:a11y": "ng build && playwright test",
     "verify": "npm run lint && npm run format:check && npm run test:ci && npm run test:tools && npm run build",
+    "verify:ci": "npm run verify && npx playwright test",
     "prepare": "node tools/installer-hooks.mjs"
   },
   "private": true,

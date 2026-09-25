@@ -84,14 +84,19 @@ test('lot : la première fiche de l’ordre, à faire et sans branche', () => {
   assert.equal(rien.fiche, undefined);
 });
 
-test('lot : les tables réelles du dépôt donnent une fiche', () => {
-  const g = gardeLot(
-    readFileSync(new URL('../prompts/README.md', import.meta.url), 'utf8'),
-    readFileSync(new URL('../automation/avancement.md', import.meta.url), 'utf8'),
-    '',
-  );
-  assert.equal(g.agir, true, g.raison);
-  assert.notEqual(g.raison, 'fiche 20', 'la 20 est bloquée');
+test('lot : les tables réelles du dépôt sont cohérentes, avancement compris', () => {
+  const readme = readFileSync(new URL('../prompts/README.md', import.meta.url), 'utf8');
+  const avancement = readFileSync(new URL('../automation/avancement.md', import.meta.url), 'utf8');
+  const ordre = ordreDesFiches(readme);
+  const aFaire = fichesAFaire(avancement);
+  assert.ok(ordre.length > 0, 'la table d’ordre est lisible');
+  for (const fiche of aFaire) {
+    assert.ok(ordre.includes(fiche), `la fiche ${fiche} « À faire » figure dans la table d’ordre`);
+  }
+  const g = gardeLot(readme, avancement, '');
+  assert.notEqual(g.fiche, '20', 'la 20 est bloquée');
+  // Toutes les fiches terminées : ne rien faire est alors la bonne réponse.
+  assert.equal(g.agir, aFaire.length > 0, g.raison);
 });
 
 test('hebdo : faible trafic et file pleine → pas d’agent ; file courte → agent', () => {

@@ -6,5 +6,9 @@
   "projects": { "fr": "/mes-projets", "en": "/my-projects" },
   "guideReadingPattern": { "fr": "/guide/lire-un-patron", "en": "/guide/reading-a-pattern" },
   "guideReadingChart": { "fr": "/guide/lire-un-diagramme", "en": "/guide/reading-a-chart" },
-  "guideCrochetOrKnitting": { "fr": "/guide/crochet-ou-tricot", "en": "/guide/crochet-or-knitting" }
+  "guideCrochetOrKnitting": {
+    "fr": "/guide/crochet-ou-tricot",
+    "en": "/guide/crochet-or-knitting"
+  },
+  "forDesigners": { "fr": "/pour-les-creatrices", "en": "/for-designers" }
 }

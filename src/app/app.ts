@@ -1,6 +1,7 @@
 import { ApplicationRef, Component, afterNextRender, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { I18nService } from './core/i18n/i18n.service';
+import { SiteFooter } from './shared/layout/site-footer';
 import { SiteHeader } from './shared/layout/site-header';
 import { TooltipHost } from './shared/ui/tooltip/tooltip-host';
 
@@ -13,13 +14,14 @@ import { TooltipHost } from './shared/ui/tooltip/tooltip-host';
   // champ rempli est réinitialisé par l'hydratation de la page. Les tests e2e
   // l'attendent avant d'agir.
   host: { '[attr.data-ready]': "ready() ? '' : null" },
-  imports: [RouterOutlet, SiteHeader, TooltipHost],
+  imports: [RouterOutlet, SiteFooter, SiteHeader, TooltipHost],
   template: `
     <a class="skip-link" href="#main">{{ i18n.t('ui.skipToContent') }}</a>
     <fil-site-header />
     <main id="main" tabindex="-1">
       <router-outlet />
     </main>
+    <fil-site-footer />
     <fil-tooltip-host />
   `,
 })

@@ -12,7 +12,7 @@ import { type Page, expect, test } from '@playwright/test';
  * quand la machine lançait axe dans les 120 ms : un échec intermittent.
  * `reducedMotion` déclenche la règle `prefers-reduced-motion` de
  * `tokens.css`, qui ramène toute transition à 0,01 ms : les couleurs sont
- * définitives dès le premier recalcul, sans attente arbitraire.
+ * définitives après un rendu (voir `applyTheme`, qui l'attend), sans délai arbitraire.
  */
 test.use({ reducedMotion: 'reduce' });
 
@@ -55,6 +55,11 @@ async function applyTheme(page: Page, dim: boolean): Promise<void> {
   if (!dim) return;
   await page.evaluate(() => document.documentElement.setAttribute('data-dim', 'true'));
   await expect(page.locator('html[data-dim="true"]')).toBeAttached();
+  // Même à 0,01 ms, une transition n'est finie qu'après un rendu : sur un
+  // runner chargé, axe lisait encore la couleur d'avant. On attend une image
+  // puis l'absence de toute transition en cours, plutôt qu'un délai arbitraire.
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+  await page.waitForFunction(() => document.getAnimations().length === 0);
 }
 
 for (const route of ROUTES) {

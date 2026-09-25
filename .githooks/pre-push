@@ -1,7 +1,9 @@
 #!/bin/sh
-# Garde-fou : rien ne part vers GitHub sans que lint, format, tests et build
-# soient verts sur ce poste. Une PR ouverte sur une branche rouge coute un
-# aller-retour de CI et une relecture pour rien.
+# Garde-fou : rien ne part vers GitHub sans que TOUT ce que verifie le job CI
+# soit vert sur ce poste. `npm run verify` seul ne suffit pas — il ignore
+# l'audit Playwright (axe, reflow, performance, e2e), que la CI lance juste
+# apres le build. Un hook qui s'arreterait a `verify` laisserait donc encore
+# passer une PR rouge : c'est arrive des le premier essai.
 #
 # Branche par `tools/installer-hooks.mjs` (script npm `prepare`), qui pose
 # `core.hooksPath` sur `.githooks`.
@@ -26,18 +28,23 @@ if [ "$a_pousser" -eq 0 ]; then
   exit 0
 fi
 
-echo "pre-push : npm run verify (lint, format, tests, build + pre-rendu)."
-echo "           Compter deux a trois minutes. Pour sauter : git push --no-verify"
+echo "pre-push : npm run verify:ci — tout ce que verifie le job CI :"
+echo "           lint, format, tests unitaires, tests des outils, build avec"
+echo "           pre-rendu, puis l'audit Playwright (axe WCAG AA, reflow"
+echo "           320 px, CLS/LCP, analytics, permalien)."
+echo "           Compter cinq a six minutes. Pour sauter : git push --no-verify"
 echo ""
 
-if npm run verify; then
+if npm run verify:ci; then
   echo ""
-  echo "pre-push : verify est vert, push en cours."
+  echo "pre-push : verify:ci est vert, push en cours."
   exit 0
 fi
 
 echo "" >&2
-echo "pre-push : verify a echoue, push annule." >&2
+echo "pre-push : verify:ci a echoue, push annule." >&2
 echo "           Corrige la cause. Ne desactive ni une regle de lint, ni un" >&2
 echo "           test, ni un controle de build pour faire passer la commande." >&2
+echo "" >&2
+echo "           Navigateur manquant ? npx playwright install chromium" >&2
 exit 1

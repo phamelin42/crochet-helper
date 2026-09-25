@@ -198,6 +198,15 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   lisant `/ngsw/state` (« Driver state: NORMAL »), pas seulement le statut HTTP.
 - **Impression** : vérifier sur un vrai PDF (Chromium `page.pdf`), pas sur
   `innerText`, qui renvoie aussi le texte des éléments masqués.
+- **Un audit de contraste lancé pendant une transition lit des couleurs
+  interpolées.** Les boutons transitionnent `background-color` sur 0,12 s :
+  `e2e/a11y.spec.ts` posait `data-dim` puis lançait axe aussitôt, et mesurait
+  `.btn-secondary` à 1,80:1 là où il vaut 7,70:1 au repos. Le test échouait sur
+  du code correct, et seulement quand la machine était assez rapide — donc par
+  intermittence. `test.use({ reducedMotion: 'reduce' })` déclenche la règle
+  `prefers-reduced-motion` de `tokens.css` (transitions à 0,01 ms) : les
+  couleurs sont définitives dès le premier recalcul, sans attente arbitraire.
+  Avant de corriger une palette sur un rapport d'axe, mesure au repos.
 
 ## Économie de tokens
 
@@ -221,12 +230,18 @@ entier les consomme.
 n'est pas terminée tant que cette commande n'est pas verte.** Les tests unitaires
 tournent sous Vitest (`npm test`).
 
-Cette commande n'est pas facultative : un hook `pre-push` (`.githooks/pre-push`,
-branché par le script npm `prepare`) la lance avant chaque push, et l'annule si
-elle est rouge. Pour passer outre une fois, en connaissance de cause :
-`git push --no-verify`. Côté pilote, le job `construire` de `lot-suivant.yml`
-constate lui aussi `verify` après l'agent ; s'il est rouge, la PR s'ouvre en
-brouillon au lieu de partir en fusion automatique.
+**`verify` ne suffit pas à prédire la CI** : le job s'appelle « Lint · format ·
+tests · build » mais lance aussi l'audit Playwright (axe WCAG AA, reflow 320 px,
+CLS/LCP, analytics, permalien), absent de `verify`. La commande qui couvre
+vraiment la CI est `npm run verify:ci` = `verify` puis `npx playwright test`
+sur le build qu'il vient de produire — un seul build, comme en CI.
+
+C'est elle, et non `verify`, que lance le hook `pre-push` (`.githooks/pre-push`,
+branché par `tools/installer-hooks.mjs` depuis le script npm `prepare`) : le
+push est annulé si elle est rouge. Compter cinq à six minutes. Pour passer outre
+une fois, en connaissance de cause : `git push --no-verify`. Côté pilote, le job
+`construire` de `lot-suivant.yml` la constate aussi après l'agent ; si elle est
+rouge, la PR s'ouvre en brouillon au lieu de partir en fusion automatique.
 
 Corollaire de fins de ligne : `.gitattributes` impose `* text=auto eol=lf`. Sans
 cela, `core.autocrlf=true` donne des CRLF dans la copie de travail d'un poste

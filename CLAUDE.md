@@ -170,6 +170,17 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   (`core/analytics`) et dans `EVENEMENTS` (`tools/umami.mjs`), sinon il est
   collecté mais n'apparaît dans aucun rapport. `tools/evenements.test.mjs` le
   vérifie.
+- **Un événement émis depuis un `effect` arrive après le clic qui le provoque**,
+  un tour de planificateur plus tard, là où un événement émis dans le
+  gestionnaire part en synchrone. Un test e2e qui vide la file juste après
+  `click()` le manque sur un runner chargé, et le retrouve ensuite dans le lot
+  de l'assertion suivante : deux échecs intermittents pour un seul décalage. On
+  accumule la file jusqu'à obtenir les noms attendus (`attendreNoms` dans
+  `e2e/analytics.spec.ts`) plutôt que de la lire une fois.
+- **`npx playwright test` sert le dernier build, pas le code du moment**
+  (`e2e/static-server.mjs` sur `dist/`, plus `reuseExistingServer`). Debugger un
+  échec e2e sans `ng build` préalable fait chercher un bug de test là où il n'y
+  a qu'un `dist/` périmé : passer par `npm run test:a11y`, qui construit.
 - **Workflow du pilote** (claude-code-action) lancé sur une branche : l'étape
   de l'agent est sautée, le fichier doit être identique à celui de `main`. Sur
   branche, on ne valide que les étapes d'avant l'agent ; l'agent se valide par

@@ -98,8 +98,9 @@ export class ReaderStore {
   readonly step = computed<PatternStep | null>(() => this.steps()[this.stepIndex()] ?? null);
   readonly stepCount = computed(() => this.steps().length);
   readonly total = computed(() => this.pattern().total);
-  /** Position 1-indexée de l'étape courante dans l'ensemble des pièces. */
-  private readonly absoluteStep = computed(() => {
+  /** Position 1-indexée de l'étape courante dans l'ensemble des pièces —
+   *  sert aussi à `WaitlistBanner` pour savoir si la troisième étape est atteinte. */
+  readonly absoluteStep = computed(() => {
     const pieces = this.pieces();
     let position = this.stepIndex() + 1;
     for (let i = 0; i < this.pieceIndex(); i++) position += pieces[i]?.steps.length ?? 0;

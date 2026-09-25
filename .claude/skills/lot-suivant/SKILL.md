@@ -101,6 +101,13 @@ décision humaine coûte moins cher que cent échanges.
 
 ## 4. Vérifier
 
+**Termine toutes tes écritures de fichiers avant de lancer la vérification**,
+`automation/avancement.md` compris (étape 5 : la fiche passe à « Terminée »).
+Un fichier écrit après ce passage n'est vu ni par Prettier ni par ESLint : c'est
+ainsi qu'un désalignement d'une seule espace dans le tableau d'avancement a fait
+échouer la CI trois fois de suite. Si tu dois malgré tout écrire un fichier après
+coup, relance au minimum `npx prettier --check .` — deux secondes, sans build.
+
 `npm run verify` doit être vert. Cette commande enchaîne lint, format, tests et
 build avec pré-rendu : lance-la **une fois**, à la fin, après les tests ciblés
 (`npx ng test --no-watch --include='<glob>'`). La relancer après chaque petite
@@ -121,10 +128,10 @@ la PR sera ouverte en brouillon, ce qui est plus utile qu'un abandon silencieux.
 
 ## 5. Préparer la publication
 
-Mets à jour `automation/avancement.md` dans ton dernier commit : la fiche passe
-à « Terminée », avec la date. Ce n'est vrai qu'une fois la PR fusionnée, et
-c'est voulu : si elle est refusée, la ligne ne touche jamais `main`. Laisse le
-numéro de PR à « — », il n'existe pas encore.
+`automation/avancement.md` a déjà été mis à jour **avant** la vérification
+(étape 4) : la fiche passe à « Terminée », avec la date. Ce n'est vrai qu'une
+fois la PR fusionnée, et c'est voulu : si elle est refusée, la ligne ne touche
+jamais `main`. Laisse le numéro de PR à « — », il n'existe pas encore.
 
 Puis écris :
 

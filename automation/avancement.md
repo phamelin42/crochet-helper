@@ -35,7 +35,7 @@ branche.
 | 20 — Comptes et paiement (cadrage)      | Bloquée : lot 8 gelé, décision de Phil | —   | —          |
 | 21 — Mesurer le retour et la profondeur | Terminée                               | —   | 2026-09-23 |
 | 22 — Liste d'attente                    | À faire                                | —   | —          |
-| 23 — Kit pour les créatrices            | À faire                                | —   | —          |
+| 23 — Kit pour les créatrices            | Terminée                               | —   | 2026-09-25 |
 
 ## États possibles
 

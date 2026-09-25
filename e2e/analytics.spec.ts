@@ -40,6 +40,22 @@ function noms(liste: Emis[]): string[] {
   return liste.map(([nom]) => nom);
 }
 
+/**
+ * Vide la file jusqu'à obtenir exactement ces noms, dans cet ordre. Un
+ * événement émis depuis un `effect` — la ligne de liste d'attente — part un
+ * tour de planificateur après le clic qui le provoque : lire la file une seule
+ * fois juste après le clic le manque dès que la machine est lente.
+ */
+async function attendreNoms(page: Page, attendus: string[]): Promise<void> {
+  const cumul: Emis[] = [];
+  await expect
+    .poll(async () => {
+      cumul.push(...(await emis(page)));
+      return noms(cumul);
+    })
+    .toEqual(attendus);
+}
+
 function props(liste: Emis[], nom: string): Record<string, string | number> {
   const trouve = liste.find(([n]) => n === nom);
   expect(trouve, `événement ${nom} émis`).toBeDefined();
@@ -86,7 +102,8 @@ test('coller un patron, avancer de deux étapes, survoler une abréviation, reve
 
   await next.click();
   await next.click();
-  expect(noms(await emis(page))).toEqual(['step_advanced', 'step_advanced']);
+  // À l'étape 3, la ligne de liste d'attente apparaît : elle le dit une fois.
+  await attendreNoms(page, ['step_advanced', 'step_advanced', 'waitlist_shown']);
 
   await page.locator('.abbr').first().hover();
   expect(noms(await emis(page))).toEqual(['glossary_hover']);

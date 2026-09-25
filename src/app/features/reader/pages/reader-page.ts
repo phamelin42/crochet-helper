@@ -12,6 +12,7 @@ import { PatternImport } from '../components/pattern-import';
 import { PrintView } from '../components/print-view';
 import { ReaderCounters } from '../components/reader-counters';
 import { StepView } from '../components/step-view';
+import { WaitlistBanner } from '../components/waitlist-banner';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 
@@ -108,7 +109,16 @@ const SEO: Record<Locale, { title: string; description: string }> = {
  */
 @Component({
   selector: 'fil-reader-page',
-  imports: [Dialog, MaterialsList, PatternImport, PrintView, ReaderCounters, RouterLink, StepView],
+  imports: [
+    Dialog,
+    MaterialsList,
+    PatternImport,
+    PrintView,
+    ReaderCounters,
+    RouterLink,
+    StepView,
+    WaitlistBanner,
+  ],
   host: {
     class: 'wrap',
     '(document:keydown)': 'onKeydown($event)',
@@ -147,6 +157,8 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     <hr class="hr" />
 
     <fil-reader-counters />
+
+    <fil-waitlist-banner />
 
     @if (store.materials().length) {
       <fil-materials-list />

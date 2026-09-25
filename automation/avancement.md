@@ -34,7 +34,7 @@ branche.
 | 19 — Envoyer un projet                  | À faire                                | —   | —          |
 | 20 — Comptes et paiement (cadrage)      | Bloquée : lot 8 gelé, décision de Phil | —   | —          |
 | 21 — Mesurer le retour et la profondeur | Terminée                               | —   | 2026-09-23 |
-| 22 — Liste d'attente                    | À faire                                | —   | —          |
+| 22 — Liste d'attente                    | Terminée                               | —   | 2026-09-24 |
 | 23 — Kit pour les créatrices            | À faire                                | —   | —          |
 
 ## États possibles

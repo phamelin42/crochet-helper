@@ -86,7 +86,8 @@ test('coller un patron, avancer de deux étapes, survoler une abréviation, reve
 
   await next.click();
   await next.click();
-  expect(noms(await emis(page))).toEqual(['step_advanced', 'step_advanced']);
+  // À l'étape 3, la ligne de liste d'attente apparaît : elle le dit une fois.
+  expect(noms(await emis(page))).toEqual(['step_advanced', 'step_advanced', 'waitlist_shown']);
 
   await page.locator('.abbr').first().hover();
   expect(noms(await emis(page))).toEqual(['glossary_hover']);

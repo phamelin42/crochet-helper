@@ -221,6 +221,20 @@ entier les consomme.
 n'est pas terminée tant que cette commande n'est pas verte.** Les tests unitaires
 tournent sous Vitest (`npm test`).
 
+Cette commande n'est pas facultative : un hook `pre-push` (`.githooks/pre-push`,
+branché par le script npm `prepare`) la lance avant chaque push, et l'annule si
+elle est rouge. Pour passer outre une fois, en connaissance de cause :
+`git push --no-verify`. Côté pilote, le job `construire` de `lot-suivant.yml`
+constate lui aussi `verify` après l'agent ; s'il est rouge, la PR s'ouvre en
+brouillon au lieu de partir en fusion automatique.
+
+Corollaire de fins de ligne : `.gitattributes` impose `* text=auto eol=lf`. Sans
+cela, `core.autocrlf=true` donne des CRLF dans la copie de travail d'un poste
+Windows, alors que Prettier attend des LF — `format:check` signalait alors la
+totalité du dépôt, et ce bruit rendait le contrôle local inutile. Si tu récupères
+une copie de travail antérieure à cette règle :
+`git rm --cached -rq . && git reset --hard`.
+
 Commits découpés par intention, message en français, à l'impératif.
 
 ---

@@ -50,7 +50,7 @@ const COPY: Record<Locale, DesignersCopy> = {
     badgeAlt: 'Ouvrir dans Pattern Reader',
     copyCode: 'Copier le code',
     codeCopied: 'Copié !',
-    codeHint: 'Le lien affiché est un exemple : remplacez « … » par le vôtre.',
+    codeHint: `Le lien affiché est un exemple${NBSP}: remplacez «${NBSP}…${NBSP}» par le vôtre.`,
     h2Pin: 'Un visuel à épingler',
     bodyPin:
       'Une image verticale prête pour Pinterest ou un réseau social, à associer à votre propre lien.',

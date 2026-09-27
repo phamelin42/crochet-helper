@@ -289,6 +289,19 @@ textarea.src-input {
   position: relative;
 }
 
+/* Réglages de lecture (fiche 24) : taille du texte et fond sombre, au-dessus
+   de l'étape — la lectrice les pose une fois par session, avant de lire. */
+.reader-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+.reader-tools > button:first-of-type {
+  margin-left: auto;
+}
+
 .pieces {
   display: flex;
   gap: var(--space-2);
@@ -454,20 +467,24 @@ textarea.src-input {
   border-top: 6px solid var(--tile-color);
   box-shadow: var(--shadow-md);
 }
-.meter > .tile:nth-child(3n + 1) {
-  --tile-color: var(--color-sakura);
-  --tile-pale: var(--color-sakura-pale);
-  --tile-ink: var(--color-sakura-ink);
-}
-.meter > .tile:nth-child(3n + 2) {
+.meter > .tile:nth-child(1) {
   --tile-color: var(--color-wakaba);
   --tile-pale: var(--color-wakaba-pale);
   --tile-ink: var(--color-wakaba-ink);
 }
-.meter > .tile:nth-child(3n + 3) {
+.meter > .tile:nth-child(2) {
   --tile-color: var(--color-asagi);
   --tile-pale: var(--color-asagi-pale);
   --tile-ink: var(--color-asagi-ink);
+}
+/* Répétitions : la commande la plus utilisée crochet en main, remontée sous
+   l'étape elle-même (fiche 24) — garde sa couleur sakura hors de `.meter`. */
+.reps-tile {
+  --tile-color: var(--color-sakura);
+  --tile-pale: var(--color-sakura-pale);
+  --tile-ink: var(--color-sakura-ink);
+  max-width: 320px;
+  margin-block: var(--space-6) var(--space-2);
 }
 .tile h6 {
   margin: 0;
@@ -705,8 +722,18 @@ textarea.src-input {
   text-decoration-color: var(--color-sakura);
 }
 
+/* UX-8 : entre 600 et 900 px, l'écusson de pelote de `.reader` (le lecteur,
+   pas les bandeaux `.hero` des autres pages) passait sous le bouton Suivante,
+   le contenu occupant alors toute la hauteur de la carte. Mieux vaut l'écarter
+   que la voir mordre sur un contrôle : au-delà de 900 px, la carte respire
+   assez pour l'accueillir. */
+@media (max-width: 900px) {
+  .reader::before {
+    content: none;
+  }
+}
+
 @media (max-width: 820px) {
-  .reader::before,
   .hero::before {
     width: 130px;
     opacity: 0.8;
@@ -744,7 +771,6 @@ textarea.src-input {
     padding: var(--space-5) var(--space-4);
   }
   /* Trop étroit : la pelote passerait derrière le texte ou les boutons. */
-  .reader::before,
   .hero::before {
     content: none;
   }

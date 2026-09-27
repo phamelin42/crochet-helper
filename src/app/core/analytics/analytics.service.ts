@@ -53,7 +53,9 @@ export type AnalyticsEvent =
   /** Ligne de liste d'attente affichée, une fois par projet. */
   | 'waitlist_shown'
   /** Clic sur le lien externe de la liste d'attente. */
-  | 'waitlist_clicked';
+  | 'waitlist_clicked'
+  /** Taille du texte ou fond sombre changés dans le mode lecture. */
+  | 'reading_pref_changed';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

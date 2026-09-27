@@ -51,6 +51,7 @@ export const EVENEMENTS = [
   'reading_depth_50',
   'waitlist_shown',
   'waitlist_clicked',
+  'reading_pref_changed',
 ];
 
 /** Sept noms distincts : la tranche ou le palier vit dans le nom, pas dans une propriété. */

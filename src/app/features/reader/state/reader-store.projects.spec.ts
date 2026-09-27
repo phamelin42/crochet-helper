@@ -104,11 +104,21 @@ describe('ReaderStore — projets', () => {
     expect(track).toHaveBeenCalledWith('project_resumed');
   });
 
-  it('reçoit un projet partagé : identifiant neuf, projet actif intact dans la liste', () => {
+  it('reçoit un projet partagé : copie enregistrée sous un identifiant neuf, projet actif intact', async () => {
     const store = TestBed.inject(ReaderStore);
-    const active = projectFixture({ id: 'a', source: 'Rang 1 : 6 ms' });
+    const projectStore = TestBed.inject(ProjectStoreService);
+    await store.initialize();
+    const active = projectFixture({
+      id: 'a',
+      source: 'Rang 1 : 6 ms',
+      image: 'data:image/png;base64,AAAA',
+      elapsed: 5_000,
+    });
     store.projects.set([active]);
     store.resumeProject('a');
+    // La reprise réécrit « a » (date d'ouverture) : on attend que ce soit en
+    // base pour comparer ensuite à un état stable, pas à une écriture en vol.
+    await vi.waitFor(async () => expect(await projectStore.list<Project>()).toHaveLength(1));
     const beforeReceive = store.projects().find((p) => p.id === 'a');
 
     store.receiveSharedProject({
@@ -120,14 +130,30 @@ describe('ReaderStore — projets', () => {
       reps: { '0:0': 2 },
     });
 
-    expect(store.currentId()).not.toBeNull();
-    expect(store.currentId()).not.toBe('a');
+    const id = store.currentId();
+    expect(id).not.toBeNull();
+    expect(id).not.toBe('a');
     expect(store.source()).toBe(TWO_PIECES);
     expect(store.pieceIndex()).toBe(1);
-    expect(store.done()).toEqual({ '0:0': true });
-    expect(store.reps()).toEqual({ '0:0': 2 });
-    expect(store.projects().find((p) => p.id === 'a')).toEqual(beforeReceive);
     expect(track).toHaveBeenCalledWith('project_received');
+
+    // Lire la liste tout de suite ne prouverait rien : l'effet de persistance
+    // n'a pas encore tourné. On attend l'écriture, puis on relit IndexedDB :
+    // la copie y est (elle survivra à un rechargement) et « a » y est intact.
+    await vi.waitFor(() => expect(store.projects()).toHaveLength(2));
+    const saved = await projectStore.list<Project>();
+    expect(saved.find((p) => p.id === 'a')).toEqual(beforeReceive);
+    expect(saved.find((p) => p.id === id)).toMatchObject({
+      name: 'Projet envoyé',
+      source: TWO_PIECES,
+      pieceIndex: 1,
+      stepIndex: 0,
+      done: { '0:0': true },
+      reps: { '0:0': 2 },
+      // Ni l'image ni le chronomètre de l'expéditrice ne suivent la copie.
+      image: '',
+      elapsed: 0,
+    });
   });
 
   it('ouvrir le même lien de projet deux fois crée deux projets distincts', () => {

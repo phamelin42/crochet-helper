@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEMO_PATTERN } from './demo-pattern';
+import { parsePattern } from './pattern-parser';
 import { decodeProject, encodeProject, SharedProgress } from './project-link';
 
 const PROGRESS: SharedProgress = {
@@ -49,6 +50,14 @@ describe('project-link', () => {
     await expect(decodeProject(badField)).resolves.toBeNull();
   });
 
+  it('refuse un lien sans patron : il ouvrirait un projet vide à la place du projet actif', async () => {
+    const { encodePattern } = await import('./pattern-link');
+    for (const source of ['', '   \n\t']) {
+      const empty = await encodePattern(JSON.stringify({ ...PROGRESS, version: 1, source }));
+      await expect(decodeProject(empty)).resolves.toBeNull();
+    }
+  });
+
   it('ramène les index hors des bornes du patron dans ses limites plutôt que de refuser', async () => {
     const { encodePattern } = await import('./pattern-link');
     const outOfBounds = await encodePattern(
@@ -65,8 +74,10 @@ describe('project-link', () => {
 
     const decoded = await decodeProject(outOfBounds);
 
-    expect(decoded).not.toBeNull();
-    expect(decoded!.pieceIndex).toBeGreaterThanOrEqual(0);
-    expect(decoded!.stepIndex).toBeGreaterThanOrEqual(0);
+    // Dernière pièce du patron, première étape : les bornes exactes, pas
+    // seulement « positif » — sinon un index trop grand passerait.
+    const lastPiece = parsePattern(DEMO_PATTERN).pieces.length - 1;
+    expect(lastPiece).toBeGreaterThan(0);
+    expect(decoded).toMatchObject({ pieceIndex: lastPiece, stepIndex: 0 });
   });
 });

@@ -46,6 +46,9 @@ export async function decodeProject(encoded: string): Promise<SharedProgress | n
     return null;
   }
   if (!isSharedProgressPayload(data)) return null;
+  // Un lien légitime porte toujours un patron (« Envoyer » est inactif sans
+  // texte) : sans lui, on ouvrirait un projet vide à la place du projet actif.
+  if (!data.source.trim()) return null;
 
   const pieces = parsePattern(data.source).pieces;
   const pieceIndex = pieces.length ? clamp(data.pieceIndex, 0, pieces.length - 1) : 0;

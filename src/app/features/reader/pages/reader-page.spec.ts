@@ -89,4 +89,31 @@ describe('ReaderPage', () => {
     expect(stepBody(host)).toContain('Collez ou écrivez votre pattern');
     expect(findButton(host, 'Suivante').disabled).toBe(true);
   });
+
+  it('sans patron, le bandeau d’accueil et les guides sont affichés', () => {
+    const { fixture, host } = setup();
+
+    fixture.detectChanges();
+
+    expect(host.querySelector('.home-hero')).toBeTruthy();
+    expect(host.querySelector('.grid-cards')).toBeTruthy();
+  });
+
+  it('patron chargé, le bandeau et les guides disparaissent, et le panneau d’import passe après les compteurs', () => {
+    const { fixture, store, host } = setup();
+
+    store.load(PATTERN);
+    fixture.detectChanges();
+
+    expect(host.querySelector('.home-hero')).toBeNull();
+    expect(host.querySelector('.grid-cards')).toBeNull();
+
+    const counters = host.querySelector('.meter');
+    const importPanel = host.querySelector('.import-host');
+    expect(counters).toBeTruthy();
+    expect(importPanel).toBeTruthy();
+    expect(
+      counters!.compareDocumentPosition(importPanel!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
 });

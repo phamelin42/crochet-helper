@@ -1,9 +1,18 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, ElementRef, afterNextRender, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale } from '../../core/i18n/locale';
 import { LocalizedPath } from '../../core/i18n/route-paths';
+import { DisplayPrefsService } from '../../core/platform/display-prefs.service';
 import { SeoService } from '../../core/seo/seo.service';
 import { Button } from '../../shared/ui/button/button';
 import { Checkbox } from '../../shared/ui/checkbox/checkbox';
@@ -473,6 +482,7 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
 export class DesignSystemPage {
   private readonly doc = inject(DOCUMENT);
   private readonly i18n = inject(I18nService);
+  private readonly prefs = inject(DisplayPrefsService);
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
   protected readonly tooltips = inject(TooltipService);
@@ -492,7 +502,7 @@ export class DesignSystemPage {
     { value: 0, label: 'Clair' },
     { value: 1, label: 'Sombre' },
   ];
-  protected readonly theme = signal(0);
+  protected readonly theme = computed(() => (this.prefs.dim() ? 1 : 0));
 
   protected readonly craftOptions: SegmentedOption[] = [
     { value: 0, label: 'Crochet' },
@@ -530,9 +540,7 @@ export class DesignSystemPage {
   }
 
   protected setTheme(value: number): void {
-    this.theme.set(value);
-    if (value === 1) this.doc.documentElement.setAttribute('data-dim', 'true');
-    else this.doc.documentElement.removeAttribute('data-dim');
+    this.prefs.setDim(value === 1);
     this.measure();
   }
 

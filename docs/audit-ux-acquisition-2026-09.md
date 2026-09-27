@@ -89,7 +89,7 @@ la diffusion manquent.
 | Pinterest                           | visuel épinglable produit (fiche 23)   | aucun compte, aucune épingle ; c'est le canal n° 1 du public de 58 ans                                                                          |
 | Groupes Facebook, Reddit, Ravelry   | rien                                   | zéro message ; zéro lien entrant vers patternreader.com                                                                                         |
 | Discord                             | lien en en-tête                        | inutile tant qu'il n'y a pas d'utilisatrices ; ne pas y investir                                                                                |
-| Vidéo                               | rien                                   | une démonstration de 30 s (coller → une étape à la fois) sert à la fois l'accueil, Pinterest, YouTube et chaque message posté                   |
+| Vidéo                               | écartée par Phil le 27/09              | rien : des captures d'écran du mode lecture (fiche 24) servent l'accueil, Pinterest et les messages                                             |
 
 Repère à garder en tête : un site neuf met trois à six mois à se classer même
 avec du bon contenu. Les canaux hors site (Reddit, Ravelry, créatrices) sont
@@ -120,13 +120,10 @@ première page-outil parce que c'est la plus simple et la mieux placée
    d'architecture à documenter (ADR-002) et à sécuriser (taille, quota par IP,
    expiration). Aucune fiche ne la présuppose ; la fiche 25 place les boutons
    de partage, pas le service.
-2. **La vidéo de démonstration.** Trente secondes d'écran (coller un patron →
-   découper → avancer, sur tablette), sans visage ni voix, muettes avec
-   sous-titres. Elle sert l'accueil (la fiche 26 prévoit son emplacement, image
-   statique en attendant), Pinterest, YouTube, et chaque message posté
-   ailleurs. Claude ne peut pas l'enregistrer ; Phil peut, avec l'enregistreur
-   d'écran de la tablette, après la fiche 24 pour montrer le mode lecture.
-   Déposer le fichier dans `public/media/demo.mp4`.
+2. **La vidéo de démonstration : écartée.** Décision de Phil du 27/09 : pas de
+   vidéo, sur le site ni ailleurs. L'accueil montre une image statique du
+   produit en marche (fiche 26) ; Reddit, Pinterest et les messages utilisent
+   des captures d'écran du mode lecture (fiche 24).
 
 ## Hors code : une heure par semaine
 
@@ -144,8 +141,9 @@ si. Le plan, les textes de départ et le journal des messages sont dans
 3. Semaine 1 de diffusion : le message Reddit, avec une capture prise après la
    fiche 24.
 4. Trancher la décision 1 (liens courts) ; elle n'empêche pas la fiche 25.
-5. Enregistrer la vidéo de 30 s sur tablette (décision 2) et la déposer dans
-   `public/media/` ; la fiche 26 n'en dépend pas.
+5. Prendre deux captures d'écran du mode lecture sur tablette après la
+   fiche 24 : elles servent Reddit, Pinterest et l'accueil (pas de vidéo,
+   décision 2).
 6. Laisser les fiches s'enchaîner dans l'ordre du README (26, 32, 27, 25, 29,
    28, 31, 30, 33), une PR chacune.
 7. Tenir `docs/diffusion.md` à jour : une ligne par message posté.

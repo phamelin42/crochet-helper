@@ -103,6 +103,10 @@ IndexedDB), écris un script court dans `$E` sur le modèle de `smoke.mjs`.
   par intention, en français, avec les trailers de session.
 - Chaque défaut corrigé a son test. Un test qui figeait un bug est **inversé**,
   pas supprimé.
+- PR ouverte par les outils GitHub : activer la fusion automatique dès
+  l'ouverture (`enable_pr_auto_merge`, squash), demande de Phil du 27/09. La PR
+  se fusionne seule quand la CI est verte, sans relecture humaine : le message
+  final le dit.
 - Livraison, si le push est refusé : `git bundle create /mnt/user-data/outputs/finitions-fiche-<nn>.bundle <tête-distante>..revue-<nn>`,
   puis `device_commit_files` à la racine du clone de Phil
   (`C:\Users\phamelin\Desktop\pornhub\Phil-projects\projects\fil-patterns`).

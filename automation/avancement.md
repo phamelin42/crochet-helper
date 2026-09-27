@@ -36,7 +36,7 @@ branche.
 | 21 — Mesurer le retour et la profondeur | Terminée                               | —   | 2026-09-23 |
 | 22 — Liste d'attente                    | Terminée                               | —   | 2026-09-24 |
 | 23 — Kit pour les créatrices            | Terminée                               | —   | 2026-09-25 |
-| 24 — Mode lecture                       | À faire                                | —   | —          |
+| 24 — Mode lecture                       | Terminée                               | —   | 2026-09-27 |
 | 25 — Vue d'ensemble et partage visible  | À faire                                | —   | —          |
 | 26 — Première visite                    | À faire                                | —   | —          |
 | 27 — Compteur de rangs en ligne         | À faire                                | —   | —          |

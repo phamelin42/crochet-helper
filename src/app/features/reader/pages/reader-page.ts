@@ -170,26 +170,28 @@ const SEO: Record<Locale, { title: string; description: string }> = {
       <fil-pattern-import [(open)]="importOpen" />
     }
 
-    @if (store.step()) {
-      <div class="reader-tools">
-        <fil-segmented
-          name="text-size"
-          [label]="t('ui.textSize')"
-          [options]="textSizeOptions()"
-          [selected]="textSizeIndex()"
-          (selectedChange)="setTextSize($event)"
-        />
-        <button type="button" filButton="ghost" (click)="toggleDim()">
-          <fil-icon name="moon" /><span>{{ prefs.dim() ? t('ui.lighten') : t('ui.darken') }}</span>
-        </button>
-        <button type="button" filButton="ghost" (click)="changePattern()">
-          {{ t('ui.changePattern') }}
-        </button>
-      </div>
-    }
-
     <section class="reader">
       <div>
+        @if (store.step()) {
+          <div class="reader-tools">
+            <fil-segmented
+              name="text-size"
+              [label]="t('ui.textSize')"
+              [options]="textSizeOptions()"
+              [selected]="textSizeIndex()"
+              (selectedChange)="setTextSize($event)"
+            />
+            <button type="button" filButton="ghost" (click)="toggleDim()">
+              <fil-icon name="moon" /><span>{{
+                prefs.dim() ? t('ui.lighten') : t('ui.darken')
+              }}</span>
+            </button>
+            <button type="button" filButton="ghost" (click)="changePattern()">
+              {{ t('ui.changePattern') }}
+            </button>
+          </div>
+        }
+
         <fil-step-view />
       </div>
     </section>

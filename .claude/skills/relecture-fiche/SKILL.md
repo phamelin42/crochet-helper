@@ -14,6 +14,11 @@ fichier, et tu termines **toujours** par la liste d'actions de Phil.
 ## 0. Contexte (2 appels, pas plus)
 
 - Doc projet `claude/etat-du-projet.md` (outil Projects) : état, action en attente.
+  En session Claude Code il n'existe pas, et un lien de chat précédent est
+  illisible : l'état se redéduit de `git`, des PR (outils GitHub) et de
+  `journal.md` — la fiche la plus récente sans entrée au journal est celle à
+  relire. Si la session impose une branche (`claude/…`), y pousser et ouvrir la
+  PR depuis elle.
 - `git fetch --prune && git log --oneline -15 origin/main && git branch -r`.
   Branche `origin/<nn>-<slug>` = fiche en relecture ; déjà mergée = relecture après merge.
 - **Mes corrections précédentes sont-elles bien dans `main` ?** Vérifier le
@@ -171,6 +176,9 @@ Mets à jour `claude/etat-du-projet.md` (outil Projects) : fiche en cours, actio
   libellé (`getByText('Assombri', { exact: true })`), pas par `getByRole`.
 - Poids du bundle : `npx ng build --stats-json`, puis lire
   `dist/fil-patterns/stats.json` (`outputs[main].inputs[*].bytesInOutput`).
+- Le hook `pre-push` lance `verify:ci` (six minutes) et le refuse sans
+  navigateur : `PW_CHROMIUM=/opt/pw-browsers/chromium git push`, ou
+  `--no-verify` quand on vient soi-même de lancer `verify:ci`.
 
 ## 5. Dire à Phil quoi faire — toujours, en liste numérotée
 

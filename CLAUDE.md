@@ -111,6 +111,12 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   test qui validait le bug (`dtr` laissé tel quel par le convertisseur,
   patron écrasé au rechargement). Un test décrit ce que la lectrice doit
   obtenir, pas ce que le code fait.
+- **Un test qui lit l'état juste après l'action ne prouve rien sur la
+  persistance** : l'effet qui écrit en IndexedDB n'a pas encore tourné, et
+  « le projet actif est intact » est vrai quoi que fasse le code (fiche 19).
+  Attendre l'écriture (`vi.waitFor`) puis relire par `ProjectStoreService.list()`.
+- **Cocher « étape faite » avance à l'étape suivante** : un test qui coche
+  puis lit l'étape lit la suivante. Revenir en arrière avant de lire.
 - **Données de la lectrice : aucune perte, même en cas d'échec.** Une écriture
   IndexedDB n'est réussie qu'au `complete` de la transaction (un quota dépassé
   déclenche `abort`). On n'efface jamais une ancienne copie sur la foi d'une

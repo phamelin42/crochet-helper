@@ -75,3 +75,9 @@ coûteuses (→ script). Élaguer les entrées de plus de dix fiches.
 - Défauts : secret `UMAMI_URL` mal saisi (`.co`), masqué par « fetch failed » ; le premier rapport attribuait l'entonnoir à des personnes (« aucune n'a fourni de patron »). Événements à 0 sur deux jours : non tranché, à vérifier à la main.
 - Coûts : recherche d'un bundle jamais déposé ; trois exécutions pour voir la forme des réponses ; agent sauté sur branche (workflow ≠ `main`) ; une mutation restée en place après `revert` + `reset`.
 - Amélioration : cause réseau dans `erreur`, mode `forme` et données lues dans le résumé du job, forme Umami 3 figée en test ; `tools/evenements.test.mjs` ; pièges « événement déclaré deux fois » et « workflow sur branche » ; skill : tester le push avant de livrer en bundle.
+
+## 19 — Envoyer un projet
+
+- Défauts : un lien au patron vide passait `decodeProject` et remplaçait l'affichage du projet actif par un projet vide ; le test « projet actif intact » lisait la liste avant l'effet de persistance (vrai quoi qu'il arrive), rien ne vérifiait que la copie reçue était écrite en IndexedDB, et le test des bornes acceptait tout index ≥ 0.
+- Coûts : session précédente perdue (lien de chat illisible, pas de doc Projets en session Claude Code) → état redéduit de git, des PR et du journal ; hook `pre-push` rouge faute de navigateur Playwright.
+- Amélioration : navigateur Playwright installé avant l'agent dans `lot-suivant.yml` ; deux pièges dans CLAUDE.md (lecture avant persistance, cocher avance) ; skill : le journal est la seule trace durable, `PW_CHROMIUM` pour le hook.

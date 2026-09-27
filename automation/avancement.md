@@ -36,6 +36,16 @@ branche.
 | 21 — Mesurer le retour et la profondeur | Terminée                               | —   | 2026-09-23 |
 | 22 — Liste d'attente                    | Terminée                               | —   | 2026-09-24 |
 | 23 — Kit pour les créatrices            | Terminée                               | —   | 2026-09-25 |
+| 24 — Mode lecture                       | À faire                                | —   | —          |
+| 25 — Vue d'ensemble et partage visible  | À faire                                | —   | —          |
+| 26 — Première visite                    | À faire                                | —   | —          |
+| 27 — Compteur de rangs en ligne         | À faire                                | —   | —          |
+| 28 — Calculateur d'échantillon          | À faire                                | —   | —          |
+| 29 — Page tailles de crochet            | À faire                                | —   | —          |
+| 30 — Contenu des pages d'abréviation    | À faire                                | —   | —          |
+| 31 — Lire un patron anglais en français | À faire                                | —   | —          |
+| 32 — Libellés, pied de page, lastmod    | À faire                                | —   | —          |
+| 33 — Glossaire sur téléphone            | À faire                                | —   | —          |
 
 ## États possibles
 

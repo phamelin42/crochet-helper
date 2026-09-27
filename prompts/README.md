@@ -35,32 +35,48 @@ L'ordre ci-dessous découle du plan d'acquisition, pas du confort technique. Les
 trois premières sont une chaîne stricte : mesurer avant de changer, changer les
 URL avant d'accumuler du référencement.
 
-| #   | Fiche                              | Pourquoi à ce moment                                         |
-| --- | ---------------------------------- | ------------------------------------------------------------ |
-| 10  | Mesure de l'usage réel             | rien ne se décide à l'aveugle — **à faire en premier**       |
-| 11  | Marque et domaine                  | migrer avant d'avoir du référencement à perdre               |
-| 12  | Anglais par défaut                 | chantier d'URL, même raison, juste après                     |
-| 13  | Import PDF                         | le plus gros trou du produit, et la meilleure requête        |
-| 14  | Une page par abréviation           | fait passer la surface indexable de 6 à plus de 100 pages    |
-| 15  | Convertisseur US ↔ UK              | requête transactionnelle, données déjà en base               |
-| 16  | Projets multiples et sauvegarde    | absorbe la 01 ; c'est ce qui fait revenir les visiteuses     |
-| 06  | Partage et impression              | la seule boucle qui amène une deuxième visiteuse             |
-| 02  | Tests du lecteur                   | à remonter dès que le parseur bouge (fiche 13)               |
-| 03  | Formats de patrons supplémentaires | s'appuie sur les tests de la 02                              |
-| 05  | Mode hors ligne (PWA)              | une icône sur l'écran d'accueil vaut mieux qu'un marque-page |
-| 07  | Audit d'accessibilité              | **traiter comme du fonctionnel** — public âgé en moyenne     |
-| 09  | Performance et Core Web Vitals     | précondition du référencement                                |
-| 04  | Pages éditoriales de référencement | après la 14, qui couvre déjà l'essentiel du besoin           |
-| 08  | Vitrine du design system           | documente ce qui existe, quand ça a cessé de bouger          |
-| 21  | Mesurer le retour et la profondeur | le critère d'arrêt du plan n'est pas mesuré — rétention      |
-| 18  | Matériel : en-têtes élargis        | activation : le premier découpage fait rester ou partir      |
-| 22  | Liste d'attente                    | revenu : le signal qui décide du lot 8 (formulaire Tally)    |
-| 23  | Kit pour les créatrices            | acquisition : le canal le mieux noté n'a aucun support       |
-| 17  | Tailles de crochet mm ↔ US         | acquisition : requête fréquente, page qui reçoit ce public   |
-| 19  | Envoyer un projet                  | acquisition : boucle de recommandation, progression comprise |
-| 20  | Comptes et paiement (cadrage)      | **ne s'exécute pas** : lot 8 gelé, décision de Phil requise  |
+| #   | Fiche                              | Pourquoi à ce moment                                           |
+| --- | ---------------------------------- | -------------------------------------------------------------- |
+| 10  | Mesure de l'usage réel             | rien ne se décide à l'aveugle — **à faire en premier**         |
+| 11  | Marque et domaine                  | migrer avant d'avoir du référencement à perdre                 |
+| 12  | Anglais par défaut                 | chantier d'URL, même raison, juste après                       |
+| 13  | Import PDF                         | le plus gros trou du produit, et la meilleure requête          |
+| 14  | Une page par abréviation           | fait passer la surface indexable de 6 à plus de 100 pages      |
+| 15  | Convertisseur US ↔ UK              | requête transactionnelle, données déjà en base                 |
+| 16  | Projets multiples et sauvegarde    | absorbe la 01 ; c'est ce qui fait revenir les visiteuses       |
+| 06  | Partage et impression              | la seule boucle qui amène une deuxième visiteuse               |
+| 02  | Tests du lecteur                   | à remonter dès que le parseur bouge (fiche 13)                 |
+| 03  | Formats de patrons supplémentaires | s'appuie sur les tests de la 02                                |
+| 05  | Mode hors ligne (PWA)              | une icône sur l'écran d'accueil vaut mieux qu'un marque-page   |
+| 07  | Audit d'accessibilité              | **traiter comme du fonctionnel** — public âgé en moyenne       |
+| 09  | Performance et Core Web Vitals     | précondition du référencement                                  |
+| 04  | Pages éditoriales de référencement | après la 14, qui couvre déjà l'essentiel du besoin             |
+| 08  | Vitrine du design system           | documente ce qui existe, quand ça a cessé de bouger            |
+| 21  | Mesurer le retour et la profondeur | le critère d'arrêt du plan n'est pas mesuré — rétention        |
+| 18  | Matériel : en-têtes élargis        | activation : le premier découpage fait rester ou partir        |
+| 22  | Liste d'attente                    | revenu : le signal qui décide du lot 8 (formulaire Tally)      |
+| 23  | Kit pour les créatrices            | acquisition : le canal le mieux noté n'a aucun support         |
+| 17  | Tailles de crochet mm ↔ US         | acquisition : requête fréquente, page qui reçoit ce public     |
+| 19  | Envoyer un projet                  | acquisition : boucle de recommandation, progression comprise   |
+| 20  | Comptes et paiement (cadrage)      | **ne s'exécute pas** : lot 8 gelé, décision de Phil requise    |
+| 24  | Mode lecture                       | activation : la promesse « en très grand » tenue sur tablette  |
+| 26  | Première visite                    | activation : dire ce que fait l'outil avant de le montrer vide |
+| 32  | Libellés, pied de page, lastmod    | activation et maillage : chaque commande a un mot              |
+| 27  | Compteur de rangs en ligne         | acquisition : première page-outil, requête précise             |
+| 25  | Vue d'ensemble et partage visible  | rétention : retrouver son rang ; la boucle de partage visible  |
+| 29  | Page tailles de crochet            | acquisition : « crochet hook sizes chart », requête fréquente  |
+| 28  | Calculateur d'échantillon          | acquisition : troisième page-outil                             |
+| 31  | Lire un patron anglais en français | acquisition : marché francophone sans concurrent               |
+| 30  | Contenu des pages d'abréviation    | acquisition : 60 mots par page ne se classent pas              |
+| 33  | Glossaire sur téléphone            | acquisition : page d'entrée SEO utilisable d'un pouce          |
 
 La fiche `01` est absorbée par la `16` : ne pas l'exécuter séparément.
+
+Les fiches 24 à 33 découlent de l'audit du 27 septembre
+(`docs/audit-ux-acquisition-2026-09.md`). Deux décisions de Phil y sont en
+attente, sans bloquer de fiche : les liens courts (la 25 place les boutons de
+partage, pas le service) et la vidéo de démonstration (la 26 prévoit son
+emplacement, image statique en attendant).
 
 ## Règle d'enchaînement
 

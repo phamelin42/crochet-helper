@@ -59,11 +59,8 @@ contenu réel (≥ 500 mots propres dans chaque langue).
    **storyboard SVG statique** de trois vignettes (coller → découper → lire en
    grand), `public/illustrations/demo-storyboard.svg`, ≤ 12 Ko, balise `<img>`
    native avec `width` et `height`, sans `fetchpriority="high"` (ni
-   `NgOptimizedImage`, ni `@defer`). Laisser en commentaire dans le gabarit la
-   balise `<video controls muted playsinline preload="none" poster>` qui
-   remplacera l'image quand `public/media/demo.mp4` existera (décision 2 de
-   l'audit : vidéo de trente secondes que Phil enregistre) : ne pas l'activer,
-   ne rien inventer.
+   `NgOptimizedImage`, ni `@defer`). Pas de vidéo : Phil l'a écartée le
+   27/09 ; l'image statique est la démonstration.
 
 4. **FAQ.** Six questions pré-rendues, chacune dans un `Disclosure` (le texte
    est dans le HTML même replié) : est-ce gratuit ? faut-il un compte ? où vont
@@ -112,6 +109,6 @@ contenu réel (≥ 500 mots propres dans chaque langue).
 
 ## Hors périmètre
 
-La vidéo elle-même (Phil l'enregistre) ; un blog ; une page « à propos » ; des
+Toute vidéo de démonstration (écartée par Phil le 27/09) ; un blog ; une page « à propos » ; des
 captures d'écran bitmap ; tout changement du parseur ; le mode lecture
 (fiche 24) ; le pied de page (fiche 32).

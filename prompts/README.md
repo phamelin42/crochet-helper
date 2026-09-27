@@ -73,10 +73,10 @@ URL avant d'accumuler du référencement.
 La fiche `01` est absorbée par la `16` : ne pas l'exécuter séparément.
 
 Les fiches 24 à 33 découlent de l'audit du 27 septembre
-(`docs/audit-ux-acquisition-2026-09.md`). Deux décisions de Phil y sont en
+(`docs/audit-ux-acquisition-2026-09.md`). Une décision de Phil y reste en
 attente, sans bloquer de fiche : les liens courts (la 25 place les boutons de
-partage, pas le service) et la vidéo de démonstration (la 26 prévoit son
-emplacement, image statique en attendant).
+partage, pas le service). La vidéo de démonstration est écartée (décision du
+27/09) : la 26 s'appuie sur une image statique.
 
 ## Règle d'enchaînement
 

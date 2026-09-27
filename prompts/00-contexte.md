@@ -21,8 +21,9 @@ natif, Vitest, ESLint + Prettier. Pré-rendu statique de toutes les routes.
    du JavaScript. Tout accès à `document`, `window`, `localStorage`,
    `navigator` ou `FileReader` doit être gardé par `isPlatformBrowser(...)` ou
    placé dans `afterNextRender(...)`. Un accès non gardé fait échouer le build.
-3. **La langue vient de l'URL** (`/lecteur` en français, `/en/reader` en
-   anglais), portée par `data.locale` de la route. Jamais d'un état stocké.
+3. **La langue vient de l'URL** : anglais à la racine (`/`, `/glossary`),
+   français sous `/fr` (`/fr`, `/fr/glossaire`), portée par `data.locale` de
+   la route et `core/i18n/route-paths.json`. Jamais d'un état stocké.
 4. **Le texte saisi par l'utilisateur n'est jamais interprété comme du HTML** :
    ni `innerHTML`, ni `bypassSecurityTrust*`. On le rend en segments avec `@for`.
 5. **Aucune valeur de style en dur.** Couleurs, espacements, rayons, ombres,
@@ -38,7 +39,7 @@ natif, Vitest, ESLint + Prettier. Pré-rendu statique de toutes les routes.
 - Flux natifs `@if` / `@for` / `@switch`.
 - **Avant d'écrire un composant d'interface, vérifie s'il existe déjà dans
   `src/app/shared/ui/`** : `Button` (directive `filButton` sur `<button>` ou
-  `<a>`), `InputField` (`filInput`), `Icon`, `Tile`, `Progress`, `Checkbox`,
+  `<a>`), `InputField` (`filInput`), `Icon`, `Tile`, `Checkbox`,
   `Segmented`, `Dialog`, `Disclosure`, `TooltipHost`. S'il manque, ajoute-le
   **là**, jamais dans une fonctionnalité.
 - Dépendances autorisées : `features` → `shared` → `core`. Pas l'inverse.
@@ -53,13 +54,16 @@ src/styles/hanami.css        classes du design system
 src/styles/lecteur.css       mise en page de l'application
 src/app/core/i18n/           langue, dictionnaires, chemins traduits
 src/app/core/seo/            SeoService (titre, canonique, hreflang, JSON-LD)
-src/app/core/storage/        LocalStorageService (sûr côté serveur)
-src/app/core/platform/       WakeLockService
+src/app/core/storage/        LocalStorageService, ProjectStoreService (IndexedDB)
+src/app/core/platform/       WakeLockService, UpdateService, préchargement des routes
 src/app/core/analytics/      AnalyticsService (mesure d'audience, inerte sans origine)
 src/app/shared/ui/           composants réutilisables
 src/app/features/reader/     data/ (parseur, glossaire) · state/ · components/ · pages/
 src/app/features/format/     page « bien formater son patron »
-src/app/features/glossary/   page glossaire
+src/app/features/glossary/   page glossaire et pages d'abréviation
+src/app/features/converter/  convertisseur US ↔ UK, tailles de crochet (data/)
+src/app/features/guides/     guides éditoriaux
+src/app/features/designers/  page pour les créatrices de patrons
 tools/generate-sitemap.mjs   sitemap déduit des pages pré-rendues
 ```
 

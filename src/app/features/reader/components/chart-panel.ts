@@ -1,4 +1,14 @@
-import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
+import {
+  Component,
+  ComponentRef,
+  ViewContainerRef,
+  computed,
+  effect,
+  inject,
+  linkedSignal,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { StylesheetService } from '../../../core/platform/stylesheet.service';
 import { Button } from '../../../shared/ui/button/button';
@@ -7,6 +17,7 @@ import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
+import type { ChartComposer } from './chart-composer';
 import { ChartLegend } from './chart-legend';
 import { ChartViewer } from './chart-viewer';
 
@@ -60,8 +71,14 @@ import { ChartViewer } from './chart-viewer';
         <button type="button" filButton="ghost" (click)="legend.set(true)">
           {{ t('ui.chartLegend') }}
         </button>
+        <button type="button" filButton="secondary" (click)="openComposer()">
+          {{ t('ui.composeOpen') }}
+        </button>
       </div>
     </fil-disclosure>
+
+    <!-- Le composeur se charge à la demande : son code ne pèse que sur celles qui transcrivent. -->
+    <ng-container #composerHost />
 
     <!-- Les dialogues restent dans le DOM : le navigateur rend le focus au
          bouton qui les a ouverts, ce qu'un dialogue détruit ne fait pas. -->
@@ -148,6 +165,21 @@ export class ChartPanel {
       const n = this.shownN();
       if (n && this.shown() && (this.open() || this.full())) this.store.markChartViewed(n);
     });
+  }
+
+  private composer: ComponentRef<ChartComposer> | null = null;
+  private readonly composerHost = viewChild.required('composerHost', { read: ViewContainerRef });
+
+  protected async openComposer(): Promise<void> {
+    if (!this.composer) {
+      const { ChartComposer } = await import('./chart-composer');
+      // Deux touches rapprochées attendent le même import : un seul composeur.
+      this.composer ??= this.composerHost().createComponent(ChartComposer);
+    }
+    this.composer.setInput('chart', this.shown());
+    this.composer.setInput('label', this.label());
+    // `setInput` ignore une valeur identique à la précédente : rouvrir passe par le modèle.
+    this.composer.instance.open.set(true);
   }
 
   protected pin(piece: number): void {

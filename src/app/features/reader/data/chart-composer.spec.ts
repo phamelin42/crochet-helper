@@ -3,6 +3,8 @@ import {
   Convention,
   Group,
   Round,
+  appendTranscription,
+  defaultPieceName,
   renderPattern,
   renderRound,
   stitchCount,
@@ -161,5 +163,44 @@ describe('warnings', () => {
       }),
     ];
     expect(warnings(rounds)).toEqual([]);
+  });
+});
+
+describe('appendTranscription', () => {
+  const SOURCE = 'Patron\nTree\nRound 1: 6 sc (6)\nTrunk\nRound 1: 6 sc (6)';
+  const TEXT = 'Rnd 1: 6 sc in a magic ring (6)';
+
+  it('ajoute une pièce à la fin sans toucher au reste', () => {
+    const result = appendTranscription(SOURCE, 'Feuille', TEXT, 'Chart 1');
+    expect(result.startsWith(SOURCE)).toBe(true);
+    const pieces = parsePattern(result).pieces;
+    expect(pieces.map((piece) => piece.name)).toEqual(['Tree', 'Trunk', 'Feuille']);
+    expect(pieces[2].steps).toHaveLength(1);
+  });
+
+  it('met une majuscule et retire la ponctuation finale du nom', () => {
+    const result = appendTranscription(SOURCE, 'ma feuille.', TEXT, 'Chart 1');
+    expect(parsePattern(result).pieces.map((piece) => piece.name)).toContain('Ma feuille');
+  });
+
+  it('remplace un nom que le lecteur ne prendrait pas pour une pièce', () => {
+    for (const bad of [
+      '',
+      '   ',
+      'Tour 2',
+      'Round 4',
+      'une très longue phrase qui ne tient pas en un nom',
+    ]) {
+      const result = appendTranscription(SOURCE, bad, TEXT, 'Chart 1');
+      const pieces = parsePattern(result).pieces;
+      expect(pieces.map((piece) => piece.name)).toEqual(['Tree', 'Trunk', 'Chart 1']);
+    }
+  });
+});
+
+describe('defaultPieceName', () => {
+  it('prend le premier numéro libre', () => {
+    expect(defaultPieceName(['Tree'], 'Chart')).toBe('Chart 1');
+    expect(defaultPieceName(['Chart 1', 'chart 2'], 'Chart')).toBe('Chart 3');
   });
 });

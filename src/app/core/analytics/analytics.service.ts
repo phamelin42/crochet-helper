@@ -69,7 +69,9 @@ export type AnalyticsEvent =
   /** Diagramme chargé dans un projet (propriété `source`, image ou PDF). */
   | 'chart_added'
   /** Diagramme affiché dans le panneau ou en plein écran, une fois par session et par diagramme. */
-  | 'chart_viewed';
+  | 'chart_viewed'
+  /** Transcription d'un diagramme ajoutée au patron (propriétés `rounds` et `convention`). */
+  | 'chart_transcribed';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

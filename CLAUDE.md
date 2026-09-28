@@ -229,6 +229,7 @@ entier les consomme.
 - Noter dans la PR le nombre d'échanges consommés et ce qui les a coûtés.
 
 - **Fusion automatique des PR du pilote.** Elle ne prend effet que si « Allow auto-merge » est coché, si le check « Lint · format · tests · build » est requis sur `main`, et si le job `publier` a `pull-requests: write`. Sinon `gh pr merge --auto` échoue : `tools/fusion-auto.sh` le note dans le résumé d'exécution (« fusion auto non activée ») sans faire échouer le workflow, et la PR attend en silence. Avec la protection « branche à jour » (`strict`), une PR restée derrière `main` ne fusionne pas non plus : la mettre à jour à la main.
+- **Une PR ouverte avec le jeton par défaut du workflow attend une approbation humaine avant que sa CI se lance.** Depuis juin 2026, GitHub exige une approbation manuelle pour tout run déclenché par `pull_request` sur une PR créée ou mise à jour avec `GITHUB_TOKEN` (identité `github-actions[bot]`) — même dans le même dépôt, pas seulement depuis un fork. Le job `publier` de `lot-suivant.yml` pousse donc la branche et ouvre la PR avec un PAT (`secrets.PILOTE_PAT`, droits Contents/Pull requests/Issues en écriture), qui fait apparaître la PR comme ouverte à la main : la CI démarre d'elle-même. Sans ce PAT, la PR attend parfois des heures une approbation dans l'onglet Actions, et `main` avance entre-temps — c'est ce qui a produit les conflits de la PR #59.
 
 ## Vérification
 

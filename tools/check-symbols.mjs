@@ -24,7 +24,31 @@ for (const id of ids) {
   }
 }
 for (const file of files) {
-  if (!ids.includes(file.replace(/\.svg$/, ''))) problems.push(`${file} n'est pas dans chart-symbols.ts`);
+  if (!ids.includes(file.replace(/\.svg$/, '')))
+    problems.push(`${file} n'est pas dans chart-symbols.ts`);
+}
+
+// Le tableau du guide « lire un diagramme » est dans le HTML pré-rendu des deux
+// langues : une page dont le contenu n'apparaît qu'après le JavaScript est un
+// bug de référencement (CLAUDE.md, contrainte n° 2).
+const paths = JSON.parse(await readFile('src/app/core/i18n/route-paths.json', 'utf8'));
+for (const [locale, prefix] of [
+  ['en', ''],
+  ['fr', '/fr'],
+]) {
+  const route = `${prefix}${paths.guideReadingChart[locale]}`.replace(/^\//, '');
+  let html = '';
+  try {
+    html = await readFile(`dist/fil-patterns/browser/${route}/index.html`, 'utf8');
+  } catch {
+    problems.push(`${route} : page pré-rendue absente (lancer après ng build)`);
+    continue;
+  }
+  if (!html.includes('<table')) problems.push(`${route} : pas de tableau des symboles`);
+  for (const id of ids) {
+    if (!html.includes(`/symbols/${id}.svg`))
+      problems.push(`${route} : symbole ${id} absent du HTML`);
+  }
 }
 
 if (problems.length) {

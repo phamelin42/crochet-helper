@@ -78,12 +78,12 @@ const FR = {
   'ui.photosNotSaved':
     'Les photos de ce PDF n’ont pas pu être enregistrées : l’espace de stockage de l’appareil est plein. Le patron est bien là, sans ses photos.',
   'ui.chartAdd': 'Ajouter un diagramme',
-  'ui.chartNeedsPattern':
-    'Chargez d’abord un patron : le diagramme est rangé dans son projet.',
+  'ui.chartNeedsPattern': 'Chargez d’abord un patron : le diagramme est rangé dans son projet.',
   'ui.chartBusy': 'Lecture du diagramme…',
   'ui.chartErrorFormat':
     'Ce fichier n’est pas un diagramme lisible : choisissez une image PNG, JPEG ou WebP, ou un PDF.',
-  'ui.chartErrorHeavy': 'Ce fichier est trop lourd : 10 Mo au plus pour une image, 30 Mo pour un PDF.',
+  'ui.chartErrorHeavy':
+    'Ce fichier est trop lourd : 10 Mo au plus pour une image, 30 Mo pour un PDF.',
   'ui.chartErrorUnreadable': 'Cette image n’a pas pu être lue.',
   'ui.chartErrorPdf': 'Les pages de ce PDF n’ont pas pu être lues.',
   'ui.chartNotSaved':
@@ -191,7 +191,8 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.chartAdd': 'Add a chart',
   'ui.chartNeedsPattern': 'Load a pattern first: the chart is kept in its project.',
   'ui.chartBusy': 'Reading the chart…',
-  'ui.chartErrorFormat': 'This file isn’t a readable chart: choose a PNG, JPEG or WebP image, or a PDF.',
+  'ui.chartErrorFormat':
+    'This file isn’t a readable chart: choose a PNG, JPEG or WebP image, or a PDF.',
   'ui.chartErrorHeavy': 'This file is too large: 10 MB at most for an image, 30 MB for a PDF.',
   'ui.chartErrorUnreadable': 'This image couldn’t be read.',
   'ui.chartErrorPdf': 'The pages of this PDF couldn’t be read.',

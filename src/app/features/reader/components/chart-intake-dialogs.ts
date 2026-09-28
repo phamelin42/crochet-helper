@@ -78,12 +78,7 @@ interface PageThumb {
           <button type="button" filButton="ghost" (click)="intake.closePages()">
             {{ t('ui.chartCancel') }}
           </button>
-          <button
-            type="button"
-            filButton="primary"
-            [disabled]="!selected().size"
-            (click)="add()"
-          >
+          <button type="button" filButton="primary" [disabled]="!selected().size" (click)="add()">
             {{ t('ui.chartPdfAdd') }}
           </button>
         </div>

@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  CHART_SYMBOLS,
-  symbolAbbreviation,
-  symbolName,
-  symbolUrl,
-} from './chart-symbols';
+import { CHART_SYMBOLS, symbolAbbreviation, symbolName, symbolUrl } from './chart-symbols';
 
 /** Les identifiants de la fiche 35 : ni plus, ni moins. */
 const EXPECTED_IDS = [

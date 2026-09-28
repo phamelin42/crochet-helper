@@ -6,12 +6,7 @@ import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
 import { Button } from '../../../shared/ui/button/button';
-import {
-  CHART_SYMBOLS,
-  ChartSymbol,
-  symbolName,
-  symbolUrl,
-} from '../../reader/data/chart-symbols';
+import { CHART_SYMBOLS, ChartSymbol, symbolName, symbolUrl } from '../../reader/data/chart-symbols';
 
 const NBSP = ' ';
 

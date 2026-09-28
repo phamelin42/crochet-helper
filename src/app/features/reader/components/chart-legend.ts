@@ -1,11 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
-import {
-  CHART_SYMBOLS,
-  symbolAbbreviation,
-  symbolName,
-  symbolUrl,
-} from '../data/chart-symbols';
+import { CHART_SYMBOLS, symbolAbbreviation, symbolName, symbolUrl } from '../data/chart-symbols';
 
 /**
  * Légende des symboles standard : le dessin, l'abréviation dans la convention

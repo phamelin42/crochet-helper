@@ -343,7 +343,9 @@ export class ReaderStore {
     const load = ++this.chartLoad;
     this.releaseCharts();
     if (!id || !count) return;
-    const files = await this.projectStore.getFiles<ProjectImage>(chartIds({ id, chartCount: count }));
+    const files = await this.projectStore.getFiles<ProjectImage>(
+      chartIds({ id, chartCount: count }),
+    );
     // Un autre projet a été ouvert pendant la lecture : ces diagrammes ne sont plus les siens.
     if (load !== this.chartLoad) return;
     this.chartFiles.set(
@@ -389,7 +391,7 @@ export class ReaderStore {
     // L'effet de persistance attend : il écrirait le projet dans une autre
     // transaction, avec le compte d'avant.
     this.holdPersist = true;
-    let saved = false;
+    let saved: boolean;
     try {
       const project: Project = { ...this.snapshot(id), chartCount: start + items.length, charts };
       saved = await this.projectStore.putAll([project], files);

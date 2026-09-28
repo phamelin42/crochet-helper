@@ -72,7 +72,7 @@ test('photos d’un PDF : vignette à l’étape qui la cite, agrandie, retrouv�
 
   await page.goto('/');
   await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
-  await page.locator('input[type="file"]').setInputFiles(pdfPath);
+  await page.locator('input[accept="application/pdf,.pdf"]').setInputFiles(pdfPath);
 
   const next = page.getByRole('button', { name: 'Next', exact: true });
   const body = page.locator('.step-body');

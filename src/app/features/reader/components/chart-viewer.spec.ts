@@ -11,8 +11,7 @@ describe('ChartViewer', () => {
     const host = fixture.nativeElement as HTMLElement;
     const button = (name: string) =>
       Array.from(host.querySelectorAll('button')).find((b) => b.textContent?.trim() === name) as
-        | HTMLButtonElement
-        | undefined;
+        HTMLButtonElement | undefined;
     const stage = () => host.querySelector<HTMLElement>('.chart-stage')!;
     const image = () => host.querySelector<HTMLElement>('.chart-img')!;
     return { fixture, component: fixture.componentInstance, button, stage, image };

@@ -20,12 +20,7 @@ import { ChartViewer } from './chart-viewer';
   selector: 'fil-chart-panel',
   imports: [Button, ChartLegend, ChartViewer, Dialog, Disclosure, Segmented],
   template: `
-    <fil-disclosure
-      [label]="t('ui.chartPanel')"
-      variant="mats"
-      [state]="count()"
-      [(open)]="open"
-    >
+    <fil-disclosure [label]="t('ui.chartPanel')" variant="mats" [state]="count()" [(open)]="open">
       @if (shown(); as chart) {
         <fil-chart-viewer
           [chart]="chart"
@@ -126,7 +121,9 @@ export class ChartPanel {
   protected readonly showPick = computed(
     () => this.numbers().length > 1 || (this.numbers().length === 1 && !this.shown()),
   );
-  protected readonly label = computed(() => `${this.t('ui.chartOf')} ${this.shownN() ?? ''}`.trim());
+  protected readonly label = computed(() =>
+    `${this.t('ui.chartOf')} ${this.shownN() ?? ''}`.trim(),
+  );
 
   protected readonly pieceOptions = computed<SegmentedOption[]>(() => {
     const pieces = this.store.pieces();

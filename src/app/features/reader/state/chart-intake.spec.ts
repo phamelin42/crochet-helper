@@ -17,7 +17,11 @@ import {
 } from './chart-intake';
 import { ReaderStore } from './reader-store';
 
-const RESIZED = { blob: new Blob([new Uint8Array([9])], { type: 'image/jpeg' }), width: 2400, height: 1600 };
+const RESIZED = {
+  blob: new Blob([new Uint8Array([9])], { type: 'image/jpeg' }),
+  width: 2400,
+  height: 1600,
+};
 const page = (number: number): RenderedPage => ({
   number,
   blob: new Blob([new Uint8Array([number])], { type: 'image/jpeg' }),

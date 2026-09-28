@@ -50,11 +50,7 @@ export const ZOOM_STEP = 0.25;
       </div>
       <!-- Défilable au clavier : la région est focalisable et nommée. -->
       <div class="chart-frame" role="region" tabindex="0" [attr.aria-label]="label()">
-        <div
-          class="chart-stage"
-          [style.aspect-ratio]="ratio()"
-          [style.transform]="scale()"
-        >
+        <div class="chart-stage" [style.aspect-ratio]="ratio()" [style.transform]="scale()">
           <img
             class="chart-img"
             [class]="turnClass()"

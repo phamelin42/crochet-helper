@@ -193,7 +193,9 @@ describe('ReaderStore — diagrammes', () => {
     store.pinChart(1, 2);
     TestBed.tick();
     const db = TestBed.inject(ProjectStoreService);
-    await vi.waitFor(async () => expect((await db.list<Project>())[0].charts).toEqual({ 0: 1, 1: 2 }));
+    await vi.waitFor(async () =>
+      expect((await db.list<Project>())[0].charts).toEqual({ 0: 1, 1: 2 }),
+    );
     const text = await (await store.exportBackup()).text();
 
     uninstallFakeIndexedDb();
@@ -252,7 +254,9 @@ describe('parseBackup — diagrammes', () => {
   });
 
   it('refuse en bloc un diagramme dont la clé n’est pas celle d’un diagramme', () => {
-    expect(parseBackup({ version: 2, projects: [base], images: [image({ id: 'p:1' })] })).toBeNull();
+    expect(
+      parseBackup({ version: 2, projects: [base], images: [image({ id: 'p:1' })] }),
+    ).toBeNull();
     expect(
       parseBackup({ version: 2, projects: [base], images: [image({ kind: 'autre' })] }),
     ).toBeNull();
@@ -261,6 +265,8 @@ describe('parseBackup — diagrammes', () => {
   it('refuse un diagramme trop lourd', () => {
     const huge = 'A'.repeat(9 * 1024 * 1024);
 
-    expect(parseBackup({ version: 2, projects: [base], images: [image({ data: huge })] })).toBeNull();
+    expect(
+      parseBackup({ version: 2, projects: [base], images: [image({ data: huge })] }),
+    ).toBeNull();
   });
 });

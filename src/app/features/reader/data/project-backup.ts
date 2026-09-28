@@ -1,4 +1,11 @@
-import { Project, ProjectImage, imageId } from './project.model';
+import {
+  MAX_CHARTS,
+  Project,
+  ProjectImage,
+  chartId,
+  imageId,
+  sanitizeCharts,
+} from './project.model';
 
 /**
  * Format du fichier de sauvegarde (écran « Mes projets »). Chargé par
@@ -15,6 +22,8 @@ export const BACKUP_SCHEMA_VERSION = 2;
 export const MAX_BACKUP_BYTES = 60 * 1024 * 1024;
 /** Taille maximale d'une photo d'une sauvegarde, une fois décodée. */
 export const MAX_BACKUP_IMAGE_BYTES = 2 * 1024 * 1024;
+/** Un diagramme est plus défini qu'une photo : 6 Mo décodés au plus. */
+export const MAX_BACKUP_CHART_BYTES = 6 * 1024 * 1024;
 
 /** Une photo dans un fichier de sauvegarde : `ProjectImage` avec son contenu en base64. */
 export interface BackupImage {
@@ -23,7 +32,7 @@ export interface BackupImage {
   readonly n: number;
   readonly width: number;
   readonly height: number;
-  readonly kind: 'pdf';
+  readonly kind: 'pdf' | 'chart';
   readonly type: string;
   readonly data: string;
 }
@@ -53,7 +62,12 @@ export function parseBackup(data: unknown): ProjectBackup | null {
   if (!images.every((image) => isBackupImage(image, ids))) return null;
   return {
     version,
-    projects: projects.map((project) => ({ ...project, imageCount: project.imageCount ?? 0 })),
+    projects: projects.map((project) => ({
+      ...project,
+      imageCount: project.imageCount ?? 0,
+      chartCount: project.chartCount ?? 0,
+      charts: sanitizeCharts(project.charts, project.chartCount ?? 0),
+    })),
     images,
   };
 }
@@ -66,15 +80,19 @@ function isBackupImage(value: unknown, projectIds: ReadonlySet<string>): value i
     projectIds.has(i['projectId']) &&
     Number.isInteger(i['n']) &&
     (i['n'] as number) >= 1 &&
-    i['id'] === imageId(i['projectId'], i['n'] as number) &&
     isPositiveInteger(i['width']) &&
     isPositiveInteger(i['height']) &&
-    i['kind'] === 'pdf' &&
+    (i['kind'] === 'pdf'
+      ? i['id'] === imageId(i['projectId'], i['n'] as number)
+      : i['kind'] === 'chart' &&
+        i['id'] === chartId(i['projectId'], i['n'] as number) &&
+        (i['n'] as number) <= MAX_CHARTS) &&
     typeof i['type'] === 'string' &&
     IMAGE_TYPE.test(i['type']) &&
     typeof i['data'] === 'string' &&
     // Taille décodée : trois octets pour quatre caractères.
-    (i['data'].length * 3) / 4 <= MAX_BACKUP_IMAGE_BYTES &&
+    (i['data'].length * 3) / 4 <=
+      (i['kind'] === 'chart' ? MAX_BACKUP_CHART_BYTES : MAX_BACKUP_IMAGE_BYTES) &&
     BASE64.test(i['data'])
   );
 }
@@ -102,7 +120,11 @@ function isProject(value: unknown): value is Project {
     typeof p['createdAt'] === 'number' &&
     typeof p['lastOpenedAt'] === 'number' &&
     (p['imageCount'] === undefined ||
-      (Number.isInteger(p['imageCount']) && (p['imageCount'] as number) >= 0))
+      (Number.isInteger(p['imageCount']) && (p['imageCount'] as number) >= 0)) &&
+    (p['chartCount'] === undefined ||
+      (Number.isInteger(p['chartCount']) &&
+        (p['chartCount'] as number) >= 0 &&
+        (p['chartCount'] as number) <= MAX_CHARTS))
   );
 }
 

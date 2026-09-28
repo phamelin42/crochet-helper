@@ -17,7 +17,9 @@
           "/*.js",
           "!/pdf-*.js",
           "/media/*.woff2",
-          "/illustrations/*.svg"
+          "/illustrations/*.svg",
+          "/symbols/*.svg",
+          "/chart.css"
         ]
       }
     },

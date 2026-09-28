@@ -36,6 +36,11 @@
                 "input": "src/styles/print.css",
                 "bundleName": "print",
                 "inject": false
+              },
+              {
+                "input": "src/styles/chart.css",
+                "bundleName": "chart",
+                "inject": false
               }
             ],
             "server": "src/main.server.ts",

@@ -57,6 +57,8 @@ export const EVENEMENTS = [
   'print_opened',
   'row_counted',
   'image_opened',
+  'chart_added',
+  'chart_viewed',
 ];
 
 /** Sept noms distincts : la tranche ou le palier vit dans le nom, pas dans une propriété. */

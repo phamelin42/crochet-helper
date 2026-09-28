@@ -83,8 +83,17 @@ jobs:
           mkdir -p .pilote
           npx playwright install --with-deps chromium
 
+      # `continue-on-error` : une fiche qui heurte la limite de tours ou toute
+      # autre erreur de l'agent est un résultat normal du pilote (travail
+      # inachevé, publié en brouillon plus bas), pas une panne du workflow.
+      # Sans ce réglage, ce cas fait échouer tout le run « Lot suivant » en
+      # rouge dans l'onglet Actions alors que le pipeline l'a correctement
+      # géré. `steps.claude.outcome`, utilisé partout ailleurs dans ce
+      # fichier, reste `failure` dans ce cas (seul `conclusion` devient
+      # `success`) : la logique de brouillon en aval n'est pas affectée.
       - id: claude
         if: steps.garde.outputs.agir == 'true'
+        continue-on-error: true
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

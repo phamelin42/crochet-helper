@@ -57,7 +57,11 @@ export type AnalyticsEvent =
   /** Taille du texte ou fond sombre changés dans le mode lecture. */
   | 'reading_pref_changed'
   /** Clic sur l'un des deux boutons du bandeau d'accueil (propriété `cta`, exemple ou collage). */
-  | 'home_cta';
+  | 'home_cta'
+  /** Saut direct à une étape depuis la liste ou le champ « Aller à l'étape n° » (propriété `origin`). */
+  | 'step_jumped'
+  /** Ouverture de la mise en page d'impression du navigateur depuis le lecteur. */
+  | 'print_opened';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

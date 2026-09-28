@@ -363,13 +363,10 @@ const SEO: Record<Locale, { title: string; description: string }> = {
                 prefs.dim() ? t('ui.lighten') : t('ui.darken')
               }}</span>
             </button>
-            <button type="button" filButton="ghost" (click)="changePattern()">
-              {{ t('ui.changePattern') }}
-            </button>
           </div>
         }
 
-        <fil-step-view />
+        <fil-step-view (changePattern)="changePattern()" />
       </div>
     </section>
 

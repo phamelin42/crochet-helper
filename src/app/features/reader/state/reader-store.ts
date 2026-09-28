@@ -452,11 +452,15 @@ export class ReaderStore {
     if (!this.running()) this.startTimer();
   }
 
-  /** Va à la n-ième étape (1-indexée) de la pièce courante. */
-  goTo(oneBased: number): void {
+  /**
+   * Va à la n-ième étape (1-indexée) de la pièce courante — une valeur hors
+   * bornes est ramenée dans les bornes plutôt que refusée. `origin` distingue
+   * un clic dans la liste des étapes d'une saisie dans le champ « Aller ».
+   */
+  goTo(oneBased: number, origin: 'list' | 'field'): void {
     if (!this.stepCount()) return;
     this.stepIndex.set(Math.max(0, Math.min(this.stepCount() - 1, oneBased - 1)));
-    this.analytics.track('step_advanced');
+    this.analytics.track('step_jumped', { origin });
     this.checkDepth();
   }
 

@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, ElementRef, computed, inject, output, viewChild } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -7,6 +7,7 @@ import { Tile } from '../../../shared/ui/tile/tile';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 import { GlossaryText } from './glossary-text';
+import { StepsList } from './steps-list';
 
 /**
  * L'étape en cours, en très grand : c'est l'écran que l'on regarde crochet en
@@ -14,7 +15,7 @@ import { GlossaryText } from './glossary-text';
  */
 @Component({
   selector: 'fil-step-view',
-  imports: [Button, GlossaryText, Icon, Segmented, Tile],
+  imports: [Button, GlossaryText, Icon, Segmented, StepsList, Tile],
   template: `
     @if (pieceOptions().length > 1) {
       <div class="pieces">
@@ -50,7 +51,14 @@ import { GlossaryText } from './glossary-text';
       <p class="note"><span aria-hidden="true">›</span><fil-glossary-text [text]="notes" /></p>
     }
 
-    <p class="step-body" [class.empty]="!store.step()" aria-live="polite">
+    @if (store.step()) {
+      <div class="step-progress">
+        <span>{{ t('ui.stepOf') }} {{ store.stepIndex() + 1 }} / {{ store.stepCount() }}</span>
+        <div class="progress" aria-hidden="true"><i [style.width.%]="store.progress()"></i></div>
+      </div>
+    }
+
+    <p #stepBody class="step-body" tabindex="-1" [class.empty]="!store.step()" aria-live="polite">
       @if (store.step(); as step) {
         <fil-glossary-text [text]="step.body" />
       } @else {
@@ -118,13 +126,29 @@ import { GlossaryText } from './glossary-text';
         ><fil-icon name="right" />
       </button>
     </div>
+
+    @if (store.step()) {
+      <fil-steps-list (jumped)="focusStepBody()" (changePattern)="changePattern.emit()" />
+    }
   `,
 })
 export class StepView {
   protected readonly store = inject(ReaderStore);
   private readonly i18n = inject(I18nService);
 
+  /** « Changer de patron », relayé depuis la liste des étapes jusqu'à la page,
+   *  seule à savoir où vit le panneau d'import. */
+  readonly changePattern = output<void>();
+
+  private readonly stepBody = viewChild<ElementRef<HTMLElement>>('stepBody');
+
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
+
+  /** Ramène le focus sur l'étape après un saut depuis la liste ou le champ
+   *  « Aller à l'étape n° » : la lectrice vient de choisir où reprendre. */
+  protected focusStepBody(): void {
+    this.stepBody()?.nativeElement.focus();
+  }
 
   protected readonly pieceOptions = computed<SegmentedOption[]>(() =>
     this.store.pieces().map((piece, index) => ({

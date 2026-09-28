@@ -91,15 +91,15 @@ describe('ReaderStore', () => {
     it('borne aux limites de la pièce courante', () => {
       store.load(TWO_PIECES);
 
-      store.goTo(0);
+      store.goTo(0, 'field');
       expect(store.stepIndex()).toBe(0);
 
-      store.goTo(99);
+      store.goTo(99, 'field');
       expect(store.stepIndex()).toBe(store.stepCount() - 1);
     });
 
     it('ne lève pas quand il est appelé hors patron', () => {
-      expect(() => store.goTo(3)).not.toThrow();
+      expect(() => store.goTo(3, 'field')).not.toThrow();
       expect(store.stepIndex()).toBe(0);
     });
   });

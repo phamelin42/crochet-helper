@@ -67,6 +67,16 @@ const FR = {
   'ui.go': 'Aller',
   'ui.stepOf': 'Étape',
   'ui.print': 'Imprimer',
+  'ui.photo': 'Photo',
+  'ui.stepPhotos': 'Photos de l’étape',
+  'ui.patternPhotos': 'Photos du patron',
+  'ui.photoPrev': 'Précédente',
+  'ui.photoNext': 'Suivante',
+  'ui.photoClose': 'Fermer',
+  'ui.photosTruncated':
+    'Ce PDF contient beaucoup de photos : seules les premières ont été gardées (40 au plus, 20 Mo en tout).',
+  'ui.photosNotSaved':
+    'Les photos de ce PDF n’ont pas pu être enregistrées : l’espace de stockage de l’appareil est plein. Le patron est bien là, sans ses photos.',
 } as const;
 
 export type ReaderTranslationKey = keyof typeof FR;
@@ -130,6 +140,16 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.go': 'Go',
   'ui.stepOf': 'Step',
   'ui.print': 'Print',
+  'ui.photo': 'Photo',
+  'ui.stepPhotos': 'Photos for this step',
+  'ui.patternPhotos': 'Pattern photos',
+  'ui.photoPrev': 'Previous',
+  'ui.photoNext': 'Next',
+  'ui.photoClose': 'Close',
+  'ui.photosTruncated':
+    'This PDF has a lot of photos: only the first ones were kept (up to 40, 20 MB in total).',
+  'ui.photosNotSaved':
+    'This PDF’s photos couldn’t be saved: the device storage is full. The pattern is here, without its photos.',
 };
 
 export const READER_COPY: Record<Locale, Record<ReaderTranslationKey, string>> = { fr: FR, en: EN };

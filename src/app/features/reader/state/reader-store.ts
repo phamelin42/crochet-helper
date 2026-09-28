@@ -309,6 +309,7 @@ export class ReaderStore {
     this.elapsed.set(project.elapsed);
     this.expandAbbreviations.set(project.expandAbbreviations);
     this.imageCount.set(project.imageCount ?? 0);
+    this.pdfImagesNote.set(null);
     this.pieceIndex.set(Math.min(project.pieceIndex, Math.max(0, this.pieces().length - 1)));
     this.stepIndex.set(Math.min(project.stepIndex, Math.max(0, this.stepCount() - 1)));
     this.depthsReached.set(new Set(DEPTH_THRESHOLDS.filter((t) => this.absoluteStep() >= t)));
@@ -550,6 +551,7 @@ export class ReaderStore {
     this.elapsed.set(0);
     this.image.set('');
     this.imageCount.set(0);
+    this.pdfImagesNote.set(null);
   }
 
   selectPiece(index: number): void {

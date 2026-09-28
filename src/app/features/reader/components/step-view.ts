@@ -7,6 +7,7 @@ import { Tile } from '../../../shared/ui/tile/tile';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 import { GlossaryText } from './glossary-text';
+import { ImageGallery } from './image-gallery';
 import { ShareActions } from './share-actions';
 import { StepsList } from './steps-list';
 
@@ -16,7 +17,7 @@ import { StepsList } from './steps-list';
  */
 @Component({
   selector: 'fil-step-view',
-  imports: [Button, GlossaryText, Icon, Segmented, ShareActions, StepsList, Tile],
+  imports: [Button, GlossaryText, Icon, ImageGallery, Segmented, ShareActions, StepsList, Tile],
   template: `
     @if (pieceOptions().length > 1) {
       <div class="pieces">
@@ -67,6 +68,12 @@ import { StepsList } from './steps-list';
 
     @if (store.step()?.tip; as tip) {
       <p class="step-tip"><span aria-hidden="true">💡</span> <fil-glossary-text [text]="tip" /></p>
+    }
+
+    <!-- Sous l'étape, jamais au-dessus : l'étape reste dans le premier écran
+         d'une tablette (garde de la fiche 24). -->
+    @if (store.step()?.images; as images) {
+      <fil-image-gallery [numbers]="images" [label]="t('ui.stepPhotos')" />
     }
 
     @if (store.step()) {

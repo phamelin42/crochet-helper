@@ -73,6 +73,61 @@ const HOOK_TOKEN_PATTERN = new RegExp(
   'gi',
 );
 
+/** Au-delà, une saisie n'est plus une taille de crochet : refusée sans être analysée. */
+const MAX_QUERY_LENGTH = 24;
+
+/**
+ * Chaque notation américaine, réduite par `normalizeUsToken`, et sa seule
+ * lettre (« G », « MN » pour « M/N-13 ») pour les tailles qui en ont une. Une
+ * lettre isolée n'est jamais ambiguë ici : « N », partagé par « M/N-13 » et
+ * « N/P-15 », n'est pas une clé.
+ */
+const US_QUERY_MAP = new Map(
+  HOOK_SIZES.flatMap((size) => {
+    const { letter, letter2 } = parseUs(size.us);
+    const keys = [normalizeUsToken(size.us)];
+    if (letter) keys.push(`${letter}${letter2 ?? ''}`);
+    return keys.map((key) => [key, size] as const);
+  }),
+);
+
+function findByMm(raw: string): HookSize | null {
+  const value = Number(raw.replace(',', '.'));
+  return HOOK_SIZES.find((size) => size.mm === value) ?? null;
+}
+
+function findByUsNumber(raw: string): HookSize | null {
+  return HOOK_SIZES.find((size) => parseUs(size.us).number === raw) ?? null;
+}
+
+/**
+ * Retrouve une taille de la norme à partir de ce qu'on tape dans le chercheur
+ * de la page des tailles : « 4 », « 4 mm », « 4,0 », « G », « G-6 », « g6 »,
+ * « 7 ». Un nombre seul se lit d'abord en millimètres, l'écriture courante en
+ * France (« 6 » est le crochet de 6 mm, pas le G-6) ; il ne désigne un numéro
+ * américain que si aucun diamètre ne lui correspond (« 7 », seule taille sans
+ * lettre, ou « 3 » pour le D-3). Une saisie explicite en millimètres ne
+ * retombe jamais sur un numéro : « 3 mm » n'est pas le D-3. Hors norme →
+ * `null`, jamais d'exception.
+ */
+export function findHookSize(input: string): HookSize | null {
+  if (input.length > MAX_QUERY_LENGTH) return null;
+  const query = input
+    .trim()
+    .toUpperCase()
+    .replace(/^(?:US|SIZE|TAILLE)\s*/, '');
+  if (!query) return null;
+
+  const mm = /^(\d+(?:[.,]\d+)?)\s*MM$/.exec(query);
+  if (mm) return findByMm(mm[1]);
+
+  // La norme écrit « 10½ » ce qu'on tape « 10.5 » ou « 10,5 ».
+  const half = query.replace(/[.,]5$/, '½');
+  if (/^\d+(?:[.,]\d+)?$/.test(query)) return findByMm(query) ?? findByUsNumber(half);
+  if (/^\d+½$/.test(half)) return findByUsNumber(half);
+  return US_QUERY_MAP.get(normalizeUsToken(half)) ?? null;
+}
+
 export interface HookConversion {
   readonly text: string;
   /** Chaque taille annotée : ce qui était écrit, ce qui a été ajouté. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HOOK_SIZES, annotateHookSizes } from './hook-sizes';
+import { HOOK_SIZES, annotateHookSizes, findHookSize } from './hook-sizes';
 
 describe('annotateHookSizes', () => {
   it('ajoute l’équivalent millimétrique après une taille américaine, sans la remplacer', () => {
@@ -73,5 +73,106 @@ describe('annotateHookSizes', () => {
     expect(result.text).toBe('a 4 mm yarn, a 4mm cord length');
     expect(result.annotations).toEqual([]);
     expect(result.unknown).toEqual([]);
+  });
+});
+
+/** Écritures d'un diamètre qu'une lectrice peut taper : « 4 », « 4 mm », « 4,0 », « 4.00mm »… */
+function mmForms(mm: number): string[] {
+  const comma = String(mm).replace('.', ',');
+  const fixed = mm.toFixed(2);
+  return [
+    String(mm),
+    comma,
+    `${mm} mm`,
+    `${mm}mm`,
+    `${comma} mm`,
+    fixed,
+    fixed.replace('.', ','),
+    `${fixed}mm`,
+    ` ${mm} MM `,
+  ];
+}
+
+/**
+ * Écritures d'une notation américaine : « G-6 », « g6 », « G/6 », « G 6 »,
+ * « G », « US G-6 », « size G ». Le numéro seul n'en fait partie que pour le
+ * « 7 », seule taille sans lettre : « 6 » est le crochet de 6 mm.
+ */
+function usForms(us: string): string[] {
+  const match = /^(?:([A-Z])(?:\/([A-Z]))?-)?(\d+½?)$/.exec(us);
+  if (!match) throw new Error(`Notation inattendue : ${us}`);
+  const [, letter, letter2, number] = match;
+  if (!letter) return [number, `US ${number}`, `size ${number}`];
+  const letters = letter2 ? `${letter}/${letter2}` : letter;
+  const forms = [
+    us,
+    us.toLowerCase(),
+    `${letters}${number}`,
+    `${letters}${number}`.toLowerCase(),
+    `${letters}/${number}`,
+    `${letters} ${number}`,
+    `${letters} - ${number}`,
+    letters,
+    letters.toLowerCase(),
+    `US ${us}`,
+    `size ${letters}`,
+  ];
+  if (number.endsWith('½')) {
+    forms.push(`${letters}-${number.replace('½', '.5')}`, `${letters}${number.replace('½', ',5')}`);
+  }
+  return forms;
+}
+
+describe('findHookSize', () => {
+  it('retrouve chaque taille du tableau depuis son diamètre, sous chaque écriture acceptée', () => {
+    for (const size of HOOK_SIZES) {
+      for (const written of mmForms(size.mm)) {
+        expect(findHookSize(written), `« ${written} »`).toEqual(size);
+      }
+    }
+  });
+
+  it('retrouve chaque taille du tableau depuis sa notation américaine, sous chaque écriture acceptée', () => {
+    for (const size of HOOK_SIZES) {
+      for (const written of usForms(size.us)) {
+        expect(findHookSize(written), `« ${written} »`).toEqual(size);
+      }
+    }
+  });
+
+  it('accepte les exemples de la page : 4, 4 mm, 4,0, G, G-6, g6 et 7', () => {
+    const g6 = { mm: 4, us: 'G-6' };
+    for (const written of ['4', '4 mm', '4,0', 'G', 'G-6', 'g6']) {
+      expect(findHookSize(written), `« ${written} »`).toEqual(g6);
+    }
+    expect(findHookSize('7')).toEqual({ mm: 4.5, us: '7' });
+  });
+
+  it('lit un nombre seul en millimètres avant de le lire comme un numéro américain', () => {
+    expect(findHookSize('6')).toEqual({ mm: 6, us: 'J-10' });
+    expect(findHookSize('8')).toEqual({ mm: 8, us: 'L-11' });
+    expect(findHookSize('10')).toEqual({ mm: 10, us: 'N/P-15' });
+    expect(findHookSize('10,5')).toEqual({ mm: 6.5, us: 'K-10½' });
+  });
+
+  it('renvoie null pour une saisie vide ou hors de la norme, sans exception', () => {
+    for (const written of [
+      '',
+      '   ',
+      '3 mm',
+      '7 mm',
+      'Z',
+      'N',
+      'G-7',
+      '0',
+      '-4',
+      'mm',
+      'US',
+      '4 mm mm',
+      'G'.repeat(1000),
+      '4'.repeat(30),
+    ]) {
+      expect(findHookSize(written), `« ${written.slice(0, 20)} »`).toBeNull();
+    }
   });
 });

@@ -17,6 +17,7 @@ import { Tile } from '../../../shared/ui/tile/tile';
 import { MaterialsList } from '../components/materials-list';
 import { PatternImport } from '../components/pattern-import';
 import { PrintView } from '../components/print-view';
+import { PatternPhotos } from '../components/pattern-photos';
 import { ReaderCounters } from '../components/reader-counters';
 import { StepView } from '../components/step-view';
 import { WaitlistBanner } from '../components/waitlist-banner';
@@ -306,6 +307,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     MaterialsList,
     PatternImport,
     PrintView,
+    PatternPhotos,
     ReaderCounters,
     RouterLink,
     Segmented,
@@ -384,6 +386,8 @@ const SEO: Record<Locale, { title: string; description: string }> = {
 
     @if (store.step()) {
       <fil-reader-counters />
+
+      <fil-pattern-photos />
 
       <fil-pattern-import [(open)]="importOpen" />
 

@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   BACKUP_SCHEMA_VERSION,
-  Project,
-  deriveProjectName,
-  legacyToProject,
-  mergeProjects,
+  BackupImage,
+  MAX_BACKUP_IMAGE_BYTES,
+  base64ToBytes,
+  bytesToBase64,
   parseBackup,
-} from './project.model';
+} from './project-backup';
+import { Project, deriveProjectName, legacyToProject, mergeProjects } from './project.model';
 
 function projectFixture(overrides: Partial<Project> = {}): Project {
   return {
@@ -88,6 +89,7 @@ describe('legacyToProject', () => {
       expandAbbreviations: true,
       createdAt: 1_700_000_000_000,
       lastOpenedAt: 1_700_000_000_000,
+      imageCount: 0,
     });
   });
 
@@ -102,8 +104,73 @@ describe('legacyToProject', () => {
 
 describe('parseBackup', () => {
   it('accepte une sauvegarde valide', () => {
-    const backup = { version: BACKUP_SCHEMA_VERSION, projects: [projectFixture()] };
-    expect(parseBackup(backup)).toEqual(backup);
+    const backup = { version: BACKUP_SCHEMA_VERSION, projects: [projectFixture()], images: [] };
+    expect(parseBackup(backup)).toEqual({
+      ...backup,
+      projects: [{ ...projectFixture(), imageCount: 0 }],
+    });
+  });
+
+  it('accepte toujours une sauvegarde de version 1, sans photos, et compte 0 photo par projet', () => {
+    expect(parseBackup({ version: 1, projects: [projectFixture()] })).toEqual({
+      version: 1,
+      projects: [{ ...projectFixture(), imageCount: 0 }],
+      images: [],
+    });
+  });
+
+  describe('photos (version 2)', () => {
+    const photo = (overrides: Partial<BackupImage> = {}): BackupImage => ({
+      id: 'p:1',
+      projectId: 'p',
+      n: 1,
+      width: 640,
+      height: 480,
+      kind: 'pdf',
+      type: 'image/jpeg',
+      data: bytesToBase64(new Uint8Array([0xff, 0xd8, 0xff, 0xd9])),
+      ...overrides,
+    });
+    const withPhotos = (images: unknown[]) => ({
+      version: BACKUP_SCHEMA_VERSION,
+      projects: [projectFixture({ imageCount: 1 })],
+      images,
+    });
+
+    it('accepte une photo bien formée et rattachée à un projet de la sauvegarde', () => {
+      expect(parseBackup(withPhotos([photo()]))?.images).toEqual([photo()]);
+    });
+
+    it('refuse en bloc une photo trop lourde', () => {
+      const tooBig = 'A'.repeat(Math.ceil((MAX_BACKUP_IMAGE_BYTES * 4) / 3) + 4);
+      expect(
+        parseBackup(withPhotos([photo(), photo({ id: 'p:2', n: 2, data: tooBig })])),
+      ).toBeNull();
+    });
+
+    it('refuse en bloc une photo orpheline, mal numérotée, mal typée ou mal encodée', () => {
+      for (const bad of [
+        photo({ projectId: 'ailleurs', id: 'ailleurs:1' }),
+        photo({ id: 'p:2' }),
+        photo({ n: 0, id: 'p:0' }),
+        photo({ width: 0 }),
+        photo({ type: 'text/html' }),
+        photo({ data: 'pas du base64 !' }),
+        { ...photo(), kind: 'autre' },
+        null,
+      ]) {
+        expect(parseBackup(withPhotos([photo(), bad]))).toBeNull();
+      }
+    });
+
+    it('refuse une version 1 qui prétendrait porter des photos', () => {
+      expect(parseBackup({ ...withPhotos([photo()]), version: 1 })).toBeNull();
+    });
+  });
+
+  it('encode et décode les octets d’une photo sans perte', () => {
+    const bytes = new Uint8Array(100_000).map((_, i) => (i * 7) % 256);
+    expect(base64ToBytes(bytesToBase64(bytes))).toEqual(bytes);
   });
 
   it('refuse une version de schéma inconnue', () => {

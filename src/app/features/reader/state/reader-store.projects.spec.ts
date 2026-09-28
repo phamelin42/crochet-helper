@@ -7,9 +7,12 @@ import {
   installFakeIndexedDb,
   uninstallFakeIndexedDb,
 } from '../../../core/storage/testing/fake-indexed-db';
-import { BACKUP_SCHEMA_VERSION, Project } from '../data/project.model';
+import { BACKUP_SCHEMA_VERSION } from '../data/project-backup';
+import { Project, ProjectImage } from '../data/project.model';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
-import { ReaderStore } from './reader-store';
+import { ObjectUrlService } from '../../../core/platform/object-url.service';
+import type { ExtractedPdf } from '../data/pdf-extract';
+import { PDF_EXTRACTOR, ReaderStore } from './reader-store';
 
 /** Deux pièces, pour vérifier que la pièce reçue n'est pas la première par défaut. */
 const TWO_PIECES = ['Patron', 'Piece A', 'Round 1: 6 sc (6)', 'Piece B', 'Round 1: 6 sc (6)'].join(
@@ -30,6 +33,7 @@ function projectFixture(overrides: Partial<Project> = {}): Project {
     expandAbbreviations: false,
     createdAt: 0,
     lastOpenedAt: 0,
+    imageCount: 0,
     ...overrides,
   };
 }
@@ -216,7 +220,7 @@ describe('ReaderStore — projets', () => {
       projectFixture({ id: 'b', name: 'Écharpe', elapsed: 90_000, lastOpenedAt: 5 }),
     ];
     store.projects.set(projects);
-    const text = await store.exportBackup().text();
+    const text = await (await store.exportBackup()).text();
 
     // Profil vide : autre base, autre magasin.
     uninstallFakeIndexedDb();
@@ -379,5 +383,174 @@ describe('ReaderStore — projets', () => {
     expect(store.running()).toBe(false);
     expect(store.projects()).toEqual([]);
     expect(await TestBed.inject(ProjectStoreService).list()).toEqual([]);
+  });
+
+  describe('photos d’un PDF', () => {
+    const photo = (bytes: number[], afterLine: number) => ({
+      blob: new Blob([new Uint8Array(bytes)], { type: 'image/jpeg' }),
+      width: 640,
+      height: 480,
+      afterLine,
+    });
+    /** Un PDF d'une page, deux photos : la première citée par le rang 3. */
+    const PDF: ExtractedPdf = {
+      pages: [
+        {
+          lines: [
+            'Bunny',
+            'Round 1: 6 sc in magic ring (6)',
+            'Round 2: inc around (12)',
+            'Round 3: sc around, see image 1 (12)',
+          ],
+          images: [photo([1, 2, 3], 1), photo([4, 5, 6, 7], 3)],
+        },
+      ],
+      truncated: false,
+    };
+    const pdfFile = () => new File(['%PDF-1.7'], 'lapin.pdf', { type: 'application/pdf' });
+    const keys = (id: string) => [`${id}:1`, `${id}:2`];
+    const bytesOf = async (blob: Blob | undefined) =>
+      Array.from(new Uint8Array(await blob!.arrayBuffer()));
+
+    beforeEach(() => {
+      TestBed.overrideProvider(PDF_EXTRACTOR, { useValue: async () => PDF });
+    });
+
+    it('enregistre le projet et ses photos, et les rattache aux étapes', async () => {
+      const store = TestBed.inject(ReaderStore);
+      const db = TestBed.inject(ProjectStoreService);
+      await store.initialize();
+
+      await store.importPdf(pdfFile());
+      const id = store.currentId()!;
+
+      expect(store.imageCount()).toBe(2);
+      expect(store.pdfImagesNote()).toBeNull();
+      expect(store.steps().map((step) => step.images)).toEqual([undefined, undefined, [1, 2]]);
+      const [saved] = await db.list<Project>();
+      expect(saved.id).toBe(id);
+      expect(saved.imageCount).toBe(2);
+      const files = await db.getFiles<ProjectImage>(keys(id));
+      expect(files.map((file) => file && { ...file, blob: null })).toEqual([
+        { id: `${id}:1`, projectId: id, n: 1, blob: null, width: 640, height: 480, kind: 'pdf' },
+        { id: `${id}:2`, projectId: id, n: 2, blob: null, width: 640, height: 480, kind: 'pdf' },
+      ]);
+      expect(await bytesOf(files[1]?.blob)).toEqual([4, 5, 6, 7]);
+      expect(track).toHaveBeenCalledWith('pdf_imported', { pages: 1, images: 2 });
+    });
+
+    it('ouvre le projet sans photos si l’écriture avorte, le dit, et n’écrit rien à moitié', async () => {
+      const store = TestBed.inject(ReaderStore);
+      const db = TestBed.inject(ProjectStoreService);
+      await store.initialize();
+      idb.failWrites = true;
+
+      await store.importPdf(pdfFile());
+      const id = store.currentId()!;
+
+      expect(store.pdfError()).toBeNull();
+      expect(store.total()).toBe(3);
+      expect(store.imageCount()).toBe(0);
+      expect(store.pdfImagesNote()).toBe('non-enregistrees');
+      expect(await db.list()).toEqual([]);
+      expect(await db.getFiles(keys(id))).toEqual([undefined, undefined]);
+
+      // Le quota libéré, le patron s'enregistre sans photos : il n'est pas perdu.
+      idb.failWrites = false;
+      store.move(1);
+      await vi.waitFor(async () => {
+        const list = await db.list<Project>();
+        expect(list.map((p) => [p.id, p.imageCount, p.stepIndex])).toEqual([[id, 0, 1]]);
+      });
+    });
+
+    it('supprime les photos avec le projet', async () => {
+      const store = TestBed.inject(ReaderStore);
+      const db = TestBed.inject(ProjectStoreService);
+      await store.initialize();
+      await store.importPdf(pdfFile());
+      const id = store.currentId()!;
+      expect((await db.getFiles(keys(id))).filter(Boolean).length).toBe(2);
+
+      await store.removeProject(id);
+
+      expect(await db.getFiles(keys(id))).toEqual([undefined, undefined]);
+      expect(await db.list()).toEqual([]);
+    });
+
+    it('exporte une sauvegarde v2 et la réimporte à l’identique sur un profil vide', async () => {
+      const store = TestBed.inject(ReaderStore);
+      await store.initialize();
+      await store.importPdf(pdfFile());
+      const id = store.currentId()!;
+      await vi.waitFor(() => expect(store.projects().length).toBe(1));
+      const projects = store.projects();
+      const text = await (await store.exportBackup()).text();
+      expect(JSON.parse(text).version).toBe(2);
+
+      // Profil vide : autre base, autre magasin.
+      uninstallFakeIndexedDb();
+      idb = installFakeIndexedDb();
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: PLATFORM_ID, useValue: 'browser' },
+          { provide: AnalyticsService, useValue: { track } },
+        ],
+      });
+      const fresh = TestBed.inject(ReaderStore);
+      await fresh.initialize();
+
+      await expect(fresh.importBackup(new File([text], 'sauvegarde.json'))).resolves.toBe(true);
+
+      expect(fresh.projects()).toEqual(projects);
+      const files = await TestBed.inject(ProjectStoreService).getFiles<ProjectImage>(keys(id));
+      expect(files.map((file) => [file?.n, file?.width, file?.blob.type])).toEqual([
+        [1, 640, 'image/jpeg'],
+        [2, 640, 'image/jpeg'],
+      ]);
+      expect(await bytesOf(files[0]?.blob)).toEqual([1, 2, 3]);
+      expect(await bytesOf(files[1]?.blob)).toEqual([4, 5, 6, 7]);
+    });
+
+    it('accepte toujours une sauvegarde v1, sans photos', async () => {
+      const store = TestBed.inject(ReaderStore);
+      await store.initialize();
+      const v1: Record<string, unknown> = { ...projectFixture({ id: 'ancien' }) };
+      delete v1['imageCount'];
+      const file = new File([JSON.stringify({ version: 1, projects: [v1] })], 'v1.json');
+
+      await expect(store.importBackup(file)).resolves.toBe(true);
+      expect(store.projects().map((p) => [p.id, p.imageCount])).toEqual([['ancien', 0]]);
+    });
+
+    it('révoque les adresses des photos quand on change de projet', async () => {
+      const created: string[] = [];
+      const revoke = vi.fn();
+      TestBed.overrideProvider(ObjectUrlService, {
+        useValue: {
+          create: () => {
+            created.push(`blob:${created.length + 1}`);
+            return created[created.length - 1];
+          },
+          revoke,
+        },
+      });
+      const store = TestBed.inject(ReaderStore);
+      await store.initialize();
+      await store.importPdf(pdfFile());
+      await vi.waitFor(() =>
+        expect(store.photos()).toEqual([
+          { url: 'blob:1', width: 640, height: 480 },
+          { url: 'blob:2', width: 640, height: 480 },
+        ]),
+      );
+
+      store.load('Rang 1 : 6 ms\nRang 2 : 12 ms');
+      TestBed.tick();
+
+      await vi.waitFor(() => expect(store.photos()).toEqual([]));
+      expect(revoke.mock.calls.map(([url]) => url)).toEqual(['blob:1', 'blob:2']);
+    });
   });
 });

@@ -2,8 +2,11 @@ import { PLATFORM_ID, Service, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 const DB_NAME = 'fil';
-const DB_VERSION = 1;
+/** Version 2 : ajout du magasin `images` (fiche 34). */
+const DB_VERSION = 2;
 const STORE = 'projects';
+/** Fichiers rattachés aux projets (photos d'un PDF), clé `${projectId}:${n}`. */
+const IMAGES = 'images';
 
 /**
  * Accès à IndexedDB pour les projets, sans quota pratique — contrairement à
@@ -40,9 +43,13 @@ export class ProjectStoreService {
         resolve(null);
         return;
       }
+      // Chaque magasin est créé s'il manque : une base en version 1 reçoit
+      // `images` sans que ses projets soient touchés.
       request.onupgradeneeded = () => {
-        if (!request.result.objectStoreNames.contains(STORE)) {
-          request.result.createObjectStore(STORE, { keyPath: 'id' });
+        for (const name of [STORE, IMAGES]) {
+          if (!request.result.objectStoreNames.contains(name)) {
+            request.result.createObjectStore(name, { keyPath: 'id' });
+          }
         }
       };
       request.onsuccess = () => {
@@ -85,29 +92,69 @@ export class ProjectStoreService {
   }
 
   /**
-   * Écrit plusieurs éléments dans **une seule** transaction : tout ou rien.
-   * C'est ce qui rend l'import d'une sauvegarde atomique.
+   * Écrit plusieurs éléments, et leurs fichiers rattachés, dans **une seule**
+   * transaction : tout ou rien. C'est ce qui rend atomiques l'import d'une
+   * sauvegarde et l'enregistrement d'un PDF avec ses photos.
    */
-  async putAll<T extends { id: string }>(items: readonly T[]): Promise<boolean> {
+  async putAll<T extends { id: string }, F extends { id: string } = { id: string }>(
+    items: readonly T[],
+    files: readonly F[] = [],
+  ): Promise<boolean> {
     const db = await this.db();
     if (!db) return false;
-    return this.run(db, (store) => items.forEach((item) => store.put(item)));
+    return this.run(db, (projects, images) => {
+      items.forEach((item) => projects.put(item));
+      files.forEach((file) => images.put(file));
+    });
   }
 
-  async remove(id: string): Promise<boolean> {
+  /** Supprime un élément et ses fichiers rattachés, dans la même transaction. */
+  async remove(id: string, fileIds: readonly string[] = []): Promise<boolean> {
     const db = await this.db();
     if (!db) return false;
-    return this.run(db, (store) => store.delete(id));
+    return this.run(db, (projects, images) => {
+      projects.delete(id);
+      fileIds.forEach((fileId) => images.delete(fileId));
+    });
   }
 
-  private run(db: IDBDatabase, work: (store: IDBObjectStore) => void): Promise<boolean> {
+  /** Lit des fichiers rattachés par leur clé ; `undefined` pour une clé absente. */
+  async getFiles<F>(ids: readonly string[]): Promise<(F | undefined)[]> {
+    const db = await this.db();
+    if (!db || !ids.length) return ids.map(() => undefined);
     return new Promise((resolve) => {
       try {
-        const tx = db.transaction(STORE, 'readwrite');
+        const store = db.transaction(IMAGES, 'readonly').objectStore(IMAGES);
+        const found: (F | undefined)[] = ids.map(() => undefined);
+        let pending = ids.length;
+        ids.forEach((id, index) => {
+          const request = store.get(id);
+          const settle = (): void => {
+            if (--pending === 0) resolve(found);
+          };
+          request.onsuccess = () => {
+            found[index] = request.result as F | undefined;
+            settle();
+          };
+          request.onerror = settle;
+        });
+      } catch {
+        resolve(ids.map(() => undefined));
+      }
+    });
+  }
+
+  private run(
+    db: IDBDatabase,
+    work: (projects: IDBObjectStore, images: IDBObjectStore) => void,
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction([STORE, IMAGES], 'readwrite');
         tx.oncomplete = () => resolve(true);
         tx.onerror = () => resolve(false);
         tx.onabort = () => resolve(false);
-        work(tx.objectStore(STORE));
+        work(tx.objectStore(STORE), tx.objectStore(IMAGES));
       } catch {
         // Connexion fermée (autre onglet qui met la base à jour), ou quota
         // refusé dès l'ouverture de la transaction.

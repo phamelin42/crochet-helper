@@ -15,6 +15,32 @@ export interface Project {
   readonly createdAt: number;
   /** Horodatage de la dernière reprise — sert au tri de l'écran de liste. */
   readonly lastOpenedAt: number;
+  /**
+   * Nombre de photos enregistrées avec le projet (import PDF), numérotées de 1
+   * à `imageCount`. Absent des projets enregistrés avant la fiche 34 : 0.
+   */
+  readonly imageCount?: number;
+}
+
+/** Une photo d'un projet, enregistrée à part dans IndexedDB (magasin `images`). */
+export interface ProjectImage {
+  readonly id: string;
+  readonly projectId: string;
+  /** Numéro de l'image dans le texte : le marqueur `[image n]`. */
+  readonly n: number;
+  readonly blob: Blob;
+  readonly width: number;
+  readonly height: number;
+  readonly kind: 'pdf';
+}
+
+export function imageId(projectId: string, n: number): string {
+  return `${projectId}:${n}`;
+}
+
+/** Clés des photos d'un projet, de 1 à `imageCount`. */
+export function imageIds(project: Pick<Project, 'id' | 'imageCount'>): string[] {
+  return Array.from({ length: project.imageCount ?? 0 }, (_, i) => imageId(project.id, i + 1));
 }
 
 /** Forme de l'ancien état unique, stocké dans `localStorage` avant la fiche 16. */
@@ -69,48 +95,8 @@ export function legacyToProject(
     expandAbbreviations: legacy.expandAbbreviations ?? false,
     createdAt: now,
     lastOpenedAt: now,
+    imageCount: 0,
   };
-}
-
-/** Version du format de fichier de sauvegarde — incrémentée à tout changement de forme. */
-export const BACKUP_SCHEMA_VERSION = 1;
-
-export interface ProjectBackup {
-  readonly version: number;
-  readonly projects: readonly Project[];
-}
-
-/**
- * Valide une sauvegarde importée. Refuse en bloc — jamais d'import partiel —
- * dès que la version diffère ou qu'un seul projet a une forme inattendue.
- */
-export function parseBackup(data: unknown): ProjectBackup | null {
-  if (!data || typeof data !== 'object') return null;
-  const { version, projects } = data as Record<string, unknown>;
-  if (version !== BACKUP_SCHEMA_VERSION) return null;
-  if (!Array.isArray(projects) || !projects.every(isProject)) return null;
-  return { version, projects };
-}
-
-function isProject(value: unknown): value is Project {
-  if (!value || typeof value !== 'object') return false;
-  const p = value as Record<string, unknown>;
-  return (
-    typeof p['id'] === 'string' &&
-    typeof p['name'] === 'string' &&
-    typeof p['source'] === 'string' &&
-    typeof p['image'] === 'string' &&
-    typeof p['pieceIndex'] === 'number' &&
-    typeof p['stepIndex'] === 'number' &&
-    typeof p['done'] === 'object' &&
-    p['done'] !== null &&
-    typeof p['reps'] === 'object' &&
-    p['reps'] !== null &&
-    typeof p['elapsed'] === 'number' &&
-    typeof p['expandAbbreviations'] === 'boolean' &&
-    typeof p['createdAt'] === 'number' &&
-    typeof p['lastOpenedAt'] === 'number'
-  );
 }
 
 /**

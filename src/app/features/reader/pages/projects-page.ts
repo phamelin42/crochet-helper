@@ -256,8 +256,8 @@ export class ProjectsPage {
     this.deleteOpen.set(false);
   }
 
-  protected download(): void {
-    const blob = this.store.exportBackup();
+  protected async download(): Promise<void> {
+    const blob = await this.store.exportBackup();
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;

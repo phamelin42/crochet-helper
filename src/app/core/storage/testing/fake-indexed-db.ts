@@ -1,7 +1,7 @@
 /**
  * Fausse IndexedDB minimale pour les tests : jsdom n'implémente pas l'API, et
  * la fiche interdit toute dépendance nouvelle. Couvre uniquement ce dont
- * `ProjectStoreService` se sert — `put`, `getAll`, `delete`, transactions
+ * `ProjectStoreService` se sert — `put`, `get`, `getAll`, `delete`, transactions
  * atomiques et annulation — avec des
  * callbacks asynchrones (microtâches), comme le ferait un vrai navigateur.
  */
@@ -47,6 +47,15 @@ class FakeObjectStore {
     const request = new FakeRequest();
     queueMicrotask(() => {
       request.result = [...this.entry.data.values()];
+      request.onsuccess?.(new Event('success'));
+    });
+    return request;
+  }
+
+  get(key: unknown): FakeRequest {
+    const request = new FakeRequest();
+    queueMicrotask(() => {
+      request.result = this.entry.data.get(key);
       request.onsuccess?.(new Event('success'));
     });
     return request;

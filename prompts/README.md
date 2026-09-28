@@ -63,12 +63,16 @@ URL avant d'accumuler du référencement.
 | 26  | Première visite                    | activation : dire ce que fait l'outil avant de le montrer vide |
 | 32  | Libellés, pied de page, lastmod    | activation et maillage : chaque commande a un mot              |
 | 27  | Compteur de rangs en ligne         | acquisition : première page-outil, requête précise             |
+| 34  | Images du PDF à l'étape            | activation : un PDF acheté sans ses photos ne sert à rien      |
+| 35  | Diagrammes : charger et voir       | activation : les patrons en symboles entrent dans le lecteur   |
+| 36  | Diagrammes : transcrire en texte   | activation : le pont diagramme → patron lisible, sans magie    |
 | 25  | Vue d'ensemble et partage visible  | rétention : retrouver son rang ; la boucle de partage visible  |
 | 29  | Page tailles de crochet            | acquisition : « crochet hook sizes chart », requête fréquente  |
 | 28  | Calculateur d'échantillon          | acquisition : troisième page-outil                             |
 | 31  | Lire un patron anglais en français | acquisition : marché francophone sans concurrent               |
 | 30  | Contenu des pages d'abréviation    | acquisition : 60 mots par page ne se classent pas              |
 | 33  | Glossaire sur téléphone            | acquisition : page d'entrée SEO utilisable d'un pouce          |
+| 37  | Reconnaître les symboles (étude)   | **une décision, pas une fonction** : go / no-go chiffré        |
 
 La fiche `01` est absorbée par la `16` : ne pas l'exécuter séparément.
 
@@ -77,6 +81,12 @@ Les fiches 24 à 33 découlent de l'audit du 27 septembre
 attente, sans bloquer de fiche : les liens courts (la 25 place les boutons de
 partage, pas le service). La vidéo de démonstration est écartée (décision du
 27/09) : la 26 s'appuie sur une image statique.
+
+Les fiches 34 à 37 répondent à la demande de Phil du 28 septembre (images des
+PDF, diagrammes de crochet). Elles s'enchaînent : la 35 s'appuie sur le
+stockage d'images de la 34, la 36 sur les symboles de la 35, la 37 sur les
+deux. La reconnaissance automatique d'un diagramme n'est pas promise : la 37
+la mesure et tranche, sans serveur ni clé d'API (règle n° 1).
 
 ## Règle d'enchaînement
 

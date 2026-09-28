@@ -55,6 +55,7 @@ export const EVENEMENTS = [
   'home_cta',
   'step_jumped',
   'print_opened',
+  'row_counted',
 ];
 
 /** Sept noms distincts : la tranche ou le palier vit dans le nom, pas dans une propriété. */

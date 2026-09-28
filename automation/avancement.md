@@ -36,16 +36,20 @@ branche.
 | 21 — Mesurer le retour et la profondeur | Terminée                               | —   | 2026-09-23 |
 | 22 — Liste d'attente                    | Terminée                               | —   | 2026-09-24 |
 | 23 — Kit pour les créatrices            | Terminée                               | —   | 2026-09-25 |
-| 24 — Mode lecture                       | Terminée                               | —   | 2026-09-27 |
+| 24 — Mode lecture                       | Terminée                               | —   | 2026-09-28 |
 | 25 — Vue d'ensemble et partage visible  | Terminée                               | —   | 2026-09-28 |
 | 26 — Première visite                    | Terminée                               | —   | 2026-09-28 |
-| 27 — Compteur de rangs en ligne         | À faire                                | —   | —          |
+| 27 — Compteur de rangs en ligne         | Terminée                               | —   | 2026-09-28 |
 | 28 — Calculateur d'échantillon          | À faire                                | —   | —          |
 | 29 — Page tailles de crochet            | À faire                                | —   | —          |
 | 30 — Contenu des pages d'abréviation    | À faire                                | —   | —          |
 | 31 — Lire un patron anglais en français | À faire                                | —   | —          |
 | 32 — Libellés, pied de page, lastmod    | Terminée                               | —   | 2026-09-28 |
 | 33 — Glossaire sur téléphone            | À faire                                | —   | —          |
+| 34 — Images du PDF à l'étape            | À faire                                | —   | —          |
+| 35 — Diagrammes : charger et voir       | À faire                                | —   | —          |
+| 36 — Diagrammes : transcrire en texte   | À faire                                | —   | —          |
+| 37 — Reconnaître les symboles (étude)   | À faire                                | —   | —          |
 
 ## États possibles
 

@@ -10,5 +10,6 @@
     "fr": "/guide/crochet-ou-tricot",
     "en": "/guide/crochet-or-knitting"
   },
-  "forDesigners": { "fr": "/pour-les-creatrices", "en": "/for-designers" }
+  "forDesigners": { "fr": "/pour-les-creatrices", "en": "/for-designers" },
+  "rowCounter": { "fr": "/compteur-de-rangs", "en": "/row-counter" }
 }

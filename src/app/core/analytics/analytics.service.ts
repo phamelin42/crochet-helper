@@ -61,7 +61,9 @@ export type AnalyticsEvent =
   /** Saut direct à une étape depuis la liste ou le champ « Aller à l'étape n° » (propriété `origin`). */
   | 'step_jumped'
   /** Ouverture de la mise en page d'impression du navigateur depuis le lecteur. */
-  | 'print_opened';
+  | 'print_opened'
+  /** Compteur de rangs en ligne : palier de dix atteint (propriété `value`), pas chaque clic. */
+  | 'row_counted';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

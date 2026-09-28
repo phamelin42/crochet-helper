@@ -103,6 +103,10 @@ IndexedDB), écris un script court dans `$E` sur le modèle de `smoke.mjs`.
   par intention, en français, avec les trailers de session.
 - Chaque défaut corrigé a son test. Un test qui figeait un bug est **inversé**,
   pas supprimé.
+- **Jamais de push sans `npx prettier --check` sur les fichiers touchés**, même
+  du Markdown, même par l'API GitHub (`push_files`) : la CI est rouge sinon
+  (fiche 37, PR #66). Si le terminal est indisponible, attendre qu'il revienne
+  plutôt que d'aligner à la main.
 - PR ouverte par les outils GitHub : activer la fusion automatique dès
   l'ouverture (`enable_pr_auto_merge`, squash), demande de Phil du 27/09. La PR
   se fusionne seule quand la CI est verte, sans relecture humaine : le message

@@ -259,6 +259,13 @@ une copie de travail antérieure à cette règle :
 
 Commits découpés par intention, message en français, à l'impératif.
 
+**Avant d'ouvrir ou de mettre à jour une PR, même pour du Markdown seul :**
+`npx prettier --check <fichiers touchés>` et, si des tables ou des fiches
+changent, `npm run test:tools`. La CI lance `format:check` sur tout le dépôt :
+un fichier poussé sans passer par Prettier (par exemple par l'API GitHub,
+terminal indisponible) rend la PR rouge et bloque sa fusion automatique. Une
+liste imbriquée sous un élément numéroté prend une ligne vide avant elle.
+
 ---
 
 ## Conventions Angular générales

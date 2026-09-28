@@ -41,7 +41,7 @@ branche.
 | 26 — Première visite                    | Terminée                                             | —   | 2026-09-28 |
 | 27 — Compteur de rangs en ligne         | Bloquée : budget du bundle initial, décision de Phil | —   | —          |
 | 28 — Calculateur d'échantillon          | À faire                                              | —   | —          |
-| 29 — Page tailles de crochet            | À faire                                              | —   | —          |
+| 29 — Page tailles de crochet            | Terminée                                             | —   | 2026-09-28 |
 | 30 — Contenu des pages d'abréviation    | À faire                                              | —   | —          |
 | 31 — Lire un patron anglais en français | À faire                                              | —   | —          |
 | 32 — Libellés, pied de page, lastmod    | Terminée                                             | —   | 2026-09-28 |

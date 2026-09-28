@@ -5,8 +5,10 @@ import { Button } from '../../../shared/ui/button/button';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
+import { COMPOSER_COPY } from '../data/chart-composer-copy';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
+import { ChartComposer } from './chart-composer';
 import { ChartLegend } from './chart-legend';
 import { ChartViewer } from './chart-viewer';
 
@@ -18,7 +20,7 @@ import { ChartViewer } from './chart-viewer';
  */
 @Component({
   selector: 'fil-chart-panel',
-  imports: [Button, ChartLegend, ChartViewer, Dialog, Disclosure, Segmented],
+  imports: [Button, ChartComposer, ChartLegend, ChartViewer, Dialog, Disclosure, Segmented],
   template: `
     <fil-disclosure [label]="t('ui.chartPanel')" variant="mats" [state]="count()" [(open)]="open">
       @if (shown(); as chart) {
@@ -60,8 +62,15 @@ import { ChartViewer } from './chart-viewer';
         <button type="button" filButton="ghost" (click)="legend.set(true)">
           {{ t('ui.chartLegend') }}
         </button>
+        <button type="button" filButton="secondary" (click)="openComposer()">
+          {{ composeOpenLabel() }}
+        </button>
       </div>
     </fil-disclosure>
+
+    <!-- Import statique, dans le chunk du lecteur : l'instancier par import() dynamique
+         (createComponent) coûte 1,9 ko au bundle initial, mesuré. -->
+    <fil-chart-composer [(open)]="composing" [chart]="shown()" [label]="label()" />
 
     <!-- Les dialogues restent dans le DOM : le navigateur rend le focus au
          bouton qui les a ouverts, ce qu'un dialogue détruit ne fait pas. -->
@@ -94,6 +103,11 @@ export class ChartPanel {
   private readonly i18n = inject(I18nService);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
+
+  /** Ce texte vit avec ceux du composeur : `reader-copy.ts` fait partie du bundle initial. */
+  protected readonly composeOpenLabel = computed(
+    () => COMPOSER_COPY[this.i18n.locale()]['ui.composeOpen'],
+  );
 
   protected readonly legend = signal(false);
   protected readonly full = signal(false);
@@ -148,6 +162,12 @@ export class ChartPanel {
       const n = this.shownN();
       if (n && this.shown() && (this.open() || this.full())) this.store.markChartViewed(n);
     });
+  }
+
+  protected readonly composing = signal(false);
+
+  protected openComposer(): void {
+    this.composing.set(true);
   }
 
   protected pin(piece: number): void {

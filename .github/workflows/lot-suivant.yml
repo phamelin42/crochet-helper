@@ -162,7 +162,6 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
-      actions: write # lancer la CI sur la branche publiée
     steps:
       # Checkout de main, jamais du travail de l'agent : c'est ce code-ci qui
       # s'exécute avec le jeton.
@@ -186,11 +185,23 @@ jobs:
         name: Publier la branche et ouvrir la PR
         if: needs.construire.outputs.agir == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          # Un push ou une PR fait avec le jeton par défaut du workflow est
+          # attribué à github-actions[bot] : depuis juin 2026, GitHub exige
+          # une approbation humaine avant de lancer le moindre workflow
+          # déclenché par « pull_request » sur une telle PR, même dans le
+          # même dépôt. Un PAT rattaché à un compte réel n'y est pas soumis :
+          # la PR se comporte comme une PR ouverte à la main, la CI se lance
+          # d'elle-même. Secret à créer : PILOTE_PAT (droits Contents,
+          # Pull requests et Issues en écriture sur ce dépôt).
+          GH_TOKEN: ${{ secrets.PILOTE_PAT }}
           REPO: ${{ github.repository }}
           ISSUE_AGENT: ${{ needs.construire.outputs.issue_agent }}
         run: |
           set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Secret PILOTE_PAT absent : créer un PAT (Contents, Pull requests, Issues en écriture) dans Settings → Secrets and variables → Actions."
+            exit 1
+          fi
           a="$RUNNER_TEMP/artefact"
           p="$a/pilote"
           distant="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
@@ -229,9 +240,6 @@ jobs:
           fi
 
           git push --quiet "$distant" "refs/heads/$branche:refs/heads/$branche"
-          # Un push fait avec ce jeton ne déclenche aucun workflow : on lance la CI
-          # explicitement, son résultat s'attache au dernier commit de la branche.
-          gh workflow run ci.yml --repo "$REPO" --ref "$branche"
 
           titre=$(head -n 1 "$p/pr-titre.txt" 2>/dev/null | cut -c1-200 || true)
           [ -n "$titre" ] || titre=$(git log -1 --format=%s "$branche")

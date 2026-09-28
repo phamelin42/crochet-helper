@@ -65,6 +65,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         title: 'Compteur de rangs en ligne',
         lead: 'Comptez vos rangs d’une main, avec un objectif optionnel et sa barre de progression.',
       },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.hookSizes.fr}`,
+        title: 'Tailles de crochet mm ↔ US',
+        lead: 'Le tableau complet de la norme et un chercheur\u00a0: tapez «\u00a0G-6\u00a0» ou «\u00a04 mm\u00a0», l’équivalent s’affiche.',
+      },
     ],
   },
   en: {
@@ -94,6 +99,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.rowCounter.en}`,
         title: 'Online row counter',
         lead: 'Count your rows one-handed, with an optional target and progress bar.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.hookSizes.en}`,
+        title: 'Crochet hook sizes mm ↔ US',
+        lead: 'The full standard chart and a size finder: type "G-6" or "4 mm" and see the equivalent.',
       },
     ],
   },

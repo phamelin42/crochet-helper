@@ -37,6 +37,7 @@ interface ConverterCopy {
   readonly hookSizesLead: string;
   readonly hookSizesMm: string;
   readonly hookSizesUs: string;
+  readonly hookSizesMore: string;
 }
 
 const COPY: Record<Locale, ConverterCopy> = {
@@ -64,6 +65,7 @@ const COPY: Record<Locale, ConverterCopy> = {
     hookSizesLead: `Un patron américain donne la taille du crochet par une lettre («${NBSP}G-6 hook${NBSP}») plutôt qu’en millimètres. Dans le texte converti, chaque taille reconnue reçoit son équivalent entre parenthèses${NBSP}; voici le tableau complet.`,
     hookSizesMm: 'Diamètre (mm)',
     hookSizesUs: 'Taille US',
+    hookSizesMore: 'Tout savoir sur les tailles de crochet',
   },
   en: {
     title: `US ↔ UK crochet converter and hook sizes — ${SITE_NAME}`,
@@ -90,6 +92,7 @@ const COPY: Record<Locale, ConverterCopy> = {
       'A US pattern gives the hook size as a letter ("G-6 hook") rather than in millimetres. In the converted text, every recognised size gets its equivalent in brackets; here is the full chart.',
     hookSizesMm: 'Diameter (mm)',
     hookSizesUs: 'US size',
+    hookSizesMore: 'All about crochet hook sizes',
   },
 };
 
@@ -199,6 +202,9 @@ const COPY: Record<Locale, ConverterCopy> = {
           </tbody>
         </table>
       </div>
+      <p>
+        <a filButton="secondary" [routerLink]="i18n.link('hookSizes')">{{ c.hookSizesMore }}</a>
+      </p>
     </section>
 
     <div class="navrow">

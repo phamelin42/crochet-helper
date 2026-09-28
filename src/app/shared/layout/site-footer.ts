@@ -8,7 +8,8 @@ import { I18nService } from '../../core/i18n/i18n.service';
  * navigation d'en-tête (visible sur toute page — lecteur, projets, glossaire,
  * bien formater, convertisseur) y a son lien. Le pied de page se concentre
  * donc sur le maillage qui manquait vraiment : les guides, le compteur de
- * rangs et le kit créatrices, plutôt que de dupliquer l'en-tête.
+ * rangs, les tailles de crochet et le kit créatrices, plutôt que de dupliquer
+ * l'en-tête.
  */
 @Component({
   selector: 'fil-site-footer',
@@ -31,6 +32,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
       <div>
         <p class="footer-heading">{{ i18n.t('footer.project') }}</p>
         <a [routerLink]="i18n.link('rowCounter')">{{ i18n.t('footer.rowCounter') }}</a>
+        <a [routerLink]="i18n.link('hookSizes')">{{ i18n.t('footer.hookSizes') }}</a>
         <a [routerLink]="i18n.link('forDesigners')">{{ i18n.t('footer.forDesigners') }}</a>
         <a href="https://discord.gg/DPYydhZRND" target="_blank" rel="noopener">{{
           i18n.t('ui.discord')

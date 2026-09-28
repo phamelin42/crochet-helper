@@ -44,6 +44,10 @@ const SOURCE_PATHS = {
   guideReadingChart: ['src/app/features/guides/pages/reading-chart-page.ts'],
   guideCrochetOrKnitting: ['src/app/features/guides/pages/crochet-or-knitting-page.ts'],
   forDesigners: ['src/app/features/designers'],
+  hookSizes: [
+    'src/app/features/tools/pages/hook-sizes-page.ts',
+    'src/app/features/converter/data/hook-sizes.ts',
+  ],
 };
 const GLOSSARY_TERM_SOURCES = [
   'src/app/features/reader/data/glossary.ts',

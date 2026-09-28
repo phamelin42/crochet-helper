@@ -89,4 +89,34 @@ describe('ReaderPage', () => {
     expect(stepBody(host)).toContain('Collez ou écrivez votre pattern');
     expect(findButton(host, 'Suivante').disabled).toBe(true);
   });
+
+  it('sans patron, « Comment ça marche » et la FAQ sont rendus, pas les compteurs', () => {
+    const { fixture, host } = setup();
+
+    fixture.detectChanges();
+
+    expect(host.querySelector('.how-it-works')).not.toBeNull();
+    expect(host.querySelector('.faq')).not.toBeNull();
+    expect(host.querySelector('fil-reader-counters')).toBeNull();
+    expect(host.querySelector('fil-waitlist-banner')).toBeNull();
+  });
+
+  it('un patron chargé, les compteurs sont rendus et « Comment ça marche » ne l’est plus', () => {
+    const { fixture, store, host } = setup();
+
+    store.load(PATTERN);
+    fixture.detectChanges();
+
+    expect(host.querySelector('fil-reader-counters')).not.toBeNull();
+    expect(host.querySelector('fil-waitlist-banner')).not.toBeNull();
+    expect(host.querySelector('.how-it-works')).toBeNull();
+  });
+
+  it('le dialogue de patron partagé n’est dans le DOM que si on l’ouvre', () => {
+    const { fixture, host } = setup();
+
+    fixture.detectChanges();
+
+    expect(host.querySelector('fil-dialog')).toBeNull();
+  });
 });

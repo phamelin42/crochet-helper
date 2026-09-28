@@ -1,12 +1,16 @@
 import { Component, PLATFORM_ID, effect, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
+import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
+import { Icon } from '../../../shared/ui/icon/icon';
+import { Tile } from '../../../shared/ui/tile/tile';
 import { MaterialsList } from '../components/materials-list';
 import { PatternImport } from '../components/pattern-import';
 import { PrintView } from '../components/print-view';
@@ -97,6 +101,166 @@ const HERO: Record<Locale, { title: string; lead: string; alt: string }> = {
   },
 };
 
+/** Les trois preuves listées sous l'accroche (audit UX-2 : rien ne distingue
+ *  l'outil d'une application à compte avant qu'on l'ait essayé). */
+const PROOFS: Record<Locale, readonly string[]> = {
+  fr: [
+    'Gratuit, sans compte',
+    'Vos patrons restent sur votre appareil',
+    'N’importe quel patron : PDF acheté, blog, magazine',
+  ],
+  en: [
+    'Free, no account',
+    'Your patterns stay on your device',
+    'Any pattern: a bought PDF, a blog, a magazine',
+  ],
+};
+
+interface HomeStep {
+  readonly title: string;
+  readonly lead: string;
+}
+
+interface FaqItem {
+  readonly question: string;
+  readonly answer: string;
+}
+
+interface HomeCopy {
+  readonly ctaExample: string;
+  readonly ctaPaste: string;
+  readonly howItWorksTitle: string;
+  readonly steps: readonly HomeStep[];
+  readonly storyboardTitle: string;
+  readonly storyboardCaption: string;
+  readonly storyboardAlt: string;
+  readonly faqTitle: string;
+  readonly faq: readonly FaqItem[];
+}
+
+/**
+ * Contenu propre à l'accueil quand aucun patron n'est chargé (fiche 26) :
+ * « Comment ça marche », le storyboard et la FAQ. Reste dans la page
+ * paresseuse plutôt que dans `reader-copy.ts`, partagé par des composants qui
+ * chargent avec le lecteur lui-même.
+ */
+const HOME_COPY: Record<Locale, HomeCopy> = {
+  fr: {
+    ctaExample: 'Voir un exemple',
+    ctaPaste: 'Coller mon patron',
+    howItWorksTitle: 'Comment ça marche',
+    steps: [
+      {
+        title: '1. Collez, ou déposez un PDF',
+        lead: 'Le texte de votre pattern, copié depuis un site, un PDF ou tapé à la main : l’outil accepte tout, sans mise en forme particulière à respecter.',
+      },
+      {
+        title: '2. Découpez en étapes',
+        lead: 'Chaque rang devient une étape numérotée, prête à s’afficher une par une, en très grand caractère, avec ses mailles à compter.',
+      },
+      {
+        title: '3. Avancez d’un geste, les répétitions se comptent',
+        lead: 'Une touche, un clic ou un geste sur tablette passe à la suite ; le compteur de répétitions et le chronomètre de session suivent tout seuls.',
+      },
+    ],
+    storyboardTitle: 'À quoi ça ressemble',
+    storyboardCaption:
+      'Trois vignettes : coller le pattern, le découper en étapes, puis lire une étape en grand.',
+    storyboardAlt:
+      'Storyboard en trois vignettes : un texte de pattern collé dans une zone de saisie, le même texte découpé en rangs numérotés, puis un seul rang affiché en très grand.',
+    faqTitle: 'Questions fréquentes',
+    faq: [
+      {
+        question: 'Est-ce gratuit ?',
+        answer:
+          'Oui, l’outil est entièrement gratuit et le restera pour l’usage de base : coller un patron, le découper en étapes, compter les rangs et les répétitions. Aucune carte bancaire n’est demandée nulle part.',
+      },
+      {
+        question: 'Faut-il créer un compte ?',
+        answer:
+          'Non, aucun compte n’est nécessaire pour utiliser l’outil. Vos patrons sont enregistrés automatiquement dans le navigateur, sur l’appareil que vous utilisez.',
+      },
+      {
+        question: 'Où vont mes patrons ?',
+        answer:
+          'Nulle part : le texte que vous collez n’est jamais envoyé à un serveur. Il reste dans la mémoire de votre navigateur, comme un brouillon que vous seule pouvez lire.',
+      },
+      {
+        question: 'Ça marche avec un PDF acheté sur Etsy ?',
+        answer:
+          'Oui, tant que le PDF contient du texte sélectionnable, ce qui est le cas de la plupart des patrons vendus en ligne. Un PDF qui n’est qu’une image scannée ne peut pas être lu automatiquement : collez alors le texte à la main dans la zone prévue.',
+      },
+      {
+        question: 'Et pour le tricot ?',
+        answer:
+          'Oui : l’outil découpe aussi bien un patron de tricot qu’un patron de crochet. Les rangs, les répétitions et les abréviations fonctionnent de la même façon pour les deux techniques.',
+      },
+      {
+        question: 'Quelle différence avec une application de patrons ?',
+        answer:
+          'Cet outil ne vend et n’héberge aucun patron : vous apportez le vôtre, d’où qu’il vienne — un PDF acheté, un blog, un magazine — et il se contente de le découper et de l’afficher, une étape à la fois.',
+      },
+    ],
+  },
+  en: {
+    ctaExample: 'See an example',
+    ctaPaste: 'Paste my pattern',
+    howItWorksTitle: 'How it works',
+    steps: [
+      {
+        title: '1. Paste, or drop a PDF',
+        lead: 'The text of your pattern, copied from a website, a PDF, or typed by hand: the tool accepts it as is, with no particular formatting to follow.',
+      },
+      {
+        title: '2. Split into steps',
+        lead: 'Each row becomes a numbered step, ready to display one at a time, in very large print, with its stitches to count.',
+      },
+      {
+        title: '3. Move forward with one gesture, repeats count themselves',
+        lead: 'A tap, a click, or a swipe on tablet moves to the next step; the repeat counter and the session timer keep track on their own.',
+      },
+    ],
+    storyboardTitle: 'What it looks like',
+    storyboardCaption:
+      'Three panels: paste the pattern, split it into steps, then read one step in large print.',
+    storyboardAlt:
+      'A three-panel storyboard: a pattern text pasted into an input area, the same text split into numbered rows, then a single row shown alone, in very large print.',
+    faqTitle: 'Frequently asked questions',
+    faq: [
+      {
+        question: 'Is it free?',
+        answer:
+          'Yes, the tool is entirely free and will stay free for everyday use: pasting a pattern, splitting it into steps, counting rows and repeats. No card is ever asked for.',
+      },
+      {
+        question: 'Do I need an account?',
+        answer:
+          'No account is needed to use the tool. Your patterns are saved automatically in the browser, on the device you are using.',
+      },
+      {
+        question: 'Where do my patterns go?',
+        answer:
+          'Nowhere: the text you paste is never sent to a server. It stays in your browser’s memory, like a draft only you can read.',
+      },
+      {
+        question: 'Does it work with a PDF bought on Etsy?',
+        answer:
+          'Yes, as long as the PDF has selectable text, which is the case for most patterns sold online. A PDF that is only a scanned image can’t be read automatically: paste the text by hand into the box instead.',
+      },
+      {
+        question: 'What about knitting?',
+        answer:
+          'Yes: the tool splits knitting patterns just as well as crochet ones. Rows, repeats and abbreviations work the same way for both crafts.',
+      },
+      {
+        question: 'What’s the difference with a pattern app?',
+        answer:
+          'This tool doesn’t sell or host any patterns: you bring your own, from wherever it comes — a bought PDF, a blog, a magazine — and it simply splits it and displays it, one step at a time.',
+      },
+    ],
+  },
+};
+
 const SEO: Record<Locale, { title: string; description: string }> = {
   fr: {
     title: `Lecteur de patrons crochet et tricot — ${SITE_NAME}`,
@@ -121,12 +285,15 @@ const SEO: Record<Locale, { title: string; description: string }> = {
   selector: 'fil-reader-page',
   imports: [
     Dialog,
+    Disclosure,
+    Icon,
     MaterialsList,
     PatternImport,
     PrintView,
     ReaderCounters,
     RouterLink,
     StepView,
+    Tile,
     WaitlistBanner,
   ],
   host: {
@@ -141,6 +308,19 @@ const SEO: Record<Locale, { title: string; description: string }> = {
       <div>
         <h1>{{ hero.title }}</h1>
         <p>{{ hero.lead }}</p>
+        <ul class="proof-list">
+          @for (proof of proofs; track proof) {
+            <li><fil-icon name="check" />{{ proof }}</li>
+          }
+        </ul>
+        <div class="cta-row">
+          <button type="button" filButton="primary" (click)="loadExample()">
+            {{ homeCopy.ctaExample }}
+          </button>
+          <button type="button" filButton="secondary" (click)="focusPaste()">
+            {{ homeCopy.ctaPaste }}
+          </button>
+        </div>
       </div>
       <!--
         Balise native plutôt que NgOptimizedImage : pour un SVG, il n'apporte
@@ -166,15 +346,56 @@ const SEO: Record<Locale, { title: string; description: string }> = {
 
     <hr class="hr" />
 
-    <fil-reader-counters />
+    @if (store.step()) {
+      <fil-reader-counters />
 
-    <fil-waitlist-banner />
+      <fil-waitlist-banner />
+    } @else {
+      <section class="how-it-works">
+        <h2>{{ homeCopy.howItWorksTitle }}</h2>
+        <div class="grid-steps">
+          @for (step of homeCopy.steps; track step.title) {
+            <fil-tile [label]="step.title">
+              <p>{{ step.lead }}</p>
+            </fil-tile>
+          }
+        </div>
+      </section>
+    }
 
     @if (store.materials().length) {
       <fil-materials-list />
     }
 
     <fil-print-view />
+
+    <hr class="hr" />
+
+    <section class="storyboard-section">
+      <figure class="storyboard">
+        <img
+          src="/illustrations/demo-storyboard.svg"
+          width="720"
+          height="240"
+          [alt]="homeCopy.storyboardAlt"
+        />
+        <figcaption>
+          <strong>{{ homeCopy.storyboardTitle }}</strong>
+          <span>{{ homeCopy.storyboardCaption }}</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="faq">
+      <h2>{{ homeCopy.faqTitle }}</h2>
+      <div class="faq-list">
+        @for (item of homeCopy.faq; track item.question) {
+          <fil-disclosure [label]="item.question" variant="import">
+            <p class="faq-answer">{{ item.answer }}</p>
+          </fil-disclosure>
+        }
+      </div>
+    </section>
 
     <hr class="hr" />
 
@@ -197,18 +418,20 @@ const SEO: Record<Locale, { title: string; description: string }> = {
       </div>
     </section>
 
-    <fil-dialog [(open)]="linkConfirmOpen" [label]="t('ui.linkImportTitle')">
-      <h2 class="dialog-title">{{ t('ui.linkImportTitle') }}</h2>
-      <p class="dialog-body">{{ t('ui.linkImportBody') }}</p>
-      <div class="dialog-actions">
-        <button type="button" filButton="secondary" (click)="cancelLinkImport()">
-          {{ t('ui.cancel') }}
-        </button>
-        <button type="button" filButton="primary" (click)="confirmLinkImport()">
-          {{ t('ui.linkImportAction') }}
-        </button>
-      </div>
-    </fil-dialog>
+    @if (linkConfirmOpen()) {
+      <fil-dialog [(open)]="linkConfirmOpen" [label]="t('ui.linkImportTitle')">
+        <h2 class="dialog-title">{{ t('ui.linkImportTitle') }}</h2>
+        <p class="dialog-body">{{ t('ui.linkImportBody') }}</p>
+        <div class="dialog-actions">
+          <button type="button" filButton="secondary" (click)="cancelLinkImport()">
+            {{ t('ui.cancel') }}
+          </button>
+          <button type="button" filButton="primary" (click)="confirmLinkImport()">
+            {{ t('ui.linkImportAction') }}
+          </button>
+        </div>
+      </fil-dialog>
+    }
   `,
 })
 export class ReaderPage {
@@ -217,11 +440,16 @@ export class ReaderPage {
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly analytics = inject(AnalyticsService);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
   protected readonly hero = HERO[(this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE];
   protected readonly guides =
     GUIDES[(this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE];
+  protected readonly proofs =
+    PROOFS[(this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE];
+  protected readonly homeCopy =
+    HOME_COPY[(this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE];
 
   protected readonly linkConfirmOpen = signal(false);
   private pendingLinkSource: string | null = null;
@@ -235,17 +463,29 @@ export class ReaderPage {
       locale,
       jsonLd: {
         '@context': 'https://schema.org',
-        '@type': 'WebApplication',
-        name: SITE_NAME,
-        applicationCategory: 'LifestyleApplication',
-        operatingSystem: 'Web',
-        description: SEO[locale].description,
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
-        featureList: [
-          'Découpage automatique en étapes',
-          'Compteur de rangs et de répétitions',
-          'Glossaire crochet et tricot FR/EN',
-          'Chronomètre de session',
+        '@graph': [
+          {
+            '@type': 'WebApplication',
+            name: SITE_NAME,
+            applicationCategory: 'LifestyleApplication',
+            operatingSystem: 'Web',
+            description: SEO[locale].description,
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+            featureList: [
+              'Découpage automatique en étapes',
+              'Compteur de rangs et de répétitions',
+              'Glossaire crochet et tricot FR/EN',
+              'Chronomètre de session',
+            ],
+          },
+          {
+            '@type': 'FAQPage',
+            mainEntity: HOME_COPY[locale].faq.map((item) => ({
+              '@type': 'Question',
+              name: item.question,
+              acceptedAnswer: { '@type': 'Answer', text: item.answer },
+            })),
+          },
         ],
       },
     });
@@ -260,6 +500,22 @@ export class ReaderPage {
         void this.loadFromFragment();
       });
     }
+  }
+
+  /** Bouton primaire du bandeau : charge le patron de démonstration et amène
+   *  l'étape en cours dans la fenêtre, sans attendre que la lectrice cherche
+   *  le lecteur plus bas dans la page. */
+  protected loadExample(): void {
+    this.analytics.track('home_cta', { cta: 'example' });
+    this.store.loadDemo();
+    document.querySelector('.reader')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /** Bouton secondaire du bandeau : amène directement le focus dans la zone
+   *  de texte du panneau d'import, déjà ouvert par défaut sans patron chargé. */
+  protected focusPaste(): void {
+    this.analytics.track('home_cta', { cta: 'paste' });
+    document.getElementById('pattern-source')?.focus();
   }
 
   /** Lit `#p=…` ou `#j=…` au démarrage : un permalien de patron ou de projet

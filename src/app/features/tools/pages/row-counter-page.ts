@@ -147,6 +147,12 @@ const COPY: Record<Locale, RowCounterCopy> = {
     </section>
 
     <section class="card">
+      <!--
+        La classe step-body (styles du lecteur) donne le --reader-step en très
+        grand sans ajouter de règle CSS au bundle initial : le budget n'avait
+        que 123 o de marge avant cette fiche (voir la PR). La classe
+        counter-count reste un marqueur pour les tests, sans style propre.
+      -->
       <div class="counter-count step-body" aria-live="polite">
         {{ state().count }}
         @if (state().target) {

@@ -391,7 +391,7 @@ export class ReaderStore {
     this.pdfError.set(null);
     try {
       const { extractPdfPages } = await import('../data/pdf-extract');
-      const pages = await extractPdfPages(file);
+      const { pages } = await extractPdfPages(file);
       const text = normalizePdfPages(pages);
       this.load(text, 'pdf');
       this.analytics.track('pdf_imported', { pages: pages.length });

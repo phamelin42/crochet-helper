@@ -80,4 +80,57 @@ describe('normalizePdfPages', () => {
   it('lève PdfEmptyTextError quand aucune page ne contient de texte', () => {
     expect(() => normalizePdfPages(['', '   \n  \n'])).toThrow(PdfEmptyTextError);
   });
+
+  describe('marqueurs d’image', () => {
+    it('place chaque marqueur après la bonne ligne, numéroté dans l’ordre, sur plusieurs pages', () => {
+      const result = normalizePdfPages([
+        {
+          lines: ['Bunny', 'Round 1: 6 sc in magic ring (6)', 'Round 2: inc around (12)'],
+          images: [{ afterLine: -1 }, { afterLine: 1 }],
+        },
+        { lines: ['Round 3: sc around, see image 3 (12)'], images: [] },
+        {
+          lines: ['Round 4: [sc, inc] x 6 (18)', 'Round 5: sc around (18)'],
+          images: [{ afterLine: 0 }, { afterLine: 1 }],
+        },
+      ]);
+
+      expect(result.split('\n')).toEqual([
+        '[image 1]',
+        'Bunny',
+        'Round 1: 6 sc in magic ring (6)',
+        '[image 2]',
+        'Round 2: inc around (12)',
+        'Round 3: sc around, see image 3 (12)',
+        'Round 4: [sc, inc] x 6 (18)',
+        '[image 3]',
+        'Round 5: sc around (18)',
+        '[image 4]',
+      ]);
+    });
+
+    it('repère le bruit des pages sans compter les marqueurs', () => {
+      const header = 'My Pattern Shop';
+      const result = normalizePdfPages([
+        { lines: [header, 'Row 1: sc around', '1'], images: [{ afterLine: -1 }] },
+        { lines: [header, 'Row 2: inc in each st', '2'], images: [] },
+      ]);
+
+      expect(result).toBe('[image 1]\nRow 1: sc around\nRow 2: inc in each st');
+    });
+
+    it('ne marque rien et rend le même texte quand le PDF n’a pas d’image', () => {
+      const pages = ['Bee\nRound 1: 6 sc (6)\n', 'Round 2: inc around (12)'];
+      const asLines = pages.map((page) => ({ lines: page.split('\n'), images: [] }));
+
+      expect(normalizePdfPages(asLines)).toBe(normalizePdfPages(pages));
+      expect(normalizePdfPages(asLines)).not.toContain('[image');
+    });
+
+    it('lève PdfEmptyTextError pour un PDF scanné, fait d’images sans texte', () => {
+      expect(() => normalizePdfPages([{ lines: [''], images: [{ afterLine: -1 }] }])).toThrow(
+        PdfEmptyTextError,
+      );
+    });
+  });
 });

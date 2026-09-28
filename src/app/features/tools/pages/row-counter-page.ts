@@ -65,7 +65,7 @@ const COPY: Record<Locale, RowCounterCopy> = {
     minus: '−1',
     plus: '+1',
     resetAction: 'Remettre à zéro',
-    resetConfirmTitle: 'Remettre le compteur à zéro ?',
+    resetConfirmTitle: 'Remettre le compteur à zéro ?',
     resetConfirmBody: `Cette action efface le rang actuel${NBSP}: elle ne peut pas être annulée.`,
     resetConfirmAction: 'Remettre à zéro',
     cancel: 'Annuler',

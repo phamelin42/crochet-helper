@@ -364,8 +364,6 @@ export interface RenderedPage {
   readonly height: number;
 }
 
-/** Au-delà, un PDF n'est plus un patron mais un livre : on n'en rend que le début. */
-export const MAX_RENDERED_PAGES = 60;
 /** Plus long côté d'un diagramme enregistré, page de PDF comprise. */
 export const CHART_MAX_SIDE = 2400;
 export const CHART_JPEG_QUALITY = 0.85;
@@ -377,6 +375,7 @@ export const CHART_JPEG_QUALITY = 0.85;
  */
 export async function renderPdfPages(
   file: File,
+  maxPages: number,
 ): Promise<{ pages: RenderedPage[]; total: number }> {
   ensureUpsert();
   const pdfjs = await import('pdfjs-dist');
@@ -385,7 +384,7 @@ export async function renderPdfPages(
   const document = await task.promise;
   const pages: RenderedPage[] = [];
   try {
-    const count = Math.min(document.numPages, MAX_RENDERED_PAGES);
+    const count = Math.min(document.numPages, maxPages);
     for (let number = 1; number <= count; number++) {
       const page = await document.getPage(number);
       const base = page.getViewport({ scale: 1 });

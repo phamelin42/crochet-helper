@@ -62,12 +62,14 @@ export function parseBackup(data: unknown): ProjectBackup | null {
   if (!images.every((image) => isBackupImage(image, ids))) return null;
   return {
     version,
-    projects: projects.map((project) => ({
-      ...project,
-      imageCount: project.imageCount ?? 0,
-      chartCount: project.chartCount ?? 0,
-      charts: sanitizeCharts(project.charts, project.chartCount ?? 0),
-    })),
+    projects: projects.map((project) => {
+      const normalized = { ...project, imageCount: project.imageCount ?? 0 };
+      // Un projet sans diagramme reste tel qu'il est écrit ; les épingles d'un
+      // autre sont écartées quand elles visent un diagramme qui n'existe pas.
+      return project.charts === undefined
+        ? normalized
+        : { ...normalized, charts: sanitizeCharts(project.charts, project.chartCount ?? 0) };
+    }),
     images,
   };
 }

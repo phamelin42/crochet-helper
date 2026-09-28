@@ -9,6 +9,8 @@ export const MAX_CHART_FILE_BYTES = 10 * 1024 * 1024;
 export const MAX_CHART_PDF_BYTES = 30 * 1024 * 1024;
 /** Pages d'un PDF qu'on peut retenir d'un coup comme diagrammes. */
 export const MAX_PDF_CHART_PAGES = 10;
+/** Au-delà, un PDF n'est plus un patron mais un livre : on n'en rend que le début. */
+export const MAX_RENDERED_PAGES = 60;
 const IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp']);
 const MAX_SIDE = 2400;
 /** Un diagramme est enregistré à 0,85 ; s'il pèse plus de 6 Mo (sa limite dans une sauvegarde), 0,6. */
@@ -33,7 +35,8 @@ export const IMAGE_RESIZER = new InjectionToken<(file: File) => Promise<ResizedI
 export const PDF_PAGE_RENDERER = new InjectionToken<
   (file: File) => Promise<{ pages: RenderedPage[]; total: number }>
 >('PDF_PAGE_RENDERER', {
-  factory: () => async (file) => (await import('../data/pdf-extract')).renderPdfPages(file),
+  factory: () => async (file) =>
+    (await import('../data/pdf-extract')).renderPdfPages(file, MAX_RENDERED_PAGES),
 });
 
 /** Lecture d'un fichier en `data:` URL, pour la couverture. */
@@ -85,6 +88,16 @@ export class ChartIntake {
     else await this.addImage(file);
   }
 
+  /**
+   * Image collée ou déposée sur la page. Avec un projet ouvert, la lectrice
+   * dit ce que c'est ; sans projet, un diagramme n'a nulle part où aller et
+   * l'image reste la couverture, comme avant la fiche 35.
+   */
+  async receive(file: File): Promise<void> {
+    if (this.store.currentId()) await this.submit(file, true);
+    else await this.setCover(file);
+  }
+
   /** La réponse « Diagramme » : l'image entre dans le projet. */
   async answerChart(): Promise<void> {
     const file = this.question();
@@ -96,7 +109,10 @@ export class ChartIntake {
   async answerCover(): Promise<void> {
     const file = this.question();
     this.question.set(null);
-    if (!file) return;
+    if (file) await this.setCover(file);
+  }
+
+  private async setCover(file: File): Promise<void> {
     try {
       this.store.setImage(await this.readDataUrl(file));
     } catch {

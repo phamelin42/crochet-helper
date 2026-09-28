@@ -1,0 +1,123 @@
+/* Diagrammes (fiche 35) : feuille à part, chargée avec le premier panneau de
+ * diagramme (`StylesheetService`). Le bundle initial n'a pas la place de ces
+ * règles, et seule une lectrice qui a chargé un diagramme les voit. Jetons de
+ * tokens.css uniquement, comme lecteur.css. */
+
+.chart-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.chart-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Un diagramme se dessine en noir sur blanc : le cadre reste clair même dans
+ * le mode sombre. `pinch-zoom` laisse au navigateur le pincement au doigt. */
+.chart-frame {
+  overflow: auto;
+  max-height: 70vh;
+  background: var(--print-paper);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  touch-action: pan-x pan-y pinch-zoom;
+}
+
+/* Le zoom est un `scale()` depuis le coin haut gauche : la partie agrandie
+ * déborde vers la droite et le bas, et le cadre défile pour l'atteindre. */
+.chart-stage {
+  position: relative;
+  width: 100%;
+  container-type: size;
+  transform-origin: 0 0;
+}
+
+.chart-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}
+
+/* Un quart de tour échange largeur et hauteur : la scène a le rapport inverse,
+ * et l'image se cale sur ses dimensions en unités de conteneur. */
+.chart-img.turn-1,
+.chart-img.turn-3 {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: 100cqh;
+  height: 100cqw;
+}
+.chart-img.turn-1 {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+.chart-img.turn-2 {
+  transform: rotate(180deg);
+}
+.chart-img.turn-3 {
+  transform: translate(-50%, -50%) rotate(270deg);
+}
+
+.chart-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.chart-for {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.chart-for .seg {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Légende : une ligne par symbole, sur fond clair comme le diagramme. */
+.chart-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.chart-legend li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+}
+.chart-legend code {
+  font-weight: 700;
+}
+
+/* Choix des pages d'un PDF : une vignette et sa case par page. */
+.chart-pages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-3);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.chart-pages img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--print-paper);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+}

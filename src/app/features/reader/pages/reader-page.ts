@@ -221,7 +221,8 @@ const HOME_COPY: Record<Locale, HomeCopy> = {
       },
     ],
     storyboardTitle: 'What it looks like',
-    storyboardCaption: 'Three panels: paste the pattern, split it into steps, then read one step in large print.',
+    storyboardCaption:
+      'Three panels: paste the pattern, split it into steps, then read one step in large print.',
     storyboardAlt:
       'A three-panel storyboard: a pattern text pasted into an input area, the same text split into numbered rows, then a single row shown alone, in very large print.',
     faqTitle: 'Frequently asked questions',

@@ -54,7 +54,7 @@ export type AnalyticsEvent =
   | 'waitlist_shown'
   /** Clic sur le lien externe de la liste d'attente. */
   | 'waitlist_clicked'
-  /** Clic sur l'un des deux boutons du bandeau d'accueil (`cta: 'example' | 'paste'`). */
+  /** Clic sur l'un des deux boutons du bandeau d'accueil (propriété `cta`, exemple ou collage). */
   | 'home_cta';
 
 interface Umami {

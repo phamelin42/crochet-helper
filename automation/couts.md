@@ -37,3 +37,4 @@
 | 2026-09-28 | hebdo | agent sauté | — | 33 visites en 7 jours et 7 fiches déjà en attente |
 | 2026-09-28 | lot | 201 tours | 11.47 $ | fiche 25 |
 | 2026-09-28 | lot | 215 tours | 6.19 $ | fiche 35 |
+| 2026-09-28 | lot | 7 tours | 0.16 $ | fiche 36 |

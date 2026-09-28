@@ -89,6 +89,14 @@
   height: var(--control-size);
   flex: none;
 }
+/* Au-delà de 600 px, le bouton affiche son libellé (`.btn-icon-text` dans
+   `hanami.css`) : la réservation de largeur fixe ne s'applique plus qu'à sa
+   hauteur, sinon le texte serait tronqué. */
+@media (min-width: 600px) {
+  .tool-slot {
+    width: auto;
+  }
+}
 
 main {
   padding-bottom: var(--space-10);
@@ -99,10 +107,40 @@ main {
   max-width: 1100px;
   margin: 0 auto var(--space-8);
   padding: 0 var(--gutter);
-  text-align: center;
 }
 .site-footer a {
   color: var(--color-text-label);
+}
+.footer-columns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-6) var(--space-8);
+  margin-bottom: var(--space-4);
+  text-align: left;
+}
+.footer-columns nav {
+  flex: 1 1 180px;
+  max-width: 240px;
+}
+.footer-columns h2 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-label);
+}
+.footer-columns ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.footer-tagline {
+  margin: 0;
+  color: var(--color-text-label);
+  font-size: var(--text-sm);
+  text-align: center;
 }
 
 /* Sur téléphone, l'en-tête garde ses marges et tient compte de l'encoche. */

@@ -16,12 +16,21 @@ export const FR = {
   'nav.reader': 'Lecteur',
   'nav.glossary': 'Glossaire',
   'nav.home': 'Accueil',
-  'nav.format': 'Bien formater',
+  'nav.format': 'Préparer un patron',
   'nav.converter': 'US ↔ UK',
   'nav.projects': 'Mes projets',
   'ui.update': 'Mettre à jour',
-  'footer.designers': 'Vous créez des patrons ?',
   'ui.discord': 'Rejoindre le Discord',
+  'footer.tools': 'Outils',
+  'footer.learn': 'Apprendre',
+  'footer.project': 'Le projet',
+  'footer.forDesigners': 'Vous créez des patrons ?',
+  'footer.guideReadingPattern': 'Lire un patron',
+  'footer.guideReadingChart': 'Lire un diagramme',
+  'footer.guideCrochetOrKnitting': 'Crochet ou tricot',
+  'footer.otherLanguage': 'Version anglaise',
+  'footer.tagline':
+    'Gratuit, sans compte. Vos patrons restent sur votre appareil ; seule une mesure d’audience anonyme est collectée.',
 } as const;
 
 export type TranslationKey = keyof typeof FR;
@@ -32,12 +41,21 @@ export const EN: Record<TranslationKey, string> = {
   'nav.reader': 'Reader',
   'nav.glossary': 'Glossary',
   'nav.home': 'Home',
-  'nav.format': 'Formatting',
+  'nav.format': 'Prepare a pattern',
   'nav.converter': 'US ↔ UK',
   'nav.projects': 'My projects',
   'ui.update': 'Update',
-  'footer.designers': 'Do you design patterns?',
   'ui.discord': 'Join the Discord',
+  'footer.tools': 'Tools',
+  'footer.learn': 'Learn',
+  'footer.project': 'The project',
+  'footer.forDesigners': 'Do you design patterns?',
+  'footer.guideReadingPattern': 'Reading a pattern',
+  'footer.guideReadingChart': 'Reading a chart',
+  'footer.guideCrochetOrKnitting': 'Crochet or knitting',
+  'footer.otherLanguage': 'French version',
+  'footer.tagline':
+    'Free, no account. Your patterns stay on your device; only an anonymous audience measurement is collected.',
 };
 
 export const TRANSLATIONS: Record<Locale, Record<TranslationKey, string>> = { fr: FR, en: EN };

@@ -33,4 +33,10 @@ export class I18nService {
     const segment = ROUTE_PATHS[route][this.current()];
     return `${this.prefix()}${segment === '/' ? '' : segment}` || '/';
   }
+
+  /** Lien vers l'accueil de l'autre langue — une vraie URL, pas un état interne. */
+  otherLocaleHref(): string {
+    const prefix = localePrefix(this.other());
+    return prefix === '' ? '/' : prefix;
+  }
 }

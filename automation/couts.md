@@ -30,3 +30,4 @@
 | 2026-09-27 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
 | 2026-09-27 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
 | 2026-09-27 | lot | 205 tours | 10.42 $ | fiche 24 |
+| 2026-09-28 | lot | 143 tours | 5.50 $ | fiche 26 |

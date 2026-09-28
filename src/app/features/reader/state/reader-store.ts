@@ -1,5 +1,6 @@
 import {
   DestroyRef,
+  InjectionToken,
   Service,
   afterNextRender,
   computed,
@@ -15,7 +16,7 @@ import { ProjectStoreService } from '../../../core/storage/project-store.service
 import { DEMO_PATTERN } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
 import { SharedProgress } from '../data/project-link';
-import type { ExtractedImage } from '../data/pdf-extract';
+import type { ExtractedImage, ExtractedPdf } from '../data/pdf-extract';
 import { PdfEmptyTextError, normalizePdfPages } from '../data/pdf-normalize';
 import { EMPTY_PATTERN, PatternPiece, PatternStep } from '../data/pattern.model';
 import {
@@ -35,6 +36,16 @@ import {
   mergeProjects,
   parseBackup,
 } from '../data/project.model';
+
+/**
+ * Lecture d'un PDF (texte et photos). Chargée par `import()` pour que pdf.js
+ * reste hors du bundle initial ; remplaçable en test, pdf.js ne tournant pas
+ * sous jsdom.
+ */
+export const PDF_EXTRACTOR = new InjectionToken<(file: File) => Promise<ExtractedPdf>>(
+  'PDF_EXTRACTOR',
+  { factory: () => async (file) => (await import('../data/pdf-extract')).extractPdfPages(file) },
+);
 
 /** Ancien état unique, écrit avant la fiche 16 : sert de source de migration. */
 const LEGACY_KEY = 'fil.reader.v1';
@@ -65,6 +76,7 @@ export class ReaderStore {
   private readonly projectStore = inject(ProjectStoreService);
   private readonly analytics = inject(AnalyticsService);
   private readonly objectUrls = inject(ObjectUrlService);
+  private readonly extractPdf = inject(PDF_EXTRACTOR);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Devient vrai une fois la restauration initiale terminée — sert à `ReaderPage`
@@ -472,8 +484,7 @@ export class ReaderStore {
     this.pdfError.set(null);
     this.pdfImagesNote.set(null);
     try {
-      const { extractPdfPages } = await import('../data/pdf-extract');
-      const { pages, truncated } = await extractPdfPages(file);
+      const { pages, truncated } = await this.extractPdf(file);
       const text = normalizePdfPages(pages);
       const images = pages.flatMap((page) => page.images);
       await this.loadWithImages(text, images);

@@ -9,48 +9,15 @@ import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 
 /**
- * Les quatre compteurs de session : position, répétitions du motif en cours,
- * avancement global et chronomètre. Chacun est une tuile du design system.
+ * Avancement global et chronomètre de la session. Le compteur de répétitions,
+ * lui, vit dans `StepView` (fiche 24) : juste sous l'étape, la commande la
+ * plus utilisée crochet en main.
  */
 @Component({
   selector: 'fil-reader-counters',
   imports: [Button, Checkbox, DurationPipe, Icon, Tile],
   host: { class: 'meter' },
   template: `
-    <fil-tile [label]="t('ui.reps')">
-      <div class="big reps">
-        {{ store.currentReps() }}
-        @if (store.step()?.reps) {
-          <span class="sub"> / {{ store.step()!.reps }}</span>
-        }
-      </div>
-      <div class="row tight">
-        <button
-          type="button"
-          filButton="secondary"
-          [iconOnly]="true"
-          aria-label="−"
-          [disabled]="!store.step() || store.currentReps() <= 0"
-          (click)="store.addRepeat(-1)"
-        >
-          <fil-icon name="minus" />
-        </button>
-        <button
-          type="button"
-          filButton="primary"
-          [iconOnly]="true"
-          aria-label="+"
-          [disabled]="!store.step()"
-          (click)="store.addRepeat(1)"
-        >
-          <fil-icon name="plus" />
-        </button>
-        <button type="button" filButton="ghost" (click)="store.resetRepeat()">
-          {{ t('ui.reset') }}
-        </button>
-      </div>
-    </fil-tile>
-
     <fil-tile [label]="t('ui.doneLabel')">
       <div class="big">
         {{ store.doneCount() }}<span class="sub"> / {{ store.total() }}</span>

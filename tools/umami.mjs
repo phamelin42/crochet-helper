@@ -51,6 +51,7 @@ export const EVENEMENTS = [
   'reading_depth_50',
   'waitlist_shown',
   'waitlist_clicked',
+  'reading_pref_changed',
   'home_cta',
 ];
 

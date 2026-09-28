@@ -3,6 +3,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
+import { Tile } from '../../../shared/ui/tile/tile';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 import { GlossaryText } from './glossary-text';
@@ -13,7 +14,7 @@ import { GlossaryText } from './glossary-text';
  */
 @Component({
   selector: 'fil-step-view',
-  imports: [Button, GlossaryText, Icon, Segmented],
+  imports: [Button, GlossaryText, Icon, Segmented, Tile],
   template: `
     @if (pieceOptions().length > 1) {
       <div class="pieces">
@@ -60,6 +61,40 @@ import { GlossaryText } from './glossary-text';
     @if (store.step()?.tip; as tip) {
       <p class="step-tip"><span aria-hidden="true">💡</span> <fil-glossary-text [text]="tip" /></p>
     }
+
+    <fil-tile class="reps-tile" [label]="t('ui.reps')">
+      <div class="big reps">
+        {{ store.currentReps() }}
+        @if (store.step()?.reps) {
+          <span class="sub"> / {{ store.step()!.reps }}</span>
+        }
+      </div>
+      <div class="row tight">
+        <button
+          type="button"
+          filButton="secondary"
+          [iconOnly]="true"
+          aria-label="−"
+          [disabled]="!store.step() || store.currentReps() <= 0"
+          (click)="store.addRepeat(-1)"
+        >
+          <fil-icon name="minus" />
+        </button>
+        <button
+          type="button"
+          filButton="primary"
+          [iconOnly]="true"
+          aria-label="+"
+          [disabled]="!store.step()"
+          (click)="store.addRepeat(1)"
+        >
+          <fil-icon name="plus" />
+        </button>
+        <button type="button" filButton="ghost" (click)="store.resetRepeat()">
+          {{ t('ui.reset') }}
+        </button>
+      </div>
+    </fil-tile>
 
     <div class="navrow">
       <button

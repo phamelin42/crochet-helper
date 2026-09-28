@@ -4,6 +4,7 @@ import {
   PLATFORM_ID,
   effect,
   inject,
+  model,
   signal,
   viewChild,
 } from '@angular/core';
@@ -131,7 +132,7 @@ export class PatternImport {
   private readonly analytics = inject(AnalyticsService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
-  readonly open = signal(true);
+  readonly open = model(true);
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
   protected readonly pdfInput = viewChild.required<ElementRef<HTMLInputElement>>('pdfFile');
 
@@ -221,6 +222,12 @@ export class PatternImport {
     this.store.clear();
     const field = this.source();
     if (field) field.nativeElement.value = '';
+  }
+
+  /** Amène le focus dans le champ de collage — utilisé par le lien « Changer
+   *  de patron » du mode lecture, une fois le panneau rouvert. */
+  focusSource(): void {
+    this.source()?.nativeElement.focus();
   }
 
   private async refreshShareUrl(source: string): Promise<void> {

@@ -53,6 +53,8 @@ export const EVENEMENTS = [
   'waitlist_clicked',
   'reading_pref_changed',
   'home_cta',
+  'step_jumped',
+  'print_opened',
   'row_counted',
 ];
 

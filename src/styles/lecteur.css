@@ -477,6 +477,27 @@ textarea.src-input {
   flex-grow: 1.4;
 }
 
+/* — liste des étapes (fiche 25) : chaque entrée est un `.btn-ghost.btn-block`
+   (déjà dans `hanami.css`, sans coût de bundle) plutôt qu'une carte propre —
+   la marge du budget initial se compte en octets. */
+.steps-list {
+  margin: var(--space-2) 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+.steps-item {
+  justify-content: flex-start;
+  text-align: left;
+}
+.steps-item[aria-current='step'] {
+  background: var(--color-sakura-pale);
+  color: var(--color-sakura-ink);
+}
+.steps-item.done::after {
+  content: ' ✓';
+  color: var(--color-wakaba-ink);
+}
+
 /* — compteurs — trois tuiles, trois couleurs : sakura (répétitions), wakaba
    (fait), asagi (temps). La couleur dit le rôle avant même l'étiquette. */
 .meter {
@@ -562,6 +583,16 @@ textarea.src-input {
   border-radius: var(--radius-pill);
   background: var(--color-overlay);
   overflow: hidden;
+}
+/* Barre de progression de l'étape (fiche 25), sous le texte : au-dessus, elle
+   repoussait l'étape hors du premier écran sur tablette (garde de la fiche 24). */
+.step-progress {
+  margin: var(--space-3) 0 var(--space-4);
+}
+.stepcount {
+  font-size: var(--text-sm);
+  color: var(--color-text-label);
+  font-variant-numeric: tabular-nums;
 }
 .progress i {
   display: block;
@@ -926,9 +957,6 @@ textarea.src-input {
   border-radius: var(--radius-sm);
   border-left: 4px solid var(--color-momiji);
   background: var(--color-momiji-pale);
-}
-.steps > li + li {
-  margin-top: var(--space-5);
 }
 .tuto h2 {
   margin-top: var(--space-8);

@@ -81,3 +81,9 @@ coûteuses (→ script). Élaguer les entrées de plus de dix fiches.
 - Défauts : un lien au patron vide passait `decodeProject` et remplaçait l'affichage du projet actif par un projet vide ; le test « projet actif intact » lisait la liste avant l'effet de persistance (vrai quoi qu'il arrive), rien ne vérifiait que la copie reçue était écrite en IndexedDB, et le test des bornes acceptait tout index ≥ 0.
 - Coûts : session précédente perdue (lien de chat illisible, pas de doc Projets en session Claude Code) → état redéduit de git, des PR et du journal ; hook `pre-push` rouge faute de navigateur Playwright.
 - Amélioration : navigateur Playwright installé avant l'agent dans `lot-suivant.yml` ; deux pièges dans CLAUDE.md (lecture avant persistance, cocher avance) ; skill : le journal est la seule trace durable, `PW_CHROMIUM` pour le hook.
+
+## 25 — Vue d'ensemble et partage visible
+
+- Défauts : « Copier le lien », « Envoyer ce projet » et « Imprimer » rangés dans le panneau « Toutes les étapes », replié par défaut (la fiche disait « sous la liste », l'audit voulait « visible ») ; « Étape 2 / 13 » et la barre de progression au-dessus de l'étape la repoussaient à 472 px sur tablette, sous la garde de la fiche 24 (450 px) ; `goTo(NaN)` posait NaN comme position. Travail inachevé : l'agent a épuisé ses tours à rogner du CSS pour tenir dans 328 kB, budget relevé à 329 kB par une autre session entre-temps.
+- Coûts : PR #66 poussée par l'API depuis une copie locale périmée → tableau d'avancement écrasé, quatre fiches redevenues « À faire », correctif urgent #67 ; terminal du bac à sable indisponible une heure ; PR #65 en conflit avec `main` (trois fichiers, événements et avancement).
+- Amélioration : deux pièges dans CLAUDE.md (panneau replié, garde tablette) ; skill : jamais de `push_files` sur un fichier partagé sans relecture depuis `origin/main`.

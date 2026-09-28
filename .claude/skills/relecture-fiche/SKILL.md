@@ -184,6 +184,10 @@ Mets à jour `claude/etat-du-projet.md` (outil Projects) : fiche en cours, actio
   libellé (`getByText('Assombri', { exact: true })`), pas par `getByRole`.
 - Poids du bundle : `npx ng build --stats-json`, puis lire
   `dist/fil-patterns/stats.json` (`outputs[main].inputs[*].bytesInOutput`).
+- `push_files` (API GitHub) écrit le fichier entier : un fichier partagé et
+  vivant (`automation/avancement.md`, `prompts/README.md`) poussé depuis une
+  copie locale périmée écrase le travail du pilote (PR #66, corrigée par #67).
+  Relire le fichier depuis `origin/main` juste avant, ou attendre le terminal.
 - Le hook `pre-push` lance `verify:ci` (six minutes) et le refuse sans
   navigateur : `PW_CHROMIUM=/opt/pw-browsers/chromium git push`, ou
   `--no-verify` quand on vient soi-même de lancer `verify:ci`.

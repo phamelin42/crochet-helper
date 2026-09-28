@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DurationPipe } from '../../../shared/pipes/duration.pipe';
 import { Button } from '../../../shared/ui/button/button';
@@ -57,22 +57,4 @@ export class ReaderCounters {
   private readonly i18n = inject(I18nService);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
-
-  protected readonly current = computed(() =>
-    this.store.step() ? String(this.store.stepIndex() + 1).padStart(2, '0') : '--',
-  );
-  protected readonly count = computed(() =>
-    this.store.stepCount() ? String(this.store.stepCount()).padStart(2, '0') : '--',
-  );
-  protected readonly globalHint = computed(() => {
-    if (this.store.pieces().length > 1 && this.store.total()) {
-      return `${this.store.total()} ${this.t('ui.allSteps')}`;
-    }
-    return this.store.stepCount() ? this.t('ui.stepsIn') : this.t('ui.noPattern');
-  });
-
-  protected goTo(value: string): void {
-    const parsed = Number.parseInt(value, 10);
-    if (parsed) this.store.goTo(parsed);
-  }
 }

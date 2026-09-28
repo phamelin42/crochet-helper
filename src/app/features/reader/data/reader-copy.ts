@@ -26,7 +26,6 @@ const FR = {
   'ui.repeat': 'Répétition',
   'ui.allSteps': 'étapes en tout',
   'ui.reset': 'Remettre à zéro',
-  'ui.stepsIn': 'dans cette pièce',
   'ui.pieces': 'Pièces',
   'ui.loaded': 'étapes découpées',
   'ui.noPattern': 'aucun patron chargé',
@@ -40,7 +39,7 @@ const FR = {
   'ui.expand': 'Développer les abréviations',
   'ui.abbrev': 'Abréviations',
   'ui.cancel': 'Annuler',
-  'ui.copyLink': 'Copier le lien',
+  'ui.copyPatternLink': 'Copier le lien du patron',
   'ui.linkCopied': 'Lien copié dans le presse-papiers.',
   'ui.linkCopyFailed':
     'Impossible de copier automatiquement. Copiez l’adresse de la page depuis la barre du navigateur.',
@@ -63,6 +62,11 @@ const FR = {
   'ui.darken': 'Assombrir',
   'ui.lighten': 'Éclaircir',
   'ui.changePattern': 'Changer de patron',
+  'ui.stepsListLabel': 'Toutes les étapes',
+  'ui.goToStepLabel': 'Aller à l’étape n°',
+  'ui.go': 'Aller',
+  'ui.stepOf': 'Étape',
+  'ui.print': 'Imprimer',
 } as const;
 
 export type ReaderTranslationKey = keyof typeof FR;
@@ -87,7 +91,6 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.repeat': 'Repeat',
   'ui.allSteps': 'steps in total',
   'ui.reset': 'Reset',
-  'ui.stepsIn': 'in this piece',
   'ui.pieces': 'Pieces',
   'ui.loaded': 'steps found',
   'ui.noPattern': 'no pattern loaded',
@@ -101,7 +104,7 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.expand': 'Spell out abbreviations',
   'ui.abbrev': 'Abbreviations',
   'ui.cancel': 'Cancel',
-  'ui.copyLink': 'Copy link',
+  'ui.copyPatternLink': 'Copy the pattern link',
   'ui.linkCopied': 'Link copied to clipboard.',
   'ui.linkCopyFailed': 'Could not copy automatically. Copy the page address from the browser bar.',
   'ui.linkTooLong': 'This pattern is too long to fit in a link. Share it as text instead.',
@@ -122,6 +125,11 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.darken': 'Darken',
   'ui.lighten': 'Lighten',
   'ui.changePattern': 'Change pattern',
+  'ui.stepsListLabel': 'All steps',
+  'ui.goToStepLabel': 'Go to step #',
+  'ui.go': 'Go',
+  'ui.stepOf': 'Step',
+  'ui.print': 'Print',
 };
 
 export const READER_COPY: Record<Locale, Record<ReaderTranslationKey, string>> = { fr: FR, en: EN };

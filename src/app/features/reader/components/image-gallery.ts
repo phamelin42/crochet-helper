@@ -5,7 +5,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
-import { ReaderStore } from '../state/reader-store';
+import { ReaderStore, ShownPhoto } from '../state/reader-store';
 
 /**
  * Vignettes des photos d'un patron PDF et leur agrandissement. Une photo dont
@@ -23,45 +23,52 @@ import { ReaderStore } from '../state/reader-store';
   },
   template: `
     @if (items().length) {
-      <ul class="photo-row" [attr.aria-label]="label()">
+      <div class="import-actions" role="group" [attr.aria-label]="label()">
         @for (item of items(); track item.n; let i = $index) {
-          <li>
-            <button type="button" filButton="secondary" class="photo-thumb" (click)="openAt(i)">
-              <img [src]="item.url" alt="" width="88" height="88" decoding="async" />
-              <span>{{ t('ui.photo') }} {{ item.n }}</span>
-            </button>
-          </li>
+          <button type="button" filButton="secondary" class="photo-thumb" (click)="openAt(i)">
+            <!-- Hauteur fixe, largeur à la proportion de la photo : aucune
+                 règle CSS de plus dans le bundle initial. -->
+            <img
+              [src]="item.url"
+              alt=""
+              [width]="thumbWidth(item)"
+              [height]="THUMB_HEIGHT"
+              decoding="async"
+            />
+            <span>{{ t('ui.photo') }} {{ item.n }}</span>
+          </button>
         }
-      </ul>
+      </div>
 
       <fil-dialog [(open)]="open" [label]="currentLabel()" [wide]="true">
         @if (current(); as item) {
-          <div class="photo-viewer">
-            <img class="photo-full" [src]="item.url" [alt]="currentLabel()" />
-            <div class="photo-nav">
-              <button
-                type="button"
-                filButton="secondary"
-                [disabled]="index() === 0"
-                (click)="step(-1)"
-              >
-                <fil-icon name="left" /><span>{{ t('ui.photoPrev') }}</span>
-              </button>
-              <span class="photo-count">{{ index() + 1 }} / {{ items().length }}</span>
-              <button
-                type="button"
-                filButton="secondary"
-                [disabled]="index() === items().length - 1"
-                (click)="step(1)"
-              >
-                <span>{{ t('ui.photoNext') }}</span
-                ><fil-icon name="right" />
-              </button>
-              <button type="button" filButton="ghost" (click)="open.set(false)">
-                {{ t('ui.photoClose') }}
-              </button>
-            </div>
+          <div class="dialog-actions">
+            <button
+              type="button"
+              filButton="secondary"
+              [disabled]="index() === 0"
+              (click)="step(-1)"
+            >
+              <fil-icon name="left" /><span>{{ t('ui.photoPrev') }}</span>
+            </button>
+            <span>{{ index() + 1 }} / {{ items().length }}</span>
+            <button
+              type="button"
+              filButton="secondary"
+              [disabled]="index() === items().length - 1"
+              (click)="step(1)"
+            >
+              <span>{{ t('ui.photoNext') }}</span
+              ><fil-icon name="right" />
+            </button>
+            <button type="button" filButton="ghost" (click)="open.set(false)">
+              {{ t('ui.photoClose') }}
+            </button>
           </div>
+          <!-- Sans largeur ni hauteur imposées : la photo garde ses proportions
+               (max-width: 100 % global), et la barre au-dessus reste à l'écran
+               même quand une photo en hauteur fait défiler le dialogue. -->
+          <img class="photo-full" [src]="item.url" [alt]="currentLabel()" />
         }
       </fil-dialog>
     }
@@ -82,11 +89,14 @@ export class ImageGallery {
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
 
+  protected readonly THUMB_HEIGHT = 64;
+
   protected readonly items = computed(() => {
-    const urls = this.store.imageUrls();
-    return this.numbers()
-      .map((n) => ({ n, url: urls[n - 1] ?? '' }))
-      .filter((item) => item.url);
+    const photos = this.store.photos();
+    return this.numbers().flatMap((n) => {
+      const photo = photos[n - 1];
+      return photo ? [{ n, ...photo }] : [];
+    });
   });
   protected readonly index = computed(() =>
     Math.min(this.selected(), Math.max(0, this.items().length - 1)),
@@ -96,6 +106,10 @@ export class ImageGallery {
     const item = this.current();
     return item ? `${this.t('ui.photo')} ${item.n}` : '';
   });
+
+  protected thumbWidth(photo: ShownPhoto): number {
+    return Math.round((this.THUMB_HEIGHT * photo.width) / photo.height);
+  }
 
   protected openAt(index: number): void {
     this.selected.set(index);

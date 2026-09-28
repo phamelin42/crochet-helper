@@ -17,25 +17,25 @@ import { DEMO_PATTERN } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
 import { SharedProgress } from '../data/project-link';
 import type { ExtractedImage, ExtractedPdf } from '../data/pdf-extract';
-import { PdfEmptyTextError, normalizePdfPages } from '../data/pdf-normalize';
 import { EMPTY_PATTERN, PatternPiece, PatternStep } from '../data/pattern.model';
 import {
-  BACKUP_SCHEMA_VERSION,
-  BackupImage,
   LegacyReaderState,
-  MAX_BACKUP_BYTES,
   Project,
-  ProjectBackup,
   ProjectImage,
-  base64ToBytes,
-  bytesToBase64,
   deriveProjectName,
   imageId,
   imageIds,
   legacyToProject,
   mergeProjects,
-  parseBackup,
 } from '../data/project.model';
+
+/** Une photo du projet actif, telle que l'affiche le lecteur. */
+export interface ShownPhoto {
+  /** Adresse `blob:` — révoquée au changement de projet. */
+  readonly url: string;
+  readonly width: number;
+  readonly height: number;
+}
 
 /**
  * Lecture d'un PDF (texte et photos). Chargée par `import()` pour que pdf.js
@@ -109,9 +109,9 @@ export class ReaderStore {
 
   /** Nombre de photos du projet actif, enregistrées à part dans IndexedDB. */
   readonly imageCount = signal(0);
-  /** Adresses d'affichage des photos du projet actif : l'image n est à l'indice
-   *  n - 1, '' si son fichier manque. Vide tant qu'elles ne sont pas lues. */
-  readonly imageUrls = signal<readonly string[]>([]);
+  /** Photos du projet actif, prêtes à afficher : l'image n est à l'indice
+   *  n - 1, `null` si son fichier manque. Vide tant qu'elles ne sont pas lues. */
+  readonly photos = signal<readonly (ShownPhoto | null)[]>([]);
   /** Suspend l'effet de persistance pendant l'écriture groupée d'un PDF et de ses photos. */
   private holdPersist = false;
   /** Numéro de la dernière lecture de photos : une lecture dépassée est ignorée. */
@@ -191,7 +191,7 @@ export class ReaderStore {
     effect(() => {
       const id = this.currentId();
       const count = this.imageCount();
-      untracked(() => void this.loadImageUrls(id, count));
+      untracked(() => void this.loadPhotos(id, count));
     });
 
     // Le pointeur vers le projet actif est la seule donnée qui reste dans
@@ -206,7 +206,7 @@ export class ReaderStore {
     this.destroyRef.onDestroy(() => {
       this.stopTimer();
       this.imageLoad++;
-      this.releaseImageUrls();
+      this.releasePhotos();
     });
   }
 
@@ -282,21 +282,27 @@ export class ReaderStore {
     };
   }
 
-  private async loadImageUrls(id: string | null, count: number): Promise<void> {
+  private async loadPhotos(id: string | null, count: number): Promise<void> {
     const load = ++this.imageLoad;
-    this.releaseImageUrls();
+    this.releasePhotos();
     if (!id || !count) return;
     const files = await this.projectStore.getFiles<ProjectImage>(
       imageIds({ id, imageCount: count }),
     );
     // Un autre projet a été ouvert pendant la lecture : ces photos ne sont plus les siennes.
     if (load !== this.imageLoad) return;
-    this.imageUrls.set(files.map((file) => (file ? this.objectUrls.create(file.blob) : '')));
+    this.photos.set(
+      files.map((file) =>
+        file
+          ? { url: this.objectUrls.create(file.blob), width: file.width, height: file.height }
+          : null,
+      ),
+    );
   }
 
-  private releaseImageUrls(): void {
-    this.imageUrls().forEach((url) => this.objectUrls.revoke(url));
-    this.imageUrls.set([]);
+  private releasePhotos(): void {
+    this.photos().forEach((photo) => photo && this.objectUrls.revoke(photo.url));
+    this.photos.set([]);
   }
 
   private hydrate(project: Project, touch = false): void {
@@ -352,16 +358,11 @@ export class ReaderStore {
   async exportBackup(): Promise<Blob> {
     const projects = this.projects();
     this.analytics.track('backup_exported', { projects: projects.length });
-    const files = await this.projectStore.getFiles<ProjectImage>(projects.flatMap(imageIds));
-    const images: BackupImage[] = [];
-    for (const file of files) {
-      if (!file) continue;
-      const { blob, ...fields } = file;
-      const data = bytesToBase64(new Uint8Array(await blob.arrayBuffer()));
-      images.push({ ...fields, type: blob.type || 'image/jpeg', data });
-    }
-    const backup: ProjectBackup = { version: BACKUP_SCHEMA_VERSION, projects, images };
-    return new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const [{ encodeBackup }, files] = await Promise.all([
+      import('../data/project-backup'),
+      this.projectStore.getFiles<ProjectImage>(projects.flatMap(imageIds)),
+    ]);
+    return encodeBackup(projects, files);
   }
 
   /**
@@ -370,6 +371,7 @@ export class ReaderStore {
    * numéro de schéma est inconnu, et n'importe rien si l'écriture échoue.
    */
   async importBackup(file: File): Promise<boolean> {
+    const { MAX_BACKUP_BYTES, decodeImages, parseBackup } = await import('../data/project-backup');
     // Borné avant lecture : un fichier démesuré ne doit pas saturer la mémoire.
     if (file.size > MAX_BACKUP_BYTES) return false;
     let raw: unknown;
@@ -386,12 +388,7 @@ export class ReaderStore {
     // Photos des seuls projets dont la version importée l'emporte : un projet
     // déjà présent et plus récent garde les siennes.
     const imported = new Set(merged.filter((p) => !current.includes(p)).map((p) => p.id));
-    const files: ProjectImage[] = backup.images
-      .filter((image) => imported.has(image.projectId))
-      .map(({ type, data, ...fields }) => ({
-        ...fields,
-        blob: new Blob([base64ToBytes(data)], { type }),
-      }));
+    const files = decodeImages(backup.images, imported);
     // Une seule transaction : si le quota lâche, rien n'est importé.
     if (!(await this.projectStore.putAll(merged, files))) return false;
     this.projects.set(merged);
@@ -484,7 +481,11 @@ export class ReaderStore {
     this.pdfImporting.set(true);
     this.pdfError.set(null);
     this.pdfImagesNote.set(null);
+    // Chargé avec le PDF, pas au premier affichage : seul l'import s'en sert.
+    let emptyText: (new () => Error) | null = null;
     try {
+      const { PdfEmptyTextError, normalizePdfPages } = await import('../data/pdf-normalize');
+      emptyText = PdfEmptyTextError;
       const { pages, truncated } = await this.extractPdf(file);
       const text = normalizePdfPages(pages);
       const images = pages.flatMap((page) => page.images);
@@ -492,7 +493,7 @@ export class ReaderStore {
       if (truncated && !this.pdfImagesNote()) this.pdfImagesNote.set('tronque');
       this.analytics.track('pdf_imported', { pages: pages.length, images: images.length });
     } catch (error) {
-      const raison = error instanceof PdfEmptyTextError ? 'vide' : 'erreur';
+      const raison = emptyText && error instanceof emptyText ? 'vide' : 'erreur';
       this.pdfError.set(raison);
       this.analytics.track('pdf_failed', { raison });
     } finally {

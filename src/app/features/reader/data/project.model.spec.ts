@@ -3,14 +3,11 @@ import {
   BACKUP_SCHEMA_VERSION,
   BackupImage,
   MAX_BACKUP_IMAGE_BYTES,
-  Project,
   base64ToBytes,
   bytesToBase64,
-  deriveProjectName,
-  legacyToProject,
-  mergeProjects,
   parseBackup,
-} from './project.model';
+} from './project-backup';
+import { Project, deriveProjectName, legacyToProject, mergeProjects } from './project.model';
 
 function projectFixture(overrides: Partial<Project> = {}): Project {
   return {

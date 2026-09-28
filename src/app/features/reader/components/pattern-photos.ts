@@ -15,7 +15,7 @@ import { ImageGallery } from './image-gallery';
   imports: [Disclosure, ImageGallery],
   template: `
     @if (note(); as note) {
-      <p class="hint photo-note" role="status">{{ note }}</p>
+      <p class="hint" role="status">{{ note }}</p>
     }
     @if (visible()) {
       <fil-disclosure [label]="t('ui.patternPhotos')" variant="mats" [state]="count()">
@@ -33,7 +33,7 @@ export class PatternPhotos {
   protected readonly numbers = computed(() => this.store.pattern().images ?? []);
   /** Rien à déplier tant que les fichiers ne sont pas lus, ou s'ils manquent. */
   protected readonly visible = computed(() =>
-    this.numbers().some((n) => this.store.imageUrls()[n - 1]),
+    this.numbers().some((n) => this.store.photos()[n - 1]),
   );
   protected readonly count = computed(() => String(this.numbers().length));
   protected readonly note = computed(() => {

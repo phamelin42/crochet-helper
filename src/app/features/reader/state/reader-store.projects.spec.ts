@@ -7,7 +7,8 @@ import {
   installFakeIndexedDb,
   uninstallFakeIndexedDb,
 } from '../../../core/storage/testing/fake-indexed-db';
-import { BACKUP_SCHEMA_VERSION, Project, ProjectImage } from '../data/project.model';
+import { BACKUP_SCHEMA_VERSION } from '../data/project-backup';
+import { Project, ProjectImage } from '../data/project.model';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import type { ExtractedPdf } from '../data/pdf-extract';
@@ -538,12 +539,17 @@ describe('ReaderStore — projets', () => {
       const store = TestBed.inject(ReaderStore);
       await store.initialize();
       await store.importPdf(pdfFile());
-      await vi.waitFor(() => expect(store.imageUrls()).toEqual(['blob:1', 'blob:2']));
+      await vi.waitFor(() =>
+        expect(store.photos()).toEqual([
+          { url: 'blob:1', width: 640, height: 480 },
+          { url: 'blob:2', width: 640, height: 480 },
+        ]),
+      );
 
       store.load('Rang 1 : 6 ms\nRang 2 : 12 ms');
       TestBed.tick();
 
-      await vi.waitFor(() => expect(store.imageUrls()).toEqual([]));
+      await vi.waitFor(() => expect(store.photos()).toEqual([]));
       expect(revoke.mock.calls.map(([url]) => url)).toEqual(['blob:1', 'blob:2']);
     });
   });

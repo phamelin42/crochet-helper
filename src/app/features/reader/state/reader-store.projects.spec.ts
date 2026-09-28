@@ -30,6 +30,7 @@ function projectFixture(overrides: Partial<Project> = {}): Project {
     expandAbbreviations: false,
     createdAt: 0,
     lastOpenedAt: 0,
+    imageCount: 0,
     ...overrides,
   };
 }
@@ -216,7 +217,7 @@ describe('ReaderStore — projets', () => {
       projectFixture({ id: 'b', name: 'Écharpe', elapsed: 90_000, lastOpenedAt: 5 }),
     ];
     store.projects.set(projects);
-    const text = await store.exportBackup().text();
+    const text = await (await store.exportBackup()).text();
 
     // Profil vide : autre base, autre magasin.
     uninstallFakeIndexedDb();

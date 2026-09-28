@@ -9,19 +9,28 @@ import {
   untracked,
 } from '@angular/core';
 import { AnalyticsService, roundToHundred } from '../../../core/analytics/analytics.service';
+import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import { DEMO_PATTERN } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
 import { SharedProgress } from '../data/project-link';
+import type { ExtractedImage } from '../data/pdf-extract';
 import { PdfEmptyTextError, normalizePdfPages } from '../data/pdf-normalize';
 import { EMPTY_PATTERN, PatternPiece, PatternStep } from '../data/pattern.model';
 import {
   BACKUP_SCHEMA_VERSION,
+  BackupImage,
   LegacyReaderState,
+  MAX_BACKUP_BYTES,
   Project,
   ProjectBackup,
+  ProjectImage,
+  base64ToBytes,
+  bytesToBase64,
   deriveProjectName,
+  imageId,
+  imageIds,
   legacyToProject,
   mergeProjects,
   parseBackup,
@@ -55,6 +64,7 @@ export class ReaderStore {
   private readonly storage = inject(LocalStorageService);
   private readonly projectStore = inject(ProjectStoreService);
   private readonly analytics = inject(AnalyticsService);
+  private readonly objectUrls = inject(ObjectUrlService);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Devient vrai une fois la restauration initiale terminée — sert à `ReaderPage`
@@ -82,6 +92,18 @@ export class ReaderStore {
 
   readonly pdfImporting = signal(false);
   readonly pdfError = signal<'vide' | 'erreur' | null>(null);
+  /** Photos d'un PDF laissées de côté : au-delà des plafonds, ou non enregistrées (quota). */
+  readonly pdfImagesNote = signal<'tronque' | 'non-enregistrees' | null>(null);
+
+  /** Nombre de photos du projet actif, enregistrées à part dans IndexedDB. */
+  readonly imageCount = signal(0);
+  /** Adresses d'affichage des photos du projet actif : l'image n est à l'indice
+   *  n - 1, '' si son fichier manque. Vide tant qu'elles ne sont pas lues. */
+  readonly imageUrls = signal<readonly string[]>([]);
+  /** Suspend l'effet de persistance pendant l'écriture groupée d'un PDF et de ses photos. */
+  private holdPersist = false;
+  /** Numéro de la dernière lecture de photos : une lecture dépassée est ignorée. */
+  private imageLoad = 0;
 
   /** Projet actif, `null` avant tout patron chargé. */
   readonly currentId = signal<string | null>(null);
@@ -147,8 +169,17 @@ export class ReaderStore {
       this.expandAbbreviations();
       this.currentId();
       this.nameOverride();
+      this.imageCount();
       if (!this.restored()) return;
       void this.persist();
+    });
+
+    // Les photos suivent le projet actif : les adresses du précédent sont
+    // révoquées avant de lire celles du suivant.
+    effect(() => {
+      const id = this.currentId();
+      const count = this.imageCount();
+      untracked(() => void this.loadImageUrls(id, count));
     });
 
     // Le pointeur vers le projet actif est la seule donnée qui reste dans
@@ -160,7 +191,11 @@ export class ReaderStore {
       else this.storage.remove(CURRENT_ID_KEY);
     });
 
-    this.destroyRef.onDestroy(() => this.stopTimer());
+    this.destroyRef.onDestroy(() => {
+      this.stopTimer();
+      this.imageLoad++;
+      this.releaseImageUrls();
+    });
   }
 
   /**
@@ -206,11 +241,19 @@ export class ReaderStore {
   }
 
   private async persist(): Promise<void> {
+    if (this.holdPersist) return;
     const id = this.currentId();
     if (!id) return;
+    const project = this.snapshot(id);
+    await this.projectStore.put(project);
+    this.projects.update((list) => [...list.filter((p) => p.id !== id), project]);
+  }
+
+  /** Le projet actif tel qu'il doit être enregistré. */
+  private snapshot(id: string): Project {
     const now = Date.now();
     const existing = untracked(() => this.projects()).find((p) => p.id === id);
-    const project: Project = {
+    return {
       id,
       name: this.currentName(),
       source: this.source(),
@@ -223,9 +266,25 @@ export class ReaderStore {
       expandAbbreviations: this.expandAbbreviations(),
       createdAt: existing?.createdAt ?? now,
       lastOpenedAt: existing?.lastOpenedAt ?? now,
+      imageCount: this.imageCount(),
     };
-    await this.projectStore.put(project);
-    this.projects.update((list) => [...list.filter((p) => p.id !== id), project]);
+  }
+
+  private async loadImageUrls(id: string | null, count: number): Promise<void> {
+    const load = ++this.imageLoad;
+    this.releaseImageUrls();
+    if (!id || !count) return;
+    const files = await this.projectStore.getFiles<ProjectImage>(
+      imageIds({ id, imageCount: count }),
+    );
+    // Un autre projet a été ouvert pendant la lecture : ces photos ne sont plus les siennes.
+    if (load !== this.imageLoad) return;
+    this.imageUrls.set(files.map((file) => (file ? this.objectUrls.create(file.blob) : '')));
+  }
+
+  private releaseImageUrls(): void {
+    this.imageUrls().forEach((url) => this.objectUrls.revoke(url));
+    this.imageUrls.set([]);
   }
 
   private hydrate(project: Project, touch = false): void {
@@ -237,6 +296,7 @@ export class ReaderStore {
     this.reps.set(project.reps);
     this.elapsed.set(project.elapsed);
     this.expandAbbreviations.set(project.expandAbbreviations);
+    this.imageCount.set(project.imageCount ?? 0);
     this.pieceIndex.set(Math.min(project.pieceIndex, Math.max(0, this.pieces().length - 1)));
     this.stepIndex.set(Math.min(project.stepIndex, Math.max(0, this.stepCount() - 1)));
     this.depthsReached.set(new Set(DEPTH_THRESHOLDS.filter((t) => this.absoluteStep() >= t)));
@@ -269,15 +329,25 @@ export class ReaderStore {
     // Le lecteur est vidé **avant** d'attendre la suppression : sinon un tic du
     // chronomètre pendant l'attente relancerait `persist()` et réécrirait le
     // projet qu'on vient d'effacer.
+    const project = this.projects().find((p) => p.id === id);
     if (id === this.currentId()) this.clear();
     this.projects.update((list) => list.filter((p) => p.id !== id));
-    await this.projectStore.remove(id);
+    await this.projectStore.remove(id, project ? imageIds(project) : []);
   }
 
-  /** Fichier `.json` téléchargeable, tous les projets, avec le numéro de schéma. */
-  exportBackup(): Blob {
-    const backup: ProjectBackup = { version: BACKUP_SCHEMA_VERSION, projects: this.projects() };
-    this.analytics.track('backup_exported', { projects: this.projects().length });
+  /** Fichier `.json` téléchargeable, tous les projets et leurs photos, avec le numéro de schéma. */
+  async exportBackup(): Promise<Blob> {
+    const projects = this.projects();
+    this.analytics.track('backup_exported', { projects: projects.length });
+    const files = await this.projectStore.getFiles<ProjectImage>(projects.flatMap(imageIds));
+    const images: BackupImage[] = [];
+    for (const file of files) {
+      if (!file) continue;
+      const { blob, ...fields } = file;
+      const data = bytesToBase64(new Uint8Array(await blob.arrayBuffer()));
+      images.push({ ...fields, type: blob.type || 'image/jpeg', data });
+    }
+    const backup: ProjectBackup = { version: BACKUP_SCHEMA_VERSION, projects, images };
     return new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
   }
 
@@ -287,6 +357,8 @@ export class ReaderStore {
    * numéro de schéma est inconnu, et n'importe rien si l'écriture échoue.
    */
   async importBackup(file: File): Promise<boolean> {
+    // Borné avant lecture : un fichier démesuré ne doit pas saturer la mémoire.
+    if (file.size > MAX_BACKUP_BYTES) return false;
     let raw: unknown;
     try {
       raw = JSON.parse(await file.text());
@@ -298,8 +370,17 @@ export class ReaderStore {
 
     const current = this.projects();
     const merged = mergeProjects(current, backup.projects);
+    // Photos des seuls projets dont la version importée l'emporte : un projet
+    // déjà présent et plus récent garde les siennes.
+    const imported = new Set(merged.filter((p) => !current.includes(p)).map((p) => p.id));
+    const files: ProjectImage[] = backup.images
+      .filter((image) => imported.has(image.projectId))
+      .map(({ type, data, ...fields }) => ({
+        ...fields,
+        blob: new Blob([base64ToBytes(data)], { type }),
+      }));
     // Une seule transaction : si le quota lâche, rien n'est importé.
-    if (!(await this.projectStore.putAll(merged))) return false;
+    if (!(await this.projectStore.putAll(merged, files))) return false;
     this.projects.set(merged);
 
     // Si la sauvegarde apporte une version plus récente du projet ouvert, le
@@ -389,12 +470,15 @@ export class ReaderStore {
   async importPdf(file: File): Promise<void> {
     this.pdfImporting.set(true);
     this.pdfError.set(null);
+    this.pdfImagesNote.set(null);
     try {
       const { extractPdfPages } = await import('../data/pdf-extract');
-      const { pages } = await extractPdfPages(file);
+      const { pages, truncated } = await extractPdfPages(file);
       const text = normalizePdfPages(pages);
-      this.load(text, 'pdf');
-      this.analytics.track('pdf_imported', { pages: pages.length });
+      const images = pages.flatMap((page) => page.images);
+      await this.loadWithImages(text, images);
+      if (truncated && !this.pdfImagesNote()) this.pdfImagesNote.set('tronque');
+      this.analytics.track('pdf_imported', { pages: pages.length, images: images.length });
     } catch (error) {
       const raison = error instanceof PdfEmptyTextError ? 'vide' : 'erreur';
       this.pdfError.set(raison);
@@ -402,6 +486,39 @@ export class ReaderStore {
     } finally {
       this.pdfImporting.set(false);
     }
+  }
+
+  /**
+   * Charge le texte d'un PDF et enregistre ses photos avec le projet, dans une
+   * **seule** transaction validée. Si elle avorte (quota), le projet s'ouvre
+   * sans photos et `pdfImagesNote` le dit : le patron, lui, n'est jamais perdu.
+   */
+  private async loadWithImages(text: string, images: readonly ExtractedImage[]): Promise<void> {
+    // L'effet de persistance attend : sinon il écrirait le projet seul, dans
+    // une autre transaction, et un échec des photos laisserait un projet qui
+    // en annonce sans les avoir.
+    this.holdPersist = true;
+    try {
+      this.load(text, 'pdf');
+      const id = this.currentId();
+      if (id && images.length) {
+        const project: Project = { ...this.snapshot(id), imageCount: images.length };
+        const files: ProjectImage[] = images.map(({ blob, width, height }, index) => ({
+          id: imageId(id, index + 1),
+          projectId: id,
+          n: index + 1,
+          blob,
+          width,
+          height,
+          kind: 'pdf',
+        }));
+        if (await this.projectStore.putAll([project], files)) this.imageCount.set(images.length);
+        else this.pdfImagesNote.set('non-enregistrees');
+      }
+    } finally {
+      this.holdPersist = false;
+    }
+    await this.persist();
   }
 
   /**
@@ -421,6 +538,7 @@ export class ReaderStore {
     this.nameOverride.set(null);
     this.elapsed.set(0);
     this.image.set('');
+    this.imageCount.set(0);
   }
 
   selectPiece(index: number): void {

@@ -63,7 +63,9 @@ export type AnalyticsEvent =
   /** Ouverture de la mise en page d'impression du navigateur depuis le lecteur. */
   | 'print_opened'
   /** Compteur de rangs en ligne : palier de dix atteint (propriété `value`), pas chaque clic. */
-  | 'row_counted';
+  | 'row_counted'
+  /** Photo d'un patron PDF agrandie depuis sa vignette, dans le lecteur. */
+  | 'image_opened';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

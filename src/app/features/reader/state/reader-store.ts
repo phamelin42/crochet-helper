@@ -14,7 +14,6 @@ import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import { DEMO_PATTERN } from '../data/demo-pattern';
-import { appendTranscription } from '../data/chart-composer';
 import { parsePattern } from '../data/pattern-parser';
 import { SharedProgress } from '../data/project-link';
 import type { ExtractedImage, ExtractedPdf } from '../data/pdf-extract';
@@ -429,20 +428,6 @@ export class ReaderStore {
     if (this.viewedCharts.has(key)) return;
     this.viewedCharts.add(key);
     this.analytics.track('chart_viewed');
-  }
-
-  /**
-   * Ajoute une transcription de diagramme comme dernière pièce. La position de
-   * lecture ne bouge pas : la nouvelle pièce vient après toutes les autres.
-   */
-  addTranscription(
-    name: string,
-    text: string,
-    fallback: string,
-    stats: { rounds: number; convention: string },
-  ): void {
-    this.source.set(appendTranscription(this.source(), name, text, fallback));
-    this.analytics.track('chart_transcribed', stats);
   }
 
   private hydrate(project: Project, touch = false): void {

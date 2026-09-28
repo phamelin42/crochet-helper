@@ -8,6 +8,7 @@ import {
   model,
   signal,
 } from '@angular/core';
+import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { Button } from '../../../shared/ui/button/button';
@@ -20,7 +21,6 @@ import {
   Group,
   Round,
   Token,
-  defaultPieceName,
   findSymbol,
   renderPattern,
   renderRound,
@@ -28,7 +28,9 @@ import {
   warnings,
 } from '../data/chart-composer';
 import { CHART_SYMBOLS, symbolName, symbolUrl } from '../data/chart-symbols';
-import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
+import { appendTranscription, defaultPieceName } from '../data/chart-transcription';
+import { COMPOSER_COPY, ComposerKey } from '../data/chart-composer-copy';
+import { READER_COPY } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 import type { ShownPhoto } from '../state/reader-store';
 import { ChartViewer } from './chart-viewer';
@@ -284,7 +286,7 @@ function readDraft(raw: unknown): Draft {
         </div>
         <div class="dialog-actions">
           <button type="button" filButton="ghost" (click)="open.set(false)">
-            {{ t('ui.photoClose') }}
+            {{ closeLabel() }}
           </button>
           <button type="button" filButton="primary" [disabled]="!canAdd()" (click)="add()">
             {{ t('ui.composeAdd') }}
@@ -303,7 +305,10 @@ export class ChartComposer {
   private readonly i18n = inject(I18nService);
   private readonly storage = inject(LocalStorageService);
 
-  protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
+  private readonly analytics = inject(AnalyticsService);
+
+  protected t = (key: ComposerKey) => COMPOSER_COPY[this.i18n.locale()][key];
+  protected readonly closeLabel = computed(() => READER_COPY[this.i18n.locale()]['ui.photoClose']);
 
   protected readonly symbols = CHART_SYMBOLS;
   protected readonly url = symbolUrl;
@@ -418,7 +423,7 @@ export class ChartComposer {
   }
 
   private warningText(warning: ChartWarning): string {
-    const key: ReaderTranslationKey =
+    const key: ComposerKey =
       warning.kind === 'empty'
         ? 'ui.composeWarnEmpty'
         : warning.kind === 'jump'
@@ -473,12 +478,19 @@ export class ChartComposer {
   protected add(): void {
     const rounds = this.all();
     if (!rounds.length) return;
-    this.store.addTranscription(
-      this.name(),
-      renderPattern(rounds, this.conv()),
-      this.defaultName(),
-      { rounds: rounds.length, convention: this.conv() },
+    // La nouvelle pièce vient après toutes les autres : la position de lecture ne bouge pas.
+    this.store.source.set(
+      appendTranscription(
+        this.store.source(),
+        this.name(),
+        renderPattern(rounds, this.conv()),
+        this.defaultName(),
+      ),
     );
+    this.analytics.track('chart_transcribed', {
+      rounds: rounds.length,
+      convention: this.conv(),
+    });
     this.rounds.set([]);
     this.groups.set([]);
     this.pending.set([]);

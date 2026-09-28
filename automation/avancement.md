@@ -48,7 +48,7 @@ branche.
 | 33 — Glossaire sur téléphone            | À faire                                | —   | —          |
 | 34 — Images du PDF à l'étape            | Terminée                               | —   | 2026-09-28 |
 | 35 — Diagrammes : charger et voir       | Terminée                               | —   | 2026-09-28 |
-| 36 — Diagrammes : transcrire en texte   | À faire                                | —   | —          |
+| 36 — Diagrammes : transcrire en texte   | Terminée                               | —   | 2026-09-28 |
 | 37 — Reconnaître les symboles (étude)   | À faire                                | —   | —          |
 
 ## États possibles

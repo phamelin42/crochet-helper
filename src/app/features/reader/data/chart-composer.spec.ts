@@ -3,14 +3,13 @@ import {
   Convention,
   Group,
   Round,
-  appendTranscription,
-  defaultPieceName,
   renderPattern,
   renderRound,
   stitchCount,
   warnings,
 } from './chart-composer';
 import { CHART_SYMBOLS } from './chart-symbols';
+import { appendTranscription, defaultPieceName } from './chart-transcription';
 import { parsePattern } from './pattern-parser';
 
 const CONVENTIONS: readonly Convention[] = ['US', 'UK', 'FR'];

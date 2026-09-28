@@ -28,7 +28,6 @@ export const FR = {
   'footer.guideReadingPattern': 'Lire un patron',
   'footer.guideReadingChart': 'Lire un diagramme',
   'footer.guideCrochetOrKnitting': 'Crochet ou tricot',
-  'footer.otherLanguage': 'Version anglaise',
   'footer.tagline':
     'Gratuit, sans compte. Vos patrons restent sur votre appareil ; seule une mesure d’audience anonyme est collectée.',
 } as const;
@@ -53,7 +52,6 @@ export const EN: Record<TranslationKey, string> = {
   'footer.guideReadingPattern': 'Reading a pattern',
   'footer.guideReadingChart': 'Reading a chart',
   'footer.guideCrochetOrKnitting': 'Crochet or knitting',
-  'footer.otherLanguage': 'French version',
   'footer.tagline':
     'Free, no account. Your patterns stay on your device; only an anonymous audience measurement is collected.',
 };

@@ -52,6 +52,7 @@ export const EVENEMENTS = [
   'waitlist_shown',
   'waitlist_clicked',
   'reading_pref_changed',
+  'home_cta',
 ];
 
 /** Sept noms distincts : la tranche ou le palier vit dans le nom, pas dans une propriété. */

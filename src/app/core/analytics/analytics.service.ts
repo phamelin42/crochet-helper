@@ -55,7 +55,9 @@ export type AnalyticsEvent =
   /** Clic sur le lien externe de la liste d'attente. */
   | 'waitlist_clicked'
   /** Taille du texte ou fond sombre changés dans le mode lecture. */
-  | 'reading_pref_changed';
+  | 'reading_pref_changed'
+  /** Clic sur l'un des deux boutons du bandeau d'accueil (propriété `cta`, exemple ou collage). */
+  | 'home_cta';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

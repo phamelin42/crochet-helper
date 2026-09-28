@@ -38,7 +38,7 @@ branche.
 | 23 — Kit pour les créatrices            | Terminée                               | —   | 2026-09-25 |
 | 24 — Mode lecture                       | Terminée                               | —   | 2026-09-27 |
 | 25 — Vue d'ensemble et partage visible  | À faire                                | —   | —          |
-| 26 — Première visite                    | À faire                                | —   | —          |
+| 26 — Première visite                    | Terminée                               | —   | 2026-09-28 |
 | 27 — Compteur de rangs en ligne         | À faire                                | —   | —          |
 | 28 — Calculateur d'échantillon          | À faire                                | —   | —          |
 | 29 — Page tailles de crochet            | À faire                                | —   | —          |

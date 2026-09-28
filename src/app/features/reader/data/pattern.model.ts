@@ -19,6 +19,11 @@ export interface PatternStep {
   readonly reps: number;
   /** Endroit ou envers, quand le libellé du rang le précise ; absent sinon. */
   readonly side?: 'rs' | 'ws';
+  /**
+   * Numéros des images du patron qui illustrent l'étape (marqueurs
+   * `[image N]` de l'import PDF), dans l'ordre ; absent quand il n'y en a pas.
+   */
+  readonly images?: readonly number[];
 }
 
 /** Un élément à réaliser (le corps, une oreille, une manche…). */
@@ -39,6 +44,8 @@ export interface Pattern {
   readonly pieces: readonly PatternPiece[];
   /** Somme des étapes de toutes les pièces. */
   readonly total: number;
+  /** Images rattachées à aucune étape (couverture, schéma général) ; absent quand il n'y en a pas. */
+  readonly images?: readonly number[];
 }
 
 export const EMPTY_PATTERN: Pattern = {

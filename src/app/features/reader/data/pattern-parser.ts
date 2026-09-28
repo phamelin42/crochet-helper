@@ -113,6 +113,35 @@ const ABBREV = /^\S+(?:\s\S+)?\s*[-=]\s+\S/;
 /** Note entre crochets, fréquente chez les auteurs qui commentent leur méthode. */
 const BRACKET_NOTE = /^\[[^\]]/;
 
+/**
+ * Emplacement d'une image, posé par l'import PDF (« [image 3] »). Reconnu avant
+ * `BRACKET_NOTE`, qui en ferait une note.
+ */
+const IMAGE_MARKER = /^\[image\s+(\d{1,3})\]$/i;
+
+/** Mots qui désignent une illustration, en anglais et en français. */
+const IMAGE_WORD = String.raw`(?:images?|photos?|pictures?|pics?\.?|figures?|fig\.?)`;
+
+/** Référence numérotée : « see image 3 », « (fig. 2) », « voir photo n° 4 », « photos 3 et 4 ». */
+const IMAGE_REF = new RegExp(
+  String.raw`\b${IMAGE_WORD}\s*(?:n[°º]\s*|#\s*)?(\d{1,3}(?:\s*(?:,|&|and|et)\s*\d{1,3})*)\b`,
+  'gi',
+);
+
+/** Référence sans numéro : « see photo », « comme sur l'image », « as shown in the picture ». */
+const IMAGE_REF_BARE = new RegExp(
+  String.raw`\b(?:see|voir|as\s+(?:shown\s+)?in|shown\s+in|like\s+in|comme\s+(?:sur|dans))\s+(?:the\s+|la\s+|le\s+|l['’]\s*)?${IMAGE_WORD}(?!\s*(?:n[°º]\s*|#\s*)?\d)`,
+  'i',
+);
+
+/** Numéros d'image cités dans un texte, dans l'ordre, sans doublon. */
+function imageRefs(text: string): number[] {
+  const numbers = [...text.matchAll(IMAGE_REF)].flatMap((match) =>
+    (match[1].match(/\d+/g) ?? []).map(Number),
+  );
+  return [...new Set(numbers)];
+}
+
 /** Fin de phrase ou de groupe : une ligne qui s'y termine n'appelle pas de suite. */
 const LINE_COMPLETE = /[.!?:;)\]»"']\s*$/;
 
@@ -163,7 +192,15 @@ function unwrap(lines: readonly string[], hasKeywordRow: boolean): string[] {
     (line.match(/\(/g) ?? []).length > (line.match(/\)/g) ?? []).length;
 
   for (const line of lines) {
-    const previous = out[out.length - 1];
+    if (IMAGE_MARKER.test(line)) {
+      out.push(line);
+      continue;
+    }
+    // On recolle par-dessus les marqueurs d'image : une photo posée au milieu
+    // d'une phrase ne la coupe pas, le marqueur passe simplement après elle.
+    let at = out.length - 1;
+    while (at >= 0 && IMAGE_MARKER.test(out[at])) at--;
+    const previous = out[at];
     const continues =
       previous &&
       !opensStructure(line) &&
@@ -176,7 +213,7 @@ function unwrap(lines: readonly string[], hasKeywordRow: boolean): string[] {
             (previous.length >= 30 && /^[a-zà-ÿ]/.test(line)))));
 
     if (continues) {
-      out[out.length - 1] = `${previous} ${line}`;
+      out[at] = `${previous} ${line}`;
       continue;
     }
     out.push(line);
@@ -334,6 +371,10 @@ export function parsePattern(raw: string): Pattern {
   let inAside = false;
   let asideIsAbbrevTable = false;
   let seenStep = false;
+  /** Étapes dans leur ordre de création, toutes pièces confondues. */
+  const created: { piece: MutablePiece; index: number }[] = [];
+  /** Marqueurs d'image lus, avec le nombre d'étapes créées avant chacun. */
+  const markers: { n: number; stepsBefore: number }[] = [];
 
   const newPiece = (name: string): MutablePiece => {
     piece = { name, steps: [] };
@@ -354,13 +395,22 @@ export function parsePattern(raw: string): Pattern {
       notes: pending.slice(),
       reps: repeatTarget(range, rawBody),
     });
+    created.push({ piece: target, index: target.steps.length - 1 });
     pending = [];
     seenStep = true;
   };
 
   for (let index = 0; index < lines.length; index++) {
     const line = lines[index];
-    const next = lines[index + 1] ?? '';
+    const marker = IMAGE_MARKER.exec(line);
+    if (marker) {
+      const n = Number(marker[1]);
+      if (!markers.some((m) => m.n === n)) markers.push({ n, stepsBefore: created.length });
+      continue;
+    }
+    let after = index + 1;
+    while (after < lines.length && IMAGE_MARKER.test(lines[after])) after++;
+    const next = lines[after] ?? '';
     const nextIsRow = ROW.test(next) || (!hasKeywordRow && BARE_ROW.test(next));
 
     const materialHeader = stripHeaderDecoration(line);
@@ -532,6 +582,8 @@ export function parsePattern(raw: string): Pattern {
     current.steps[current.steps.length - 1] = { ...last, after: pending.slice() };
   }
 
+  const patternImages = attachImages(created, markers);
+
   const kept: PatternPiece[] = pieces.filter((p) => p.steps.length);
   const total = kept.reduce((n, p) => n + p.steps.length, 0);
 
@@ -539,5 +591,63 @@ export function parsePattern(raw: string): Pattern {
   // ressortir avec un titre pris dans son menu de navigation.
   if (!total) return EMPTY_PATTERN;
 
-  return { title, materials, notes, pieces: kept, total };
+  return {
+    title,
+    materials,
+    notes,
+    pieces: kept,
+    total,
+    ...(patternImages.length ? { images: patternImages } : {}),
+  };
+}
+
+/**
+ * Rattache chaque image à une étape : d'abord par la référence explicite du
+ * texte (« see image 3 »), sinon par sa position — l'étape lue juste avant son
+ * marqueur. Une référence sans numéro (« see photo ») désigne l'image dont le
+ * marqueur suit l'étape. Un numéro sans marqueur est ignoré : un lien `#p=`
+ * transporte le texte sans les images, et un patron collé cite parfois des
+ * photos qui n'ont jamais été importées.
+ *
+ * Renvoie les images rattachées à aucune étape, qui vont au patron.
+ */
+function attachImages(
+  created: readonly { piece: MutablePiece; index: number }[],
+  markers: readonly { n: number; stepsBefore: number }[],
+): number[] {
+  if (!markers.length) return [];
+  const known = new Set(markers.map((m) => m.n));
+  const cited = new Map<number, Set<number>>();
+  const cite = (n: number, ordinal: number): void => {
+    cited.set(n, (cited.get(n) ?? new Set()).add(ordinal));
+  };
+
+  created.forEach(({ piece, index }, ordinal) => {
+    const step = piece.steps[index];
+    const text = step.tip ? `${step.body} ${step.tip}` : step.body;
+    const numbers = imageRefs(text).filter((n) => known.has(n));
+    if (numbers.length) {
+      numbers.forEach((n) => cite(n, ordinal));
+    } else if (IMAGE_REF_BARE.test(text)) {
+      const following = markers.find((m) => m.stepsBefore > ordinal);
+      if (following) cite(following.n, ordinal);
+    }
+  });
+
+  const byStep = new Map<number, number[]>();
+  const orphans: number[] = [];
+  for (const { n, stepsBefore } of markers) {
+    const owners = cited.get(n) ?? (stepsBefore ? new Set([stepsBefore - 1]) : null);
+    if (!owners) {
+      orphans.push(n);
+      continue;
+    }
+    for (const ordinal of owners) byStep.set(ordinal, [...(byStep.get(ordinal) ?? []), n]);
+  }
+
+  for (const [ordinal, images] of byStep) {
+    const { piece, index } = created[ordinal];
+    piece.steps[index] = { ...piece.steps[index], images: images.sort((a, b) => a - b) };
+  }
+  return orphans;
 }

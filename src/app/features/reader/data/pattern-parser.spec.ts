@@ -341,4 +341,169 @@ describe('parsePattern', () => {
       expect(pattern.total).toBe(total);
     });
   });
+
+  describe('images du patron', () => {
+    const imagesOf = (text: string): (readonly number[] | undefined)[] =>
+      parsePattern(text).pieces.flatMap((piece) => piece.steps.map((step) => step.images));
+
+    /** Chaque forme de référence numérotée, citant l'image 2. */
+    const NUMBERED_REFS = [
+      'see image 2',
+      'see photo 2',
+      'see picture 2',
+      'see figure 2',
+      'see fig. 2',
+      'as in image 2',
+      '(image 2)',
+      '(photo 2)',
+      '(picture 2)',
+      '(figure 2)',
+      '(fig. 2)',
+      'voir image 2',
+      'voir photo 2',
+      'voir figure 2',
+      'voir fig. 2',
+      'voir la photo n° 2',
+      "comme sur l'image 2",
+      'comme sur la photo 2',
+      '(voir photo 2)',
+      '(fig 2)',
+    ];
+
+    for (const ref of NUMBERED_REFS) {
+      it(`rattache l'image citée par « ${ref} » à l'étape qui la cite`, () => {
+        const text = [
+          'Bunny',
+          'Round 1: 6 sc in magic ring (6)',
+          '[image 1]',
+          'Round 2: inc around (12)',
+          '[image 2]',
+          `Round 3: sc around (12) ${ref}`,
+          '[image 3]',
+        ].join('\n');
+
+        // L'image 2 suit le rang 2, mais le rang 3 la cite : la référence l'emporte.
+        expect(imagesOf(text)).toEqual([[1], undefined, [2, 3]]);
+      });
+    }
+
+    /** Chaque forme de référence sans numéro. */
+    const BARE_REFS = [
+      'see photo',
+      'see picture',
+      'see image',
+      '(see pic)',
+      'as shown in the picture',
+      'voir photo',
+      'voir la photo',
+      "comme sur l'image",
+      'comme sur la photo',
+    ];
+
+    for (const ref of BARE_REFS) {
+      it(`rattache à « ${ref} » l'image dont le marqueur suit l'étape`, () => {
+        const text = [
+          'Round 1: 6 sc in magic ring (6)',
+          `Round 2: inc around (12), ${ref}`,
+          'Round 3: sc around (12)',
+          '[image 1]',
+        ].join('\n');
+
+        expect(imagesOf(text)).toEqual([undefined, [1], undefined]);
+      });
+    }
+
+    it('rattache un marqueur à l’étape qu’il suit, même après une pièce et des conseils', () => {
+      const text = [
+        'Head',
+        'Rnd 1: 6 sc in magic ring (6)',
+        '[image 1]',
+        'Stuff firmly as you go.',
+        'Ears',
+        '[image 2]',
+        'Row 1: ch 5, sc in each ch (4)',
+      ].join('\n');
+
+      expect(imagesOf(text)).toEqual([[1, 2], undefined]);
+    });
+
+    it('rattache plusieurs images citées ensemble (« photos 3 et 4 »)', () => {
+      const text = [
+        'Round 1: 6 sc (6)',
+        '[image 1]',
+        '[image 2]',
+        'Round 2: inc around (12), photos 1 et 2',
+      ].join('\n');
+
+      expect(imagesOf(text)).toEqual([undefined, [1, 2]]);
+    });
+
+    it('ne fait jamais d’un marqueur une note, ni dans le corps d’une étape', () => {
+      const text = [
+        'Bunny',
+        'Notes:',
+        'Work in continuous rounds.',
+        '[image 1]',
+        'Round 1: 6 sc in magic ring (6)',
+        '[image 2]',
+        'Round 2: inc around (12)',
+      ].join('\n');
+      const pattern = parsePattern(text);
+      const steps = pattern.pieces.flatMap((piece) => piece.steps);
+
+      expect(JSON.stringify(pattern.notes)).not.toContain('image');
+      for (const step of steps) {
+        expect(step.body).not.toContain('[image');
+        expect(step.notes).toEqual([]);
+        expect(step.tip ?? '').not.toContain('[image');
+      }
+      expect(pattern.total).toBe(2);
+    });
+
+    it('envoie au patron un marqueur placé avant la première étape', () => {
+      const pattern = parsePattern(
+        ['[image 1]', 'Bunny', '[image 2]', 'Round 1: 6 sc in magic ring (6)', '[image 3]'].join(
+          '\n',
+        ),
+      );
+
+      expect(pattern.title).toBe('Bunny');
+      expect(pattern.images).toEqual([1, 2]);
+      expect(pattern.pieces[0].steps[0].images).toEqual([3]);
+    });
+
+    it('ignore un numéro cité qui n’a pas de marqueur', () => {
+      const text = ['Round 1: 6 sc (6)', '[image 1]', 'Round 2: inc around, see photo 9 (12)'].join(
+        '\n',
+      );
+
+      expect(imagesOf(text)).toEqual([[1], undefined]);
+    });
+
+    it('ne crée aucune image pour un texte sans marqueur, même s’il cite des photos', () => {
+      const pattern = parsePattern(
+        ['Round 1: 6 sc (6), see photo 1', 'Round 2: inc (12)'].join('\n'),
+      );
+
+      expect(pattern.images).toBeUndefined();
+      expect(imagesOf(['Round 1: 6 sc (6), see photo 1', 'Round 2: inc (12)'].join('\n'))).toEqual([
+        undefined,
+        undefined,
+      ]);
+    });
+
+    it('recolle une consigne coupée par une image, le marqueur passant après elle', () => {
+      const pattern = parsePattern(
+        [
+          'Round 1: 6 sc in magic ring and',
+          '[image 1]',
+          'pull tight (6)',
+          'Round 2: inc (12)',
+        ].join('\n'),
+      );
+
+      expect(pattern.pieces[0].steps[0].body).toBe('6 sc in magic ring and pull tight (6)');
+      expect(pattern.pieces[0].steps[0].images).toEqual([1]);
+    });
+  });
 });

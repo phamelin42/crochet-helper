@@ -76,6 +76,12 @@ function routesFor(locale: Locale): Routes {
           data,
         },
         {
+          path: strip(ROUTE_PATHS.hookSizes[locale]),
+          loadComponent: () =>
+            import('./features/tools/pages/hook-sizes-page').then((m) => m.HookSizesPage),
+          data,
+        },
+        {
           path: strip(ROUTE_PATHS.guideReadingPattern[locale]),
           loadComponent: () =>
             import('./features/guides/pages/reading-pattern-page').then(

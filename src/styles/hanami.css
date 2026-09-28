@@ -249,6 +249,30 @@ figcaption {
   width: 20px;
   height: 20px;
 }
+/* — icône + texte — icône seule sous 600 px (comme .btn-icon), le libellé
+   apparaît à côté au-delà : un public de 50 à 70 ans ne clique pas une icône
+   seule (audit UX-6). Le texte visible vient de `aria-label` (`content:
+   attr(…)`), déjà posé pour l'accessibilité : pas de libellé dupliqué dans le
+   gabarit, pour ne pas alourdir le bundle initial. */
+.btn-icon-text {
+  width: var(--control-size);
+  height: var(--control-size);
+  padding: 0;
+}
+.btn-icon-text svg {
+  width: 20px;
+  height: 20px;
+}
+@media (min-width: 600px) {
+  .btn-icon-text {
+    width: auto;
+    height: auto;
+    padding: var(--space-2) var(--space-5);
+  }
+  .btn-icon-text::after {
+    content: attr(aria-label);
+  }
+}
 
 /* — formulaires — */
 .field > label {

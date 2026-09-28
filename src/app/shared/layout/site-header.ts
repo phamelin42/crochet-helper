@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
-import { localePrefix } from '../../core/i18n/locale';
 import { UpdateService } from '../../core/platform/update.service';
 import { WakeLockService } from '../../core/platform/wake-lock.service';
 import { Button } from '../ui/button/button';
@@ -84,7 +83,7 @@ import { Icon } from '../ui/icon/icon';
           <button
             type="button"
             filButton="secondary"
-            [iconOnly]="true"
+            [iconText]="true"
             [attr.aria-pressed]="wakeLock.active()"
             [attr.aria-label]="i18n.t('ui.wake')"
             [title]="i18n.t('ui.wake')"
@@ -97,7 +96,7 @@ import { Icon } from '../ui/icon/icon';
 
       <a
         filButton="secondary"
-        [iconOnly]="true"
+        [iconText]="true"
         href="https://discord.gg/DPYydhZRND"
         target="_blank"
         rel="noopener"
@@ -110,7 +109,7 @@ import { Icon } from '../ui/icon/icon';
       <a
         filButton="secondary"
         [iconOnly]="true"
-        [href]="otherLanguageHref()"
+        [href]="i18n.otherLocaleHref()"
         [attr.hreflang]="i18n.other()"
       >
         {{ i18n.other().toUpperCase() }}
@@ -122,10 +121,4 @@ export class SiteHeader {
   protected readonly i18n = inject(I18nService);
   protected readonly wakeLock = inject(WakeLockService);
   protected readonly update = inject(UpdateService);
-
-  /** Lien vers l'accueil de l'autre langue — une vraie URL, pas un état interne. */
-  protected otherLanguageHref(): string {
-    const prefix = localePrefix(this.i18n.other());
-    return prefix === '' ? '/' : prefix;
-  }
 }

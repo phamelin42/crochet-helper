@@ -19,6 +19,13 @@ export class Button {
   readonly variant = input<ButtonVariant>('secondary', { alias: 'filButton' });
   /** Bouton carré ne contenant qu'une icône : impose un libellé accessible. */
   readonly iconOnly = input(false);
+  /**
+   * Icône seule sous 600 px, icône + libellé visible au-delà : le libellé
+   * vient de `aria-label` (déjà requis pour l'accessibilité), affiché par
+   * `.btn-icon-text::after` dans `hanami.css` — aucun texte dupliqué dans le
+   * gabarit.
+   */
+  readonly iconText = input(false);
   readonly block = input(false);
   /** Grande cible « Précédente / Suivante » du lecteur. */
   readonly step = input(false);
@@ -28,6 +35,7 @@ export class Button {
       'btn',
       `btn-${this.variant()}`,
       this.iconOnly() ? 'btn-icon' : '',
+      this.iconText() ? 'btn-icon-text' : '',
       this.block() ? 'btn-block' : '',
       this.step() ? 'btn-step' : '',
     ]

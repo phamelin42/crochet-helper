@@ -44,7 +44,7 @@ branche.
 | 29 — Page tailles de crochet            | À faire                                | —   | —          |
 | 30 — Contenu des pages d'abréviation    | À faire                                | —   | —          |
 | 31 — Lire un patron anglais en français | À faire                                | —   | —          |
-| 32 — Libellés, pied de page, lastmod    | À faire                                | —   | —          |
+| 32 — Libellés, pied de page, lastmod    | Terminée                               | —   | 2026-09-28 |
 | 33 — Glossaire sur téléphone            | À faire                                | —   | —          |
 
 ## États possibles

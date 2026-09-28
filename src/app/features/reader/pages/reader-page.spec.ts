@@ -86,7 +86,7 @@ describe('ReaderPage', () => {
 
     fixture.detectChanges();
 
-    expect(stepBody(host)).toContain('Collez ou écrivez votre pattern');
+    expect(stepBody(host)).toContain('Collez ou écrivez votre patron');
     expect(findButton(host, 'Suivante').disabled).toBe(true);
   });
 

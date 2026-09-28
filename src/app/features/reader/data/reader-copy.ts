@@ -7,8 +7,8 @@ import { Locale } from '../../../core/i18n/locale';
  * partie du bundle initial (budget 320 kB).
  */
 const FR = {
-  'ui.import': 'Le pattern',
-  'ui.paste': 'Texte du pattern',
+  'ui.import': 'Le patron',
+  'ui.paste': 'Texte du patron',
   'ui.placeholder':
     'Rang 1 : 6 ms dans un cercle magique (6)\nRang 2 : 1 aug dans chaque m (12)\nRangs 3-6 : 1 ms dans chaque m (12)',
   'ui.load': 'Découper en étapes',
@@ -22,21 +22,21 @@ const FR = {
   'ui.timer': 'Session',
   'ui.mats': 'Matériel',
   'ui.empty':
-    'Collez ou écrivez votre pattern ci-dessus, puis « Découper en étapes ». Vous pourrez ensuite avancer aux flèches ← → ou à la barre d’espace.',
+    'Collez ou écrivez votre patron ci-dessus, puis « Découper en étapes ». Vous pourrez ensuite avancer aux flèches ← → ou à la barre d’espace.',
   'ui.repeat': 'Répétition',
   'ui.allSteps': 'étapes en tout',
   'ui.reset': 'Remettre à zéro',
   'ui.stepsIn': 'dans cette pièce',
   'ui.pieces': 'Pièces',
   'ui.loaded': 'étapes découpées',
-  'ui.noPattern': 'aucun pattern chargé',
+  'ui.noPattern': 'aucun patron chargé',
   'ui.play': 'Démarrer le chronomètre',
   'ui.pause': 'Mettre le chronomètre en pause',
   'ui.pdfOpen': 'Ouvrir un PDF',
   'ui.pdfLoading': 'Lecture du PDF…',
   'ui.pdfEmpty':
-    'Ce PDF ressemble à une image scannée : le texte ne peut pas en être extrait. Collez le texte du pattern ci-dessus à la place.',
-  'ui.pdfError': "Ce PDF n'a pas pu être lu. Collez le texte du pattern ci-dessus à la place.",
+    'Ce PDF ressemble à une image scannée : le texte ne peut pas en être extrait. Collez le texte du patron ci-dessus à la place.',
+  'ui.pdfError': "Ce PDF n'a pas pu être lu. Collez le texte du patron ci-dessus à la place.",
   'ui.expand': 'Développer les abréviations',
   'ui.abbrev': 'Abréviations',
   'ui.cancel': 'Annuler',

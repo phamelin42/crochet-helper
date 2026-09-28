@@ -157,7 +157,7 @@ const HOME_COPY: Record<Locale, HomeCopy> = {
     steps: [
       {
         title: '1. Collez, ou déposez un PDF',
-        lead: 'Le texte de votre pattern, copié depuis un site, un PDF ou tapé à la main : l’outil accepte tout, sans mise en forme particulière à respecter.',
+        lead: 'Le texte de votre patron, copié depuis un site, un PDF ou tapé à la main : l’outil accepte tout, sans mise en forme particulière à respecter.',
       },
       {
         title: '2. Découpez en étapes',
@@ -170,9 +170,9 @@ const HOME_COPY: Record<Locale, HomeCopy> = {
     ],
     storyboardTitle: 'À quoi ça ressemble',
     storyboardCaption:
-      'Trois vignettes : coller le pattern, le découper en étapes, puis lire une étape en grand.',
+      'Trois vignettes : coller le patron, le découper en étapes, puis lire une étape en grand.',
     storyboardAlt:
-      'Storyboard en trois vignettes : un texte de pattern collé dans une zone de saisie, le même texte découpé en rangs numérotés, puis un seul rang affiché en très grand.',
+      'Storyboard en trois vignettes : un texte de patron collé dans une zone de saisie, le même texte découpé en rangs numérotés, puis un seul rang affiché en très grand.',
     faqTitle: 'Questions fréquentes',
     faq: [
       {

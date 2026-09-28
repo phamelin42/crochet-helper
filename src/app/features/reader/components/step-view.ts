@@ -7,6 +7,7 @@ import { Tile } from '../../../shared/ui/tile/tile';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 import { GlossaryText } from './glossary-text';
+import { ShareActions } from './share-actions';
 import { StepsList } from './steps-list';
 
 /**
@@ -15,7 +16,7 @@ import { StepsList } from './steps-list';
  */
 @Component({
   selector: 'fil-step-view',
-  imports: [Button, GlossaryText, Icon, Segmented, StepsList, Tile],
+  imports: [Button, GlossaryText, Icon, Segmented, ShareActions, StepsList, Tile],
   template: `
     @if (pieceOptions().length > 1) {
       <div class="pieces">
@@ -126,7 +127,13 @@ import { StepsList } from './steps-list';
     </div>
 
     @if (store.step()) {
-      <fil-steps-list (jumped)="focusStepBody()" (changePattern)="changePattern.emit()" />
+      <fil-steps-list (jumped)="focusStepBody()" />
+      <!--
+        Les actions de partage restent visibles, hors du panneau replié : la
+        boucle qui amène une deuxième lectrice ne doit pas être à chercher
+        (audit UX-4). La liste des étapes, elle, se déplie à la demande.
+      -->
+      <fil-share-actions (changePattern)="changePattern.emit()" />
     }
   `,
 })

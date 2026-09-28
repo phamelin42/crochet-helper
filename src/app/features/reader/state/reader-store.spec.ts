@@ -102,6 +102,15 @@ describe('ReaderStore', () => {
       expect(() => store.goTo(3, 'field')).not.toThrow();
       expect(store.stepIndex()).toBe(0);
     });
+
+    it('ignore une valeur qui n’est pas un nombre fini, sans bouger la position', () => {
+      store.load(TWO_PIECES);
+      store.goTo(2, 'field');
+
+      store.goTo(Number.NaN, 'field');
+
+      expect(store.stepIndex()).toBe(1);
+    });
   });
 
   describe('addRepeat', () => {

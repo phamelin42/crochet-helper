@@ -20,7 +20,6 @@ test('le livret imprimé (mise en page « print ») produit au moins une page', 
   // système — non pilotable en headless : on vérifie plutôt directement le
   // bouton (présent, activé) et le contenu réellement imprimable, produit par
   // Chromium via `page.pdf()`, indépendant du clic.
-  await page.getByText('All steps', { exact: false }).click();
   await expect(page.getByRole('button', { name: 'Print', exact: true })).toBeEnabled();
 
   const pdfPath = join(tmpdir(), 'fil-print.pdf');

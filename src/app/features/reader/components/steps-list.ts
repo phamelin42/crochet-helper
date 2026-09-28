@@ -5,7 +5,6 @@ import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../../shared/ui/field/input';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
-import { ShareActions } from './share-actions';
 
 /** Longueur d'un début de texte affiché par entrée, en caractères. */
 const EXCERPT_LENGTH = 60;
@@ -17,7 +16,7 @@ const EXCERPT_LENGTH = 60;
  */
 @Component({
   selector: 'fil-steps-list',
-  imports: [Button, Disclosure, InputField, ShareActions],
+  imports: [Button, Disclosure, InputField],
   template: `
     <fil-disclosure [label]="label()" variant="mats" [(open)]="open">
       <ol class="steps-list">
@@ -54,8 +53,6 @@ const EXCERPT_LENGTH = 60;
           </button>
         </div>
       </div>
-
-      <fil-share-actions (changePattern)="changePattern.emit()" />
     </fil-disclosure>
   `,
 })
@@ -65,7 +62,6 @@ export class StepsList {
 
   /** Émis après un saut réussi : la page parente ramène le focus sur l'étape. */
   readonly jumped = output<void>();
-  readonly changePattern = output<void>();
 
   protected readonly open = signal(false);
 

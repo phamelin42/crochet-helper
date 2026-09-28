@@ -35,11 +35,9 @@ test('lien de projet — même étape, mêmes répétitions et rang coché, dans
   await expect(page.locator('.step-body')).toContainText('inc in each st around');
   const sentStep = await stepBody(page);
 
-  // Les actions de partage vivent désormais sous la liste des étapes (fiche 25),
-  // repliée par défaut : l'ouvrir pour atteindre « Send this project ». Le lien
-  // se recalcule de façon asynchrone (compression) : on réessaie le clic
-  // jusqu'à ce qu'il soit prêt.
-  await page.getByText('All steps', { exact: false }).click();
+  // Les actions de partage sont visibles sous l'étape (fiche 25). Le lien se
+  // recalcule de façon asynchrone (compression) : on réessaie le clic jusqu'à
+  // ce qu'il soit prêt.
   const sendButton = page.getByRole('button', { name: 'Send this project', exact: true });
   await expect
     .poll(async () => {

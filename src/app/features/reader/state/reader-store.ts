@@ -458,7 +458,7 @@ export class ReaderStore {
    * un clic dans la liste des étapes d'une saisie dans le champ « Aller ».
    */
   goTo(oneBased: number, origin: 'list' | 'field'): void {
-    if (!this.stepCount()) return;
+    if (!this.stepCount() || !Number.isFinite(oneBased)) return;
     this.stepIndex.set(Math.max(0, Math.min(this.stepCount() - 1, oneBased - 1)));
     this.analytics.track('step_jumped', { origin });
     this.checkDepth();

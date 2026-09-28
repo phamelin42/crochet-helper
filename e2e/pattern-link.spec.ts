@@ -69,9 +69,8 @@ test('permalien créé depuis un vrai PDF — première et dernière étape iden
   const firstStep = await stepBody(page);
   const lastStep = await lastStepBody(page);
 
-  // Les actions de partage vivent désormais sous la liste des étapes (fiche 25),
-  // repliée par défaut : l'ouvrir pour atteindre « Copy the pattern link ».
-  await page.getByText('All steps', { exact: true }).click();
+  // Les actions de partage sont visibles sous l'étape (fiche 25), sans rien
+  // à déplier.
   await page.getByRole('button', { name: 'Copy the pattern link', exact: true }).click();
   const link = await page.evaluate(() => navigator.clipboard.readText());
   expect(link).toContain('#p=');

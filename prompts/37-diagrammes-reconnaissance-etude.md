@@ -75,8 +75,7 @@ décision n'est pas prise.
      constate le résultat, décrit l'option d'un service externe (un modèle de
      vision appelé depuis un petit serveur : ce que ça coûterait par
      diagramme, ce qui quitterait l'appareil, ce que ça change à l'ADR-001 et
-     à la règle n° 1), et pose les questions à Phil dans la forme de la fiche
-     20. Aucun code serveur, aucune clé, aucune dépendance.
+     à la règle n° 1), et pose les questions à Phil dans la forme de la fiche 20. Aucun code serveur, aucune clé, aucune dépendance.
 
 ## Mesure
 

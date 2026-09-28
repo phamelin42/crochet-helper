@@ -5,8 +5,14 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { ROUTE_PATHS, RouteName } from '../../core/i18n/route-paths';
 import { SiteFooter } from './site-footer';
 
-/** `reader` et `projects` sont déjà joignables ailleurs (marque, « Mes projets ») : la fiche 32 les dispense du pied de page. */
-const EXEMPT: readonly RouteName[] = ['reader', 'projects'];
+/**
+ * `reader` et `projects` sont déjà joignables ailleurs (marque, « Mes projets »).
+ * `glossary`, `format` et `converter` sont dans la navigation d'en-tête, visible
+ * sur toute page : les y dupliquer coûterait du bundle initial sans ajouter de
+ * maillage réel. Le pied de page se concentre sur ce qui manquait : les guides
+ * et le kit créatrices.
+ */
+const EXEMPT: readonly RouteName[] = ['reader', 'projects', 'glossary', 'format', 'converter'];
 
 function setup(locale: 'fr' | 'en') {
   TestBed.configureTestingModule({ providers: [provideRouter([])] });
@@ -19,7 +25,7 @@ function setup(locale: 'fr' | 'en') {
 
 describe('SiteFooter', () => {
   for (const locale of ['fr', 'en'] as const) {
-    it(`relie chaque page publique en ${locale}, hors lecteur et projets`, () => {
+    it(`relie chaque page publique en ${locale}, hors celles déjà en en-tête`, () => {
       const { host, i18n } = setup(locale);
       const hrefs = [...host.querySelectorAll('a')].map((a) => a.getAttribute('href'));
 

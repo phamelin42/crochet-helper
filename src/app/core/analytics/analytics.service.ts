@@ -65,7 +65,11 @@ export type AnalyticsEvent =
   /** Compteur de rangs en ligne : palier de dix atteint (propriété `value`), pas chaque clic. */
   | 'row_counted'
   /** Photo d'un patron PDF agrandie depuis sa vignette, dans le lecteur. */
-  | 'image_opened';
+  | 'image_opened'
+  /** Diagramme chargé dans un projet (propriété `source`, image ou PDF). */
+  | 'chart_added'
+  /** Diagramme affiché dans le panneau ou en plein écran, une fois par session et par diagramme. */
+  | 'chart_viewed';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

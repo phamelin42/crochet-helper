@@ -4,6 +4,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../../shared/ui/field/input';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
+import { ChartIntake } from '../state/chart-intake';
 import { ReaderStore } from '../state/reader-store';
 
 /**
@@ -48,6 +49,15 @@ import { ReaderStore } from '../state/reader-store';
             >
               {{ store.pdfImporting() ? t('ui.pdfLoading') : t('ui.pdfOpen') }}
             </button>
+            <button
+              type="button"
+              filButton="secondary"
+              [disabled]="!store.currentId() || intake.busy()"
+              [attr.aria-describedby]="store.currentId() ? null : 'chart-needs-pattern'"
+              (click)="chartInput().nativeElement.click()"
+            >
+              {{ intake.busy() ? t('ui.chartBusy') : t('ui.chartAdd') }}
+            </button>
             <button type="button" filButton="secondary" (click)="demo()">{{ t('ui.demo') }}</button>
             <button type="button" filButton="ghost" (click)="clear()">{{ t('ui.clear') }}</button>
           </div>
@@ -60,6 +70,18 @@ import { ReaderStore } from '../state/reader-store';
             aria-hidden="true"
             (change)="onPdfChange($event)"
           />
+          <input
+            #chartFile
+            type="file"
+            accept="image/png,image/jpeg,image/webp,application/pdf,.pdf"
+            class="visually-hidden"
+            tabindex="-1"
+            aria-hidden="true"
+            (change)="onChartChange($event)"
+          />
+          @if (!store.currentId()) {
+            <p id="chart-needs-pattern" class="hint">{{ t('ui.chartNeedsPattern') }}</p>
+          }
           @if (pdfErrorMessage(); as message) {
             <p class="hint" role="alert">{{ message }}</p>
           }
@@ -75,6 +97,8 @@ export class PatternImport {
   readonly open = model(true);
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
   protected readonly pdfInput = viewChild.required<ElementRef<HTMLInputElement>>('pdfFile');
+  protected readonly chartInput = viewChild.required<ElementRef<HTMLInputElement>>('chartFile');
+  protected readonly intake = inject(ChartIntake);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
 
@@ -113,6 +137,13 @@ export class PatternImport {
     const field = this.source();
     if (field) field.nativeElement.value = this.store.source();
     this.open.set(false);
+  }
+
+  protected async onChartChange(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (file) await this.intake.submit(file);
   }
 
   protected demo(): void {

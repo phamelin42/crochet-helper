@@ -703,6 +703,11 @@ textarea.src-input {
   width: min(920px, 100%);
   gap: var(--space-2);
 }
+/* Symbole de diagramme (tableau du guide, légende) : trait noir, donc sur fond clair. */
+.symbol-img {
+  background: var(--print-paper);
+  border-radius: var(--radius-sm);
+}
 /* — contenu éditorial (pages SEO) — */
 .prose {
   max-width: 70ch;

@@ -6,6 +6,7 @@ import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
 import { Button } from '../../../shared/ui/button/button';
+import { CHART_SYMBOLS, ChartSymbol, symbolName, symbolUrl } from '../../reader/data/chart-symbols';
 
 const NBSP = ' ';
 
@@ -16,6 +17,12 @@ interface GuideCopy {
   readonly lead: string;
   readonly h2Symbols: string;
   readonly bodySymbols: string;
+  readonly tableCaption: string;
+  readonly thSymbol: string;
+  readonly thName: string;
+  readonly thUs: string;
+  readonly thUk: string;
+  readonly thFr: string;
   readonly h2Direction: string;
   readonly bodyDirection: string;
   readonly h2FlatRound: string;
@@ -44,6 +51,12 @@ const COPY: Record<Locale, GuideCopy> = {
     lead: `Un diagramme remplace le texte par des symboles${NBSP}: une fois leur légende connue, on voit d'un coup d'œil la forme de l'ouvrage, ce qu'aucune suite de rangs écrits ne montre aussi vite. Encore faut-il savoir où commencer et dans quel sens avancer.`,
     h2Symbols: `Que représentent les symboles d'un diagramme de crochet${NBSP}?`,
     bodySymbols: `Chaque symbole dessine la maille qu'il représente, en plus petit${NBSP}: un ovale ou une croix pour la maille serrée, un «${NBSP}T${NBSP}» court pour la demi-bride, un «${NBSP}T${NBSP}» barré d'un ou deux traits pour la bride ou la bride double — le nombre de traits comptant la hauteur de la maille. Les mailles en l'air sont un petit ovale ou un point isolé, les diminutions et augmentations regroupent ou séparent plusieurs symboles à leur base. La légende figure toujours en marge du diagramme${NBSP}; elle change légèrement d'un livre à l'autre, donc à vérifier avant de commencer même pour quelqu'un qui a déjà lu des diagrammes.`,
+    tableCaption: 'Symboles standard des diagrammes de crochet, avec leur abréviation',
+    thSymbol: 'Symbole',
+    thName: 'Nom',
+    thUs: 'Américain',
+    thUk: 'Britannique',
+    thFr: 'Français',
     h2Direction: `Dans quel sens lire un diagramme${NBSP}?`,
     bodyDirection: `Le premier rang se lit à partir du point de départ indiqué par la designer, en général en bas du diagramme. Pour un ouvrage travaillé à plat, chaque rang change de sens${NBSP}: le rang 1 se lit de droite à gauche, le rang 2 de gauche à droite, comme le fait la main qui tourne l'ouvrage entre deux rangs. Un numéro placé au début de chaque ligne indique où elle commence, ce qui évite de deviner le sens à chaque fois.`,
     h2FlatRound: `Diagramme en rang ou en rond${NBSP}: quelle différence${NBSP}?`,
@@ -71,6 +84,12 @@ const COPY: Record<Locale, GuideCopy> = {
     h2Symbols: 'What do the symbols in a crochet chart mean?',
     bodySymbols:
       'Every symbol sketches the stitch it stands for, at a smaller scale: an oval or a cross for single crochet, a short “T” for half double crochet, a “T” crossed by one or two bars for double or treble crochet — the number of bars tracking the stitch height. Chain stitches appear as a small oval or a dot, and increases and decreases group or split several symbols at their base. The key always sits alongside the chart; it varies slightly from one publisher to another, so it is worth checking even for someone who has read charts before.',
+    tableCaption: 'Standard crochet chart symbols, with their abbreviation',
+    thSymbol: 'Symbol',
+    thName: 'Name',
+    thUs: 'US',
+    thUk: 'UK',
+    thFr: 'French',
     h2Direction: 'Which way do you read a chart?',
     bodyDirection:
       'The first row starts at the point the designer marks, usually at the bottom of the chart. For a flat piece, every row switches direction: row 1 reads right to left, row 2 left to right, matching how the hand turns the work between rows. A number at the start of each line marks where it begins, so there is no need to guess the direction each time.',
@@ -107,6 +126,46 @@ const COPY: Record<Locale, GuideCopy> = {
 
       <h2>{{ c.h2Symbols }}</h2>
       <p>{{ c.bodySymbols }}</p>
+
+      <!-- Généré depuis les données du lecteur : le texte du tableau est dans
+           le HTML pré-rendu, pas produit après coup par du JavaScript. -->
+      <div class="glossary-table-scroll">
+        <table class="table">
+          <caption class="visually-hidden">
+            {{
+              c.tableCaption
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">{{ c.thSymbol }}</th>
+              <th scope="col">{{ c.thName }}</th>
+              <th scope="col">{{ c.thUs }}</th>
+              <th scope="col">{{ c.thUk }}</th>
+              <th scope="col">{{ c.thFr }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (symbol of symbols; track symbol.id) {
+              <tr>
+                <td>
+                  <img class="symbol-img" [src]="urlOf(symbol.id)" alt="" width="32" height="32" />
+                </td>
+                <th scope="row">{{ nameOf(symbol) }}</th>
+                <td>
+                  <code>{{ symbol.us }}</code>
+                </td>
+                <td>
+                  <code>{{ symbol.uk }}</code>
+                </td>
+                <td>
+                  <code>{{ symbol.fr }}</code>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
 
       <h2>{{ c.h2Direction }}</h2>
       <p>{{ c.bodyDirection }}</p>
@@ -151,6 +210,9 @@ export class ReadingChartPage {
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
+  protected readonly symbols = CHART_SYMBOLS;
+  protected readonly urlOf = symbolUrl;
+  protected nameOf = (symbol: ChartSymbol) => symbolName(symbol, this.locale);
 
   protected hrefOf(route: 'guideReadingPattern' | 'guideCrochetOrKnitting'): string {
     return `${localePrefix(this.locale)}${ROUTE_PATHS[route][this.locale]}`;

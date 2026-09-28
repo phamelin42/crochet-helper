@@ -355,3 +355,58 @@ export async function extractPdfPages(file: File): Promise<ExtractedPdf> {
     truncated,
   };
 }
+
+/** Une page de PDF rendue en image, pour que la lectrice dise laquelle est un diagramme. */
+export interface RenderedPage {
+  readonly number: number;
+  readonly blob: Blob;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** Plus long côté d'un diagramme enregistré, page de PDF comprise. */
+export const CHART_MAX_SIDE = 2400;
+export const CHART_JPEG_QUALITY = 0.85;
+
+/**
+ * Rend les pages d'un PDF en images à l'échelle 2 (réduite si le plus long
+ * côté dépasse 2400 px), sur fond blanc : un diagramme de PDF est un dessin
+ * vectoriel, pas une image incorporée, `extractPdfPages` ne le voit donc pas.
+ */
+export async function renderPdfPages(
+  file: File,
+  maxPages: number,
+): Promise<{ pages: RenderedPage[]; total: number }> {
+  ensureUpsert();
+  const pdfjs = await import('pdfjs-dist');
+  pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+  const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
+  const document = await task.promise;
+  const pages: RenderedPage[] = [];
+  try {
+    const count = Math.min(document.numPages, maxPages);
+    for (let number = 1; number <= count; number++) {
+      const page = await document.getPage(number);
+      const base = page.getViewport({ scale: 1 });
+      const scale = Math.min(2, CHART_MAX_SIDE / Math.max(base.width, base.height));
+      const viewport = page.getViewport({ scale });
+      const width = Math.max(1, Math.round(viewport.width));
+      const height = Math.max(1, Math.round(viewport.height));
+      const canvas = new OffscreenCanvas(width, height);
+      const context = canvas.getContext('2d');
+      if (!context) continue;
+      await page.render({
+        canvasContext: context as unknown as CanvasRenderingContext2D,
+        canvas: null,
+        viewport,
+        background: 'rgb(255, 255, 255)',
+      }).promise;
+      const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: CHART_JPEG_QUALITY });
+      pages.push({ number, blob, width, height });
+      page.cleanup();
+    }
+  } finally {
+    await task.destroy();
+  }
+  return { pages, total: document.numPages };
+}

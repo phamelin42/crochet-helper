@@ -63,7 +63,7 @@ test('permalien créé depuis un vrai PDF — première et dernière étape iden
   const page = await context.newPage();
   await page.goto('/');
   await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
-  await page.locator('input[type="file"]').setInputFiles(pdfPath);
+  await page.locator('input[accept="application/pdf,.pdf"]').setInputFiles(pdfPath);
   await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
 
   const firstStep = await stepBody(page);

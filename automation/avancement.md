@@ -47,7 +47,7 @@ branche.
 | 32 — Libellés, pied de page, lastmod    | Terminée                               | —   | 2026-09-28 |
 | 33 — Glossaire sur téléphone            | À faire                                | —   | —          |
 | 34 — Images du PDF à l'étape            | Terminée                               | —   | 2026-09-28 |
-| 35 — Diagrammes : charger et voir       | À faire                                | —   | —          |
+| 35 — Diagrammes : charger et voir       | Terminée                               | —   | 2026-09-28 |
 | 36 — Diagrammes : transcrire en texte   | À faire                                | —   | —          |
 | 37 — Reconnaître les symboles (étude)   | À faire                                | —   | —          |
 

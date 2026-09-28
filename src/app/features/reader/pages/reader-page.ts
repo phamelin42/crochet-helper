@@ -14,6 +14,7 @@ import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
 import { Tile } from '../../../shared/ui/tile/tile';
+import { ChartIntakeDialogs } from '../components/chart-intake-dialogs';
 import { MaterialsList } from '../components/materials-list';
 import { PatternImport } from '../components/pattern-import';
 import { PrintView } from '../components/print-view';
@@ -22,6 +23,7 @@ import { ReaderCounters } from '../components/reader-counters';
 import { StepView } from '../components/step-view';
 import { WaitlistBanner } from '../components/waitlist-banner';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
+import { ChartIntake } from '../state/chart-intake';
 import { ReaderStore } from '../state/reader-store';
 
 const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
@@ -301,6 +303,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
   selector: 'fil-reader-page',
   imports: [
     Button,
+    ChartIntakeDialogs,
     Dialog,
     Disclosure,
     Icon,
@@ -411,6 +414,8 @@ const SEO: Record<Locale, { title: string; description: string }> = {
 
     <fil-print-view />
 
+    <fil-chart-intake-dialogs />
+
     @if (!store.step()) {
       <hr class="hr" />
 
@@ -501,6 +506,7 @@ export class ReaderPage {
 
   protected readonly importOpen = signal(true);
   private readonly patternImport = viewChild(PatternImport);
+  private readonly intake = inject(ChartIntake);
 
   protected readonly textSizeOptions = computed<SegmentedOption[]>(() => [
     { value: 0, label: this.t('ui.textSizeBase') },
@@ -674,10 +680,8 @@ export class ReaderPage {
   protected onPaste(event: ClipboardEvent): void {
     const file = event.clipboardData?.files?.[0];
     if (file?.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = () => this.store.setImage(String(reader.result));
-      reader.readAsDataURL(file);
       event.preventDefault();
+      void this.intake.receive(file);
       return;
     }
     if (file?.type === 'application/pdf') {
@@ -699,9 +703,14 @@ export class ReaderPage {
   }
 
   /** Un PDF déposé n'importe où sur la page suit le même chemin que le bouton
-   *  et le collage. Les images gardent leur comportement actuel : pas de dépôt géré. */
+   *  et le collage ; une image demande s'il s'agit d'une couverture ou d'un diagramme. */
   protected onDrop(event: DragEvent): void {
     const file = event.dataTransfer?.files?.[0];
+    if (file?.type.startsWith('image/')) {
+      event.preventDefault();
+      void this.intake.receive(file);
+      return;
+    }
     if (file?.type !== 'application/pdf') return;
     event.preventDefault();
     this.store.importPdf(file);

@@ -12,7 +12,13 @@ import { Button } from '../../../shared/ui/button/button';
 import { Checkbox } from '../../../shared/ui/checkbox/checkbox';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { InputField } from '../../../shared/ui/field/input';
-import { CounterState, INITIAL_COUNTER_STATE, increment, parseSaved, reset } from '../data/row-counter';
+import {
+  CounterState,
+  INITIAL_COUNTER_STATE,
+  increment,
+  parseSaved,
+  reset,
+} from '../data/row-counter';
 
 const NBSP = ' ';
 const STORAGE_KEY = 'fil.rowCounter';
@@ -140,11 +146,11 @@ const COPY: Record<Locale, RowCounterCopy> = {
       <p>{{ c.lead }}</p>
     </section>
 
-    <section class="card counter-tool">
-      <div class="counter-count" aria-live="polite">
+    <section class="card">
+      <div class="counter-count step-body" aria-live="polite">
         {{ state().count }}
         @if (state().target) {
-          <span class="sub"> / {{ state().target }}</span>
+          <span> / {{ state().target }}</span>
         }
       </div>
 
@@ -171,13 +177,21 @@ const COPY: Record<Locale, RowCounterCopy> = {
         >
           {{ c.minus }}
         </button>
-        <button type="button" filButton="primary" [step]="true" class="next" (click)="onIncrement(1)">
+        <button
+          type="button"
+          filButton="primary"
+          [step]="true"
+          class="next"
+          (click)="onIncrement(1)"
+        >
           {{ c.plus }}
         </button>
       </div>
 
-      <div class="counter-actions">
-        <button type="button" filButton="ghost" (click)="onResetClick()">{{ c.resetAction }}</button>
+      <div class="navrow">
+        <button type="button" filButton="ghost" (click)="onResetClick()">
+          {{ c.resetAction }}
+        </button>
         @if (wakeLock.supported()) {
           <fil-checkbox
             [label]="c.wakeLabel"
@@ -187,7 +201,7 @@ const COPY: Record<Locale, RowCounterCopy> = {
         }
       </div>
 
-      <div class="field target-field">
+      <div class="field">
         <label for="target-input">{{ c.targetLabel }}</label>
         <input
           filInput

@@ -583,7 +583,16 @@ textarea.src-input {
   border-radius: var(--radius-pill);
   background: var(--color-overlay);
   overflow: hidden;
-  margin-bottom: var(--space-4);
+}
+/* Barre de progression de l'étape (fiche 25), sous le texte : au-dessus, elle
+   repoussait l'étape hors du premier écran sur tablette (garde de la fiche 24). */
+.step-progress {
+  margin: var(--space-3) 0 var(--space-4);
+}
+.stepcount {
+  font-size: var(--text-sm);
+  color: var(--color-text-label);
+  font-variant-numeric: tabular-nums;
 }
 .progress i {
   display: block;

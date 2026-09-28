@@ -42,6 +42,11 @@ import { StepsList } from './steps-list';
       </button>
       @if (store.step(); as step) {
         <span class="steplabel">{{ step.label || t('ui.repeat') }}</span>
+        <!-- Sur la même ligne que le libellé : la position ne coûte aucune
+             hauteur, l'étape reste dans le premier écran (garde de la fiche 24). -->
+        <span class="stepcount"
+          >{{ t('ui.stepOf') }} {{ store.stepIndex() + 1 }} / {{ store.stepCount() }}</span
+        >
       }
       @if (title()) {
         <span class="piecename">{{ title() }}</span>
@@ -50,11 +55,6 @@ import { StepsList } from './steps-list';
 
     @if (notes(); as notes) {
       <p class="note"><span aria-hidden="true">›</span><fil-glossary-text [text]="notes" /></p>
-    }
-
-    @if (store.step()) {
-      <p class="hint">{{ t('ui.stepOf') }} {{ store.stepIndex() + 1 }} / {{ store.stepCount() }}</p>
-      <div class="progress" aria-hidden="true"><i [style.width.%]="store.progress()"></i></div>
     }
 
     <p #stepBody class="step-body" tabindex="-1" [class.empty]="!store.step()" aria-live="polite">
@@ -67,6 +67,12 @@ import { StepsList } from './steps-list';
 
     @if (store.step()?.tip; as tip) {
       <p class="step-tip"><span aria-hidden="true">💡</span> <fil-glossary-text [text]="tip" /></p>
+    }
+
+    @if (store.step()) {
+      <div class="progress step-progress" aria-hidden="true">
+        <i [style.width.%]="store.progress()"></i>
+      </div>
     }
 
     <fil-tile class="reps-tile" [label]="t('ui.reps')">

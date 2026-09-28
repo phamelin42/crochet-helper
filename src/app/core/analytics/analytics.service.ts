@@ -57,7 +57,9 @@ export type AnalyticsEvent =
   /** Taille du texte ou fond sombre changés dans le mode lecture. */
   | 'reading_pref_changed'
   /** Clic sur l'un des deux boutons du bandeau d'accueil (propriété `cta`, exemple ou collage). */
-  | 'home_cta';
+  | 'home_cta'
+  /** Compteur de rangs en ligne : palier de dix atteint (propriété `value`), pas chaque clic. */
+  | 'row_counted';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

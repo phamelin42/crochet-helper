@@ -60,6 +60,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         title: 'Vous créez des patrons ?',
         lead: 'Un badge et un lien à offrir à vos clientes pour ouvrir votre patron directement dans le lecteur.',
       },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.rowCounter.fr}`,
+        title: 'Compteur de rangs en ligne',
+        lead: 'Comptez vos rangs d’une main, avec un objectif optionnel et sa barre de progression.',
+      },
     ],
   },
   en: {
@@ -84,6 +89,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.forDesigners.en}`,
         title: 'Do you design patterns?',
         lead: 'A badge and a link to give your customers, to open your pattern straight in the reader.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.rowCounter.en}`,
+        title: 'Online row counter',
+        lead: 'Count your rows one-handed, with an optional target and progress bar.',
       },
     ],
   },

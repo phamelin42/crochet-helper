@@ -21,8 +21,9 @@ export class Button {
   readonly iconOnly = input(false);
   /**
    * Icône seule sous 600 px, icône + libellé visible au-delà : le libellé
-   * passe dans un `<span class="visually-hidden">`, révélé par le média-query
-   * de `.btn-icon-text` dans `hanami.css`.
+   * vient de `aria-label` (déjà requis pour l'accessibilité), affiché par
+   * `.btn-icon-text::after` dans `hanami.css` — aucun texte dupliqué dans le
+   * gabarit.
    */
   readonly iconText = input(false);
   readonly block = input(false);

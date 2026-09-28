@@ -90,7 +90,6 @@ import { Icon } from '../ui/icon/icon';
             (click)="wakeLock.toggle()"
           >
             <fil-icon name="eye" />
-            <span class="visually-hidden">{{ i18n.t('ui.wake') }}</span>
           </button>
         }
       </span>
@@ -105,7 +104,6 @@ import { Icon } from '../ui/icon/icon';
         [title]="i18n.t('ui.discord')"
       >
         <fil-icon name="discord" />
-        <span class="visually-hidden">{{ i18n.t('ui.discord') }}</span>
       </a>
 
       <a

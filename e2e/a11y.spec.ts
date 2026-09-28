@@ -135,6 +135,34 @@ for (const route of ROUTES) {
   });
 }
 
+/**
+ * Fiche 32 : un public de 50 à 70 ans ne clique pas une icône seule (audit
+ * UX-6). Sous 600 px, seul `aria-label` porte le nom du bouton Discord ; au-delà,
+ * `.btn-icon-text::after` (`hanami.css`) l'affiche aussi à l'écran, via
+ * `content: attr(aria-label)` — pas de libellé dupliqué dans le gabarit, pour
+ * ne pas alourdir le bundle initial.
+ */
+test.describe('en-tête : icône + texte du bouton Discord', () => {
+  test('sous 600 px, seule l’icône est visible ; axe trouve son nom', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await page.goto('/');
+    const link = page.locator('fil-site-header').getByRole('link', { name: 'Join the Discord' });
+    await expect(link).toBeVisible();
+    const content = await link.evaluate((el) => getComputedStyle(el, '::after').content);
+    expect(content).toBe('none');
+
+    expect(await seriousViolations(page)).toEqual([]);
+  });
+
+  test('à 1024 px, le libellé apparaît à côté de l’icône', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await page.goto('/');
+    const link = page.locator('fil-site-header').getByRole('link', { name: 'Join the Discord' });
+    const content = await link.evaluate((el) => getComputedStyle(el, '::after').content);
+    expect(content).toContain('Join the Discord');
+  });
+});
+
 async function seriousViolations(page: Page): Promise<unknown[]> {
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

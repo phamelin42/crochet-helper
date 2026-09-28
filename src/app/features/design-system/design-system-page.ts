@@ -216,7 +216,6 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
           <p class="ds-caption">icône + texte (masqué sous 600 px)</p>
           <button type="button" filButton="secondary" [iconText]="true" aria-label="Exemple">
             <fil-icon name="eye" />
-            <span class="visually-hidden">Exemple</span>
           </button>
         </div>
         <div class="card">

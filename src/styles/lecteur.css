@@ -119,22 +119,17 @@ main {
   margin-bottom: var(--space-4);
   text-align: left;
 }
-.footer-columns nav {
+.footer-columns > div {
+  display: flex;
   flex: 1 1 180px;
+  flex-direction: column;
   max-width: 240px;
+  gap: var(--space-1);
 }
-.footer-columns h2 {
-  margin: 0 0 var(--space-2);
+.footer-heading {
+  margin: 0 0 var(--space-1);
   font-size: var(--text-sm);
   color: var(--color-text-label);
-}
-.footer-columns ul {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }
 .footer-tagline {
   margin: 0;

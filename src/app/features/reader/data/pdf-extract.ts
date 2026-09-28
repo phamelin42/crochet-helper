@@ -223,7 +223,31 @@ interface Encoded {
   readonly height: number;
 }
 
+type Upsert = (
+  this: Map<unknown, unknown>,
+  key: unknown,
+  compute: (key: unknown) => unknown,
+) => unknown;
+
+/**
+ * pdf.js 6 lit les images d'une page avec `Map.prototype.getOrInsertComputed`
+ * (ES2026), absent des navigateurs d'avant 2026 (Chromium 141, Safari de
+ * tablettes pas à jour). Sans lui, `getOperatorList` échoue et les photos
+ * disparaissent sans bruit ; le texte, lui, n'en dépend pas. Posé ici, dans le
+ * morceau paresseux du PDF, et seulement s'il manque.
+ */
+function ensureUpsert(): void {
+  for (const proto of [Map.prototype, WeakMap.prototype]) {
+    const target = proto as unknown as { getOrInsertComputed?: Upsert };
+    target.getOrInsertComputed ??= function (key, compute) {
+      if (!this.has(key)) this.set(key, compute(key));
+      return this.get(key);
+    };
+  }
+}
+
 export async function extractPdfPages(file: File): Promise<ExtractedPdf> {
+  ensureUpsert();
   const pdfjs = await import('pdfjs-dist');
   pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
   const ops = pdfjs.OPS as unknown as PdfOps;

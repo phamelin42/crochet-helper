@@ -37,7 +37,7 @@ branche.
 | 22 — Liste d'attente                    | Terminée                               | —   | 2026-09-24 |
 | 23 — Kit pour les créatrices            | Terminée                               | —   | 2026-09-25 |
 | 24 — Mode lecture                       | Terminée                               | —   | 2026-09-27 |
-| 25 — Vue d'ensemble et partage visible  | À faire                                | —   | —          |
+| 25 — Vue d'ensemble et partage visible  | Terminée                               | —   | 2026-09-28 |
 | 26 — Première visite                    | Terminée                               | —   | 2026-09-28 |
 | 27 — Compteur de rangs en ligne         | À faire                                | —   | —          |
 | 28 — Calculateur d'échantillon          | À faire                                | —   | —          |

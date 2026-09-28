@@ -52,10 +52,8 @@ import { StepsList } from './steps-list';
     }
 
     @if (store.step()) {
-      <div class="step-progress">
-        <span>{{ t('ui.stepOf') }} {{ store.stepIndex() + 1 }} / {{ store.stepCount() }}</span>
-        <div class="progress" aria-hidden="true"><i [style.width.%]="store.progress()"></i></div>
-      </div>
+      <p class="hint">{{ t('ui.stepOf') }} {{ store.stepIndex() + 1 }} / {{ store.stepCount() }}</p>
+      <div class="progress" aria-hidden="true"><i [style.width.%]="store.progress()"></i></div>
     }
 
     <p #stepBody class="step-body" tabindex="-1" [class.empty]="!store.step()" aria-live="polite">

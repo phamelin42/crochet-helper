@@ -69,10 +69,10 @@ test('permalien créé depuis un vrai PDF — première et dernière étape iden
   const firstStep = await stepBody(page);
   const lastStep = await lastStepBody(page);
 
-  // Le panneau d'import se replie après un chargement réussi (voir
-  // `pattern-import.ts`) : le rouvrir pour atteindre « Copy link ».
-  await page.locator('.import-host summary').click();
-  await page.getByRole('button', { name: 'Copy link', exact: true }).click();
+  // Les actions de partage vivent désormais sous la liste des étapes (fiche 25),
+  // repliée par défaut : l'ouvrir pour atteindre « Copy the pattern link ».
+  await page.getByText('All steps', { exact: true }).click();
+  await page.getByRole('button', { name: 'Copy the pattern link', exact: true }).click();
   const link = await page.evaluate(() => navigator.clipboard.readText());
   expect(link).toContain('#p=');
 

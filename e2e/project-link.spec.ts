@@ -35,10 +35,11 @@ test('lien de projet — même étape, mêmes répétitions et rang coché, dans
   await expect(page.locator('.step-body')).toContainText('inc in each st around');
   const sentStep = await stepBody(page);
 
-  // Le panneau d'import se replie après un chargement réussi : le rouvrir
-  // pour atteindre « Send this project ». Le lien se recalcule de façon
-  // asynchrone (compression) : on réessaie le clic jusqu'à ce qu'il soit prêt.
-  await page.locator('.import-host summary').click();
+  // Les actions de partage vivent désormais sous la liste des étapes (fiche 25),
+  // repliée par défaut : l'ouvrir pour atteindre « Send this project ». Le lien
+  // se recalcule de façon asynchrone (compression) : on réessaie le clic
+  // jusqu'à ce qu'il soit prêt.
+  await page.getByText('All steps', { exact: false }).click();
   const sendButton = page.getByRole('button', { name: 'Send this project', exact: true });
   await expect
     .poll(async () => {

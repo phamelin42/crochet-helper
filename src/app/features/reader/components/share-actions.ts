@@ -22,13 +22,8 @@ const MAX_LINK_LENGTH = 8000;
   selector: 'fil-share-actions',
   imports: [Button],
   template: `
-    <div class="share-actions">
-      <button
-        type="button"
-        filButton="secondary"
-        [disabled]="linkTooLong()"
-        (click)="copyLink()"
-      >
+    <div class="import-actions">
+      <button type="button" filButton="secondary" [disabled]="linkTooLong()" (click)="copyLink()">
         {{ t('ui.copyPatternLink') }}
       </button>
       @if (store.currentId()) {

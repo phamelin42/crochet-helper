@@ -2,7 +2,6 @@ import { Component, computed, inject, output, signal } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
-import { Icon } from '../../../shared/ui/icon/icon';
 import { InputField } from '../../../shared/ui/field/input';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
@@ -18,7 +17,7 @@ const EXCERPT_LENGTH = 60;
  */
 @Component({
   selector: 'fil-steps-list',
-  imports: [Button, Disclosure, Icon, InputField, ShareActions],
+  imports: [Button, Disclosure, InputField, ShareActions],
   template: `
     <fil-disclosure [label]="label()" variant="mats" [(open)]="open">
       <ol class="steps-list">
@@ -26,34 +25,34 @@ const EXCERPT_LENGTH = 60;
           <li>
             <button
               type="button"
-              class="steps-item"
+              filButton="ghost"
+              class="steps-item btn-block"
               [class.done]="isDone($index)"
               [attr.aria-current]="isCurrent($index) ? 'step' : null"
               (click)="jump($index + 1, 'list')"
             >
               <span class="steps-item-label">{{ step.label || $index + 1 }}</span>
               <span class="steps-item-excerpt">{{ excerpt(step.body) }}</span>
-              @if (isDone($index)) {
-                <fil-icon name="check" class="steps-item-check" />
-              }
             </button>
           </li>
         }
       </ol>
 
-      <div class="steps-goto">
+      <div class="field">
         <label for="steps-goto-field">{{ t('ui.goToStepLabel') }}</label>
-        <input
-          #gotoField
-          filInput
-          type="number"
-          id="steps-goto-field"
-          min="1"
-          [attr.max]="store.stepCount()"
-        />
-        <button type="button" filButton="secondary" (click)="jumpFromField(gotoField.value)">
-          {{ t('ui.go') }}
-        </button>
+        <div class="import-actions">
+          <input
+            #gotoField
+            filInput
+            type="number"
+            id="steps-goto-field"
+            min="1"
+            [attr.max]="store.stepCount()"
+          />
+          <button type="button" filButton="secondary" (click)="jumpFromField(gotoField.value)">
+            {{ t('ui.go') }}
+          </button>
+        </div>
       </div>
 
       <fil-share-actions (changePattern)="changePattern.emit()" />

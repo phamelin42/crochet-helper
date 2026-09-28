@@ -10,6 +10,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { DisplayPrefsService } from './core/platform/display-prefs.service';
 import { UpdateService } from './core/platform/update.service';
 import { routes } from './app.routes';
 
@@ -33,11 +34,14 @@ export const appConfig: ApplicationConfig = {
     // maintenance pour ce que ça protège.
     provideClientHydration(),
     // Services sans UI : le service worker (sans `@angular/service-worker`
-    // côté page, voir `UpdateService`) et l'anticipation de la page suivante.
-    // Cette dernière ne sert pas au premier affichage : son code arrive par
+    // côté page, voir `UpdateService`), les réglages de lecture (taille du
+    // texte, fond sombre — posés sur <html>, donc utiles dès la première
+    // page quelle qu'elle soit) et l'anticipation de la page suivante. Cette
+    // dernière ne sert pas au premier affichage : son code arrive par
     // `import()` une fois la page rendue, hors du bundle initial (2,2 ko).
     provideAppInitializer(() => {
       inject(UpdateService);
+      inject(DisplayPrefsService);
       if (!isPlatformBrowser(inject(PLATFORM_ID))) return;
       const injector = inject(Injector);
       void inject(ApplicationRef)

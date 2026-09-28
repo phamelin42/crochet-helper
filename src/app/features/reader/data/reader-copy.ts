@@ -56,6 +56,13 @@ const FR = {
   'ui.waitlistText': 'Une version synchronisée entre vos appareils, 29 € par an — intéressée ?',
   'ui.waitlistLink': 'En savoir plus',
   'ui.waitlistHide': 'Masquer',
+  'ui.textSize': 'Taille du texte',
+  'ui.textSizeBase': 'A',
+  'ui.textSizeLg': 'A+',
+  'ui.textSizeXl': 'A++',
+  'ui.darken': 'Assombrir',
+  'ui.lighten': 'Éclaircir',
+  'ui.changePattern': 'Changer de patron',
 } as const;
 
 export type ReaderTranslationKey = keyof typeof FR;
@@ -108,6 +115,13 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.waitlistText': 'A version that syncs between devices for €29/year — interested?',
   'ui.waitlistLink': 'Tell me more',
   'ui.waitlistHide': 'Hide',
+  'ui.textSize': 'Text size',
+  'ui.textSizeBase': 'A',
+  'ui.textSizeLg': 'A+',
+  'ui.textSizeXl': 'A++',
+  'ui.darken': 'Darken',
+  'ui.lighten': 'Lighten',
+  'ui.changePattern': 'Change pattern',
 };
 
 export const READER_COPY: Record<Locale, Record<ReaderTranslationKey, string>> = { fr: FR, en: EN };

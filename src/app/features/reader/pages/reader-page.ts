@@ -1,15 +1,18 @@
-import { Component, PLATFORM_ID, effect, inject, signal } from '@angular/core';
+import { Component, PLATFORM_ID, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
+import { DisplayPrefsService, ReaderTextSize } from '../../../core/platform/display-prefs.service';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
+import { Button } from '../../../shared/ui/button/button';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
 import { Tile } from '../../../shared/ui/tile/tile';
 import { MaterialsList } from '../components/materials-list';
 import { PatternImport } from '../components/pattern-import';
@@ -19,6 +22,8 @@ import { StepView } from '../components/step-view';
 import { WaitlistBanner } from '../components/waitlist-banner';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
+
+const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
 
 interface GuideLink {
   readonly href: string;
@@ -284,6 +289,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
 @Component({
   selector: 'fil-reader-page',
   imports: [
+    Button,
     Dialog,
     Disclosure,
     Icon,
@@ -292,6 +298,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     PrintView,
     ReaderCounters,
     RouterLink,
+    Segmented,
     StepView,
     Tile,
     WaitlistBanner,
@@ -304,42 +311,64 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     '(document:drop)': 'onDrop($event)',
   },
   template: `
-    <section class="hero home-hero">
-      <div>
-        <h1>{{ hero.title }}</h1>
-        <p>{{ hero.lead }}</p>
-        <ul class="proof-list">
-          @for (proof of proofs; track proof) {
-            <li><fil-icon name="check" />{{ proof }}</li>
-          }
-        </ul>
-        <div class="cta-row">
-          <button type="button" filButton="primary" (click)="loadExample()">
-            {{ homeCopy.ctaExample }}
-          </button>
-          <button type="button" filButton="secondary" (click)="focusPaste()">
-            {{ homeCopy.ctaPaste }}
-          </button>
+    @if (!store.step()) {
+      <section class="hero home-hero">
+        <div>
+          <h1>{{ hero.title }}</h1>
+          <p>{{ hero.lead }}</p>
+          <ul class="proof-list">
+            @for (proof of proofs; track proof) {
+              <li><fil-icon name="check" />{{ proof }}</li>
+            }
+          </ul>
+          <div class="cta-row">
+            <button type="button" filButton="primary" (click)="loadExample()">
+              {{ homeCopy.ctaExample }}
+            </button>
+            <button type="button" filButton="secondary" (click)="focusPaste()">
+              {{ homeCopy.ctaPaste }}
+            </button>
+          </div>
         </div>
-      </div>
-      <!--
-        Balise native plutôt que NgOptimizedImage : pour un SVG, il n'apporte
-        ni srcset ni redimensionnement, et coûte 5,5 ko au bundle initial
-        (mesuré), dont la marge se compte en kilo-octets.
-      -->
-      <img
-        src="/illustrations/pelotes.svg"
-        width="520"
-        height="320"
-        fetchpriority="high"
-        [alt]="hero.alt"
-      />
-    </section>
+        <!--
+          Balise native plutôt que NgOptimizedImage : pour un SVG, il n'apporte
+          ni srcset ni redimensionnement, et coûte 5,5 ko au bundle initial
+          (mesuré), dont la marge se compte en kilo-octets.
+        -->
+        <img
+          src="/illustrations/pelotes.svg"
+          width="520"
+          height="320"
+          fetchpriority="high"
+          [alt]="hero.alt"
+        />
+      </section>
 
-    <fil-pattern-import />
+      <fil-pattern-import [(open)]="importOpen" />
+    }
 
     <section class="reader">
       <div>
+        @if (store.step()) {
+          <div class="reader-tools">
+            <fil-segmented
+              name="text-size"
+              [label]="t('ui.textSize')"
+              [options]="textSizeOptions()"
+              [selected]="textSizeIndex()"
+              (selectedChange)="setTextSize($event)"
+            />
+            <button type="button" filButton="ghost" (click)="toggleDim()">
+              <fil-icon name="moon" /><span>{{
+                prefs.dim() ? t('ui.lighten') : t('ui.darken')
+              }}</span>
+            </button>
+            <button type="button" filButton="ghost" (click)="changePattern()">
+              {{ t('ui.changePattern') }}
+            </button>
+          </div>
+        }
+
         <fil-step-view />
       </div>
     </section>
@@ -348,6 +377,8 @@ const SEO: Record<Locale, { title: string; description: string }> = {
 
     @if (store.step()) {
       <fil-reader-counters />
+
+      <fil-pattern-import [(open)]="importOpen" />
 
       <fil-waitlist-banner />
     } @else {
@@ -369,54 +400,56 @@ const SEO: Record<Locale, { title: string; description: string }> = {
 
     <fil-print-view />
 
-    <hr class="hr" />
+    @if (!store.step()) {
+      <hr class="hr" />
 
-    <section class="storyboard-section">
-      <figure class="storyboard">
-        <img
-          src="/illustrations/demo-storyboard.svg"
-          width="720"
-          height="240"
-          [alt]="homeCopy.storyboardAlt"
-        />
-        <figcaption>
-          <strong>{{ homeCopy.storyboardTitle }}</strong>
-          <span>{{ homeCopy.storyboardCaption }}</span>
-        </figcaption>
-      </figure>
-    </section>
+      <section class="storyboard-section">
+        <figure class="storyboard">
+          <img
+            src="/illustrations/demo-storyboard.svg"
+            width="720"
+            height="240"
+            [alt]="homeCopy.storyboardAlt"
+          />
+          <figcaption>
+            <strong>{{ homeCopy.storyboardTitle }}</strong>
+            <span>{{ homeCopy.storyboardCaption }}</span>
+          </figcaption>
+        </figure>
+      </section>
 
-    <section class="faq">
-      <h2>{{ homeCopy.faqTitle }}</h2>
-      <div class="faq-list">
-        @for (item of homeCopy.faq; track item.question) {
-          <fil-disclosure [label]="item.question" variant="import">
-            <p class="faq-answer">{{ item.answer }}</p>
-          </fil-disclosure>
-        }
-      </div>
-    </section>
+      <section class="faq">
+        <h2>{{ homeCopy.faqTitle }}</h2>
+        <div class="faq-list">
+          @for (item of homeCopy.faq; track item.question) {
+            <fil-disclosure [label]="item.question" variant="import">
+              <p class="faq-answer">{{ item.answer }}</p>
+            </fil-disclosure>
+          }
+        </div>
+      </section>
 
-    <hr class="hr" />
+      <hr class="hr" />
 
-    <section>
-      <h2>{{ guides.sectionTitle }}</h2>
-      <div class="grid-cards">
-        @for (item of guides.items; track item.href) {
-          <!--
-            Le résumé reste en dehors du lien : à l'intérieur, il hérite de la
-            couleur d'accent et son opacité le fait passer sous le seuil de
-            contraste AA (relevé par l'audit axe).
-          -->
-          <div class="card">
-            <p class="card-title">
-              <a [routerLink]="item.href">{{ item.title }}</a>
-            </p>
-            <p class="card-body">{{ item.lead }}</p>
-          </div>
-        }
-      </div>
-    </section>
+      <section>
+        <h2>{{ guides.sectionTitle }}</h2>
+        <div class="grid-cards">
+          @for (item of guides.items; track item.href) {
+            <!--
+              Le résumé reste en dehors du lien : à l'intérieur, il hérite de la
+              couleur d'accent et son opacité le fait passer sous le seuil de
+              contraste AA (relevé par l'audit axe).
+            -->
+            <div class="card">
+              <p class="card-title">
+                <a [routerLink]="item.href">{{ item.title }}</a>
+              </p>
+              <p class="card-body">{{ item.lead }}</p>
+            </div>
+          }
+        </div>
+      </section>
+    }
 
     @if (linkConfirmOpen()) {
       <fil-dialog [(open)]="linkConfirmOpen" [label]="t('ui.linkImportTitle')">
@@ -437,10 +470,11 @@ const SEO: Record<Locale, { title: string; description: string }> = {
 export class ReaderPage {
   protected readonly store = inject(ReaderStore);
   protected readonly i18n = inject(I18nService);
+  protected readonly prefs = inject(DisplayPrefsService);
+  private readonly analytics = inject(AnalyticsService);
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly analytics = inject(AnalyticsService);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
   protected readonly hero = HERO[(this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE];
@@ -453,6 +487,16 @@ export class ReaderPage {
 
   protected readonly linkConfirmOpen = signal(false);
   private pendingLinkSource: string | null = null;
+
+  protected readonly importOpen = signal(true);
+  private readonly patternImport = viewChild(PatternImport);
+
+  protected readonly textSizeOptions = computed<SegmentedOption[]>(() => [
+    { value: 0, label: this.t('ui.textSizeBase') },
+    { value: 1, label: this.t('ui.textSizeLg') },
+    { value: 2, label: this.t('ui.textSizeXl') },
+  ]);
+  protected readonly textSizeIndex = computed(() => TEXT_SIZES.indexOf(this.prefs.textSize()));
 
   constructor() {
     const locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
@@ -564,6 +608,25 @@ export class ReaderPage {
   protected cancelLinkImport(): void {
     this.pendingLinkSource = null;
     this.linkConfirmOpen.set(false);
+  }
+
+  protected setTextSize(index: number): void {
+    const value = TEXT_SIZES[index] ?? 'base';
+    this.prefs.setTextSize(value);
+    this.analytics.track('reading_pref_changed', { pref: 'text_size', value });
+  }
+
+  protected toggleDim(): void {
+    const value = !this.prefs.dim();
+    this.prefs.setDim(value);
+    this.analytics.track('reading_pref_changed', { pref: 'dim', value: value ? 'on' : 'off' });
+  }
+
+  /** Rouvre le panneau d'import et y amène le focus — un battement après le
+   *  clic, le temps que `<details open>` reflète le nouvel état. */
+  protected changePattern(): void {
+    this.importOpen.set(true);
+    setTimeout(() => this.patternImport()?.focusSource());
   }
 
   protected onKeydown(event: KeyboardEvent): void {

@@ -575,6 +575,36 @@ textarea.src-input {
   );
   transition: width 0.3s ease;
 }
+
+/* — compteur de rangs (fiche 27) — */
+.counter-tool {
+  gap: var(--space-5);
+  text-align: center;
+}
+.counter-count {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: var(--reader-step);
+  line-height: 1;
+  color: var(--color-text-strong);
+  font-variant-numeric: tabular-nums;
+}
+.counter-count .sub {
+  font-size: var(--reader-step-sm);
+  color: var(--color-text-label);
+}
+.counter-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.target-field {
+  max-width: 220px;
+  margin-inline: auto;
+  text-align: left;
+}
 .reps {
   font-variant-numeric: tabular-nums;
 }

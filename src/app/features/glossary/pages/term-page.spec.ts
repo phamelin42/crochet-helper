@@ -1,6 +1,32 @@
+import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { describe, expect, it } from 'vitest';
+import { Locale } from '../../../core/i18n/locale';
 import { GLOSSARY, GlossaryEntry } from '../../reader/data/glossary';
-import { regionNoteOf, titleOf } from './term-page';
+import { TERM_ARTICLES } from '../data/term-articles';
+import GlossaryTermPage, { regionNoteOf, titleOf } from './term-page';
+
+function render(slug: string, locale: Locale): HTMLElement {
+  TestBed.configureTestingModule({
+    providers: [
+      provideRouter([]),
+      {
+        provide: ActivatedRoute,
+        useValue: {
+          snapshot: { data: { locale } },
+          paramMap: of(convertToParamMap({ slug })),
+        },
+      },
+    ],
+  });
+  const fixture = TestBed.createComponent(GlossaryTermPage);
+  fixture.detectChanges();
+  return fixture.nativeElement as HTMLElement;
+}
+
+const headings = (host: HTMLElement): string[] =>
+  [...host.querySelectorAll('h2')].map((h) => h.textContent?.trim() ?? '');
 
 const entry = (term: string): GlossaryEntry => GLOSSARY.find((e) => e.term === term)!;
 
@@ -53,5 +79,45 @@ describe('regionNoteOf', () => {
 
   it('ne dit rien d’un terme hors du décalage US/UK', () => {
     expect(regionNoteOf(entry('ch'), 'en')).toBeUndefined();
+  });
+});
+
+describe('GlossaryTermPage — article', () => {
+  const ARTICLE_TITLES = [
+    'How to work it',
+    'In a pattern',
+    'US or UK?',
+    'Common mistakes',
+    'A tip',
+  ];
+
+  it('ajoute cinq sections, dans l’ordre, quand l’abréviation a un article', () => {
+    const shown = headings(render('sc', 'en'));
+
+    expect(shown.slice(0, 5)).toEqual(ARTICLE_TITLES);
+    expect(shown).toContain('Try it with a row from your pattern');
+    expect(shown).toContain('See also');
+  });
+
+  it('laisse une page sans article inchangée', () => {
+    const shown = headings(render('flo', 'en'));
+
+    for (const title of ARTICLE_TITLES) expect(shown).not.toContain(title);
+    expect(shown).toContain('Try it with a row from your pattern');
+    expect(shown).toContain('See also');
+  });
+
+  it('rend chaque article dans sa langue, rang souligné compris', () => {
+    for (const slug of Object.keys(TERM_ARTICLES)) {
+      for (const locale of ['fr', 'en'] as const) {
+        TestBed.resetTestingModule();
+        const host = render(slug, locale);
+        const article = TERM_ARTICLES[slug][locale];
+
+        expect(host.textContent, `${slug} ${locale}`).toContain(article.tip);
+        expect(host.querySelectorAll('h2').length, `${slug} ${locale}`).toBeGreaterThanOrEqual(7);
+        expect(host.querySelectorAll('.abbr').length, `${slug} ${locale}`).toBeGreaterThan(0);
+      }
+    }
   });
 });

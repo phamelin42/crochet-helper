@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HOOK_SIZES, annotateHookSizes } from './hook-sizes';
+import { HOOK_SIZES, annotateHookSizes, findHookSize } from './hook-sizes';
 
 describe('annotateHookSizes', () => {
   it('ajoute l’équivalent millimétrique après une taille américaine, sans la remplacer', () => {
@@ -73,5 +73,39 @@ describe('annotateHookSizes', () => {
     expect(result.text).toBe('a 4 mm yarn, a 4mm cord length');
     expect(result.annotations).toEqual([]);
     expect(result.unknown).toEqual([]);
+  });
+});
+
+/** Toutes les écritures acceptées d'une taille : la fiche 29 exige qu'on les parcoure toutes. */
+function writings(size: (typeof HOOK_SIZES)[number]): string[] {
+  const mm = String(size.mm);
+  const list = [mm, `${mm} mm`, `${mm}mm`, mm.replace('.', ','), `${mm.replace('.', ',')} mm`];
+  const us = size.us;
+  list.push(us, us.toLowerCase(), us.replace('-', ''), us.replace('-', ' '), ` ${us} `);
+  if (us.includes('½')) list.push(us.replace('½', '.5'));
+  const single = /^([A-Z])-\d+½?$/.exec(us);
+  if (single) list.push(single[1], single[1].toLowerCase());
+  return list;
+}
+
+describe('findHookSize', () => {
+  it('retrouve chaque ligne du tableau sous chaque écriture acceptée, dans les deux sens', () => {
+    for (const size of HOOK_SIZES) {
+      for (const written of writings(size)) {
+        expect(findHookSize(written), `« ${written} »`).toBe(size);
+      }
+    }
+  });
+
+  it('lit « 7 » comme la taille US sans lettre, et « 4 » comme des millimètres', () => {
+    expect(findHookSize('7')?.mm).toBe(4.5);
+    expect(findHookSize('4')?.us).toBe('G-6');
+    expect(findHookSize('g6')?.mm).toBe(4);
+  });
+
+  it('ne trouve rien pour une saisie vide, hors norme ou incompréhensible', () => {
+    for (const input of ['', '   ', '3 mm', '7 mm', 'Z', 'G-7', 'abc', '4 cm', 'M', '-']) {
+      expect(findHookSize(input), `« ${input} »`).toBeNull();
+    }
   });
 });

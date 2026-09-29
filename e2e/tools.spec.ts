@@ -37,6 +37,34 @@ test('trois clics sur « +1 » comptent jusqu’à 3, et la valeur survit à un 
   await expect(page.locator('.counter-count')).toContainText('3');
 });
 
+test.describe('tailles de crochet (fiche 29)', () => {
+  for (const path of ['/crochet-hook-sizes', '/fr/tailles-de-crochet']) {
+    test(`le HTML brut de « ${path} » contient le tableau de 14 lignes`, async ({ request }) => {
+      const html = await (await request.get(path)).text();
+      const body = html.slice(html.indexOf('<tbody'), html.indexOf('</tbody>'));
+      expect(body.match(/<tr/g)).toHaveLength(14);
+      expect(body).toContain('G-6');
+    });
+  }
+
+  test('chercher « g6 » affiche « 4 mm »', async ({ page }) => {
+    await page.goto('/crochet-hook-sizes');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await page.getByLabel('A size: 4 mm or G-6').fill('g6');
+    await expect(page.locator('.hook-result')).toContainText('4 mm');
+  });
+
+  test('320 px de large : aucun débordement horizontal', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.goto('/fr/tailles-de-crochet');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    const overflows = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+    expect(overflows).toBe(false);
+  });
+});
+
 test('320 px de large : aucun débordement horizontal', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto('/row-counter');

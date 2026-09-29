@@ -2,7 +2,7 @@ import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { afterEach, describe, expect, it } from 'vitest';
-import { RowCounterPage } from './row-counter-page';
+import RowCounterPage from './row-counter-page';
 
 function setup() {
   TestBed.configureTestingModule({

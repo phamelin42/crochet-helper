@@ -264,7 +264,7 @@ const COPY: Record<Locale, RowCounterCopy> = {
     </fil-dialog>
   `,
 })
-export class RowCounterPage {
+export default class RowCounterPage {
   protected readonly i18n = inject(I18nService);
   protected readonly wakeLock = inject(WakeLockService);
   private readonly seo = inject(SeoService);

@@ -137,7 +137,7 @@ const COPY: Record<Locale, DesignersCopy> = {
     </article>
   `,
 })
-export class ForDesignersPage {
+export default class ForDesignersPage {
   protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly origin = inject(SITE_ORIGIN);

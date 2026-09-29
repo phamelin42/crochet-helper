@@ -381,7 +381,8 @@ function parseNumber(text: string): number {
     </div>
   `,
 })
-export class GaugeCalculatorPage {
+// Export par défaut : `loadComponent` l'accepte sans `.then`, quelques octets de moins au bundle initial.
+export default class GaugeCalculatorPage {
   protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly origin = inject(SITE_ORIGIN);

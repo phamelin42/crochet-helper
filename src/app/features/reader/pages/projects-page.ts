@@ -186,7 +186,7 @@ type LocalKey = keyof typeof COPY.fr;
     </fil-dialog>
   `,
 })
-export class ProjectsPage {
+export default class ProjectsPage {
   protected readonly store = inject(ReaderStore);
   protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);

@@ -13,6 +13,8 @@ const isGlossaryTerm: CanMatchFn = async (_route, segments) => {
   return GLOSSARY.some((entry) => entry.slug === slug);
 };
 
+const reader = () => import('./features/reader/pages/reader-page');
+
 /**
  * Un arbre de routes par langue, construit à partir de la même définition.
  *
@@ -38,48 +40,29 @@ function routesFor(locale: Locale): Routes {
       path: '',
       data,
       children: [
-        {
-          path: '',
-          loadComponent: () =>
-            import('./features/reader/pages/reader-page').then((m) => m.ReaderPage),
-          data,
-        },
-        {
-          path: strip(ROUTE_PATHS.glossary[locale]),
-          loadComponent: () =>
-            import('./features/glossary/glossary-page').then((m) => m.GlossaryPage),
-          data,
-        },
+        page('reader', reader),
+        page('glossary', () => import('./features/glossary/glossary-page')),
         // Une page par abréviation. Les valeurs de `:slug` à pré-rendre sont
         // dérivées de `GLOSSARY` dans `app.routes.server.ts`.
         {
           path: `${strip(ROUTE_PATHS.glossary[locale])}/:slug`,
           canMatch: [isGlossaryTerm],
-          loadComponent: () =>
-            import('./features/glossary/pages/term-page').then((m) => m.GlossaryTermPage),
+          loadComponent: () => import('./features/glossary/pages/term-page'),
           data,
         },
-        page('format', () => import('./features/format/format-page').then((m) => m.FormatPage)),
-        page('converter', () =>
-          import('./features/converter/converter-page').then((m) => m.ConverterPage),
-        ),
-        page('projects', () =>
-          import('./features/reader/pages/projects-page').then((m) => m.ProjectsPage),
-        ),
         // Export par défaut : `loadComponent` l'accepte sans `.then`, des octets de moins au bundle initial.
+        page('format', () => import('./features/format/format-page')),
+        page('converter', () => import('./features/converter/converter-page')),
+        page('projects', () => import('./features/reader/pages/projects-page')),
         page('hookSizes', () => import('./features/tools/pages/hook-sizes-page')),
         page('gaugeCalculator', () => import('./features/tools/pages/gauge-calculator-page')),
+        page('readForeignPattern', () => import('./features/guides/pages/foreign-pattern-page')),
         page('rowCounter', () => import('./features/tools/pages/row-counter-page')),
-        page('guideReadingPattern', () =>
-          import('./features/guides/pages/reading-pattern-page').then((m) => m.ReadingPatternPage),
-        ),
-        page('guideReadingChart', () =>
-          import('./features/guides/pages/reading-chart-page').then((m) => m.ReadingChartPage),
-        ),
-        page('guideCrochetOrKnitting', () =>
-          import('./features/guides/pages/crochet-or-knitting-page').then(
-            (m) => m.CrochetOrKnittingPage,
-          ),
+        page('guideReadingPattern', () => import('./features/guides/pages/reading-pattern-page')),
+        page('guideReadingChart', () => import('./features/guides/pages/reading-chart-page')),
+        page(
+          'guideCrochetOrKnitting',
+          () => import('./features/guides/pages/crochet-or-knitting-page'),
         ),
         page('forDesigners', () => import('./features/designers/pages/for-designers-page')),
       ],
@@ -96,13 +79,12 @@ export const routes: Routes = [
   // `route-paths.json`, qui ne décrit que des paires de langues.
   {
     path: 'design-system',
-    loadComponent: () =>
-      import('./features/design-system/design-system-page').then((m) => m.DesignSystemPage),
+    loadComponent: () => import('./features/design-system/design-system-page'),
     data: { locale: 'fr' },
   },
   {
     path: '**',
-    loadComponent: () => import('./features/reader/pages/reader-page').then((m) => m.ReaderPage),
+    loadComponent: reader,
     data: { locale: DEFAULT_LOCALE },
   },
 ];

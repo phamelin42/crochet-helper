@@ -202,7 +202,7 @@ const COPY: Record<Locale, GuideCopy> = {
     </article>
   `,
 })
-export class ReadingChartPage {
+export default class ReadingChartPage {
   protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly origin = inject(SITE_ORIGIN);

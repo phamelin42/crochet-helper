@@ -43,7 +43,7 @@ branche.
 | 28 — Calculateur d'échantillon          | Terminée                               | —   | 2026-09-29 |
 | 29 — Page tailles de crochet            | Terminée                               | —   | 2026-09-29 |
 | 30 — Contenu des pages d'abréviation    | À faire                                | —   | —          |
-| 31 — Lire un patron anglais en français | À faire                                | —   | —          |
+| 31 — Lire un patron anglais en français | Terminée                               | —   | 2026-09-29 |
 | 32 — Libellés, pied de page, lastmod    | Terminée                               | —   | 2026-09-28 |
 | 33 — Glossaire sur téléphone            | À faire                                | —   | —          |
 | 34 — Images du PDF à l'étape            | Terminée                               | —   | 2026-09-28 |

@@ -38,6 +38,7 @@ interface ConverterCopy {
   readonly hookSizesMm: string;
   readonly hookSizesUs: string;
   readonly hookSizesMore: string;
+  readonly foreignMore: string;
 }
 
 const COPY: Record<Locale, ConverterCopy> = {
@@ -66,6 +67,7 @@ const COPY: Record<Locale, ConverterCopy> = {
     hookSizesMm: 'Diamètre (mm)',
     hookSizesUs: 'Taille US',
     hookSizesMore: 'Tout savoir sur les tailles de crochet',
+    foreignMore: 'Lire un patron anglais en français',
   },
   en: {
     title: `US ↔ UK crochet converter and hook sizes — ${SITE_NAME}`,
@@ -93,6 +95,7 @@ const COPY: Record<Locale, ConverterCopy> = {
     hookSizesMm: 'Diameter (mm)',
     hookSizesUs: 'US size',
     hookSizesMore: 'Everything about crochet hook sizes',
+    foreignMore: 'Reading a French pattern in English',
   },
 };
 
@@ -210,10 +213,11 @@ const COPY: Record<Locale, ConverterCopy> = {
     <div class="navrow">
       <a filButton="primary" [routerLink]="i18n.link('reader')">{{ c.backToReader }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('glossary')">{{ c.backToGlossary }}</a>
+      <a filButton="ghost" [routerLink]="i18n.link('readForeignPattern')">{{ c.foreignMore }}</a>
     </div>
   `,
 })
-export class ConverterPage {
+export default class ConverterPage {
   protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly analytics = inject(AnalyticsService);

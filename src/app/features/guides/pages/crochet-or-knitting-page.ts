@@ -143,7 +143,7 @@ const COPY: Record<Locale, GuideCopy> = {
     </article>
   `,
 })
-export class CrochetOrKnittingPage {
+export default class CrochetOrKnittingPage {
   protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly origin = inject(SITE_ORIGIN);

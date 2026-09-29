@@ -100,7 +100,7 @@ const COPY: Record<Locale, Record<string, string>> = {
     </div>
   `,
 })
-export class GlossaryPage {
+export default class GlossaryPage {
   private readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly origin = inject(SITE_ORIGIN);

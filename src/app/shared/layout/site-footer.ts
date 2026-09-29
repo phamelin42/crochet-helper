@@ -4,7 +4,12 @@ import { I18nService } from '../../core/i18n/i18n.service';
 
 // En boucle plutôt qu'à plat : chaque lien de plus coûtait des octets au bundle initial.
 // Les clés sont celles de `ROUTE_PATHS` et de `footer.*` (mêmes noms).
-const LEARN = ['guideReadingPattern', 'guideReadingChart', 'guideCrochetOrKnitting'] as const;
+const LEARN = [
+  'guideReadingPattern',
+  'readForeignPattern',
+  'guideReadingChart',
+  'guideCrochetOrKnitting',
+] as const;
 const PROJECT = ['rowCounter', 'hookSizes', 'gaugeCalculator', 'forDesigners'] as const;
 
 /**

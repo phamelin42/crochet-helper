@@ -78,6 +78,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         title: 'Calculateur d’échantillon',
         lead: 'Comparez votre échantillon à celui du patron : crochet plus gros ou plus fin, mailles à monter.',
       },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.readForeignPattern.fr}`,
+        title: 'Lire un patron anglais',
+        lead: 'Collez un rang anglais : chaque abréviation s’écrit en français.',
+      },
     ],
   },
   en: {
@@ -117,6 +122,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.gaugeCalculator.en}`,
         title: 'Gauge calculator',
         lead: 'Compare your swatch with the pattern’s: bigger or finer hook, stitches to cast on.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.readForeignPattern.en}`,
+        title: 'Reading a French pattern',
+        lead: 'Paste a French row: every abbreviation is written out in English.',
       },
     ],
   },
@@ -503,7 +513,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     }
   `,
 })
-export class ReaderPage {
+export default class ReaderPage {
   protected readonly store = inject(ReaderStore);
   protected readonly i18n = inject(I18nService);
   protected readonly prefs = inject(DisplayPrefsService);

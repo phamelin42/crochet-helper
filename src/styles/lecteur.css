@@ -415,6 +415,8 @@ textarea.src-input {
   min-height: 0;
   margin-top: var(--space-3);
   font-size: var(--reader-step-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .term-section {
   margin-top: var(--space-8);
@@ -1121,4 +1123,9 @@ textarea.src-input {
 .ds-icon-grid fil-icon {
   font-size: 28px;
   color: var(--color-sakura-ink);
+}
+
+/* Sigle absent du glossaire (page « lire un patron dans l'autre langue »). */
+.foreign-unknown {
+  text-decoration: underline dashed var(--color-momiji);
 }

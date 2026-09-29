@@ -485,7 +485,7 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
     </section>
   `,
 })
-export class DesignSystemPage {
+export default class DesignSystemPage {
   private readonly doc = inject(DOCUMENT);
   private readonly i18n = inject(I18nService);
   private readonly prefs = inject(DisplayPrefsService);

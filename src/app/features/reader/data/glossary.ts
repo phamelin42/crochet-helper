@@ -528,6 +528,15 @@ export function annotate(text: string, locale: Locale): TextSegment[] {
 }
 
 /**
+ * Les définitions portent parfois une glose après un tiret cadratin
+ * (« augmentation — 2 mailles dans la même maille ») : dans le fil d'une
+ * consigne, seule la tête sert.
+ */
+export function definitionHead(definition: string): string {
+  return definition.split(/\s+—\s+/)[0];
+}
+
+/**
  * Remplace chaque abréviation connue par sa définition en clair.
  *
  * Rendu **d'affichage uniquement** : le texte source du patron n'est jamais
@@ -540,10 +549,7 @@ export function annotate(text: string, locale: Locale): TextSegment[] {
 export function expand(text: string, locale: Locale): string {
   const parts = annotate(text, locale).map((segment) => {
     if (!segment.definition) return segment.text;
-    // Les définitions portent parfois une glose après un tiret cadratin
-    // (« augmentation — 2 mailles dans la même maille ») : dans le fil d'une
-    // consigne, seule la tête sert.
-    return { expanded: segment.definition.split(/\s+—\s+/)[0] };
+    return { expanded: definitionHead(segment.definition) };
   });
 
   // Les patrons collent l'abréviation au nombre (« 1sc », « Ch3 »). Développée,
@@ -558,4 +564,57 @@ export function expand(text: string, locale: Locale): string {
       return `${left}${part.expanded}${right}`;
     })
     .join('');
+}
+
+/** Un morceau du texte développé : neutre, abréviation développée, ou sigle inconnu. */
+export interface ExpandedSegment {
+  readonly text: string;
+  /** Abréviation d'origine, quand `text` est son développement. */
+  readonly abbr?: string;
+  /** Sigle qui ressemble à une abréviation mais que le glossaire ne connaît pas. */
+  readonly unknown?: boolean;
+}
+
+/**
+ * Un sigle en capitales (« FPDC »), ou des lettres collées à un nombre
+ * (« 3xyz ») : ce qui a l'air d'une abréviation sans être au glossaire.
+ * Volontairement étroit — un mot ordinaire ne doit jamais être marqué inconnu.
+ */
+const UNKNOWN_PATTERN = /(?<![\p{L}'’])[A-Z]{2,5}(?![\p{L}'’])|(?<=\d)\p{Ll}{2,4}(?![\p{L}'’])/gu;
+const NOT_UNKNOWN = new Set(['US', 'UK', 'nd', 'rd', 'th']);
+
+function markUnknown(text: string): ExpandedSegment[] {
+  const out: ExpandedSegment[] = [];
+  let index = 0;
+  for (const match of text.matchAll(UNKNOWN_PATTERN)) {
+    if (NOT_UNKNOWN.has(match[0])) continue;
+    const start = match.index ?? 0;
+    if (start > index) out.push({ text: text.slice(index, start) });
+    out.push({ text: match[0], unknown: true });
+    index = start + match[0].length;
+  }
+  if (index < text.length) out.push({ text: text.slice(index) });
+  return out;
+}
+
+/**
+ * Comme `expand`, mais en segments : chaque abréviation connue est écrite en
+ * clair et garde son sigle d'origine (« 6 sc » → « 6 » + « maille serrée » +
+ * « sc »), pour que la lectrice voie la correspondance. Le gabarit rend les
+ * segments avec `@for` : le texte collé n'est jamais du HTML.
+ */
+export function expandAbbreviations(text: string, locale: Locale): ExpandedSegment[] {
+  const annotated = annotate(text, locale);
+  const out: ExpandedSegment[] = [];
+  annotated.forEach((segment, index) => {
+    if (!segment.definition) {
+      out.push(...markUnknown(segment.text));
+      return;
+    }
+    // « 1sc », « Ch3 » : le sigle collé au nombre, une fois développé, veut une espace.
+    if (/\d$/.test(annotated[index - 1]?.text ?? '')) out.push({ text: ' ' });
+    out.push({ text: definitionHead(segment.definition), abbr: segment.text });
+    if (/^\d/.test(annotated[index + 1]?.text ?? '')) out.push({ text: ' ' });
+  });
+  return out;
 }

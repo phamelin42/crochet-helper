@@ -266,7 +266,7 @@ export function regionNoteOf(
     </div>
   `,
 })
-export class GlossaryTermPage {
+export default class GlossaryTermPage {
   protected readonly tooltips = inject(TooltipService);
   protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);

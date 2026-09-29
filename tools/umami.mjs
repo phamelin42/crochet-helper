@@ -61,6 +61,7 @@ export const EVENEMENTS = [
   'chart_viewed',
   'chart_transcribed',
   'gauge_calculated',
+  'foreign_pattern_tried',
 ];
 
 /** Sept noms distincts : la tranche ou le palier vit dans le nom, pas dans une propriété. */

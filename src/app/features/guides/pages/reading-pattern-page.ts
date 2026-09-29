@@ -36,6 +36,7 @@ interface GuideCopy {
   readonly seeAlso: string;
   readonly linkChart: string;
   readonly linkCraft: string;
+  readonly linkForeign: string;
   readonly backToReader: string;
   readonly backToGlossary: string;
 }
@@ -86,6 +87,7 @@ const COPY: Record<Locale, GuideCopy> = {
     seeAlso: 'À lire aussi',
     linkChart: 'Comment lire un diagramme de crochet',
     linkCraft: 'Crochet ou tricot : par lequel commencer',
+    linkForeign: 'Lire un patron de crochet anglais en français',
     backToReader: 'Essayer avec votre propre patron',
     backToGlossary: 'Toutes les abréviations',
   },
@@ -138,6 +140,7 @@ const COPY: Record<Locale, GuideCopy> = {
     seeAlso: 'Read next',
     linkChart: 'How to read a crochet chart',
     linkCraft: 'Crochet or knitting: which to start with',
+    linkForeign: 'Reading a French crochet pattern in English',
     backToReader: 'Try it with your own pattern',
     backToGlossary: 'All abbreviations',
   },
@@ -189,6 +192,9 @@ const COPY: Record<Locale, GuideCopy> = {
         <li>
           <a [routerLink]="hrefOf('guideCrochetOrKnitting')">{{ c.linkCraft }}</a>
         </li>
+        <li>
+          <a [routerLink]="hrefOf('readForeignPattern')">{{ c.linkForeign }}</a>
+        </li>
       </ul>
 
       <div class="navrow">
@@ -198,7 +204,7 @@ const COPY: Record<Locale, GuideCopy> = {
     </article>
   `,
 })
-export class ReadingPatternPage {
+export default class ReadingPatternPage {
   protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly origin = inject(SITE_ORIGIN);
@@ -207,7 +213,9 @@ export class ReadingPatternPage {
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
 
-  protected hrefOf(route: 'guideReadingChart' | 'guideCrochetOrKnitting'): string {
+  protected hrefOf(
+    route: 'guideReadingChart' | 'guideCrochetOrKnitting' | 'readForeignPattern',
+  ): string {
     return `${localePrefix(this.locale)}${ROUTE_PATHS[route][this.locale]}`;
   }
 

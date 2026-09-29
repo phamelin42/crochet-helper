@@ -3,7 +3,7 @@ import { Meta } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { describe, expect, it } from 'vitest';
 import { ICONS } from '../../shared/ui/icon/icon';
-import { DesignSystemPage } from './design-system-page';
+import DesignSystemPage from './design-system-page';
 
 function setup() {
   TestBed.configureTestingModule({

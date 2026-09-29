@@ -73,7 +73,9 @@ export type AnalyticsEvent =
   /** Transcription d'un diagramme ajoutée au patron (propriétés `rounds` et `convention`). */
   | 'chart_transcribed'
   /** Échantillon comparé à celui du patron (propriétés `unit` et `advice`), une fois par combinaison. */
-  | 'gauge_calculated';
+  | 'gauge_calculated'
+  /** Première saisie sur la page « lire un patron dans l'autre langue » (propriétés `locale` et `length`). */
+  | 'foreign_pattern_tried';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

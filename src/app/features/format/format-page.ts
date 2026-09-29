@@ -62,7 +62,7 @@ import { FORMAT_PROMPT } from './format-prompt';
     </div>
   `,
 })
-export class FormatPage {
+export default class FormatPage {
   private readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);

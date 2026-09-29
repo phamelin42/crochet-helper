@@ -12,5 +12,6 @@
   },
   "forDesigners": { "fr": "/pour-les-creatrices", "en": "/for-designers" },
   "rowCounter": { "fr": "/compteur-de-rangs", "en": "/row-counter" },
-  "hookSizes": { "fr": "/tailles-de-crochet", "en": "/crochet-hook-sizes" }
+  "hookSizes": { "fr": "/tailles-de-crochet", "en": "/crochet-hook-sizes" },
+  "gaugeCalculator": { "fr": "/calculateur-d-echantillon", "en": "/gauge-calculator" }
 }

@@ -32,6 +32,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
         <p class="footer-heading">{{ i18n.t('footer.project') }}</p>
         <a [routerLink]="i18n.link('rowCounter')">{{ i18n.t('footer.rowCounter') }}</a>
         <a [routerLink]="i18n.link('hookSizes')">{{ i18n.t('footer.hookSizes') }}</a>
+        <a [routerLink]="i18n.link('gaugeCalculator')">{{ i18n.t('footer.gaugeCalculator') }}</a>
         <a [routerLink]="i18n.link('forDesigners')">{{ i18n.t('footer.forDesigners') }}</a>
         <a href="https://discord.gg/DPYydhZRND" target="_blank" rel="noopener">{{
           i18n.t('ui.discord')

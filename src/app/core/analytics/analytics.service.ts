@@ -71,7 +71,9 @@ export type AnalyticsEvent =
   /** Diagramme affiché dans le panneau ou en plein écran, une fois par session et par diagramme. */
   | 'chart_viewed'
   /** Transcription d'un diagramme ajoutée au patron (propriétés `rounds` et `convention`). */
-  | 'chart_transcribed';
+  | 'chart_transcribed'
+  /** Échantillon comparé à celui du patron (propriétés `unit` et `advice`), une fois par combinaison. */
+  | 'gauge_calculated';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

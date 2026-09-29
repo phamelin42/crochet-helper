@@ -69,6 +69,9 @@ function routesFor(locale: Locale): Routes {
         page('hookSizes', () =>
           import('./features/tools/pages/hook-sizes-page').then((m) => m.HookSizesPage),
         ),
+        page('gaugeCalculator', () =>
+          import('./features/tools/pages/gauge-calculator-page').then((m) => m.GaugeCalculatorPage),
+        ),
         page('rowCounter', () =>
           import('./features/tools/pages/row-counter-page').then((m) => m.RowCounterPage),
         ),

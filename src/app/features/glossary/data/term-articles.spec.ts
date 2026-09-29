@@ -11,7 +11,7 @@ const SLUGS = [
   'ml',
   'aug',
   'dim',
-  'mr',
+  'cercle-magique',
   'sc',
   'dc',
   'hdc',

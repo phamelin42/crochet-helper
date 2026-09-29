@@ -1,6 +1,6 @@
 import { TermArticles } from './types';
 
-/** Les formes des patrons français : `aug`, `dim`, `mr`. */
+/** Les formes des patrons français : `aug`, `dim`, `cercle-magique`. */
 export const FRENCH_SHAPING: TermArticles = {
   aug: {
     fr: {
@@ -74,17 +74,17 @@ export const FRENCH_SHAPING: TermArticles = {
       tip: 'Decreases pull the round in, so the stitches become harder to see as the piece closes. Stop at every group and take a quick look: four stitches, then one dim. Put a marker at the start of the round and move it up each time you return to it.',
     },
   },
-  mr: {
+  'cercle-magique': {
     fr: {
       how: [
-        'Le cercle magique, noté « mr », est un anneau de départ dont on peut resserrer le centre. Il évite le petit trou qu’une chaînette fermée laisse au milieu d’un disque, ce qui compte pour les jouets et les bonnets.',
+        'Le cercle magique, que les patrons anglais abrègent en « mr » ou écrivent « magic ring », est un anneau de départ dont on peut resserrer le centre. Il évite le petit trou qu’une chaînette fermée laisse au milieu d’un disque, ce qui compte pour les jouets et les bonnets.',
         'Enroulez le fil une fois autour de deux doigts, de façon à former un anneau, la queue du fil pendant vers vous. Passez le crochet dans l’anneau, attrapez le fil de travail, celui qui vient de la pelote, et ramenez-le à travers l’anneau. Faites une maille en l’air pour verrouiller la boucle.',
         'Travaillez ensuite les mailles du premier tour, en général des mailles serrées, en passant le crochet dans l’anneau et en enfermant la queue du fil sous vos mailles. Comptez-les au fur et à mesure : le patron donne leur nombre.',
         'Quand toutes les mailles sont faites, tirez sur la queue du fil pour resserrer l’anneau. Un des deux brins coulisse et referme le centre, l’autre reste en place. Terminez en tirant jusqu’à ce que le trou disparaisse, puis fixez la queue.',
       ],
       inPattern:
         'Prenons le tour « Tour 1 : 6 ms dans un cercle magique (6) ». « Tour 1 » désigne le premier tour. « 6 ms » veut dire six mailles serrées. « dans un cercle magique » signifie qu’on les travaille dans l’anneau de départ, et non dans des mailles d’un tour précédent, puisqu’il n’y en a pas encore. Le nombre entre parenthèses annonce 6 : les six mailles serrées, qui serviront de base au tour suivant. Une fois ces six mailles faites, on tire la queue du fil pour resserrer le cercle.',
-      usUk: 'Le geste est identique, l’abréviation change. « Mr » est l’abréviation française ; les patrons américains écrivent « magic ring », en toutes lettres, et les patrons britanniques parlent souvent de « magic circle ». Les trois désignent le même anneau ajustable. Les mailles qu’on y travaille, elles, changent de nom d’une convention à l’autre : une maille serrée s’écrit « sc » chez les Américains et « dc » chez les Britanniques.',
+      usUk: 'Le geste est identique, le nom change. Les patrons français écrivent « cercle magique » ; les patrons américains écrivent « magic ring », ou l’abrègent en « mr », et les patrons britanniques parlent souvent de « magic circle ». Les trois désignent le même anneau ajustable. Les mailles qu’on y travaille, elles, changent de nom d’une convention à l’autre : une maille serrée s’écrit « sc » chez les Américains et « dc » chez les Britanniques.',
       mistakes: [
         'Tirer le mauvais brin pour fermer l’anneau. Si rien ne bouge, c’est que vous tirez la queue de fil pendante et non le brin qui coulisse. Tirez chaque brin tour à tour : celui qui resserre le centre est le bon.',
         'Laisser une queue trop courte. Une queue de moins de dix centimètres environ glisse hors de l’ouvrage quand on la tire. Gardez une queue assez longue pour la tenir en main et la rentrer ensuite.',
@@ -94,14 +94,14 @@ export const FRENCH_SHAPING: TermArticles = {
     },
     en: {
       how: [
-        'The magic ring, written “mr” in a French pattern, is a starting ring whose centre can be pulled tight. It avoids the small hole that a closed chain leaves in the middle of a disc, which matters for toys and hats.',
+        'The magic ring, written “cercle magique” in a French pattern and “mr” or “magic ring” in an English one, is a starting ring whose centre can be pulled tight. It avoids the small hole that a closed chain leaves in the middle of a disc, which matters for toys and hats.',
         'Wrap the yarn once around two fingers to form a ring, with the yarn tail hanging towards you. Put the hook through the ring, catch the working yarn, the one that comes from the ball, and pull it through the ring. Make one chain to lock the loop.',
         'Then work the stitches of the first round, usually single crochets, by putting the hook through the ring and enclosing the yarn tail under your stitches. Count them as you go: the pattern gives their number.',
         'When all the stitches are made, pull the yarn tail to tighten the ring. One of the two strands slides and closes the centre, the other stays in place. Pull until the hole disappears, and then secure the tail.',
       ],
       inPattern:
         'Take the French round “Tour 1 : 6 ms dans un cercle magique (6)”. “Tour 1” means the first round. “6 ms” means six single crochets. “dans un cercle magique” means you work them into the starting ring, and not into stitches of a previous round, since there are none yet. The number in brackets says 6: the six single crochets, which will be the base of the next round. Once these six are made, you pull the yarn tail to tighten the circle.',
-      usUk: 'The gesture is identical, only the abbreviation changes. “Mr” is the French one; American patterns write “magic ring” in full, and British patterns often say “magic circle”. All three mean the same adjustable ring. The stitches worked into it do change name between conventions: a single crochet is “sc” in an American pattern and “dc” in a British one.',
+      usUk: 'The gesture is identical, only the name changes. French patterns write “cercle magique”; American patterns write “magic ring”, or shorten it to “mr”, and British patterns often say “magic circle”. All three mean the same adjustable ring. The stitches worked into it do change name between conventions: a single crochet is “sc” in an American pattern and “dc” in a British one.',
       mistakes: [
         'Pulling the wrong strand to close the ring. If nothing moves, you are pulling the hanging tail instead of the strand that slides. Pull each strand in turn: the one that tightens the centre is the right one.',
         'Leaving a tail that is too short. A tail of less than about ten centimetres slips out of the work when pulled. Keep a tail long enough to hold in your hand and weave in afterwards.',

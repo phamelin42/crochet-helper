@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -13,6 +14,7 @@ import { InputField } from '../../../shared/ui/field/input';
 import { TooltipService } from '../../../shared/ui/tooltip/tooltip.service';
 import { regionCrossReferenceOf } from '../../converter/data/convert-terms';
 import { GLOSSARY, GlossaryEntry, annotate } from '../../reader/data/glossary';
+import { articleOf } from '../data/term-articles';
 import { headOf, neighborsOf } from '../data/term-neighbors';
 
 type Craft = GlossaryEntry['craft'];
@@ -26,6 +28,14 @@ interface TermCopy {
   readonly means: string;
   /** Traduction dans l'autre langue, précédée de ce libellé. */
   readonly otherLanguage: string;
+  /** Titres des cinq sections de l'article, dans l'ordre d'affichage. */
+  readonly articleTitles: {
+    readonly how: string;
+    readonly inPattern: string;
+    readonly usUk: string;
+    readonly mistakes: string;
+    readonly tip: string;
+  };
   readonly tryTitle: string;
   readonly tryLead: string;
   readonly tryLabel: string;
@@ -60,6 +70,13 @@ const COPY: Record<Locale, TermCopy> = {
     craft: { crochet: 'Crochet', tricot: 'Tricot', commun: 'Crochet et tricot' },
     means: 'veut dire',
     otherLanguage: `En anglais${NBSP}:`,
+    articleTitles: {
+      how: 'Comment faire',
+      inPattern: 'Dans un patron',
+      usUk: `US ou UK${NBSP}?`,
+      mistakes: 'Erreurs fréquentes',
+      tip: 'Un conseil',
+    },
     tryTitle: 'Essayez avec un rang de votre patron',
     tryLead:
       'Voici un rang qui l’emploie. Remplacez-le par un rang de votre patron : chaque abréviation reconnue est soulignée, et sa traduction apparaît au survol.',
@@ -90,6 +107,13 @@ const COPY: Record<Locale, TermCopy> = {
     craft: { crochet: 'Crochet', tricot: 'Knitting', commun: 'Crochet and knitting' },
     means: 'means',
     otherLanguage: 'In French:',
+    articleTitles: {
+      how: 'How to work it',
+      inPattern: 'In a pattern',
+      usUk: 'US or UK?',
+      mistakes: 'Common mistakes',
+      tip: 'A tip',
+    },
     tryTitle: 'Try it with a row from your pattern',
     tryLead:
       'Here is a row that uses it. Replace it with a row from your pattern: every abbreviation the reader knows is underlined, and its meaning shows on hover.',
@@ -165,7 +189,7 @@ export function regionNoteOf(
 
 @Component({
   selector: 'fil-glossary-term-page',
-  imports: [Button, InputField, RouterLink],
+  imports: [Button, InputField, NgTemplateOutlet, RouterLink],
   host: { class: 'wrap' },
   template: `
     <section class="hero">
@@ -180,6 +204,44 @@ export function regionNoteOf(
       </p>
       <p class="text-muted">{{ c.otherLanguage }} {{ entry()[otherLocale] }}</p>
     </section>
+
+    @if (article(); as a) {
+      <section class="term-section">
+        <h2 class="card-title">{{ c.articleTitles.how }}</h2>
+        @for (paragraph of a.how; track $index) {
+          <p>{{ paragraph }}</p>
+        }
+      </section>
+
+      <section class="term-section">
+        <h2 class="card-title">{{ c.articleTitles.inPattern }}</h2>
+        <p class="step-body term-try">
+          <ng-container
+            *ngTemplateOutlet="abbreviations; context: { $implicit: exampleSegments() }"
+          />
+        </p>
+        <p>{{ a.inPattern }}</p>
+      </section>
+
+      <section class="term-section">
+        <h2 class="card-title">{{ c.articleTitles.usUk }}</h2>
+        <p>{{ a.usUk }}</p>
+      </section>
+
+      <section class="term-section">
+        <h2 class="card-title">{{ c.articleTitles.mistakes }}</h2>
+        <ul>
+          @for (mistake of a.mistakes; track $index) {
+            <li>{{ mistake }}</li>
+          }
+        </ul>
+      </section>
+
+      <section class="term-section">
+        <h2 class="card-title">{{ c.articleTitles.tip }}</h2>
+        <p>{{ a.tip }}</p>
+      </section>
+    }
 
     @if (regionRef(); as region) {
       <section class="card">
@@ -211,24 +273,7 @@ export function regionNoteOf(
       </div>
 
       <p class="step-body term-try">
-        @for (segment of segments(); track $index) {
-          @if (segment.definition) {
-            <span
-              class="abbr"
-              tabindex="0"
-              role="button"
-              [attr.aria-label]="segment.text + ' : ' + segment.definition"
-              (pointerenter)="show($event, segment.text, segment.definition)"
-              (pointerleave)="tooltips.hide()"
-              (focus)="show($event, segment.text, segment.definition)"
-              (blur)="tooltips.hide()"
-              (click)="show($event, segment.text, segment.definition)"
-              >{{ segment.text }}</span
-            >
-          } @else {
-            <ng-container>{{ segment.text }}</ng-container>
-          }
-        }
+        <ng-container *ngTemplateOutlet="abbreviations; context: { $implicit: segments() }" />
       </p>
     </section>
 
@@ -264,6 +309,27 @@ export function regionNoteOf(
       <a filButton="primary" [routerLink]="i18n.link('reader')">{{ c.backToReader }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('glossary')">{{ c.backToGlossary }}</a>
     </div>
+
+    <ng-template #abbreviations let-list>
+      @for (segment of list; track $index) {
+        @if (segment.definition) {
+          <span
+            class="abbr"
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="segment.text + ' : ' + segment.definition"
+            (pointerenter)="show($event, segment.text, segment.definition)"
+            (pointerleave)="tooltips.hide()"
+            (focus)="show($event, segment.text, segment.definition)"
+            (blur)="tooltips.hide()"
+            (click)="show($event, segment.text, segment.definition)"
+            >{{ segment.text }}</span
+          >
+        } @else {
+          <ng-container>{{ segment.text }}</ng-container>
+        }
+      }
+    </ng-template>
   `,
 })
 export default class GlossaryTermPage {
@@ -296,6 +362,11 @@ export default class GlossaryTermPage {
 
   /** Variante régionale de ce terme, quand elle existe (voir `regionNoteOf`). */
   protected readonly regionRef = computed(() => regionNoteOf(this.entry(), this.locale));
+
+  /** Article long, pour les vingt abréviations qui en ont un ; les autres gardent le gabarit. */
+  protected readonly article = computed(() => articleOf(this.entry().slug, this.locale));
+  /** Le rang d'exemple de l'entrée, avec ses abréviations soulignées comme dans le lecteur. */
+  protected readonly exampleSegments = computed(() => annotate(this.entry().example, this.locale));
 
   /** Rang d'essai : l'exemple du terme, remplacé dès que la personne écrit. */
   protected readonly line = linkedSignal(() => this.entry().example);

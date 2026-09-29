@@ -45,7 +45,7 @@ branche.
 | 30 — Contenu des pages d'abréviation    | Terminée                               | —   | 2026-09-29 |
 | 31 — Lire un patron anglais en français | Terminée                               | —   | 2026-09-29 |
 | 32 — Libellés, pied de page, lastmod    | Terminée                               | —   | 2026-09-28 |
-| 33 — Glossaire sur téléphone            | À faire                                | —   | —          |
+| 33 — Glossaire sur téléphone            | Terminée                               | —   | 2026-09-29 |
 | 34 — Images du PDF à l'étape            | Terminée                               | —   | 2026-09-28 |
 | 35 — Diagrammes : charger et voir       | Terminée                               | —   | 2026-09-28 |
 | 36 — Diagrammes : transcrire en texte   | Terminée                               | —   | 2026-09-28 |

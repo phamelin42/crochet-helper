@@ -1038,6 +1038,97 @@ textarea.src-input {
 .glossary-table-scroll .glossary-table {
   margin-top: 0;
 }
+.glossary-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+  margin-top: var(--space-4);
+}
+.glossary-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.glossary-filter-label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-label);
+}
+.glossary-filters .seg {
+  flex-wrap: wrap;
+  border-radius: var(--radius-md);
+}
+.glossary-letters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}
+.glossary-letters a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: var(--radius-md);
+  background: var(--color-overlay);
+}
+.glossary-table th.glossary-letter {
+  scroll-margin-top: var(--space-10);
+  font-size: var(--text-base);
+  background: var(--color-overlay);
+}
+.glossary-table .tag {
+  margin-left: var(--space-2);
+}
+.glossary-empty {
+  margin-top: var(--space-6);
+}
+
+/* Sous 600 px, quatre colonnes de texte ne tiennent pas : chaque terme devient
+ * un bloc, les intitulés viennent de `data-label`. Les balises du tableau
+ * restent (référencement, lecteurs d'écran) ; l'en-tête n'est plus qu'audible. */
+@media (max-width: 600px) {
+  .glossary-table-scroll {
+    overflow-x: visible;
+  }
+  .glossary-table,
+  .glossary-table tbody {
+    display: block;
+  }
+  .glossary-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .glossary-table tbody > tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+  .glossary-table tbody > tr > * {
+    display: block;
+    border-top: 0;
+    padding: var(--space-1) var(--space-4);
+  }
+  .glossary-table tbody > tr > th[scope='row'] {
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-line);
+  }
+  .glossary-table tbody > tr > td:last-child {
+    padding-bottom: var(--space-3);
+  }
+  .glossary-table td::before {
+    content: attr(data-label) ' : ';
+    font-weight: 700;
+    color: var(--color-text-label);
+  }
+}
 
 /* Vue d'impression (PrintView) : dans le DOM, invisible à l'écran. Ses règles
  * d'impression vivent dans print.css, chargée à part — et *avant* cette

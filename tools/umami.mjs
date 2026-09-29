@@ -61,6 +61,7 @@ export const EVENEMENTS = [
   'chart_viewed',
   'chart_transcribed',
   'gauge_calculated',
+  'glossary_filtered',
   'foreign_pattern_tried',
 ];
 

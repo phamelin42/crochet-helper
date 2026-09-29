@@ -1,4 +1,3 @@
-import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -189,7 +188,7 @@ export function regionNoteOf(
 
 @Component({
   selector: 'fil-glossary-term-page',
-  imports: [Button, InputField, NgTemplateOutlet, RouterLink],
+  imports: [Button, InputField, RouterLink],
   host: { class: 'wrap' },
   template: `
     <section class="hero">
@@ -216,9 +215,24 @@ export function regionNoteOf(
       <section class="term-section">
         <h2 class="card-title">{{ c.articleTitles.inPattern }}</h2>
         <p class="step-body term-try">
-          <ng-container
-            *ngTemplateOutlet="abbreviations; context: { $implicit: exampleSegments() }"
-          />
+          @for (segment of exampleSegments(); track $index) {
+            @if (segment.definition) {
+              <span
+                class="abbr"
+                tabindex="0"
+                role="button"
+                [attr.aria-label]="segment.text + ' : ' + segment.definition"
+                (pointerenter)="show($event, segment.text, segment.definition)"
+                (pointerleave)="tooltips.hide()"
+                (focus)="show($event, segment.text, segment.definition)"
+                (blur)="tooltips.hide()"
+                (click)="show($event, segment.text, segment.definition)"
+                >{{ segment.text }}</span
+              >
+            } @else {
+              <ng-container>{{ segment.text }}</ng-container>
+            }
+          }
         </p>
         <p>{{ a.inPattern }}</p>
       </section>
@@ -273,7 +287,24 @@ export function regionNoteOf(
       </div>
 
       <p class="step-body term-try">
-        <ng-container *ngTemplateOutlet="abbreviations; context: { $implicit: segments() }" />
+        @for (segment of segments(); track $index) {
+          @if (segment.definition) {
+            <span
+              class="abbr"
+              tabindex="0"
+              role="button"
+              [attr.aria-label]="segment.text + ' : ' + segment.definition"
+              (pointerenter)="show($event, segment.text, segment.definition)"
+              (pointerleave)="tooltips.hide()"
+              (focus)="show($event, segment.text, segment.definition)"
+              (blur)="tooltips.hide()"
+              (click)="show($event, segment.text, segment.definition)"
+              >{{ segment.text }}</span
+            >
+          } @else {
+            <ng-container>{{ segment.text }}</ng-container>
+          }
+        }
       </p>
     </section>
 
@@ -309,27 +340,6 @@ export function regionNoteOf(
       <a filButton="primary" [routerLink]="i18n.link('reader')">{{ c.backToReader }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('glossary')">{{ c.backToGlossary }}</a>
     </div>
-
-    <ng-template #abbreviations let-list>
-      @for (segment of list; track $index) {
-        @if (segment.definition) {
-          <span
-            class="abbr"
-            tabindex="0"
-            role="button"
-            [attr.aria-label]="segment.text + ' : ' + segment.definition"
-            (pointerenter)="show($event, segment.text, segment.definition)"
-            (pointerleave)="tooltips.hide()"
-            (focus)="show($event, segment.text, segment.definition)"
-            (blur)="tooltips.hide()"
-            (click)="show($event, segment.text, segment.definition)"
-            >{{ segment.text }}</span
-          >
-        } @else {
-          <ng-container>{{ segment.text }}</ng-container>
-        }
-      }
-    </ng-template>
   `,
 })
 export default class GlossaryTermPage {

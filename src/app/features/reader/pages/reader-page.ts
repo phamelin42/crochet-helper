@@ -73,6 +73,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         title: 'Tailles de crochet : mm ↔ US',
         lead: 'Le tableau complet, et un chercheur pour passer de « G-6 » à « 4 mm ».',
       },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.gaugeCalculator.fr}`,
+        title: 'Calculateur d’échantillon',
+        lead: 'Comparez votre échantillon à celui du patron : crochet plus gros ou plus fin, mailles à monter.',
+      },
     ],
   },
   en: {
@@ -107,6 +112,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.hookSizes.en}`,
         title: 'Crochet hook sizes: mm ↔ US',
         lead: 'The full chart, and a finder to go from "G-6" to "4 mm".',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.gaugeCalculator.en}`,
+        title: 'Gauge calculator',
+        lead: 'Compare your swatch with the pattern’s: bigger or finer hook, stitches to cast on.',
       },
     ],
   },

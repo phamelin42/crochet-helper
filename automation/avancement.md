@@ -40,7 +40,7 @@ branche.
 | 25 — Vue d'ensemble et partage visible  | Terminée                               | —   | 2026-09-28 |
 | 26 — Première visite                    | Terminée                               | —   | 2026-09-28 |
 | 27 — Compteur de rangs en ligne         | Terminée                               | —   | 2026-09-28 |
-| 28 — Calculateur d'échantillon          | À faire                                | —   | —          |
+| 28 — Calculateur d'échantillon          | Terminée                               | —   | 2026-09-29 |
 | 29 — Page tailles de crochet            | Terminée                               | —   | 2026-09-29 |
 | 30 — Contenu des pages d'abréviation    | À faire                                | —   | —          |
 | 31 — Lire un patron anglais en français | À faire                                | —   | —          |

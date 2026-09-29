@@ -75,3 +75,44 @@ test('320 px de large : aucun débordement horizontal', async ({ page }) => {
   );
   expect(overflows).toBe(false);
 });
+
+test.describe('calculateur d’échantillon (fiche 28)', () => {
+  for (const path of ['/gauge-calculator', '/fr/calculateur-d-echantillon']) {
+    test(`le HTML brut de « ${path} » a le formulaire, 500 mots et aucun résultat`, async ({
+      request,
+    }) => {
+      const html = await (await request.get(path)).text();
+      expect(html).toContain('id="gauge-pattern-stitches"');
+      expect(html).toContain('id="gauge-mine-stitches"');
+      expect(html).not.toContain('gauge-advice');
+      const article = html.slice(html.indexOf('<article'), html.indexOf('</article>'));
+      const text = article.replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/g, ' ');
+      expect(text.split(/\s+/).filter(Boolean).length).toBeGreaterThanOrEqual(500);
+    });
+  }
+
+  test('14/16 demandés, 16/16 obtenus : « crochet plus gros », et 50 cm donnent 80 mailles', async ({
+    page,
+  }) => {
+    await page.goto('/gauge-calculator');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await page.locator('#gauge-pattern-stitches').fill('14');
+    await page.locator('#gauge-pattern-rows').fill('16');
+    await page.locator('#gauge-mine-stitches').fill('16');
+    await page.locator('#gauge-mine-rows').fill('16');
+    await expect(page.locator('.gauge-advice')).toContainText('Go up a hook size');
+
+    await page.locator('#gauge-width').fill('50');
+    await expect(page.locator('.gauge-cast-on')).toContainText('80 stitches to cast on');
+  });
+
+  test('320 px de large : aucun débordement horizontal', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.goto('/fr/calculateur-d-echantillon');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    const overflows = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+    expect(overflows).toBe(false);
+  });
+});

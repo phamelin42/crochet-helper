@@ -66,12 +66,10 @@ function routesFor(locale: Locale): Routes {
         page('projects', () =>
           import('./features/reader/pages/projects-page').then((m) => m.ProjectsPage),
         ),
-        page('hookSizes', () =>
-          import('./features/tools/pages/hook-sizes-page').then((m) => m.HookSizesPage),
-        ),
-        page('rowCounter', () =>
-          import('./features/tools/pages/row-counter-page').then((m) => m.RowCounterPage),
-        ),
+        // Export par défaut : `loadComponent` l'accepte sans `.then`, des octets de moins au bundle initial.
+        page('hookSizes', () => import('./features/tools/pages/hook-sizes-page')),
+        page('gaugeCalculator', () => import('./features/tools/pages/gauge-calculator-page')),
+        page('rowCounter', () => import('./features/tools/pages/row-counter-page')),
         page('guideReadingPattern', () =>
           import('./features/guides/pages/reading-pattern-page').then((m) => m.ReadingPatternPage),
         ),
@@ -83,9 +81,7 @@ function routesFor(locale: Locale): Routes {
             (m) => m.CrochetOrKnittingPage,
           ),
         ),
-        page('forDesigners', () =>
-          import('./features/designers/pages/for-designers-page').then((m) => m.ForDesignersPage),
-        ),
+        page('forDesigners', () => import('./features/designers/pages/for-designers-page')),
       ],
     },
   ];

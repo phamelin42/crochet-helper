@@ -68,6 +68,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         title: 'Compteur de rangs en ligne',
         lead: 'Comptez vos rangs d’une main, avec un objectif optionnel et sa barre de progression.',
       },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.hookSizes.fr}`,
+        title: 'Tailles de crochet : mm ↔ US',
+        lead: 'Le tableau complet, et un chercheur pour passer de « G-6 » à « 4 mm ».',
+      },
     ],
   },
   en: {
@@ -97,6 +102,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.rowCounter.en}`,
         title: 'Online row counter',
         lead: 'Count your rows one-handed, with an optional target and progress bar.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.hookSizes.en}`,
+        title: 'Crochet hook sizes: mm ↔ US',
+        lead: 'The full chart, and a finder to go from "G-6" to "4 mm".',
       },
     ],
   },

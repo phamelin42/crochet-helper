@@ -70,6 +70,12 @@ function routesFor(locale: Locale): Routes {
           data,
         },
         {
+          path: strip(ROUTE_PATHS.hookSizes[locale]),
+          loadComponent: () =>
+            import('./features/tools/pages/hook-sizes-page').then((m) => m.HookSizesPage),
+          data,
+        },
+        {
           path: strip(ROUTE_PATHS.rowCounter[locale]),
           loadComponent: () =>
             import('./features/tools/pages/row-counter-page').then((m) => m.RowCounterPage),

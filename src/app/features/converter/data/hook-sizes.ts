@@ -124,3 +124,35 @@ export function annotateHookSizes(text: string): HookConversion {
 
   return { text: converted, annotations, unknown };
 }
+
+/** Forme comparable d'une notation saisie : sans casse, sans tiret ni barre ni espace, « ½ » écrit « .5 ». */
+function normalizeSearchToken(raw: string): string {
+  return raw
+    .toUpperCase()
+    .replace('½', '.5')
+    .replace(/[-/\s]/g, '');
+}
+
+const SEARCH_TOKEN_MAP = new Map(HOOK_SIZES.map((size) => [normalizeSearchToken(size.us), size]));
+
+/**
+ * Retrouve une taille à partir de ce que la lectrice tape : des millimètres
+ * (« 4 », « 4 mm », « 4,0 ») ou une notation américaine (« G », « G-6 »,
+ * « g6 », « 7 »). Un nombre seul se lit d'abord en millimètres ; « 7 »
+ * n'existe qu'en US, la seule taille sans lettre. Une saisie avec « mm » ne
+ * retombe jamais sur le système américain. Inconnu ou vide : `null`.
+ */
+export function findHookSize(input: string): HookSize | null {
+  const text = input.trim();
+  if (!text) return null;
+
+  const mmMatch = /^(\d+(?:[.,]\d+)?)\s*(mm)?$/i.exec(text);
+  if (mmMatch) {
+    const value = Number(mmMatch[1].replace(',', '.'));
+    const byMm = HOOK_SIZES.find((size) => size.mm === value);
+    if (byMm || mmMatch[2]) return byMm ?? null;
+  }
+
+  const token = normalizeSearchToken(text);
+  return SEARCH_TOKEN_MAP.get(token) ?? LETTER_ONLY_MAP.get(token) ?? null;
+}

@@ -11,5 +11,6 @@
     "en": "/guide/crochet-or-knitting"
   },
   "forDesigners": { "fr": "/pour-les-creatrices", "en": "/for-designers" },
-  "rowCounter": { "fr": "/compteur-de-rangs", "en": "/row-counter" }
+  "rowCounter": { "fr": "/compteur-de-rangs", "en": "/row-counter" },
+  "hookSizes": { "fr": "/tailles-de-crochet", "en": "/crochet-hook-sizes" }
 }

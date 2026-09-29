@@ -24,7 +24,7 @@ for (const page of PAGES) {
     await p.setViewportSize({ width: 360, height: 800 });
     await p.goto(page.path);
     await p.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
-    await expect(p.locator('.glossary-table')).toBeVisible();
+    await expect(p.locator('.glossary-list')).toBeVisible();
 
     const overflow = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     expect(overflow).toBeLessThanOrEqual(0);

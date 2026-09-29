@@ -123,7 +123,7 @@ const COPY: Record<Locale, Record<string, string>> = {
       </nav>
 
       <div class="glossary-table-scroll">
-        <table class="table glossary-table">
+        <table class="table glossary-list">
           <caption class="visually-hidden">
             {{
               c['h1']

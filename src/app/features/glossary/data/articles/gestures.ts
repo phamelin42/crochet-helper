@@ -1,6 +1,6 @@
 import { TermArticles } from './types';
 
-/** Trois gestes de lecture plus que de maille : `yo`, `rep`, `blo`. */
+/** Trois gestes de lecture plus que de maille : `yo`, `rep`, `blo`. */
 export const GESTURES: TermArticles = {
   yo: {
     en: {

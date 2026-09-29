@@ -1,6 +1,6 @@
 import { TermArticles } from './types';
 
-/** Les mailles de hauteur : `sc`, `dc`, `hdc`, `tr` et la chaînette `ch`. */
+/** Les mailles de hauteur : `sc`, `dc`, `hdc`, `tr` et la chaînette `ch`. */
 export const HEIGHTS: TermArticles = {
   sc: {
     en: {

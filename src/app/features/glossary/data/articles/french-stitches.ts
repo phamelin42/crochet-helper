@@ -1,6 +1,6 @@
 import { TermArticles } from './types';
 
-/** Les mailles des patrons français : `ms`, `db`, `mc`, `ml`. */
+/** Les mailles des patrons français : `ms`, `db`, `mc`, `ml`. */
 export const FRENCH_STITCHES: TermArticles = {
   ms: {
     fr: {

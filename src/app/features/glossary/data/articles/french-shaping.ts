@@ -1,6 +1,6 @@
 import { TermArticles } from './types';
 
-/** Les formes des patrons français : `aug`, `dim`, `cercle-magique`. */
+/** Les formes des patrons français : `aug`, `dim`, `cercle-magique`. */
 export const FRENCH_SHAPING: TermArticles = {
   aug: {
     fr: {

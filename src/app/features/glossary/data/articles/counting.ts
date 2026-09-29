@@ -1,6 +1,6 @@
 import { TermArticles } from './types';
 
-/** Ce qui change le nombre de mailles : `st`, `inc`, `dec`, `sk`. */
+/** Ce qui change le nombre de mailles : `st`, `inc`, `dec`, `sk`. */
 export const COUNTING: TermArticles = {
   st: {
     en: {

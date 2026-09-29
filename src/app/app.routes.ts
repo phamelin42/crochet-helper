@@ -1,4 +1,4 @@
-import { CanMatchFn, Routes } from '@angular/router';
+import { CanMatchFn, Route, Routes } from '@angular/router';
 import { DEFAULT_LOCALE, LOCALES, Locale } from './core/i18n/locale';
 import { ROUTE_PATHS } from './core/i18n/route-paths';
 
@@ -25,6 +25,13 @@ const isGlossaryTerm: CanMatchFn = async (_route, segments) => {
 function routesFor(locale: Locale): Routes {
   const strip = (path: string) => path.replace(/^\//, '');
   const data = { locale };
+  // Le bundle initial n'a que quelques octets de marge : une fabrique évite
+  // de répéter les trois clés de chaque route.
+  const page = (key: keyof typeof ROUTE_PATHS, loadComponent: Route['loadComponent']): Route => ({
+    path: strip(ROUTE_PATHS[key][locale]),
+    loadComponent,
+    data,
+  });
 
   return [
     {
@@ -52,63 +59,33 @@ function routesFor(locale: Locale): Routes {
             import('./features/glossary/pages/term-page').then((m) => m.GlossaryTermPage),
           data,
         },
-        {
-          path: strip(ROUTE_PATHS.format[locale]),
-          loadComponent: () => import('./features/format/format-page').then((m) => m.FormatPage),
-          data,
-        },
-        {
-          path: strip(ROUTE_PATHS.converter[locale]),
-          loadComponent: () =>
-            import('./features/converter/converter-page').then((m) => m.ConverterPage),
-          data,
-        },
-        {
-          path: strip(ROUTE_PATHS.projects[locale]),
-          loadComponent: () =>
-            import('./features/reader/pages/projects-page').then((m) => m.ProjectsPage),
-          data,
-        },
-        {
-          path: strip(ROUTE_PATHS.hookSizes[locale]),
-          loadComponent: () =>
-            import('./features/tools/pages/hook-sizes-page').then((m) => m.HookSizesPage),
-          data,
-        },
-        {
-          path: strip(ROUTE_PATHS.rowCounter[locale]),
-          loadComponent: () =>
-            import('./features/tools/pages/row-counter-page').then((m) => m.RowCounterPage),
-          data,
-        },
-        {
-          path: strip(ROUTE_PATHS.guideReadingPattern[locale]),
-          loadComponent: () =>
-            import('./features/guides/pages/reading-pattern-page').then(
-              (m) => m.ReadingPatternPage,
-            ),
-          data,
-        },
-        {
-          path: strip(ROUTE_PATHS.guideReadingChart[locale]),
-          loadComponent: () =>
-            import('./features/guides/pages/reading-chart-page').then((m) => m.ReadingChartPage),
-          data,
-        },
-        {
-          path: strip(ROUTE_PATHS.guideCrochetOrKnitting[locale]),
-          loadComponent: () =>
-            import('./features/guides/pages/crochet-or-knitting-page').then(
-              (m) => m.CrochetOrKnittingPage,
-            ),
-          data,
-        },
-        {
-          path: strip(ROUTE_PATHS.forDesigners[locale]),
-          loadComponent: () =>
-            import('./features/designers/pages/for-designers-page').then((m) => m.ForDesignersPage),
-          data,
-        },
+        page('format', () => import('./features/format/format-page').then((m) => m.FormatPage)),
+        page('converter', () =>
+          import('./features/converter/converter-page').then((m) => m.ConverterPage),
+        ),
+        page('projects', () =>
+          import('./features/reader/pages/projects-page').then((m) => m.ProjectsPage),
+        ),
+        page('hookSizes', () =>
+          import('./features/tools/pages/hook-sizes-page').then((m) => m.HookSizesPage),
+        ),
+        page('rowCounter', () =>
+          import('./features/tools/pages/row-counter-page').then((m) => m.RowCounterPage),
+        ),
+        page('guideReadingPattern', () =>
+          import('./features/guides/pages/reading-pattern-page').then((m) => m.ReadingPatternPage),
+        ),
+        page('guideReadingChart', () =>
+          import('./features/guides/pages/reading-chart-page').then((m) => m.ReadingChartPage),
+        ),
+        page('guideCrochetOrKnitting', () =>
+          import('./features/guides/pages/crochet-or-knitting-page').then(
+            (m) => m.CrochetOrKnittingPage,
+          ),
+        ),
+        page('forDesigners', () =>
+          import('./features/designers/pages/for-designers-page').then((m) => m.ForDesignersPage),
+        ),
       ],
     },
   ];

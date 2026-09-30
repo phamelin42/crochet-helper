@@ -41,7 +41,13 @@ export const DIAGRAMS = [
     seed: 4,
     size: 44,
     pitch: 0.85,
-    rounds: [N('hdc', 6), N('dc-inc', 6), alternate('hdc', 'dc-inc', 12), N('dc', 14), N('sl-st', 16)],
+    rounds: [
+      N('hdc', 6),
+      N('dc-inc', 6),
+      alternate('hdc', 'dc-inc', 12),
+      N('dc', 14),
+      N('sl-st', 16),
+    ],
   },
   {
     name: 'ring-8',
@@ -73,7 +79,13 @@ export const DIAGRAMS = [
     seed: 8,
     size: 44,
     pitch: 0.85,
-    rounds: [N('ch', 9), N('sl-st', 9), N('tr', 9), alternate('dc2tog', 'picot', 9), N('sc2tog', 9)],
+    rounds: [
+      N('ch', 9),
+      N('sl-st', 9),
+      N('tr', 9),
+      alternate('dc2tog', 'picot', 9),
+      N('sc2tog', 9),
+    ],
     rows: true,
   },
   {
@@ -125,7 +137,11 @@ function place(diagram) {
   }
   let radius = 0;
   const rings = diagram.rounds.map((round) => {
-    radius = Math.max(radius + size * 1.0, (round.length * pitch * size) / (2 * Math.PI), size * 0.8);
+    radius = Math.max(
+      radius + size * 1.0,
+      (round.length * pitch * size) / (2 * Math.PI),
+      size * 0.8,
+    );
     return radius;
   });
   diagram.rounds.forEach((round, k) => {
@@ -213,7 +229,9 @@ export async function generateFixtures(dir = OUT) {
   const composer = await loadComposer();
   const svgs = loadSvgs();
   mkdirSync(dir, { recursive: true });
-  const browser = await chromium.launch({ executablePath: process.env['PW_CHROMIUM'] || undefined });
+  const browser = await chromium.launch({
+    executablePath: process.env['PW_CHROMIUM'] || undefined,
+  });
   try {
     const page = await browser.newPage();
     for (const diagram of DIAGRAMS) {

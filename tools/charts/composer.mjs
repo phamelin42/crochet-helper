@@ -22,7 +22,9 @@ const SOURCES = [
 
 function transpile(source) {
   return ts
-    .transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: 'ES2022' } })
+    .transpileModule(source, {
+      compilerOptions: { module: ts.ModuleKind.ESNext, target: 'ES2022' },
+    })
     .outputText.replace(/from '\.\.\/\.\.\/\.\.\/core\/i18n\/locale'/g, "from './locale.mjs'")
     .replace(/from '\.\/chart-symbols'/g, "from './chart-symbols.mjs'");
 }

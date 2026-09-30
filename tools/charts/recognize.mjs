@@ -439,7 +439,9 @@ function listSymbolIds() {
  */
 export async function recognizeImages(files) {
   const svgs = loadSvgs();
-  const browser = await chromium.launch({ executablePath: process.env['PW_CHROMIUM'] || undefined });
+  const browser = await chromium.launch({
+    executablePath: process.env['PW_CHROMIUM'] || undefined,
+  });
   try {
     const context = await browser.newContext();
     let attempted = 0;

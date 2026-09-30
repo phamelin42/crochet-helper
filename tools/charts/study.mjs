@@ -40,7 +40,13 @@ export function score(expected, recognized, countOf = () => 0) {
     // Un tour est juste si son compte de mailles l'est (la fiche 36 l'affiche entre parenthèses).
     if (recognized[r] && countOf(expected[r]) === countOf(recognized[r])) roundsRight++;
   });
-  return { symbols: total, right, rounds: want.length, roundsRight, extraRounds: got.length - want.length };
+  return {
+    symbols: total,
+    right,
+    rounds: want.length,
+    roundsRight,
+    extraRounds: got.length - want.length,
+  };
 }
 
 let composerPromise;
@@ -86,7 +92,9 @@ export async function runStudy({ traces = true } = {}) {
         name: `real/${f}`,
         kind: 'réel',
         file: join(REAL, f),
-        expected: existsSync(txt) ? parseExpected(readFileSync(txt, 'utf8'), c.CHART_SYMBOLS) : null,
+        expected: existsSync(txt)
+          ? parseExpected(readFileSync(txt, 'utf8'), c.CHART_SYMBOLS)
+          : null,
       };
     }),
   ];
@@ -114,7 +122,11 @@ export async function runStudy({ traces = true } = {}) {
   });
 
   const of = (kind) => rows.filter((r) => r.kind === kind);
-  const rate = (list) => pct(list.reduce((a, r) => a + r.right, 0), list.reduce((a, r) => a + r.symbols, 0));
+  const rate = (list) =>
+    pct(
+      list.reduce((a, r) => a + r.right, 0),
+      list.reduce((a, r) => a + r.symbols, 0),
+    );
   const weight = await pipelineWeight();
   const synthetic = rate(of('synthétique'));
   const real = of('réel').length ? rate(of('réel')) : null;
@@ -167,5 +179,6 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   console.log(`Code : ${study.weight.raw} o minifié, ${study.weight.gzip} o gzip`);
   console.log(`Requêtes sortantes tentées : ${study.attempted}`);
   console.log(`Commit : ${study.commit} — décision : ${study.go ? 'GO' : 'NO-GO'}`);
-  if (study.unlabeledReal.length) console.log(`Sans transcription : ${study.unlabeledReal.join(', ')}`);
+  if (study.unlabeledReal.length)
+    console.log(`Sans transcription : ${study.unlabeledReal.join(', ')}`);
 }

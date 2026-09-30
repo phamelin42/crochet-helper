@@ -13,7 +13,9 @@ const SIMPLE = ['ring-1', 'ring-2', 'flat-1'];
 
 test('trois diagrammes simples sont transcrits exactement, sans requête réseau', async () => {
   const { renderPattern } = await loadComposer();
-  const { results, attempted } = await recognizeImages(SIMPLE.map((n) => join(FIXTURES, `${n}.png`)));
+  const { results, attempted } = await recognizeImages(
+    SIMPLE.map((n) => join(FIXTURES, `${n}.png`)),
+  );
 
   SIMPLE.forEach((name, i) => {
     const expected = readFileSync(join(FIXTURES, `${name}.expected.txt`), 'utf8').trim();

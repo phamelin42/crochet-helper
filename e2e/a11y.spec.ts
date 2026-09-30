@@ -58,8 +58,13 @@ async function applyTheme(page: Page, dim: boolean): Promise<void> {
   // Même à 0,01 ms, une transition n'est finie qu'après un rendu : sur un
   // runner chargé, axe lisait encore la couleur d'avant. On attend une image
   // puis l'absence de toute transition en cours, plutôt qu'un délai arbitraire.
+  // « En cours », pas « présente » : sous charge, Chromium garde parfois dans
+  // `getAnimations()` des transitions déjà `finished` (couleur définitive),
+  // et attendre une liste vide expirait au bout de 30 s par intermittence.
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
-  await page.waitForFunction(() => document.getAnimations().length === 0);
+  await page.waitForFunction(() =>
+    document.getAnimations().every((animation) => animation.playState === 'finished'),
+  );
 }
 
 for (const route of ROUTES) {

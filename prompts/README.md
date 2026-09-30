@@ -73,6 +73,14 @@ URL avant d'accumuler du référencement.
 | 30  | Contenu des pages d'abréviation    | acquisition : 60 mots par page ne se classent pas              |
 | 33  | Glossaire sur téléphone            | acquisition : page d'entrée SEO utilisable d'un pouce          |
 | 37  | Reconnaître les symboles (étude)   | **une décision, pas une fonction** : go / no-go chiffré        |
+| 38  | Mode page pleine par défaut        | activation : l'étape seule à l'écran, comme promis             |
+| 39  | Installer, marcher hors ligne      | rétention : une icône sur l'écran d'accueil ramène la lectrice |
+| 40  | Page de confidentialité            | acquisition : exigée par le Play Store ; confiance             |
+| 41  | Application Android (Play Store)   | acquisition : la boutique est un canal de recherche            |
+
+Les fiches 38 à 41 répondent à la demande de Phil du 30 septembre (mode page
+pleine comme l'application Filo, hors ligne mis en avant, Play Store ; pas
+d'App Store pour l'instant). La 41 suppose la 40 (URL de confidentialité).
 
 La fiche `01` est absorbée par la `16` : ne pas l'exécuter séparément.
 

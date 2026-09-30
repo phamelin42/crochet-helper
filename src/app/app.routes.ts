@@ -79,6 +79,7 @@ function routesFor(locale: Locale): Routes {
           'guideCrochetOrKnitting',
           () => import('./features/guides/pages/crochet-or-knitting-page'),
         ),
+        page('privacy', () => import('./features/legal/pages/privacy-page')),
         page('forDesigners', () => import('./features/designers/pages/for-designers-page')),
       ],
     },

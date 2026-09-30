@@ -26,6 +26,13 @@ jobs:
 
       - run: npm ci
 
+      # Aussitôt après `npm ci`, avant tout test : le pilote (`lot-suivant.yml`)
+      # et les sessions de développement ont Chromium avant de lancer quoi que
+      # ce soit. L'installer ici après `test:tools` faisait passer partout,
+      # sauf en CI, un test d'outil qui ouvre un navigateur (PR #78).
+      - name: Navigateur (tests d'outils, audit d'accessibilité)
+        run: npx playwright install --with-deps chromium
+
       - name: Lint
         run: npm run lint
 
@@ -43,8 +50,5 @@ jobs:
 
       # Garde-fou de la fiche 07 : sans lui, une régression d'accessibilité ne
       # serait vue qu'en relecture. Sert le build ci-dessus (e2e/static-server.mjs).
-      - name: Navigateur pour l'audit d'accessibilité
-        run: npx playwright install --with-deps chromium
-
       - name: Accessibilité (axe, WCAG 2.1 AA)
         run: npx playwright test

@@ -54,9 +54,11 @@ Si le gel est levé, la première tâche n'est pas du code : c'est un
 ## Réponses de Phil (30 septembre 2026)
 
 - **Gel du lot 8 : levé.**
-- **Option préférée : C ou D** (comptes + synchronisation), à départager dans
-  l'ADR. L'ADR dit aussi honnêtement ce que A et B coûteraient en regard :
-  une préférence n'est pas une conclusion.
+- **Option retenue : C ou D** (comptes + synchronisation), à départager dans
+  l'ADR. La raison : que les projets suivent la lectrice d'un appareil à
+  l'autre. C'est ce que la clé de licence (B) ne donne pas — elle ne débloque
+  que des fonctions, sans déplacer les projets. L'ADR rappelle en une section
+  ce que A et B coûteraient en regard, sans rouvrir le choix.
 - **Budget d'hébergement : 10 € par mois au plus.** Toute option qui le
   dépasse aux volumes du jalon d'audience retenu est écartée, chiffre à l'appui.
 

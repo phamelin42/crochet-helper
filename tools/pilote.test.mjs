@@ -94,7 +94,9 @@ test('lot : les tables réelles du dépôt sont cohérentes, avancement compris'
     assert.ok(ordre.includes(fiche), `la fiche ${fiche} « À faire » figure dans la table d’ordre`);
   }
   const g = gardeLot(readme, avancement, '');
-  assert.notEqual(g.fiche, '20', 'la 20 est bloquée');
+  // Jamais une fiche « Bloquée » : elle attend une décision humaine.
+  const bloquees = [...avancement.matchAll(/^\|\s*(\d+)\s*—[^|]*\|\s*Bloquée/gm)].map((m) => m[1]);
+  assert.ok(!bloquees.includes(g.fiche), `la ${g.fiche} est bloquée`);
   // Toutes les fiches terminées : ne rien faire est alors la bonne réponse.
   assert.equal(g.agir, aFaire.length > 0, g.raison);
 });

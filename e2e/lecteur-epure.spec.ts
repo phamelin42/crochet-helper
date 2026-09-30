@@ -82,7 +82,8 @@ test('taille du texte et pièces sur la même ligne', async ({ page }) => {
 /**
  * « Précédent » et « Suivant » au même endroit à chaque étape de l'exemple,
  * pour chaque taille de texte et sur téléphone comme sur tablette : l'étape
- * réserve sa hauteur, et ce qui varie (notes, astuce, photos) vient après.
+ * et sa barre réservent leur hauteur, l'espace libre va sous la barre, et ce
+ * qui varie (notes, astuce, photos) vient après.
  */
 for (const viewport of [
   { width: 390, height: 844 },
@@ -98,11 +99,20 @@ for (const viewport of [
       const next = page.getByRole('button', { name: 'Next', exact: true });
       const positions = new Set<number>();
       for (let i = 0; i < 20 && (await next.isEnabled()); i++) {
-        positions.add(
-          await page.evaluate(() =>
-            Math.round(document.querySelector('.navrow')!.getBoundingClientRect().top + scrollY),
-          ),
-        );
+        const { navTop, gap } = await page.evaluate(() => {
+          const text = document.createRange();
+          text.selectNodeContents(document.querySelector('.step-body')!);
+          const bar = document.querySelector('.step-progress')!.getBoundingClientRect();
+          return {
+            navTop: Math.round(
+              document.querySelector('.navrow')!.getBoundingClientRect().top + scrollY,
+            ),
+            gap: bar.top - text.getBoundingClientRect().bottom,
+          };
+        });
+        positions.add(navTop);
+        // La barre de progression suit le texte, sans ligne vide entre eux.
+        expect(gap).toBeLessThan(24);
         const before = await page.locator('.step-body').innerText();
         await next.click();
         // Dernière étape : « Suivant » reste actif mais l'étape ne change plus.

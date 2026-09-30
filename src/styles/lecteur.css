@@ -399,7 +399,9 @@ textarea.src-input {
   background: color-mix(in srgb, var(--color-asagi-pale) 70%, transparent);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   padding: var(--space-2) var(--space-3);
-  margin-bottom: var(--space-5);
+  /* Sous « Précédent » et « Suivant » : de l'air au-dessus, pour ne pas
+     coller aux boutons. */
+  margin: var(--space-6) 0 var(--space-4);
   max-width: 60ch;
 }
 .step-body {
@@ -411,21 +413,27 @@ textarea.src-input {
   text-wrap: pretty;
   margin: 0;
   max-width: 28ch;
-  /* Trois lignes réservées, quelle que soit l'étape : « Précédent » et
-     « Suivant », juste dessous, ne bougent pas d'une étape à l'autre. Une
-     étape longue s'écrit plus petit (`.long`, `.longer`) pour y tenir. */
-  min-height: calc(var(--reader-step) * 1.3 * 3);
+}
+/* L'étape et sa barre de progression, collée dessous. Le bloc réserve deux
+   lignes et demie de texte, quelle que soit l'étape : « Précédent » et « Suivant »,
+   juste après, ne bougent pas d'une étape à l'autre, et l'espace libre va
+   sous la barre plutôt qu'entre le texte et elle. Une étape plus longue
+   s'écrit plus petit (`.long`, `.longer`) pour y tenir. */
+.step-block {
+  min-height: calc(var(--reader-step) * 1.3 * 2.5 + var(--space-3) * 2);
+}
+.step-block.empty {
+  min-height: 0;
 }
 .step-body.long {
   font-size: calc(var(--reader-step) * 0.8);
   max-width: 34ch;
 }
 .step-body.longer {
-  font-size: calc(var(--reader-step) * 0.65);
-  max-width: 40ch;
+  font-size: calc(var(--reader-step) * 0.6);
+  max-width: 44ch;
 }
 .step-body.empty {
-  min-height: 0;
   font-size: var(--reader-step-sm);
   color: var(--color-text-label);
   max-width: 34ch;

@@ -13,9 +13,9 @@ import { ImageGallery } from './image-gallery';
 import { ShareActions } from './share-actions';
 
 const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
-/** Au-delà, le texte de l'étape passe à 80 % puis à 65 % de sa taille. */
-const LONG_STEP = 45;
-const LONGER_STEP = 90;
+/** Au-delà, le texte de l'étape passe à 80 % puis à 60 % de sa taille. */
+const LONG_STEP = 30;
+const LONGER_STEP = 60;
 
 /**
  * L'étape en cours, en très grand : c'est l'écran que l'on regarde crochet en
@@ -60,26 +60,31 @@ const LONGER_STEP = 90;
       </p>
     }
 
-    <p
-      class="step-body"
-      tabindex="-1"
-      [class.empty]="!store.step()"
-      [class.long]="length() === 'long'"
-      [class.longer]="length() === 'longer'"
-      aria-live="polite"
-    >
-      @if (store.step(); as step) {
-        <fil-glossary-text [text]="step.body" />
-      } @else {
-        {{ t('ui.empty') }}
-      }
-    </p>
+    <!-- L'étape et sa barre de progression, collée dessous. Le bloc réserve
+         sa hauteur (\`.step-block\`) : « Précédent » et « Suivant » ne bougent
+         pas d'une étape à l'autre, et l'espace libre va sous la barre. -->
+    <div class="step-block" [class.empty]="!store.step()">
+      <p
+        class="step-body"
+        tabindex="-1"
+        [class.empty]="!store.step()"
+        [class.long]="length() === 'long'"
+        [class.longer]="length() === 'longer'"
+        aria-live="polite"
+      >
+        @if (store.step(); as step) {
+          <fil-glossary-text [text]="step.body" />
+        } @else {
+          {{ t('ui.empty') }}
+        }
+      </p>
 
-    @if (store.step()) {
-      <div class="progress step-progress" aria-hidden="true">
-        <i [style.width.%]="store.progress()"></i>
-      </div>
-    }
+      @if (store.step()) {
+        <div class="progress step-progress" aria-hidden="true">
+          <i [style.width.%]="store.progress()"></i>
+        </div>
+      }
+    </div>
 
     <div class="navrow">
       <button

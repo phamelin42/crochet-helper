@@ -147,6 +147,15 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   premier affichage → `import()` ; textes propres à une page paresseuse → dans
   la page, pas dans `translations.ts` (qui est dans le bundle initial) ; CSS
   d'impression → `print.css`, chargée à part. `ng build --stats-json` dit ce qui pèse.
+- **Le CSS d'une page autre que le lecteur va dans `pages.css`, jamais dans
+  `lecteur.css`.** `lecteur.css` est dans `styles.css`, donc dans le bundle
+  initial de chaque visite : la fiche 33 (PR #77) y a ajouté 1,5 ko de règles
+  du glossaire et a crevé le budget d'erreur, que `main` touchait déjà à
+  l'octet près. `pages.css` est hors bundle ; toute route déclarée par
+  `page()` dans `app.routes.ts` la charge (`styled()`), la lie dans son HTML
+  pré-rendu (pas de décalage) et l'attend avant d'afficher la page. Une
+  nouvelle route hors `page()` qui emploie ses classes passe par `styled()` :
+  `tools/check-prerender.mjs` fait échouer le build sinon.
 - **`NgOptimizedImage` coûte 5,5 ko au bundle initial** (mesuré) : pour un
   SVG, qui n'a ni `srcset` ni redimensionnement, une balise `<img>` native
   avec `width`, `height` et `fetchpriority` suffit. Cette règle l'emporte sur
@@ -190,6 +199,13 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   de l'assertion suivante : deux échecs intermittents pour un seul décalage. On
   accumule la file jusqu'à obtenir les noms attendus (`attendreNoms` dans
   `e2e/analytics.spec.ts`) plutôt que de la lire une fois.
+- **Vert chez l'agent, rouge en CI : chercher ce que l'environnement a de
+  plus.** Le pilote et les sessions de développement ont Chromium installé
+  avant tout ; la CI ne l'installait qu'après `test:tools`. Un test d'outil qui
+  ouvre un navigateur (fiche 37, PR #78) passait donc partout sauf en CI. Le
+  navigateur s'installe désormais en tête de `ci.yml`. Toute étape ajoutée à
+  la préparation du pilote (`lot-suivant.yml`) l'est aussi, au même rang, dans
+  `ci.yml`.
 - **`npx playwright test` sert le dernier build, pas le code du moment**
   (`e2e/static-server.mjs` sur `dist/`, plus `reuseExistingServer`). Debugger un
   échec e2e sans `ng build` préalable fait chercher un bug de test là où il n'y

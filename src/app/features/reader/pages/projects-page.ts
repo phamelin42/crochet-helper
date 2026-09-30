@@ -6,6 +6,7 @@ import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { DurationPipe } from '../../../shared/pipes/duration.pipe';
+import { InstallSlot } from '../components/install-slot';
 import { Button } from '../../../shared/ui/button/button';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { InputField } from '../../../shared/ui/field/input';
@@ -87,7 +88,7 @@ type LocalKey = keyof typeof COPY.fr;
  */
 @Component({
   selector: 'fil-projects-page',
-  imports: [Button, Dialog, DurationPipe, InputField],
+  imports: [Button, Dialog, DurationPipe, InputField, InstallSlot],
   host: { class: 'wrap' },
   template: `
     <section class="hero">
@@ -120,6 +121,8 @@ type LocalKey = keyof typeof COPY.fr;
         {{ message === 'ok' ? t('ui.importOk') : t('ui.importInvalid') }}
       </p>
     }
+
+    <fil-install-slot />
 
     @if (store.sortedProjects().length) {
       <ul class="projects-list">

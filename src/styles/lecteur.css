@@ -620,6 +620,19 @@ textarea.src-input {
   font-weight: 600;
 }
 
+/* — installation — carte sous l'accroche, jamais au-dessus de l'étape. */
+fil-install-slot {
+  display: block;
+}
+.install-card {
+  margin-block: var(--space-5);
+}
+.install-share {
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: text-bottom;
+}
+
 /* — matériel — */
 .mats {
   margin-top: var(--space-6);
@@ -977,6 +990,7 @@ textarea.src-input {
   html[data-focus] fil-pattern-import,
   html[data-focus] fil-pattern-photos,
   html[data-focus] fil-waitlist-banner,
+  html[data-focus] fil-install-slot,
   html[data-focus] fil-materials-list,
   html[data-focus] fil-share-actions,
   html[data-focus] fil-reader-page > .hr,

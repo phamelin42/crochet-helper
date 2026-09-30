@@ -60,3 +60,45 @@ test('un seul bouton de partage, et « Lien copié » s’efface de lui-même', 
   await expect(page.getByText('Link copied to clipboard.')).toHaveCount(0, { timeout: 6000 });
   await context.close();
 });
+
+test('taille du texte et pièces sur la même ligne', async ({ page }) => {
+  await page.getByRole('button', { name: 'Example', exact: true }).click();
+  const pieces = await page.locator('.pieces').boundingBox();
+  const size = await page.locator('.reader-tools .text-size').boundingBox();
+  // Même ligne : leurs boîtes se chevauchent verticalement.
+  expect(Math.abs(pieces!.y + pieces!.height / 2 - (size!.y + size!.height / 2))).toBeLessThan(8);
+});
+
+/**
+ * « Précédent » et « Suivant » au même endroit à chaque étape de l'exemple,
+ * pour chaque taille de texte et sur téléphone comme sur tablette : l'étape
+ * réserve sa hauteur, et ce qui varie (répétitions, notes, photos) vient après.
+ */
+for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 820, height: 1180 },
+]) {
+  for (const size of ['A', 'A+', 'A++']) {
+    test(`${viewport.width} px, taille ${size} : les boutons ne bougent pas d’une étape à l’autre`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await page.getByRole('button', { name: 'Example', exact: true }).click();
+      await page.getByText(size, { exact: true }).click();
+      const next = page.getByRole('button', { name: 'Next', exact: true });
+      const positions = new Set<number>();
+      for (let i = 0; i < 20 && (await next.isEnabled()); i++) {
+        positions.add(
+          await page.evaluate(() =>
+            Math.round(document.querySelector('.navrow')!.getBoundingClientRect().top + scrollY),
+          ),
+        );
+        const before = await page.locator('.step-body').innerText();
+        await next.click();
+        // Dernière étape : « Suivant » reste actif mais l'étape ne change plus.
+        if ((await page.locator('.step-body').innerText()) === before) break;
+      }
+      expect([...positions]).toHaveLength(1);
+    });
+  }
+}

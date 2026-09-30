@@ -263,11 +263,14 @@ figcaption {
   width: 20px;
   height: 20px;
 }
-@media (min-width: 600px) {
+/* 900 px : quatre boutons à libellé tiennent sur une ligne sans que le texte
+   se coupe ; en dessous, l'icône seule, nommée par `aria-label`. */
+@media (min-width: 900px) {
   .btn-icon-text {
     width: auto;
     height: auto;
     padding: var(--space-2) var(--space-5);
+    white-space: nowrap;
   }
   .btn-icon-text::after {
     content: attr(aria-label);

@@ -50,12 +50,15 @@ test('taille de texte A++ à 320 px de large : aucun débordement horizontal', a
   expect(overflows).toBe(false);
 });
 
-test('« Darken » pose data-dim et survit à un rechargement', async ({ page }) => {
+test('« Fond sombre » (en-tête) pose data-dim et survit à un rechargement', async ({ page }) => {
   await page.goto('/');
   await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
 
-  await page.getByRole('button', { name: 'Example', exact: true }).click();
-  await page.getByRole('button', { name: 'Darken', exact: true }).click();
+  // Dans l'en-tête, donc disponible sur toutes les pages, patron chargé ou non.
+  const dim = page.getByRole('button', { name: 'Dark background', exact: true });
+  await expect(dim).toHaveAttribute('aria-pressed', 'false');
+  await dim.click();
+  await expect(dim).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('html[data-dim="true"]')).toBeAttached();
 
   await page.reload();

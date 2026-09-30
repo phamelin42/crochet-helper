@@ -1,5 +1,7 @@
 import { Component, computed, inject, output } from '@angular/core';
+import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { DisplayPrefsService, ReaderTextSize } from '../../../core/platform/display-prefs.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
@@ -11,6 +13,11 @@ import { GlossaryText } from './glossary-text';
 import { ImageGallery } from './image-gallery';
 import { ShareActions } from './share-actions';
 
+const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
+/** Au-delà, le texte de l'étape passe à 80 % puis à 65 % de sa taille. */
+const LONG_STEP = 45;
+const LONGER_STEP = 90;
+
 /**
  * L'étape en cours, en très grand : c'est l'écran que l'on regarde crochet en
  * main, à un mètre de distance. Tout le reste de la page lui est subordonné.
@@ -19,18 +26,31 @@ import { ShareActions } from './share-actions';
   selector: 'fil-step-view',
   imports: [Button, ChartPanel, GlossaryText, Icon, ImageGallery, Segmented, ShareActions, Tile],
   template: `
-    @if (pieceOptions().length > 1) {
-      <div class="pieces">
+    <!-- Réglages sur une ligne : pièces à gauche (défilent si nombreuses),
+         taille du texte à droite. -->
+    @if (store.step()) {
+      <div class="reader-tools">
+        @if (pieceOptions().length > 1) {
+          <div class="pieces">
+            <fil-segmented
+              name="piece"
+              [label]="t('ui.pieces')"
+              [options]="pieceOptions()"
+              [selected]="store.pieceIndex()"
+              (selectedChange)="store.selectPiece($event)"
+            />
+          </div>
+        }
         <fil-segmented
-          name="piece"
-          [label]="t('ui.pieces')"
-          [options]="pieceOptions()"
-          [selected]="store.pieceIndex()"
-          (selectedChange)="store.selectPiece($event)"
+          class="text-size"
+          name="text-size"
+          [label]="t('ui.textSize')"
+          [options]="textSizeOptions()"
+          [selected]="textSizeIndex()"
+          (selectedChange)="setTextSize($event)"
         />
       </div>
     }
-
     <!-- Seule la position : le libellé du rang et le nom de la pièce
          redisaient ce que l'étape et le sélecteur de pièces montrent déjà. -->
     @if (store.step()) {
@@ -41,11 +61,14 @@ import { ShareActions } from './share-actions';
       </p>
     }
 
-    @if (notes(); as notes) {
-      <p class="note"><span aria-hidden="true">›</span><fil-glossary-text [text]="notes" /></p>
-    }
-
-    <p class="step-body" tabindex="-1" [class.empty]="!store.step()" aria-live="polite">
+    <p
+      class="step-body"
+      tabindex="-1"
+      [class.empty]="!store.step()"
+      [class.long]="length() === 'long'"
+      [class.longer]="length() === 'longer'"
+      aria-live="polite"
+    >
       @if (store.step(); as step) {
         <fil-glossary-text [text]="step.body" />
       } @else {
@@ -53,26 +76,40 @@ import { ShareActions } from './share-actions';
       }
     </p>
 
-    @if (store.step()?.tip; as tip) {
-      <p class="step-tip"><span aria-hidden="true">💡</span> <fil-glossary-text [text]="tip" /></p>
-    }
-
-    <!-- Sous l'étape, jamais au-dessus : l'étape reste dans le premier écran
-         d'une tablette (garde de la fiche 24). -->
-    @if (store.step()?.images; as images) {
-      <fil-image-gallery [numbers]="images" [label]="t('ui.stepPhotos')" />
-    }
-
-    @if (store.chartCount()) {
-      <fil-chart-panel />
-    }
-
     @if (store.step()) {
       <div class="progress step-progress" aria-hidden="true">
         <i [style.width.%]="store.progress()"></i>
       </div>
     }
 
+    <div class="navrow">
+      <button
+        type="button"
+        filButton="secondary"
+        [step]="true"
+        [disabled]="!store.hasPrevious()"
+        (click)="store.move(-1)"
+      >
+        <fil-icon name="left" /><span>{{ t('ui.prev') }}</span>
+      </button>
+      <button
+        type="button"
+        filButton="primary"
+        [step]="true"
+        class="next"
+        [disabled]="!store.step()"
+        (click)="store.advance()"
+      >
+        <span>{{ t('ui.next') }}</span
+        ><fil-icon name="right" />
+      </button>
+    </div>
+
+    <!--
+      Tout ce qui varie d'une étape à l'autre vient après « Précédent » et
+      « Suivant » : l'étape réserve sa hauteur (\`.step-body\`), et les deux
+      boutons restent au même endroit d'une étape à l'autre.
+    -->
     <!-- Seulement quand l'étape annonce une répétition (« x 6 ») : ailleurs,
          le compteur n'avait rien à compter. -->
     @if (store.step()?.reps; as reps) {
@@ -108,29 +145,18 @@ import { ShareActions } from './share-actions';
         </div>
       </fil-tile>
     }
-
-    <div class="navrow">
-      <button
-        type="button"
-        filButton="secondary"
-        [step]="true"
-        [disabled]="!store.hasPrevious()"
-        (click)="store.move(-1)"
-      >
-        <fil-icon name="left" /><span>{{ t('ui.prev') }}</span>
-      </button>
-      <button
-        type="button"
-        filButton="primary"
-        [step]="true"
-        class="next"
-        [disabled]="!store.step()"
-        (click)="store.advance()"
-      >
-        <span>{{ t('ui.next') }}</span
-        ><fil-icon name="right" />
-      </button>
-    </div>
+    @if (notes(); as notes) {
+      <p class="note"><span aria-hidden="true">›</span><fil-glossary-text [text]="notes" /></p>
+    }
+    @if (store.step()?.tip; as tip) {
+      <p class="step-tip"><span aria-hidden="true">💡</span> <fil-glossary-text [text]="tip" /></p>
+    }
+    @if (store.step()?.images; as images) {
+      <fil-image-gallery [numbers]="images" [label]="t('ui.stepPhotos')" />
+    }
+    @if (store.chartCount()) {
+      <fil-chart-panel />
+    }
 
     @if (store.step()) {
       <!-- Visibles, jamais repliées : la boucle qui amène une deuxième
@@ -142,12 +168,34 @@ import { ShareActions } from './share-actions';
 export class StepView {
   protected readonly store = inject(ReaderStore);
   private readonly i18n = inject(I18nService);
+  private readonly prefs = inject(DisplayPrefsService);
+  private readonly analytics = inject(AnalyticsService);
 
   /** « Changer de patron », relayé depuis la liste des étapes jusqu'à la page,
    *  seule à savoir où vit le panneau d'import. */
   readonly changePattern = output<void>();
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
+
+  protected readonly textSizeOptions = computed<SegmentedOption[]>(() => [
+    { value: 0, label: this.t('ui.textSizeBase') },
+    { value: 1, label: this.t('ui.textSizeLg') },
+    { value: 2, label: this.t('ui.textSizeXl') },
+  ]);
+  protected readonly textSizeIndex = computed(() => TEXT_SIZES.indexOf(this.prefs.textSize()));
+
+  protected setTextSize(index: number): void {
+    const value = TEXT_SIZES[index] ?? 'base';
+    this.prefs.setTextSize(value);
+    this.analytics.track('reading_pref_changed', { pref: 'text_size', value });
+  }
+
+  /** Une étape longue s'écrit plus petit pour tenir dans la hauteur réservée :
+   *  les boutons, dessous, ne bougent pas d'une étape à l'autre. */
+  protected readonly length = computed(() => {
+    const chars = this.store.step()?.body.length ?? 0;
+    return chars > LONGER_STEP ? 'longer' : chars > LONG_STEP ? 'long' : 'normal';
+  });
 
   protected readonly pieceOptions = computed<SegmentedOption[]>(() =>
     this.store.pieces().map((piece, index) => ({

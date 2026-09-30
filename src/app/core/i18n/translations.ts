@@ -12,6 +12,7 @@ import { Locale } from './locale';
  */
 export const FR = {
   'ui.wake': "Garder l'écran allumé",
+  'ui.dim': 'Fond sombre',
   'ui.skipToContent': 'Aller au contenu',
   'nav.reader': 'Lecteur',
   'nav.glossary': 'Glossaire',
@@ -39,6 +40,7 @@ export type TranslationKey = keyof typeof FR;
 
 export const EN: Record<TranslationKey, string> = {
   'ui.wake': 'Keep screen awake',
+  'ui.dim': 'Dark background',
   'ui.skipToContent': 'Skip to content',
   'nav.reader': 'Reader',
   'nav.glossary': 'Glossary',

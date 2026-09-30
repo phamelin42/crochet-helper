@@ -39,6 +39,7 @@ export const EVENEMENTS = [
   'project_created',
   'project_resumed',
   'project_shared',
+  'pattern_shared',
   'project_received',
   'backup_exported',
   'backup_imported',

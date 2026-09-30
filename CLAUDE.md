@@ -244,6 +244,9 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   `prefers-reduced-motion` de `tokens.css` (transitions à 0,01 ms) : les
   couleurs sont définitives dès le premier recalcul, sans attente arbitraire.
   Avant de corriger une palette sur un rapport d'axe, mesure au repos.
+  Attendre ensuite qu'aucune transition ne soit _en cours_ (`playState`), pas
+  une liste `getAnimations()` vide : sous charge, Chromium y garde des
+  transitions déjà terminées, et l'attente expirait par intermittence.
 
 ## Économie de tokens
 

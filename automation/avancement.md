@@ -32,7 +32,7 @@ branche.
 | 17 — Tailles de crochet mm ↔ US         | Terminée | —   | 2026-09-24 |
 | 18 — Matériel : en-têtes élargis        | Terminée | —   | 2026-09-24 |
 | 19 — Envoyer un projet                  | Terminée | —   | 2026-09-25 |
-| 20 — Comptes et paiement (cadrage)      | À faire  | —   | —          |
+| 20 — Comptes et paiement (cadrage)      | Terminée | —   | 2026-09-30 |
 | 21 — Mesurer le retour et la profondeur | Terminée | —   | 2026-09-23 |
 | 22 — Liste d'attente                    | Terminée | —   | 2026-09-24 |
 | 23 — Kit pour les créatrices            | Terminée | —   | 2026-09-25 |

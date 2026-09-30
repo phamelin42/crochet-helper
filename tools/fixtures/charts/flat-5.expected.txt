@@ -1,0 +1,5 @@
+Row 1: 9 ch (9)
+Row 2: 9 sl st (9)
+Row 3: 9 tr (9)
+Row 4: dc2tog, picot, dc2tog, picot, dc2tog, picot, dc2tog, picot, dc2tog (9)
+Row 5: 9 sc2tog (9)

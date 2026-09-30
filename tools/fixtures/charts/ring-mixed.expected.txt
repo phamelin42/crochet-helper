@@ -1,0 +1,3 @@
+Rnd 1: 8 sc (8)
+Rnd 2: dc, hdc, tr, sc inc, dc2tog, ch, sl st, picot, fpdc, bpdc (11)
+Rnd 3: shell, puff, pc, cl, dc3tog, dc inc, flo, blo, ch-sp, sc (13)

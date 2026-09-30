@@ -10,6 +10,7 @@
     "lint": "ng lint",
     "build:app": "ng build",
     "test:ci": "ng test --no-watch",
+    "etude:charts": "node tools/charts/study.mjs",
     "test:tools": "node --test \"tools/**/*.test.mjs\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

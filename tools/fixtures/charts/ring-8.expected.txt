@@ -1,0 +1,8 @@
+Rnd 1: 6 sc (6)
+Rnd 2: 6 sc inc (12)
+Rnd 3: sc, sc inc, sc, sc inc, sc, sc inc, sc, sc inc, sc, sc inc, sc, sc inc (18)
+Rnd 4: 14 sc (14)
+Rnd 5: 14 hdc (14)
+Rnd 6: dc, dc inc, dc, dc inc, dc, dc inc, dc, dc inc, dc, dc inc, dc, dc inc, dc, dc inc, dc, dc inc (24)
+Rnd 7: 18 dc (18)
+Rnd 8: 20 tr (20)

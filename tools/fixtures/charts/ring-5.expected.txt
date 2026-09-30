@@ -1,0 +1,5 @@
+Rnd 1: 6 hdc (6)
+Rnd 2: 6 dc inc (12)
+Rnd 3: hdc, dc inc, hdc, dc inc, hdc, dc inc, hdc, dc inc, hdc, dc inc, hdc, dc inc (18)
+Rnd 4: 14 dc (14)
+Rnd 5: 16 sl st (16)

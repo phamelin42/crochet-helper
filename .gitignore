@@ -51,4 +51,6 @@ Thumbs.db
 
 # Sorties de Playwright (npm run test:a11y)
 /test-results
+# Sortie de l’étude des diagrammes (npm run etude:charts)
+/tools/charts/out
 /playwright-report

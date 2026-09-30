@@ -1,0 +1,3 @@
+Rnd 1: 6 sc (6)
+Rnd 2: 6 sc inc (12)
+Rnd 3: sc, sc inc, sc, sc inc, sc, sc inc, sc, sc inc, sc, sc inc, sc, sc inc (18)

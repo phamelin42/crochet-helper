@@ -17,3 +17,16 @@ test('EVENEMENTS de tools/umami.mjs = union AnalyticsEvent du service', () => {
   assert.ok(declares.length > 0, 'aucun événement lu dans AnalyticsEvent');
   assert.deepEqual([...declares].sort(), [...EVENEMENTS].sort());
 });
+
+// La page de confidentialité énumère les événements : un oubli la rendrait fausse.
+// Le type `Record<AnalyticsEvent, Record<Locale, string>>` garantit déjà les deux langues.
+test('PRIVACY_EVENTS décrit exactement les événements de AnalyticsEvent', () => {
+  const source = readFileSync(
+    new URL('../src/app/features/legal/data/privacy-events.ts', import.meta.url),
+    'utf8',
+  );
+  const body = /PRIVACY_EVENTS[^=]*=\s*\{([\s\S]*?)\n\};/.exec(source);
+  assert.ok(body, 'PRIVACY_EVENTS introuvable');
+  const described = [...body[1].matchAll(/^ {2}([a-z0-9_]+): \{/gm)].map((m) => m[1]);
+  assert.deepEqual([...described].sort(), [...EVENEMENTS].sort());
+});

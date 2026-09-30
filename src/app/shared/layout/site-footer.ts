@@ -10,7 +10,7 @@ const LEARN = [
   'guideReadingChart',
   'guideCrochetOrKnitting',
 ] as const;
-const PROJECT = ['rowCounter', 'hookSizes', 'gaugeCalculator', 'forDesigners'] as const;
+const PROJECT = ['rowCounter', 'hookSizes', 'gaugeCalculator', 'forDesigners', 'privacy'] as const;
 
 /**
  * Deux colonnes de maillage interne, écrites à plat : `site-footer.spec.ts`

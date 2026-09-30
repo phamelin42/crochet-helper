@@ -14,5 +14,6 @@
   "rowCounter": { "fr": "/compteur-de-rangs", "en": "/row-counter" },
   "hookSizes": { "fr": "/tailles-de-crochet", "en": "/crochet-hook-sizes" },
   "gaugeCalculator": { "fr": "/calculateur-d-echantillon", "en": "/gauge-calculator" },
-  "readForeignPattern": { "fr": "/lire-un-patron-anglais", "en": "/read-a-french-pattern" }
+  "readForeignPattern": { "fr": "/lire-un-patron-anglais", "en": "/read-a-french-pattern" },
+  "privacy": { "fr": "/confidentialite", "en": "/privacy" }
 }

@@ -71,7 +71,7 @@ test('permalien créé depuis un vrai PDF — première et dernière étape iden
 
   // Les actions de partage sont visibles sous l'étape (fiche 25), sans rien
   // à déplier.
-  await page.getByRole('button', { name: 'Copy the pattern link', exact: true }).click();
+  await page.getByRole('button', { name: 'Share this pattern', exact: true }).click();
   const link = await page.evaluate(() => navigator.clipboard.readText());
   expect(link).toContain('#p=');
 

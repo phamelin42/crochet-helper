@@ -138,6 +138,19 @@ main {
   text-align: center;
 }
 
+/* Très petit écran : le logo seul, le nom reste lu par les lecteurs d'écran.
+   Sinon marque et boutons ne tiennent pas sur une ligne à 320 px. */
+@media (max-width: 360px) {
+  .nav-brand span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 /* Sur téléphone, l'en-tête garde ses marges et tient compte de l'encoche. */
 @media (max-width: 640px) {
   .wrap {
@@ -146,15 +159,25 @@ main {
   .nav {
     --nav-inset: calc(var(--gutter) * 0.5);
     padding-inline: var(--space-4);
+    padding-block: var(--space-2);
+    row-gap: var(--space-2);
+    margin-top: var(--space-2);
   }
-  /* Une fois la page hydratée, la navigation en français (libellés plus
-     longs) peut tenir sur une ligne de moins qu'au premier rendu. Réserver
-     deux lignes évite que tout le reste de la page ne remonte (CLS mesuré
-     ≈ 0,67 sur `/fr/glossaire/ms` sans cette réservation). */
+  /* Une seule ligne, qui défile au doigt : sur deux lignes, l'en-tête
+     prenait un tiers de l'écran d'un téléphone. Hauteur fixe par nature
+     (aucun retour à la ligne) : rien ne bouge à l'hydratation, même quand
+     les libellés français sont plus longs. */
   .nav-links {
     order: 3;
     flex-basis: 100%;
-    min-height: 2lh;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--space-2));
+    padding-inline: var(--space-2);
+  }
+  .nav-links::-webkit-scrollbar {
+    display: none;
   }
   main {
     padding-bottom: var(--space-8);
@@ -352,32 +375,7 @@ textarea.src-input {
 }
 
 .stepmeta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-4);
-}
-.steplabel {
-  font-size: var(--text-sm);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--color-sakura-pale);
-  color: var(--color-sakura-ink);
-}
-.piecename {
-  font-size: var(--text-sm);
-  font-weight: 700;
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--color-kikyo-pale);
-  color: var(--color-kikyo-ink);
-}
-.abbr-toggle {
-  order: 3;
-  margin-left: auto;
+  margin: 0 0 var(--space-4);
 }
 .note {
   display: flex;
@@ -409,12 +407,13 @@ textarea.src-input {
   font-weight: 400;
   font-family: var(--font-body);
 }
-/* Abréviation : soulignée de rose, pour inviter au survol. */
+/* Abréviation : un pointillé discret, la convention des sigles (`<abbr>`).
+ * La vague rose d'avant évoquait une faute d'orthographe. */
 .abbr {
   color: inherit;
-  text-decoration: underline wavy var(--color-sakura);
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 0.22em;
+  text-decoration: underline dotted var(--color-kikyo-ink);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
   cursor: help;
 }
 .abbr:hover {
@@ -445,27 +444,6 @@ textarea.src-input {
 }
 .btn-step.next {
   flex-grow: 1.4;
-}
-
-/* — liste des étapes (fiche 25) : chaque entrée est un `.btn-ghost.btn-block`
-   (déjà dans `hanami.css`, sans coût de bundle) plutôt qu'une carte propre —
-   la marge du budget initial se compte en octets. */
-.steps-list {
-  margin: var(--space-2) 0 var(--space-4);
-  padding: 0;
-  list-style: none;
-}
-.steps-item {
-  justify-content: flex-start;
-  text-align: left;
-}
-.steps-item[aria-current='step'] {
-  background: var(--color-sakura-pale);
-  color: var(--color-sakura-ink);
-}
-.steps-item.done::after {
-  content: ' ✓';
-  color: var(--color-wakaba-ink);
 }
 
 /* — compteurs — trois tuiles, trois couleurs : sakura (répétitions), wakaba

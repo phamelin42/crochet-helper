@@ -2,8 +2,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { TooltipService } from '../../../shared/ui/tooltip/tooltip.service';
-import { annotate, expand } from '../data/glossary';
-import { ReaderStore } from '../state/reader-store';
+import { annotate } from '../data/glossary';
 
 /**
  * Affiche un texte de patron en soulignant les abréviations connues, chacune
@@ -43,20 +42,9 @@ export class GlossaryText {
   private readonly i18n = inject(I18nService);
   private readonly analytics = inject(AnalyticsService);
 
-  private readonly store = inject(ReaderStore);
-
   readonly text = input.required<string>();
 
-  /**
-   * En mode « abréviations développées », le texte est réécrit avant d'être
-   * segmenté : plus rien n'est alors souligné, puisque plus rien n'est abrégé.
-   */
-  protected readonly segments = computed(() => {
-    const locale = this.i18n.locale();
-    return this.store.expandAbbreviations()
-      ? [{ text: expand(this.text(), locale) }]
-      : annotate(this.text(), locale);
-  });
+  protected readonly segments = computed(() => annotate(this.text(), this.i18n.locale()));
 
   protected show(event: Event, term: string, definition: string): void {
     if (this.tooltips.isStationaryHover(event)) return;

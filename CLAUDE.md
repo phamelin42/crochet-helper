@@ -140,10 +140,18 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   sitemap (`tools/generate-sitemap.mjs` les exclut).
 - **Français soigné** : article devant un nom de maille (« désigne _la_ maille
   serrée »), espaces insécables avant `: ; ? !` et dans « ».
-- **Bundle initial : le budget fait foi dans `angular.json`** (`budgets`,
-  type `initial` : avertissement puis erreur), pas un chiffre recopié ici.
-  Angular (core, router, service worker) en occupe l'essentiel : la marge se
-  compte en kilo-octets, à ne pas gaspiller. Code non nécessaire au
+- **Bundle initial : l'architecture protège, le budget alerte.** Le premier
+  affichage ne contient que la coquille et le lecteur ; tout ce qui est propre
+  à une autre page est paresseux (route, textes, `pages.css`). C'est cette
+  règle qui se vérifie en relecture, pas l'octet. Le budget d'`angular.json`
+  (type `initial`) est une alarme avec une vraie marge au-dessus de la taille
+  réelle : un avertissement se justifie dans la PR (ce qui pèse, pourquoi au
+  premier affichage), l'erreur signale un saut anormal. Ne jamais le régler
+  à quelques octets de la taille du moment : de 323 à 329 ko, chaque fiche
+  butait dessus et des dizaines d'échanges sont partis à grappiller des
+  octets sur les ~15 % qui ne sont pas Angular (279 ko sur 326, 90 ko
+  compressés). Ce que ressent la lectrice, c'est `e2e/perf.spec.ts` (LCP et
+  CLS sur mobile bridé) qui le juge. Code non nécessaire au
   premier affichage → `import()` ; textes propres à une page paresseuse → dans
   la page, pas dans `translations.ts` (qui est dans le bundle initial) ; CSS
   d'impression → `print.css`, chargée à part. `ng build --stats-json` dit ce qui pèse.

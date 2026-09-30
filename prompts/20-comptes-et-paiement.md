@@ -62,6 +62,14 @@ Si le gel est levé, la première tâche n'est pas du code : c'est un
 - **Budget d'hébergement : 10 € par mois au plus.** Toute option qui le
   dépasse aux volumes du jalon d'audience retenu est écartée, chiffre à l'appui.
 
+- **Ce qui est payant : la synchronisation entre appareils, et elle seule.**
+  Tout le reste reste gratuit et sans compte (lecture, compteurs, glossaire,
+  outils, sauvegarde fichier, envoi par lien).
+- **Le compte est optionnel et réservé aux abonnées** : pas de compte
+  gratuit, pas d'essai gratuit. Sans compte, l'application marche exactement
+  comme aujourd'hui. Une abonnée qui arrête de payer garde ses projets sur ses
+  appareils ; seule la synchronisation s'arrête.
+
 ## Ce que l'ADR doit contenir en plus des cinq points ci-dessus
 
 - Le coût mensuel de C et de D (au moins deux services tiers nommés pour D)

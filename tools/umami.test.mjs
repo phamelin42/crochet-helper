@@ -180,7 +180,8 @@ const FIGE = JSON.parse(readFileSync(new URL('./fixtures/umami-v3.json', import.
 function instanceFigee(u) {
   if (u.pathname.endsWith('/stats')) return [200, FIGE.stats];
   const rep = FIGE.metrics[u.searchParams.get('type')];
-  return typeof rep === 'string' ? [400, { error: rep }] : [200, rep];
+  // Un type absent de la capture (« query ») : l'instance ne le connaît pas, comme Umami 2.
+  return typeof rep === 'string' || rep === undefined ? [400, { error: rep }] : [200, rep];
 }
 
 /** Clés et types de la sortie, dans l'ordre : c'est le contrat lu par les agents. */
@@ -220,16 +221,16 @@ test('forme de sortie figée, quotidien et hebdo, contre la forme réelle d’Um
   const attendu = {
     quotidien: {
       ...ENTETE,
-      periode: { ...FORME_FENETRE, pages, provenances: [] },
-      reference: { ...FORME_FENETRE, pages: 'null', provenances: 'null' },
+      periode: { ...FORME_FENETRE, pages, provenances: [], utm: 'null' },
+      reference: { ...FORME_FENETRE, pages: 'null', provenances: 'null', utm: 'null' },
       mois: 'null',
       limites: LIMITES,
     },
     hebdo: {
       ...ENTETE,
-      periode: { ...FORME_FENETRE, pages, provenances: [] },
-      reference: { ...FORME_FENETRE, pages: 'null', provenances: 'null' },
-      mois: { ...FORME_FENETRE, pages, provenances: [] },
+      periode: { ...FORME_FENETRE, pages, provenances: [], utm: 'null' },
+      reference: { ...FORME_FENETRE, pages: 'null', provenances: 'null', utm: 'null' },
+      mois: { ...FORME_FENETRE, pages, provenances: [], utm: 'null' },
       limites: LIMITES,
     },
   };
@@ -244,6 +245,36 @@ test('forme de sortie figée, quotidien et hebdo, contre la forme réelle d’Um
     // JSON.stringify compare aussi l'ordre des clés.
     assert.equal(JSON.stringify(structure(r)), JSON.stringify(attendu[mode]), mode);
   }
+});
+
+test('utm : seules les visites balisées remontent, null si l’instance ne connaît pas « query »', async () => {
+  const avec = faussesApi((u) => {
+    if (u.searchParams.get('type') === 'query') {
+      return [
+        200,
+        [
+          { x: 'utm_source=play_store&utm_medium=app', y: 4 },
+          { x: 'q=magic+ring', y: 9 },
+        ],
+      ];
+    }
+    return instanceFigee(u);
+  });
+  const r = await collecter({
+    mode: 'hebdo',
+    date: '2026-09-22',
+    env: ENV,
+    fetch: avec.fetch,
+  });
+  assert.deepEqual(r.periode.utm, [{ nom: 'utm_source=play_store&utm_medium=app', nombre: 4 }]);
+  assert.equal(r.reference.utm, null);
+  const sans = await collecter({
+    mode: 'quotidien',
+    date: '2026-09-22',
+    env: ENV,
+    fetch: faussesApi(instanceFigee).fetch,
+  });
+  assert.equal(sans.periode.utm, null);
 });
 
 test('Umami 3 : les chiffres figés arrivent aux bons endroits', async () => {

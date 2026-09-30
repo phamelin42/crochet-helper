@@ -34,6 +34,14 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Digital Asset Links (fiche 41) : JSON, sans redirection, jamais `immutable`
+# (Google relit le fichier quand Phil y ajoute une empreinte).
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json"
+    Cache-Control = "public, max-age=0, must-revalidate"
+
 # Polices : noms à empreinte, posés par le build.
 [[headers]]
   for = "/media/*"

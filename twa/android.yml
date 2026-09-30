@@ -1,0 +1,92 @@
+# Construit l'application Android (Trusted Web Activity) : fiche 41.
+#
+# Ce fichier vit ici et non dans `.github/workflows/` parce que le pilote n'a pas
+# le droit d'y écrire. Pour l'activer, le copier tel quel :
+#   cp twa/android.yml .github/workflows/android.yml
+#
+# Lancé à la main seulement. Sans les quatre secrets, il s'arrête proprement et
+# dit lesquels manquent. Le guide est dans `docs/play-store.md`.
+name: Android
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  aab:
+    name: Construire l'AAB
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Les secrets ne se lisent pas dans un `if:` : on les teste ici, et les
+      # étapes suivantes ne tournent que si `complet` vaut « true ».
+      - name: Vérifier les secrets
+        id: secrets
+        run: |
+          manquants=""
+          for nom in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!nom}" ]; then manquants="$manquants $nom"; fi
+          done
+          if [ -n "$manquants" ]; then
+            {
+              echo "## Construction Android : secrets manquants"
+              echo
+              for nom in $manquants; do echo "- \`$nom\`"; done
+              echo
+              echo "Créer la clé d'envoi avec \`keytool\`, puis enregistrer les quatre secrets"
+              echo "(Settings → Secrets and variables → Actions). Commande et pas à pas :"
+              echo "\`docs/play-store.md\`, étape 2."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "complet=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "complet=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-java@v4
+        if: steps.secrets.outputs.complet == 'true'
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+        if: steps.secrets.outputs.complet == 'true'
+
+      - name: Préparer Bubblewrap
+        if: steps.secrets.outputs.complet == 'true'
+        run: |
+          npm install --global @bubblewrap/cli@1.25.0
+          mkdir -p ~/.bubblewrap
+          printf '{"jdkPath":"%s","androidSdkPath":"%s"}\n' "$JAVA_HOME" "$ANDROID_HOME" > ~/.bubblewrap/config.json
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > twa/android.keystore
+          # L'alias vient du secret : le manifeste du dépôt n'en porte qu'un par défaut.
+          node -e "
+            const f='twa/twa-manifest.json';
+            const m=JSON.parse(require('fs').readFileSync(f,'utf8'));
+            m.signingKey.alias=process.env.ANDROID_KEY_ALIAS;
+            require('fs').writeFileSync(f, JSON.stringify(m,null,2));
+          "
+
+      - name: Construire
+        if: steps.secrets.outputs.complet == 'true'
+        working-directory: twa
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          bubblewrap update --manifest=twa-manifest.json --skipVersionUpgrade
+          bubblewrap build --manifest=twa-manifest.json --skipPwaValidation
+
+      - uses: actions/upload-artifact@v4
+        if: steps.secrets.outputs.complet == 'true'
+        with:
+          name: application-android
+          path: twa/app-release-bundle.aab
+          if-no-files-found: error

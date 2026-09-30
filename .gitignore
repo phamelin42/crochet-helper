@@ -54,3 +54,11 @@ Thumbs.db
 # Sortie de l’étude des diagrammes (npm run etude:charts)
 /tools/charts/out
 /playwright-report
+
+# Application Android (fiche 41) : clé et sorties de Bubblewrap, jamais commitées
+/twa/*.keystore
+/twa/*.aab
+/twa/*.apk
+/twa/app/
+/twa/build/
+/twa/.gradle/

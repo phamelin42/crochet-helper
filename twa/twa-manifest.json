@@ -1,0 +1,31 @@
+{
+  "packageId": "com.patternreader.app",
+  "host": "patternreader.com",
+  "name": "Pattern Reader — crochet & knitting pattern reader",
+  "launcherName": "Pattern Reader",
+  "display": "standalone",
+  "orientation": "default",
+  "themeColor": "#faf4ed",
+  "themeColorDark": "#faf4ed",
+  "navigationColor": "#faf4ed",
+  "navigationColorDark": "#faf4ed",
+  "backgroundColor": "#faf4ed",
+  "startUrl": "/?utm_source=play_store&utm_medium=app",
+  "iconUrl": "https://patternreader.com/icons/icon-512x512.png",
+  "maskableIconUrl": "https://patternreader.com/icons/maskable-512x512.png",
+  "webManifestUrl": "https://patternreader.com/manifest.webmanifest",
+  "fullScopeUrl": "https://patternreader.com/",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "enableNotifications": false,
+  "enableSiteSettingsShortcut": false,
+  "fallbackType": "customtabs",
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "upload"
+  },
+  "minSdkVersion": 21,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "generatorApp": "bubblewrap-cli"
+}

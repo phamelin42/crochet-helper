@@ -480,6 +480,17 @@ textarea.src-input {
   align-items: stretch;
   margin-top: var(--space-6);
 }
+/* Sous 700 px : répétitions et avancement côte à côte, le chronomètre
+   dessous sur toute la largeur. */
+@media (max-width: 699px) {
+  .meter {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .meter > .timer-tile {
+    grid-column: 1 / -1;
+  }
+}
 .tile {
   --tile-color: var(--color-kikyo);
   --tile-pale: var(--color-kikyo-pale);
@@ -494,24 +505,20 @@ textarea.src-input {
   border-top: 6px solid var(--tile-color);
   box-shadow: var(--shadow-md);
 }
-.meter > .tile:nth-child(1) {
+.meter > .reps-tile {
+  --tile-color: var(--color-sakura);
+  --tile-pale: var(--color-sakura-pale);
+  --tile-ink: var(--color-sakura-ink);
+}
+.meter > .done-tile {
   --tile-color: var(--color-wakaba);
   --tile-pale: var(--color-wakaba-pale);
   --tile-ink: var(--color-wakaba-ink);
 }
-.meter > .tile:nth-child(2) {
+.meter > .timer-tile {
   --tile-color: var(--color-asagi);
   --tile-pale: var(--color-asagi-pale);
   --tile-ink: var(--color-asagi-ink);
-}
-/* Répétitions : la commande la plus utilisée crochet en main, remontée sous
-   l'étape elle-même (fiche 24) — garde sa couleur sakura hors de `.meter`. */
-.reps-tile {
-  --tile-color: var(--color-sakura);
-  --tile-pale: var(--color-sakura-pale);
-  --tile-ink: var(--color-sakura-ink);
-  max-width: 320px;
-  margin-block: var(--space-6) var(--space-2);
 }
 .tile h6 {
   margin: 0;

@@ -5,7 +5,6 @@ import { DisplayPrefsService, ReaderTextSize } from '../../../core/platform/disp
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
-import { Tile } from '../../../shared/ui/tile/tile';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
 import { ChartPanel } from './chart-panel';
@@ -24,7 +23,7 @@ const LONGER_STEP = 90;
  */
 @Component({
   selector: 'fil-step-view',
-  imports: [Button, ChartPanel, GlossaryText, Icon, ImageGallery, Segmented, ShareActions, Tile],
+  imports: [Button, ChartPanel, GlossaryText, Icon, ImageGallery, Segmented, ShareActions],
   template: `
     <!-- Réglages sur une ligne : pièces à gauche (défilent si nombreuses),
          taille du texte à droite. -->
@@ -106,45 +105,10 @@ const LONGER_STEP = 90;
     </div>
 
     <!--
-      Tout ce qui varie d'une étape à l'autre vient après « Précédent » et
-      « Suivant » : l'étape réserve sa hauteur (\`.step-body\`), et les deux
+      Tout ce qui varie d'une étape à l'autre (notes, astuce, photos,
+      diagramme) vient après « Précédent » et « Suivant » : l'étape réserve sa hauteur (\`.step-body\`), et les deux
       boutons restent au même endroit d'une étape à l'autre.
     -->
-    <!-- Seulement quand l'étape annonce une répétition (« x 6 ») : ailleurs,
-         le compteur n'avait rien à compter. -->
-    @if (store.step()?.reps; as reps) {
-      <fil-tile class="reps-tile" [label]="t('ui.reps')">
-        <div class="big reps">
-          {{ store.currentReps() }}
-          <span class="sub"> / {{ reps }}</span>
-        </div>
-        <div class="row tight">
-          <button
-            type="button"
-            filButton="secondary"
-            [iconOnly]="true"
-            aria-label="−"
-            [disabled]="!store.step() || store.currentReps() <= 0"
-            (click)="store.addRepeat(-1)"
-          >
-            <fil-icon name="minus" />
-          </button>
-          <button
-            type="button"
-            filButton="primary"
-            [iconOnly]="true"
-            aria-label="+"
-            [disabled]="!store.step()"
-            (click)="store.addRepeat(1)"
-          >
-            <fil-icon name="plus" />
-          </button>
-          <button type="button" filButton="ghost" (click)="store.resetRepeat()">
-            {{ t('ui.reset') }}
-          </button>
-        </div>
-      </fil-tile>
-    }
     @if (notes(); as notes) {
       <p class="note"><span aria-hidden="true">›</span><fil-glossary-text [text]="notes" /></p>
     }

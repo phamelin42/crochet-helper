@@ -19,18 +19,28 @@ test('en-tête : la navigation tient sur une seule ligne', async ({ page }) => {
   expect((await page.locator('.nav').boundingBox())!.height).toBeLessThan(160);
 });
 
-test('le compteur de répétitions n’apparaît que si l’étape en annonce une', async ({ page }) => {
+test('le compteur de répétitions est toujours là, sur la ligne de l’avancement', async ({
+  page,
+}) => {
   await page.getByRole('button', { name: 'Example', exact: true }).click();
-  // « Round 1: in magic ring, 6 sc (6) » : aucune répétition.
+  const reps = page.locator('.reps-tile');
+  // « Round 1: in magic ring, 6 sc (6) » : aucune répétition annoncée, le
+  // compteur reste là, sans total.
   await expect(page.locator('.step-body')).toContainText('in magic ring');
-  await expect(page.locator('.reps-tile')).toHaveCount(0);
+  await expect(reps).toBeVisible();
+  await expect(reps).not.toContainText('/');
+
+  // Même ligne que « Progress », même sur téléphone.
+  const a = (await reps.boundingBox())!;
+  const b = (await page.locator('.done-tile').boundingBox())!;
+  expect(Math.abs(a.y - b.y)).toBeLessThan(2);
 
   const next = page.getByRole('button', { name: 'Next', exact: true });
   await next.click();
   await next.click();
   // « Round 3: [sc, inc] x 6 (18) » : six répétitions à compter.
   await expect(page.locator('.step-body')).toContainText('[sc, inc] x 6');
-  await expect(page.locator('.reps-tile')).toContainText('/ 6');
+  await expect(reps).toContainText('/ 6');
 });
 
 test('la position n’est dite qu’une fois, sans badge de rang ni de pièce', async ({ page }) => {
@@ -72,7 +82,7 @@ test('taille du texte et pièces sur la même ligne', async ({ page }) => {
 /**
  * « Précédent » et « Suivant » au même endroit à chaque étape de l'exemple,
  * pour chaque taille de texte et sur téléphone comme sur tablette : l'étape
- * réserve sa hauteur, et ce qui varie (répétitions, notes, photos) vient après.
+ * réserve sa hauteur, et ce qui varie (notes, astuce, photos) vient après.
  */
 for (const viewport of [
   { width: 390, height: 844 },

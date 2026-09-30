@@ -50,3 +50,4 @@
 | 2026-09-30 | rapport | agent sauté | — | 39 visites sur 8 jours |
 | 2026-09-30 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
 | 2026-09-30 | lot | 97 tours | 1.83 $ | fiche 38 |
+| 2026-09-30 | lot | 47 tours | 0.89 $ | fiche 39 |

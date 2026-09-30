@@ -51,7 +51,7 @@ branche.
 | 36 — Diagrammes : transcrire en texte   | Terminée | —   | 2026-09-28 |
 | 37 — Reconnaître les symboles (étude)   | Terminée | —   | 2026-09-30 |
 | 38 — Mode page pleine                   | Terminée | —   | 2026-09-30 |
-| 39 — Installer, hors ligne              | À faire  | —   | —          |
+| 39 — Installer, hors ligne              | Terminée | —   | 2026-09-30 |
 | 40 — Page de confidentialité            | À faire  | —   | —          |
 | 41 — Application Android (Play Store)   | À faire  | —   | —          |
 

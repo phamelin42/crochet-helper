@@ -1,12 +1,15 @@
 import { expect, test } from '@playwright/test';
 import { DEMO_PATTERN } from '../src/app/features/reader/data/demo-pattern';
 import { encodeProject } from '../src/app/features/reader/data/project-link';
+import { pageComplete } from './page-complete';
 
 /**
  * Un lien de projet (fiche 19) transmet le patron et la progression : la
  * personne qui l'ouvre doit retrouver la même étape, les mêmes répétitions et
  * le même rang coché, dans un projet neuf — jamais celui de l'expéditrice.
  */
+
+test.beforeEach(({ page }) => pageComplete(page));
 
 test('un lien de projet reçu rouvre la même étape, les mêmes répétitions et le rang coché', async ({
   page,

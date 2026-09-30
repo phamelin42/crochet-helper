@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { type Page, expect, test } from '@playwright/test';
+import { pageComplete } from './page-complete';
 
 /**
  * Audit mené **mouvement réduit**. Les boutons transitionnent leur
@@ -90,11 +91,32 @@ for (const theme of THEMES) {
   test(`lecteur avec un patron chargé — thème ${theme.name} — aucune violation axe sérieuse`, async ({
     page,
   }) => {
+    await pageComplete(page);
     await page.goto('/');
     // Avant l'hydratation, le clic serait perdu (pas de rejeu d'événements).
     await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
     await page.getByRole('button', { name: 'Example', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
+    await applyTheme(page, theme.dim);
+
+    expect(await seriousViolations(page)).toEqual([]);
+  });
+}
+
+/**
+ * Mode page pleine (fiche 38), état par défaut d'un patron chargé : l'audit
+ * porte sur ce que la lectrice voit vraiment — étape, répétitions, boutons,
+ * « Outils » — sur téléphone comme sur tablette.
+ */
+for (const theme of THEMES) {
+  test(`lecteur en page pleine — thème ${theme.name} — aucune violation axe sérieuse`, async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await page.getByRole('button', { name: 'Example', exact: true }).click();
+    await expect(page.locator('html[data-focus]')).toBeAttached();
+    await expect(page.getByRole('button', { name: 'Tools', exact: true })).toBeVisible();
     await applyTheme(page, theme.dim);
 
     expect(await seriousViolations(page)).toEqual([]);
@@ -110,6 +132,7 @@ for (const theme of THEMES) {
   test(`lecteur à la troisième étape — thème ${theme.name} — aucune violation axe sérieuse`, async ({
     page,
   }) => {
+    await pageComplete(page);
     await page.goto('/');
     await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
     await page.getByRole('button', { name: 'Example', exact: true }).click();

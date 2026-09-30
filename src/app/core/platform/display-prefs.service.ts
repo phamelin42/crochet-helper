@@ -7,10 +7,11 @@ export type ReaderTextSize = 'base' | 'lg' | 'xl';
 const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
 const TEXT_SIZE_KEY = 'fil.textSize';
 const DIM_KEY = 'fil.dim';
+const FOCUS_KEY = 'fil.focus';
 
 /**
- * Les deux réglages de lecture (taille du texte, fond sombre), posés en
- * attribut sur `<html>` et persistés. Seule implémentation : le lecteur et la
+ * Les réglages de lecture (taille du texte, fond sombre, mode page pleine),
+ * posés en attribut sur `<html>` et persistés. Seule implémentation : le lecteur et la
  * vitrine du design system la partagent (fiche 24).
  */
 @Service()
@@ -21,6 +22,8 @@ export class DisplayPrefsService {
 
   readonly textSize = signal<ReaderTextSize>('base');
   readonly dim = signal(false);
+  /** Mode page pleine (fiche 38) : activé tant que la lectrice ne l'a pas quitté. */
+  readonly focus = signal(true);
 
   constructor() {
     // Après le premier rendu plutôt qu'au constructeur : la préférence vient
@@ -29,6 +32,7 @@ export class DisplayPrefsService {
       const size = this.storage.read<ReaderTextSize>(TEXT_SIZE_KEY);
       if (size && TEXT_SIZES.includes(size)) this.setTextSize(size);
       if (this.storage.read<boolean>(DIM_KEY)) this.setDim(true);
+      if (this.storage.read<boolean>(FOCUS_KEY) === false) this.focus.set(false);
     });
   }
 
@@ -46,5 +50,20 @@ export class DisplayPrefsService {
     if (!this.isBrowser) return;
     if (value) this.doc.documentElement.setAttribute('data-dim', 'true');
     else this.doc.documentElement.removeAttribute('data-dim');
+  }
+
+  setFocus(value: boolean): void {
+    this.focus.set(value);
+    this.storage.write(FOCUS_KEY, value);
+  }
+
+  /**
+   * Pose `data-focus` sur `<html>`. Le lecteur l'appelle seulement quand un
+   * patron est chargé : la page d'accueil pré-rendue reste la page complète.
+   */
+  applyFocus(active: boolean): void {
+    if (!this.isBrowser) return;
+    if (active) this.doc.documentElement.setAttribute('data-focus', 'true');
+    else this.doc.documentElement.removeAttribute('data-focus');
   }
 }

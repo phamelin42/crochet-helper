@@ -59,6 +59,8 @@ export type AnalyticsEvent =
   | 'waitlist_clicked'
   /** Taille du texte ou fond sombre changés dans le mode lecture. */
   | 'reading_pref_changed'
+  /** Entrée ou sortie du mode page pleine du lecteur (propriété `value`, `on` ou `off`). */
+  | 'focus_mode_toggled'
   /** Clic sur l'un des deux boutons du bandeau d'accueil (propriété `cta`, exemple ou collage). */
   | 'home_cta'
   /** Saut direct à une étape depuis la liste ou le champ « Aller à l'étape n° » (propriété `origin`). */

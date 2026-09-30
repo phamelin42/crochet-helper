@@ -1,7 +1,8 @@
-import { Component, computed, inject, output } from '@angular/core';
+import { Component, ElementRef, computed, inject, output, viewChild } from '@angular/core';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DisplayPrefsService, ReaderTextSize } from '../../../core/platform/display-prefs.service';
+import { FullscreenService } from '../../../core/platform/fullscreen.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
@@ -24,6 +25,7 @@ const LONGEST_STEP = 90;
  */
 @Component({
   selector: 'fil-step-view',
+  host: { '(document:keydown.escape)': 'leaveFocus($event)' },
   imports: [Button, ChartPanel, GlossaryText, Icon, ImageGallery, Segmented, ShareActions],
   template: `
     <!-- Réglages sur une ligne : pièces à gauche (défilent si nombreuses),
@@ -54,11 +56,29 @@ const LONGEST_STEP = 90;
     <!-- Seule la position : le libellé du rang et le nom de la pièce
          redisaient ce que l'étape et le sélecteur de pièces montrent déjà. -->
     @if (store.step()) {
-      <p class="stepmeta">
-        <span class="stepcount"
-          >{{ t('ui.stepOf') }} {{ store.stepIndex() + 1 }} / {{ store.stepCount() }}</span
+      <div class="stepmeta">
+        <p class="stepcount">
+          {{ t('ui.stepOf') }} {{ store.stepIndex() + 1 }} / {{ store.stepCount() }}
+        </p>
+        <!-- Même emplacement dans les deux modes : « Outils » quitte la page
+             pleine, « Page pleine » y revient. -->
+        <button
+          #focusToggle
+          type="button"
+          filButton="ghost"
+          class="focus-toggle"
+          aria-keyshortcuts="Escape"
+          [attr.aria-pressed]="prefs.focus()"
+          [attr.aria-label]="prefs.focus() ? t('ui.focusTools') : t('ui.focusOn')"
+          (click)="toggleFocus()"
         >
-      </p>
+          @if (prefs.focus()) {
+            <fil-icon name="dots" />
+          } @else {
+            <span>{{ t('ui.focusOn') }}</span>
+          }
+        </button>
+      </div>
     }
 
     <!-- L'étape et sa barre de progression, collée dessous. Le bloc réserve
@@ -139,8 +159,10 @@ const LONGEST_STEP = 90;
 export class StepView {
   protected readonly store = inject(ReaderStore);
   private readonly i18n = inject(I18nService);
-  private readonly prefs = inject(DisplayPrefsService);
+  protected readonly prefs = inject(DisplayPrefsService);
   private readonly analytics = inject(AnalyticsService);
+  private readonly fullscreen = inject(FullscreenService);
+  private readonly focusToggle = viewChild<ElementRef<HTMLButtonElement>>('focusToggle');
 
   /** « Changer de patron », relayé depuis la liste des étapes jusqu'à la page,
    *  seule à savoir où vit le panneau d'import. */
@@ -154,6 +176,26 @@ export class StepView {
     { value: 2, label: this.t('ui.textSizeXl') },
   ]);
   protected readonly textSizeIndex = computed(() => TEXT_SIZES.indexOf(this.prefs.textSize()));
+
+  protected toggleFocus(): void {
+    this.setFocus(!this.prefs.focus());
+  }
+
+  /** Échap quitte la page pleine, sauf s'il ferme déjà autre chose (boîte de
+   *  dialogue, plein écran du navigateur : celui-ci garde la main). */
+  protected leaveFocus(event: Event): void {
+    if (event.defaultPrevented || !this.prefs.focus() || !this.store.step()) return;
+    this.setFocus(false);
+  }
+
+  private setFocus(value: boolean): void {
+    this.prefs.setFocus(value);
+    this.analytics.track('focus_mode_toggled', { value: value ? 'on' : 'off' });
+    if (value) this.fullscreen.enter();
+    else this.fullscreen.exit();
+    // Le bouton reste le même élément : le focus ne se perd pas avec le mode.
+    this.focusToggle()?.nativeElement.focus();
+  }
 
   protected setTextSize(index: number): void {
     const value = TEXT_SIZES[index] ?? 'base';

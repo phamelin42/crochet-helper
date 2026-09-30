@@ -1,5 +1,6 @@
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
+import { pageComplete } from './page-complete';
 
 /**
  * Transcrire un diagramme (fiche 36) : depuis l'exemple, avec un vrai
@@ -8,6 +9,8 @@ import { expect, test } from '@playwright/test';
  */
 
 const FIXTURE = join(process.cwd(), 'tools', 'fixtures', 'diagramme.png');
+
+test.beforeEach(({ page }) => pageComplete(page));
 
 test('transcrire : deux tours, ajoutés comme nouvelle pièce que le lecteur lit', async ({
   page,

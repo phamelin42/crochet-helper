@@ -142,29 +142,43 @@ for (const route of ROUTES) {
 
 /**
  * Fiche 32 : un public de 50 à 70 ans ne clique pas une icône seule (audit
- * UX-6). Sous 600 px, seul `aria-label` porte le nom du bouton Discord ; au-delà,
- * `.btn-icon-text::after` (`hanami.css`) l'affiche aussi à l'écran, via
- * `content: attr(aria-label)` — pas de libellé dupliqué dans le gabarit, pour
- * ne pas alourdir le bundle initial.
+ * UX-6). Sous 900 px, seul `aria-label` porte le nom des boutons d'en-tête ;
+ * au-delà, `.btn-icon-text::after` (`hanami.css`) l'affiche aussi à l'écran,
+ * via `content: attr(aria-label)` — pas de libellé dupliqué dans le gabarit,
+ * pour ne pas alourdir le bundle initial. Sur téléphone, le bouton Discord
+ * quitte l'en-tête pour laisser la place au fond sombre : le pied de page
+ * garde le lien.
  */
-test.describe('en-tête : icône + texte du bouton Discord', () => {
-  test('sous 600 px, seule l’icône est visible ; axe trouve son nom', async ({ page }) => {
+test.describe('en-tête : icône + texte des boutons', () => {
+  test('sous 900 px, « Fond sombre » est une icône nommée ; Discord reste au pied de page', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 360, height: 800 });
     await page.goto('/');
-    const link = page.locator('fil-site-header').getByRole('link', { name: 'Join the Discord' });
-    await expect(link).toBeVisible();
-    const content = await link.evaluate((el) => getComputedStyle(el, '::after').content);
+    const header = page.locator('fil-site-header');
+    const dim = header.getByRole('button', { name: 'Dark background' });
+    await expect(dim).toBeVisible();
+    const content = await dim.evaluate((el) => getComputedStyle(el, '::after').content);
     expect(content).toBe('none');
+    await expect(header.getByRole('link', { name: 'Join the Discord' })).toBeHidden();
+    await expect(
+      page.locator('fil-site-footer').getByRole('link', { name: /Discord/ }),
+    ).toBeVisible();
 
     expect(await seriousViolations(page)).toEqual([]);
   });
 
-  test('à 1024 px, le libellé apparaît à côté de l’icône', async ({ page }) => {
+  test('à 1024 px, les libellés apparaissent à côté des icônes', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 800 });
     await page.goto('/');
-    const link = page.locator('fil-site-header').getByRole('link', { name: 'Join the Discord' });
-    const content = await link.evaluate((el) => getComputedStyle(el, '::after').content);
-    expect(content).toContain('Join the Discord');
+    const header = page.locator('fil-site-header');
+    for (const button of [
+      header.getByRole('link', { name: 'Join the Discord' }),
+      header.getByRole('button', { name: 'Dark background' }),
+    ]) {
+      const content = await button.evaluate((el) => getComputedStyle(el, '::after').content);
+      expect(content).toContain(await button.getAttribute('aria-label'));
+    }
   });
 });
 

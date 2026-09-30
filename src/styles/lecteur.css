@@ -89,10 +89,10 @@
   height: var(--control-size);
   flex: none;
 }
-/* Au-delà de 600 px, le bouton affiche son libellé (`.btn-icon-text` dans
+/* Au-delà de 900 px, le bouton affiche son libellé (`.btn-icon-text` dans
    `hanami.css`) : la réservation de largeur fixe ne s'applique plus qu'à sa
    hauteur, sinon le texte serait tronqué. */
-@media (min-width: 600px) {
+@media (min-width: 900px) {
   .tool-slot {
     width: auto;
   }
@@ -140,7 +140,7 @@ main {
 
 /* Très petit écran : le logo seul, le nom reste lu par les lecteurs d'écran.
    Sinon marque et boutons ne tiennent pas sur une ligne à 320 px. */
-@media (max-width: 360px) {
+@media (max-width: 380px) {
   .nav-brand span {
     position: absolute;
     width: 1px;
@@ -151,18 +151,9 @@ main {
   }
 }
 
-/* Sur téléphone, l'en-tête garde ses marges et tient compte de l'encoche. */
-@media (max-width: 640px) {
-  .wrap {
-    padding-inline: calc(var(--gutter) * 0.75 + env(safe-area-inset-left, 0px));
-  }
-  .nav {
-    --nav-inset: calc(var(--gutter) * 0.5);
-    padding-inline: var(--space-4);
-    padding-block: var(--space-2);
-    row-gap: var(--space-2);
-    margin-top: var(--space-2);
-  }
+/* Sous 900 px : marque et boutons sur la première ligne, navigation sur la
+   seconde. */
+@media (max-width: 899px) {
   /* Une seule ligne, qui défile au doigt : sur deux lignes, l'en-tête
      prenait un tiers de l'écran d'un téléphone. Hauteur fixe par nature
      (aucun retour à la ligne) : rien ne bouge à l'hydratation, même quand
@@ -177,6 +168,25 @@ main {
     padding-inline: var(--space-2);
   }
   .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Sur téléphone, l'en-tête garde ses marges et tient compte de l'encoche. */
+@media (max-width: 640px) {
+  .wrap {
+    padding-inline: calc(var(--gutter) * 0.75 + env(safe-area-inset-left, 0px));
+  }
+  .nav {
+    --nav-inset: calc(var(--gutter) * 0.5);
+    padding-inline: var(--space-4);
+    padding-block: var(--space-2);
+    /* Marque et trois boutons sur une ligne, dès 375 px. */
+    column-gap: var(--space-2);
+    row-gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+  .nav-discord {
     display: none;
   }
   main {
@@ -347,22 +357,25 @@ textarea.src-input {
 
 /* Réglages de lecture (fiche 24) : taille du texte et fond sombre, au-dessus
    de l'étape — la lectrice les pose une fois par session, avant de lire. */
+/* Pièces et taille du texte sur une ligne : les pièces défilent si elles
+   sont nombreuses, la taille du texte reste à droite, toujours visible. */
 .reader-tools {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
-.reader-tools > button:first-of-type {
+.reader-tools .text-size {
+  flex: none;
   margin-left: auto;
 }
 
 .pieces {
   display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
   gap: var(--space-2);
   align-items: center;
-  margin-bottom: var(--space-5);
   overflow-x: auto;
   padding: 2px 2px var(--space-1);
 }
@@ -386,7 +399,9 @@ textarea.src-input {
   background: color-mix(in srgb, var(--color-asagi-pale) 70%, transparent);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   padding: var(--space-2) var(--space-3);
-  margin-bottom: var(--space-5);
+  /* Sous « Précédent » et « Suivant » : de l'air au-dessus, pour ne pas
+     coller aux boutons. */
+  margin: var(--space-6) 0 var(--space-4);
   max-width: 60ch;
 }
 .step-body {
@@ -398,7 +413,29 @@ textarea.src-input {
   text-wrap: pretty;
   margin: 0;
   max-width: 28ch;
-  min-height: calc(var(--reader-step) * 2.2);
+}
+/* L'étape et sa barre de progression, collée dessous. Le bloc réserve deux
+   lignes de texte, quelle que soit l'étape : « Précédent » et « Suivant »,
+   juste après, ne bougent pas d'une étape à l'autre, et l'espace libre va
+   sous la barre plutôt qu'entre le texte et elle. Une étape plus longue
+   s'écrit plus petit (`.long`, `.longer`, `.longest`) pour y tenir. */
+.step-block {
+  min-height: calc(var(--reader-step) * 1.3 * 2 + var(--space-3) * 2);
+}
+.step-block.empty {
+  min-height: 0;
+}
+.step-body.long {
+  font-size: calc(var(--reader-step) * 0.8);
+  max-width: 34ch;
+}
+.step-body.longer {
+  font-size: calc(var(--reader-step) * 0.6);
+  max-width: 44ch;
+}
+.step-body.longest {
+  font-size: calc(var(--reader-step) * 0.5);
+  max-width: 52ch;
 }
 .step-body.empty {
   font-size: var(--reader-step-sm);
@@ -428,7 +465,7 @@ textarea.src-input {
 .navrow {
   display: flex;
   gap: var(--space-3);
-  margin-top: var(--space-8);
+  margin-top: var(--space-5);
   flex-wrap: wrap;
 }
 .btn-step {
@@ -455,6 +492,17 @@ textarea.src-input {
   align-items: stretch;
   margin-top: var(--space-6);
 }
+/* Sous 700 px : répétitions et avancement côte à côte, le chronomètre
+   dessous sur toute la largeur. */
+@media (max-width: 699px) {
+  .meter {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .meter > .timer-tile {
+    grid-column: 1 / -1;
+  }
+}
 .tile {
   --tile-color: var(--color-kikyo);
   --tile-pale: var(--color-kikyo-pale);
@@ -469,24 +517,20 @@ textarea.src-input {
   border-top: 6px solid var(--tile-color);
   box-shadow: var(--shadow-md);
 }
-.meter > .tile:nth-child(1) {
+.meter > .reps-tile {
+  --tile-color: var(--color-sakura);
+  --tile-pale: var(--color-sakura-pale);
+  --tile-ink: var(--color-sakura-ink);
+}
+.meter > .done-tile {
   --tile-color: var(--color-wakaba);
   --tile-pale: var(--color-wakaba-pale);
   --tile-ink: var(--color-wakaba-ink);
 }
-.meter > .tile:nth-child(2) {
+.meter > .timer-tile {
   --tile-color: var(--color-asagi);
   --tile-pale: var(--color-asagi-pale);
   --tile-ink: var(--color-asagi-ink);
-}
-/* Répétitions : la commande la plus utilisée crochet en main, remontée sous
-   l'étape elle-même (fiche 24) — garde sa couleur sakura hors de `.meter`. */
-.reps-tile {
-  --tile-color: var(--color-sakura);
-  --tile-pale: var(--color-sakura-pale);
-  --tile-ink: var(--color-sakura-ink);
-  max-width: 320px;
-  margin-block: var(--space-6) var(--space-2);
 }
 .tile h6 {
   margin: 0;
@@ -535,7 +579,7 @@ textarea.src-input {
 /* Barre de progression de l'étape (fiche 25), sous le texte : au-dessus, elle
    repoussait l'étape hors du premier écran sur tablette (garde de la fiche 24). */
 .step-progress {
-  margin: var(--space-3) 0 var(--space-4);
+  margin: var(--space-3) 0 0;
 }
 .stepcount {
   font-size: var(--text-sm);

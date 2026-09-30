@@ -1,10 +1,9 @@
-import { Component, PLATFORM_ID, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, PLATFORM_ID, effect, inject, signal, viewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
-import { DisplayPrefsService, ReaderTextSize } from '../../../core/platform/display-prefs.service';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
@@ -12,7 +11,6 @@ import { Button } from '../../../shared/ui/button/button';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { Icon } from '../../../shared/ui/icon/icon';
-import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
 import { Tile } from '../../../shared/ui/tile/tile';
 import { ChartIntakeDialogs } from '../components/chart-intake-dialogs';
 import { MaterialsList } from '../components/materials-list';
@@ -25,8 +23,6 @@ import { WaitlistBanner } from '../components/waitlist-banner';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ChartIntake } from '../state/chart-intake';
 import { ReaderStore } from '../state/reader-store';
-
-const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
 
 interface GuideLink {
   readonly href: string;
@@ -343,7 +339,6 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     PatternPhotos,
     ReaderCounters,
     RouterLink,
-    Segmented,
     StepView,
     Tile,
     WaitlistBanner,
@@ -394,23 +389,6 @@ const SEO: Record<Locale, { title: string; description: string }> = {
 
     <section class="reader">
       <div>
-        @if (store.step()) {
-          <div class="reader-tools">
-            <fil-segmented
-              name="text-size"
-              [label]="t('ui.textSize')"
-              [options]="textSizeOptions()"
-              [selected]="textSizeIndex()"
-              (selectedChange)="setTextSize($event)"
-            />
-            <button type="button" filButton="ghost" (click)="toggleDim()">
-              <fil-icon name="moon" /><span>{{
-                prefs.dim() ? t('ui.lighten') : t('ui.darken')
-              }}</span>
-            </button>
-          </div>
-        }
-
         <fil-step-view (changePattern)="changePattern()" />
       </div>
     </section>
@@ -516,7 +494,6 @@ const SEO: Record<Locale, { title: string; description: string }> = {
 export default class ReaderPage {
   protected readonly store = inject(ReaderStore);
   protected readonly i18n = inject(I18nService);
-  protected readonly prefs = inject(DisplayPrefsService);
   private readonly analytics = inject(AnalyticsService);
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
@@ -537,13 +514,6 @@ export default class ReaderPage {
   protected readonly importOpen = signal(true);
   private readonly patternImport = viewChild(PatternImport);
   private readonly intake = inject(ChartIntake);
-
-  protected readonly textSizeOptions = computed<SegmentedOption[]>(() => [
-    { value: 0, label: this.t('ui.textSizeBase') },
-    { value: 1, label: this.t('ui.textSizeLg') },
-    { value: 2, label: this.t('ui.textSizeXl') },
-  ]);
-  protected readonly textSizeIndex = computed(() => TEXT_SIZES.indexOf(this.prefs.textSize()));
 
   constructor() {
     const locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
@@ -655,18 +625,6 @@ export default class ReaderPage {
   protected cancelLinkImport(): void {
     this.pendingLinkSource = null;
     this.linkConfirmOpen.set(false);
-  }
-
-  protected setTextSize(index: number): void {
-    const value = TEXT_SIZES[index] ?? 'base';
-    this.prefs.setTextSize(value);
-    this.analytics.track('reading_pref_changed', { pref: 'text_size', value });
-  }
-
-  protected toggleDim(): void {
-    const value = !this.prefs.dim();
-    this.prefs.setDim(value);
-    this.analytics.track('reading_pref_changed', { pref: 'dim', value: value ? 'on' : 'off' });
   }
 
   /** Rouvre le panneau d'import et y amène le focus — un battement après le

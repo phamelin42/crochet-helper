@@ -41,6 +41,11 @@
                 "input": "src/styles/chart.css",
                 "bundleName": "chart",
                 "inject": false
+              },
+              {
+                "input": "src/styles/pages.css",
+                "bundleName": "pages",
+                "inject": false
               }
             ],
             "server": "src/main.server.ts",

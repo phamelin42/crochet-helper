@@ -1,6 +1,8 @@
+import { inject } from '@angular/core';
 import { CanMatchFn, Route, Routes } from '@angular/router';
 import { DEFAULT_LOCALE, LOCALES, Locale } from './core/i18n/locale';
 import { ROUTE_PATHS } from './core/i18n/route-paths';
+import { StylesheetService } from './core/platform/stylesheet.service';
 
 /**
  * N'accepte que les abréviations du glossaire ; une autre valeur retombe sur
@@ -12,6 +14,18 @@ const isGlossaryTerm: CanMatchFn = async (_route, segments) => {
   const slug = segments.at(-1)?.path;
   return GLOSSARY.some((entry) => entry.slug === slug);
 };
+
+/**
+ * Page dont les règles vivent dans `pages.css`, hors du bundle initial : la
+ * page n'est affichée qu'une fois sa feuille appliquée (jamais de flash sans
+ * style en navigation), et la feuille est liée dans son HTML pré-rendu.
+ */
+const styled =
+  (load: () => Promise<object>): Route['loadComponent'] =>
+  () => {
+    const sheet = inject(StylesheetService).load('pages.css');
+    return load().then((page) => sheet.then(() => page)) as never;
+  };
 
 const reader = () => import('./features/reader/pages/reader-page');
 
@@ -29,9 +43,10 @@ function routesFor(locale: Locale): Routes {
   const data = { locale };
   // Le bundle initial n'a que quelques octets de marge : une fabrique évite
   // de répéter les trois clés de chaque route.
-  const page = (key: keyof typeof ROUTE_PATHS, loadComponent: Route['loadComponent']): Route => ({
+  // Toute page autre que le lecteur a ses règles dans `pages.css`.
+  const page = (key: keyof typeof ROUTE_PATHS, load: () => Promise<object>): Route => ({
     path: strip(ROUTE_PATHS[key][locale]),
-    loadComponent,
+    loadComponent: styled(load),
     data,
   });
 
@@ -40,14 +55,14 @@ function routesFor(locale: Locale): Routes {
       path: '',
       data,
       children: [
-        page('reader', reader),
+        { path: strip(ROUTE_PATHS.reader[locale]), loadComponent: reader, data },
         page('glossary', () => import('./features/glossary/glossary-page')),
         // Une page par abréviation. Les valeurs de `:slug` à pré-rendre sont
         // dérivées de `GLOSSARY` dans `app.routes.server.ts`.
         {
           path: `${strip(ROUTE_PATHS.glossary[locale])}/:slug`,
           canMatch: [isGlossaryTerm],
-          loadComponent: () => import('./features/glossary/pages/term-page'),
+          loadComponent: styled(() => import('./features/glossary/pages/term-page')),
           data,
         },
         // Export par défaut : `loadComponent` l'accepte sans `.then`, des octets de moins au bundle initial.
@@ -79,7 +94,7 @@ export const routes: Routes = [
   // `route-paths.json`, qui ne décrit que des paires de langues.
   {
     path: 'design-system',
-    loadComponent: () => import('./features/design-system/design-system-page'),
+    loadComponent: styled(() => import('./features/design-system/design-system-page')),
     data: { locale: 'fr' },
   },
   {

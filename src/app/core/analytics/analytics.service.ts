@@ -82,7 +82,11 @@ export type AnalyticsEvent =
   /** Filtre du glossaire changé (propriétés `craft` et `lang`, jamais la recherche). */
   | 'glossary_filtered'
   /** Première saisie sur la page « lire un patron dans l'autre langue » (propriétés `locale` et `length`). */
-  | 'foreign_pattern_tried';
+  | 'foreign_pattern_tried'
+  /** Invite d'installation native affichée (propriété `mode`). */
+  | 'install_prompted'
+  /** Application installée, événement `appinstalled` (propriété `mode`). */
+  | 'app_installed';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

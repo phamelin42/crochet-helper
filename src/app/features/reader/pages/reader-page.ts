@@ -28,6 +28,7 @@ import { PrintView } from '../components/print-view';
 import { PatternPhotos } from '../components/pattern-photos';
 import { ReaderCounters } from '../components/reader-counters';
 import { StepView } from '../components/step-view';
+import { InstallSlot } from '../components/install-slot';
 import { WaitlistBanner } from '../components/waitlist-banner';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ChartIntake } from '../state/chart-intake';
@@ -160,11 +161,13 @@ const PROOFS: Record<Locale, readonly string[]> = {
   fr: [
     'Gratuit, sans compte',
     'Vos patrons restent sur votre appareil',
+    'Marche sans connexion, une fois ouvert',
     'N’importe quel patron : PDF acheté, blog, magazine',
   ],
   en: [
     'Free, no account',
     'Your patterns stay on your device',
+    'Works offline, once opened',
     'Any pattern: a bought PDF, a blog, a magazine',
   ],
 };
@@ -348,6 +351,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     PatternPhotos,
     ReaderCounters,
     RouterLink,
+    InstallSlot,
     StepView,
     Tile,
     WaitlistBanner,
@@ -392,6 +396,8 @@ const SEO: Record<Locale, { title: string; description: string }> = {
           [alt]="hero.alt"
         />
       </section>
+
+      <fil-install-slot />
 
       <fil-pattern-import [(open)]="importOpen" />
     }

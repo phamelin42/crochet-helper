@@ -415,12 +415,12 @@ textarea.src-input {
   max-width: 28ch;
 }
 /* L'étape et sa barre de progression, collée dessous. Le bloc réserve deux
-   lignes et demie de texte, quelle que soit l'étape : « Précédent » et « Suivant »,
+   lignes de texte, quelle que soit l'étape : « Précédent » et « Suivant »,
    juste après, ne bougent pas d'une étape à l'autre, et l'espace libre va
    sous la barre plutôt qu'entre le texte et elle. Une étape plus longue
-   s'écrit plus petit (`.long`, `.longer`) pour y tenir. */
+   s'écrit plus petit (`.long`, `.longer`, `.longest`) pour y tenir. */
 .step-block {
-  min-height: calc(var(--reader-step) * 1.3 * 2.5 + var(--space-3) * 2);
+  min-height: calc(var(--reader-step) * 1.3 * 2 + var(--space-3) * 2);
 }
 .step-block.empty {
   min-height: 0;
@@ -432,6 +432,10 @@ textarea.src-input {
 .step-body.longer {
   font-size: calc(var(--reader-step) * 0.6);
   max-width: 44ch;
+}
+.step-body.longest {
+  font-size: calc(var(--reader-step) * 0.5);
+  max-width: 52ch;
 }
 .step-body.empty {
   font-size: var(--reader-step-sm);
@@ -461,7 +465,7 @@ textarea.src-input {
 .navrow {
   display: flex;
   gap: var(--space-3);
-  margin-top: var(--space-8);
+  margin-top: var(--space-5);
   flex-wrap: wrap;
 }
 .btn-step {
@@ -575,7 +579,7 @@ textarea.src-input {
 /* Barre de progression de l'étape (fiche 25), sous le texte : au-dessus, elle
    repoussait l'étape hors du premier écran sur tablette (garde de la fiche 24). */
 .step-progress {
-  margin: var(--space-3) 0 var(--space-4);
+  margin: var(--space-3) 0 0;
 }
 .stepcount {
   font-size: var(--text-sm);

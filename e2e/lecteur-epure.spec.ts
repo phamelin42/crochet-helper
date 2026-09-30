@@ -103,8 +103,16 @@ for (const viewport of [
       await page.getByRole('button', { name: 'Example', exact: true }).click();
       if (size !== 'page pleine') await page.getByText(size, { exact: true }).click();
       const next = page.getByRole('button', { name: 'Next', exact: true });
+      // Rien n'est lu avant que l'interface ne l'affiche : ni « Suivant »
+      // actif juste après « Example », ni la nouvelle étape juste après un
+      // clic. Sans ces attentes, un runner chargé voyait « Suivant » inactif
+      // (zéro tour) ou l'ancienne étape (fin de boucle prématurée) : PR #87.
+      await expect(next).toBeEnabled();
+      const where = async () =>
+        `${await page.locator('.stepmeta').innerText()}|${await page.locator('.step-body').innerText()}`;
       const positions = new Set<number>();
-      for (let i = 0; i < 20 && (await next.isEnabled()); i++) {
+      let visited = 0;
+      for (let i = 0; i < 20; i++) {
         const { navTop, gap } = await page.evaluate(() => {
           const text = document.createRange();
           text.selectNodeContents(document.querySelector('.step-body')!);
@@ -117,13 +125,20 @@ for (const viewport of [
           };
         });
         positions.add(navTop);
+        visited++;
         // La barre de progression suit le texte, sans ligne vide entre eux.
         expect(gap).toBeLessThan(24);
-        const before = await page.locator('.step-body').innerText();
+        const before = await where();
         await next.click();
         // Dernière étape : « Suivant » reste actif mais l'étape ne change plus.
-        if ((await page.locator('.step-body').innerText()) === before) break;
+        try {
+          await expect.poll(where, { timeout: 1500 }).not.toBe(before);
+        } catch {
+          break;
+        }
       }
+      // L'exemple compte 13 étapes (trois pièces) : la garde les a toutes vues.
+      expect(visited).toBe(13);
       expect([...positions]).toHaveLength(1);
     });
   }

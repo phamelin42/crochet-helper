@@ -1,0 +1,2 @@
+Rnd 1: 6 sc (6)
+Rnd 2: 6 sc inc (12)

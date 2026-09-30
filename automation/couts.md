@@ -52,3 +52,4 @@
 | 2026-09-30 | lot | 97 tours | 1.83 $ | fiche 38 |
 | 2026-09-30 | lot | 47 tours | 0.89 $ | fiche 39 |
 | 2026-09-30 | lot | 39 tours | 0.90 $ | fiche 40 |
+| 2026-09-30 | lot | 99 tours | 1.90 $ | fiche 41 |

@@ -1,9 +1,9 @@
 # ADR 002 — Comptes, synchronisation et paiement
 
-**Statut : proposition, en attente d'une décision de Phil.** Ce document est le
-seul livrable de la fiche 20. Aucun code, aucune dépendance, aucun compte chez
-un prestataire, aucune modification de `CLAUDE.md` ni de la CSP n'ont été
-faits.
+**Statut : acceptée par Phil le 30 septembre 2026.** Ce document est le seul
+livrable de la fiche 20. Aucun code, aucune dépendance, aucun compte chez un
+prestataire, aucune modification de `CLAUDE.md` ni de la CSP n'ont été faits :
+rien ne se construit avant le jalon du §2.
 
 ## Ce que Phil a déjà tranché (30 septembre 2026)
 
@@ -389,13 +389,18 @@ et à écrire après la décision :
 | Mettre à jour `CLAUDE.md`, l'ADR 001 et la CSP                                 | revenu            |
 | Page de présentation de l'offre et de ce qui reste gratuit                     | acquisition       |
 
-## Ce que Phil doit trancher
+## Décision (30 septembre 2026)
 
-1. Valider le jalon du §2 (1 000 visiteuses par mois, 20 % de retour, 50
-   inscriptions à la liste d'attente) ou en fixer un autre.
-2. Confirmer C (recommandé) ou choisir D-Firebase.
-3. Accepter que les images restent locales.
-4. Confirmer le prix de 29 € par an déjà annoncé par la liste d'attente.
-5. Valider le délai de 30 jours après la fin de l'abonnement (§4).
-6. Faire relire le texte de consentement et le traitement des données par une
-   personne compétente.
+Phil a validé l'ensemble :
+
+1. le jalon du §2 (1 000 visiteuses par mois, 20 % de retour, 50 inscriptions
+   à la liste d'attente, sur 30 jours glissants) ;
+2. l'option C, au plus petit ;
+3. les images de patron restent locales ;
+4. le prix de 29 € par an ;
+5. le délai de 30 jours après la fin de l'abonnement (§4).
+
+Reste à faire **avant toute mise en œuvre**, le jour où le jalon est atteint :
+vérifier les tarifs sur les pages citées (voir « Avertissement sur les
+chiffres ») et faire relire le texte de consentement et le traitement des
+données par une personne compétente.

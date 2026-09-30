@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pageComplete } from './page-complete';
 
 /**
  * Retours de Phil du 30 septembre sur mobile : un lecteur qui ne dit chaque
@@ -6,7 +7,10 @@ import { expect, test } from '@playwright/test';
  */
 test.use({ viewport: { width: 390, height: 844 } });
 
-test.beforeEach(async ({ page }) => {
+// Page complète : le mode page pleine (fiche 38) est couvert par
+// `page-pleine.spec.ts`, sauf pour la garde des boutons, jouée dans les deux.
+test.beforeEach(async ({ page }, testInfo) => {
+  if (!testInfo.title.includes('page pleine')) await pageComplete(page);
   await page.goto('/');
   await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
 });
@@ -45,7 +49,7 @@ test('le compteur de répétitions est toujours là, sur la ligne de l’avancem
 
 test('la position n’est dite qu’une fois, sans badge de rang ni de pièce', async ({ page }) => {
   await page.getByRole('button', { name: 'Example', exact: true }).click();
-  await expect(page.locator('.stepmeta')).toHaveText(/^\s*Step 1 \/ \d+\s*$/);
+  await expect(page.locator('.stepcount')).toHaveText(/^\s*Step 1 \/ \d+\s*$/);
   await expect(page.getByRole('button', { name: /Spell out/ })).toHaveCount(0);
   await expect(page.getByText('All steps')).toHaveCount(0);
 });
@@ -53,6 +57,7 @@ test('la position n’est dite qu’une fois, sans badge de rang ni de pièce', 
 test('un seul bouton de partage, et « Lien copié » s’efface de lui-même', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await pageComplete(context);
   const page = await context.newPage();
   await page.goto('/');
   await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
@@ -89,13 +94,14 @@ for (const viewport of [
   { width: 390, height: 844 },
   { width: 820, height: 1180 },
 ]) {
-  for (const size of ['A', 'A+', 'A++']) {
-    test(`${viewport.width} px, taille ${size} : les boutons ne bougent pas d’une étape à l’autre`, async ({
+  // Page pleine : le sélecteur de taille y est masqué, la taille de base seule.
+  for (const size of ['A', 'A+', 'A++', 'page pleine']) {
+    test(`${viewport.width} px, ${size === 'page pleine' ? size : `taille ${size}`} : les boutons ne bougent pas d’une étape à l’autre`, async ({
       page,
     }) => {
       await page.setViewportSize(viewport);
       await page.getByRole('button', { name: 'Example', exact: true }).click();
-      await page.getByText(size, { exact: true }).click();
+      if (size !== 'page pleine') await page.getByText(size, { exact: true }).click();
       const next = page.getByRole('button', { name: 'Next', exact: true });
       const positions = new Set<number>();
       for (let i = 0; i < 20 && (await next.isEnabled()); i++) {

@@ -1,6 +1,7 @@
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { type Page, expect, test } from '@playwright/test';
+import { pageComplete } from './page-complete';
 
 /**
  * Les diagrammes (fiche 35) : un vrai PNG, un vrai PDF produit par Chromium,
@@ -55,6 +56,8 @@ async function expectChartLoaded(page: Page, name: string): Promise<void> {
     .poll(() => image.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth))
     .toBeGreaterThan(0);
 }
+
+test.beforeEach(({ page }) => pageComplete(page));
 
 test('diagramme : chargé, épinglé à la pièce 2, retrouvé au rechargement', async ({ page }) => {
   await openExample(page);

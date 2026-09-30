@@ -954,3 +954,99 @@ textarea.src-input {
     display: none;
   }
 }
+
+/* — mode page pleine (fiche 38) — `data-focus` n'est posé sur <html> que
+   lorsqu'un patron est chargé. Tout est masqué par CSS, jamais détruit : le
+   chronomètre et le panneau d'import gardent leur état. Les enfants de
+   `.reader` et de `fil-step-view` passent dans la colonne de la page
+   (`display: contents`) pour que l'étape, les répétitions et les boutons
+   s'ordonnent dans un seul écran de `100dvh`. À l'écran seulement :
+   l'impression garde ses propres règles. */
+.stepmeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.stepmeta .stepcount {
+  margin: 0;
+}
+@media screen {
+  html[data-focus] fil-site-header,
+  html[data-focus] fil-site-footer,
+  html[data-focus] fil-pattern-import,
+  html[data-focus] fil-pattern-photos,
+  html[data-focus] fil-waitlist-banner,
+  html[data-focus] fil-materials-list,
+  html[data-focus] fil-share-actions,
+  html[data-focus] fil-reader-page > .hr,
+  html[data-focus] .reader-tools,
+  html[data-focus] .meter > .done-tile,
+  html[data-focus] .meter > .timer-tile {
+    display: none;
+  }
+  html[data-focus] main {
+    padding-bottom: 0;
+  }
+  html[data-focus] fil-reader-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    padding-top: var(--space-3);
+    padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+  }
+  html[data-focus] .reader,
+  html[data-focus] .reader > div,
+  html[data-focus] fil-step-view {
+    display: contents;
+  }
+  html[data-focus] .stepmeta {
+    order: 1;
+  }
+  /* L'étape se centre dans l'espace libre, un peu au-dessus du milieu : à
+     l'œil, le centre exact paraît trop bas (et sur tablette, l'étape doit
+     rester sous 450 px, garde de `reading-mode.spec.ts`). */
+  html[data-focus] .step-block {
+    order: 2;
+    padding-bottom: calc(var(--space-10) * 2);
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  html[data-focus] .note,
+  html[data-focus] .step-tip,
+  html[data-focus] fil-image-gallery,
+  html[data-focus] fil-chart-panel {
+    order: 3;
+  }
+  html[data-focus] .meter {
+    order: 4;
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: var(--space-4);
+  }
+  /* Répétitions compactes : le même composant, sur une ligne. */
+  html[data-focus] .meter > .reps-tile {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+  }
+  html[data-focus] .meter > .reps-tile .big {
+    font-size: 32px;
+  }
+  html[data-focus] .meter > .reps-tile .row {
+    margin-top: 0;
+    margin-left: auto;
+  }
+  /* « Précédent » et « Suivant » restent à portée de pouce, immobiles. */
+  html[data-focus] .navrow {
+    order: 5;
+    position: sticky;
+    bottom: 0;
+    margin-top: var(--space-4);
+    padding-top: var(--space-2);
+    background: var(--color-bg);
+  }
+}

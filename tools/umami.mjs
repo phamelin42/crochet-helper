@@ -53,6 +53,7 @@ export const EVENEMENTS = [
   'waitlist_shown',
   'waitlist_clicked',
   'reading_pref_changed',
+  'focus_mode_toggled',
   'home_cta',
   'step_jumped',
   'print_opened',

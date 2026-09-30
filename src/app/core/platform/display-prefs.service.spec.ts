@@ -13,6 +13,7 @@ describe('DisplayPrefsService', () => {
     localStorage.clear();
     document.documentElement.removeAttribute('data-text-size');
     document.documentElement.removeAttribute('data-dim');
+    document.documentElement.removeAttribute('data-focus');
   });
 
   it('démarre à la taille de base et au thème clair sans préférence enregistrée', async () => {
@@ -69,5 +70,40 @@ describe('DisplayPrefsService', () => {
     }).not.toThrow();
     expect(document.documentElement.hasAttribute('data-text-size')).toBe(false);
     expect(document.documentElement.hasAttribute('data-dim')).toBe(false);
+  });
+
+  it('active le mode page pleine par défaut, sans poser d’attribut tant qu’aucun patron n’est chargé', async () => {
+    const service = setup();
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(service.focus()).toBe(true);
+    expect(document.documentElement.hasAttribute('data-focus')).toBe(false);
+  });
+
+  it('retrouve le mode page pleine quitté au démarrage suivant', async () => {
+    setup().setFocus(false);
+    expect(JSON.parse(localStorage.getItem('fil.focus') ?? 'null')).toBe(false);
+
+    TestBed.resetTestingModule();
+    const service = setup();
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    expect(service.focus()).toBe(false);
+  });
+
+  it('pose et retire data-focus à la demande du lecteur', () => {
+    const service = setup();
+
+    service.applyFocus(true);
+    expect(document.documentElement.getAttribute('data-focus')).toBe('true');
+    service.applyFocus(false);
+    expect(document.documentElement.hasAttribute('data-focus')).toBe(false);
+  });
+
+  it('ne pose pas data-focus côté serveur', () => {
+    const service = setup('server');
+
+    service.applyFocus(true);
+    expect(document.documentElement.hasAttribute('data-focus')).toBe(false);
   });
 });

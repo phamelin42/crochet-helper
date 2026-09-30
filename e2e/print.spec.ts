@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
+import { pageComplete } from './page-complete';
 
 /**
  * « Imprimer » (fiche 25) : vérifier sur un vrai PDF produit par Chromium, pas
@@ -10,6 +11,8 @@ import { expect, test } from '@playwright/test';
  * objets `/Type /Page` du PDF plutôt que de lire son contenu texte, compressé
  * dans le flux et donc pas cherchable en simple sous-chaîne.
  */
+test.beforeEach(({ page }) => pageComplete(page));
+
 test('le livret imprimé (mise en page « print ») produit au moins une page', async ({ page }) => {
   await page.goto('/');
   await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });

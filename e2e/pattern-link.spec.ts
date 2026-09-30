@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { type Page, expect, test } from '@playwright/test';
+import { pageComplete } from './page-complete';
 
 /**
  * Le lien copiable (fiche 06) est le cœur du kit créatrices (fiche 23) :
@@ -46,6 +47,7 @@ test('permalien créé depuis un vrai PDF — première et dernière étape iden
 
   const context = await browser.newContext();
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await pageComplete(context);
 
   // Un vrai PDF : chaque ligne du patron dans son propre bloc, pour que
   // pdf.js retrouve un saut de ligne par rang à l'extraction.

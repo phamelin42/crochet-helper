@@ -129,6 +129,24 @@ test('avancer de cinq étapes émet reading_depth_5', async ({ page }) => {
   expect(noms(await emis(page))).toContain('reading_depth_5');
 });
 
+test('quitter puis reprendre la page pleine émet focus_mode_toggled, off puis on', async ({
+  page,
+}) => {
+  await ouvrir(page, '/');
+  await page.getByRole('button', { name: 'Example', exact: true }).click();
+  await expect(page.locator('html[data-focus]')).toBeAttached();
+  await emis(page); // vide les événements du chargement
+
+  await page.getByRole('button', { name: 'Tools', exact: true }).click();
+  // Émis dans le gestionnaire du clic, pas depuis un effect : disponible aussitôt.
+  const sortie = await emis(page);
+  expect(noms(sortie)).toEqual(['focus_mode_toggled']);
+  expect(props(sortie, 'focus_mode_toggled')).toEqual({ value: 'off' });
+
+  await page.getByRole('button', { name: 'Full page', exact: true }).click();
+  expect(props(await emis(page), 'focus_mode_toggled')).toEqual({ value: 'on' });
+});
+
 test('une visite le lendemain de la première émet returning_visit_1d', async ({ page }) => {
   const hier = new Date();
   hier.setDate(hier.getDate() - 1);

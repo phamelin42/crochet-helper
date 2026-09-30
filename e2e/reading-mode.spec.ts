@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pageComplete } from './page-complete';
 
 /**
  * Mode lecture (fiche 24) : l'étape et le compteur de répétitions dans le
@@ -14,27 +15,35 @@ import { expect, test } from '@playwright/test';
 // nette sur les ~650 px mesurés avant la fiche (voir sa section « Pourquoi »).
 const STEP_TOP_MAX = 450;
 
-test('tablette 820×1180 : l’étape est dans le premier écran, en grand', async ({ page }) => {
-  await page.setViewportSize({ width: 820, height: 1180 });
-  await page.goto('/');
-  await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+// Page complète (seuil ci-dessus) et page pleine (fiche 38, l'étape y est
+// centrée dans l'écran entier : elle reste sous la même limite).
+for (const mode of ['page complète', 'page pleine']) {
+  test(`tablette 820×1180, ${mode} : l’étape est dans le premier écran, en grand`, async ({
+    page,
+  }) => {
+    if (mode === 'page complète') await pageComplete(page);
+    await page.setViewportSize({ width: 820, height: 1180 });
+    await page.goto('/');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
 
-  await page.getByRole('button', { name: 'Example', exact: true }).click();
-  const step = page.locator('.step-body');
-  await expect(step).toBeVisible();
+    await page.getByRole('button', { name: 'Example', exact: true }).click();
+    const step = page.locator('.step-body');
+    await expect(step).toBeVisible();
 
-  const box = await step.boundingBox();
-  expect(box).not.toBeNull();
-  expect(box!.y).toBeLessThan(STEP_TOP_MAX);
+    const box = await step.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.y).toBeLessThan(STEP_TOP_MAX);
 
-  // `--reader-step: clamp(28px, 4.4vw, 48px)` garde sa valeur (décision de la
-  // fiche) : à 820 px de large, 4,4 vw vaut 36,08 px, pas 40 — il faudrait un
-  // viewport ≥ 909 px pour l'atteindre avec cette formule inchangée.
-  const fontSize = await step.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
-  expect(fontSize).toBeGreaterThanOrEqual(36);
-});
+    // `--reader-step: clamp(28px, 4.4vw, 48px)` garde sa valeur (décision de la
+    // fiche) : à 820 px de large, 4,4 vw vaut 36,08 px, pas 40 — il faudrait un
+    // viewport ≥ 909 px pour l'atteindre avec cette formule inchangée.
+    const fontSize = await step.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    expect(fontSize).toBeGreaterThanOrEqual(36);
+  });
+}
 
 test('taille de texte A++ à 320 px de large : aucun débordement horizontal', async ({ page }) => {
+  await pageComplete(page);
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto('/');
   await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });

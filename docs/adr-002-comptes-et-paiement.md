@@ -12,6 +12,9 @@ faits.
   La raison : que les projets suivent la lectrice d'un appareil à l'autre.
 - Budget d'hébergement : **10 € par mois au plus**. Toute option qui le dépasse
   au jalon d'audience retenu est écartée, chiffre à l'appui.
+- Ce qui est payant : **la synchronisation entre appareils, et elle seule**.
+- Le compte est **optionnel et réservé aux abonnées** : pas de compte gratuit,
+  pas d'essai gratuit. Sans compte, l'application marche comme aujourd'hui.
 
 ## Avertissement sur les chiffres
 
@@ -173,9 +176,12 @@ budget.
 | Identifiant d'abonnement et statut de paiement                   | base du service ; les données de carte restent chez le prestataire | durée légale de conservation comptable pour la seule facture | facturation                                |
 | Jeton de session                                                 | `localStorage` de l'appareil                                       | jusqu'à déconnexion                                          | rester connectée                           |
 
-Conservation : le compte est supprimé **12 mois après la dernière connexion**,
-après deux courriels d'avertissement ; sur demande, la suppression est
-immédiate et les sauvegardes sont purgées sous 30 jours. Hébergement dans
+Conservation (proposition) : le compte n'existant qu'avec l'abonnement, la
+fin de l'abonnement ouvre un **délai de 30 jours** (le temps de se réabonner
+sans rien renvoyer), annoncé par courriel ; ensuite l'adresse, les blocs
+chiffrés et l'identifiant d'abonnement sont supprimés, les sauvegardes purgées
+sous 30 jours de plus. Rien ne se perd pour la lectrice : ses projets sont sur
+ses appareils. Sur demande, la suppression est immédiate. Hébergement dans
 l'Union européenne ; responsable de traitement : Phil ; un registre des
 traitements est tenu. _Cette note n'est pas un avis juridique : un relecteur
 compétent doit valider le texte avant mise en service._
@@ -186,17 +192,17 @@ Affiché à la création du compte, avec une case à cocher, jamais pré-cochée
 
 **Français** :
 
-> Je crée un compte Fil pour retrouver mes projets sur mes appareils. Fil
+> Je crée un compte Pattern Reader pour retrouver mes projets sur mes appareils. Pattern Reader
 > conserve mon adresse électronique et mes projets **chiffrés sur mon
-> appareil** : Fil ne peut pas les lire. Si j'oublie mon mot de passe et que je
+> appareil** : Pattern Reader ne peut pas les lire. Si j'oublie mon mot de passe et que je
 > n'ai pas ma clé de récupération, personne ne pourra les récupérer depuis le
 > service. Je peux supprimer mon compte à tout moment, et mes projets
 > restent sur mes appareils.
 
 **English** :
 
-> I'm creating a Fil account so my projects follow me across devices. Fil
-> stores my email address and my projects **encrypted on my device**: Fil
+> I'm creating a Pattern Reader account so my projects follow me across devices. Pattern Reader
+> stores my email address and my projects **encrypted on my device**: Pattern Reader
 > cannot read them. If I forget my password and have no recovery key, nobody
 > can recover them from the service. I can delete my account at any time, and
 > my projects stay on my devices.
@@ -259,16 +265,23 @@ confirmer : Paddle (<https://www.paddle.com/pricing>) et Lemon Squeezy
 Stripe (<https://stripe.com/fr/pricing>), environ 1,5 % + 0,25 € pour une carte
 européenne, mais la TVA reste à la charge de Phil.
 
+- **Le compte naît du paiement** : « Synchroniser mes appareils » mène à la
+  page du prestataire ; le compte (adresse, mot de passe, clé de récupération)
+  se crée au retour, une fois le paiement confirmé par le webhook. Pas de
+  compte sans abonnement, pas d'essai gratuit (décision de Phil).
 - Aucune donnée de carte chez nous : la lectrice paie sur la page du
   prestataire (redirection, pas d'iframe : la CSP ne change pas pour cela).
 - Le prestataire notifie le service (webhook signé) qui met à jour le statut
   d'abonnement. C'est le seul lien entre paiement et compte.
-- Prix : **non fixé ici**. Ordre de grandeur pour situer la décision : à
-  1 000 lectrices actives, un coût de 5 € par mois est couvert par trois ou
-  quatre abonnements à 2 € par mois ; le service est donc viable à faible taux de
-  conversion, mais il ne rémunère pas le travail.
+- Prix : la liste d'attente (fiche 22) annonce déjà **29 € par an** ; c'est
+  l'hypothèse retenue ici, à confirmer par Phil. Net des frais d'un marchand
+  officiel (≈ 5 % + 0,50 $), il reste ≈ 27 € par an et par abonnée : à
+  1 000 lectrices actives, **trois abonnées couvrent le serveur** (≈ 5 € par
+  mois). Le service est viable à très faible conversion, mais il ne rémunère
+  pas le travail avant quelques centaines d'abonnées.
 - Une lectrice dont l'abonnement s'arrête garde **toutes ses données en local**
-  et peut les exporter : la synchronisation s'arrête, rien ne disparaît.
+  et peut les exporter : la synchronisation s'arrête, rien ne disparaît de ses
+  appareils (délai de 30 jours côté serveur, voir §4).
 
 ## 8. Ce que l'option change aux règles de `CLAUDE.md`
 
@@ -382,6 +395,7 @@ et à écrire après la décision :
    inscriptions à la liste d'attente) ou en fixer un autre.
 2. Confirmer C (recommandé) ou choisir D-Firebase.
 3. Accepter que les images restent locales.
-4. Le prix de l'abonnement, une fois les tarifs confirmés.
-5. Faire relire le texte de consentement et le traitement des données par une
+4. Confirmer le prix de 29 € par an déjà annoncé par la liste d'attente.
+5. Valider le délai de 30 jours après la fin de l'abonnement (§4).
+6. Faire relire le texte de consentement et le traitement des données par une
    personne compétente.

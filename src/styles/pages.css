@@ -1,0 +1,300 @@
+/* ============================================================================
+ * Pages paresseuses : les règles qu'une seule page utilise.
+ *
+ * Hors du bundle initial (`angular.json`, `inject: false`) : `lecteur.css` est
+ * dans `styles.css`, que chaque visite télécharge avant le premier affichage,
+ * et son budget n'a plus de marge. Une page qui a besoin de cette feuille la
+ * déclare avec `styled()` dans `app.routes.ts` : la feuille est chargée avant
+ * la page en navigation, et liée dans le `<head>` du HTML pré-rendu
+ * (`StylesheetService`), donc sans décalage de mise en page.
+ *
+ * Chargée après `styles.css` : une règle d'ici l'emporte, à spécificité égale,
+ * sur une règle de `lecteur.css`.
+ * ========================================================================== */
+
+/* Vitrine du design system (`/design-system`) : uniquement la grille qui
+ * présente les jetons, la page consomme les composants et classes Hanami
+ * existants pour tout le reste. */
+.ds-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
+}
+.ds-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-3);
+}
+.ds-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: 12px;
+}
+/* `--color-text-label` plutôt que `.card-meta` (color-mix … 50%) : sous 18px,
+ * seule sur fond `.card`, cette dernière tombe sous le seuil AA — c'est
+ * exactement ce que `--color-text-label` a déjà été calculé pour éviter. */
+.ds-caption {
+  font-size: 11px;
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-label);
+}
+/* Le segment à cinq options peut dépasser sa carte sur petit écran : elle
+ * défile plutôt que d'élargir toute la grille (même correction que `.pieces`
+ * pour ce contrôle dans le lecteur). */
+.ds-card-scroll {
+  overflow-x: auto;
+}
+.ds-swatch-chip {
+  height: 56px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-line);
+}
+.ds-radius-box {
+  width: 64px;
+  height: 64px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+.ds-shadow-box {
+  height: 64px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.ds-type-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.ds-scale-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.ds-bar {
+  height: 14px;
+  background: linear-gradient(to right, var(--color-sakura), var(--color-kikyo));
+  border-radius: var(--radius-pill);
+}
+.ds-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-3);
+  text-align: center;
+  font-size: 12px;
+}
+.ds-icon-grid fil-icon {
+  font-size: 28px;
+  color: var(--color-sakura-ink);
+}
+
+/* Page d'abréviation : le rang d'essai, rendu comme une étape du lecteur. */
+.step-body.term-try {
+  max-width: none;
+  min-height: 0;
+  margin-top: var(--space-3);
+  font-size: var(--reader-step-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.term-section {
+  margin-top: var(--space-8);
+}
+.term-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-3) 0 0;
+}
+.term-links a {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  text-decoration: none;
+  font-weight: 700;
+}
+.term-links a:hover {
+  background: var(--color-kikyo-pale);
+}
+
+/* — contenu éditorial (pages SEO) — */
+.prose {
+  max-width: 70ch;
+}
+.prose h2 {
+  margin-top: var(--space-10);
+}
+.prose ul {
+  padding-left: var(--space-6);
+}
+.prose li::marker,
+.tuto li::marker {
+  color: var(--color-sakura);
+}
+
+.tuto h2 {
+  margin-top: var(--space-8);
+}
+.tuto ul {
+  padding-left: var(--space-5);
+  line-height: 1.6;
+}
+.tuto li + li {
+  margin-top: var(--space-2);
+}
+.prompt-box {
+  margin: var(--space-4) 0;
+}
+.prompt-box pre {
+  max-height: 18rem;
+  overflow: auto;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-line);
+  background: var(--color-overlay);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  -webkit-user-select: all;
+  user-select: all;
+}
+.prompt-box button {
+  margin-top: var(--space-3);
+}
+
+/* Écran « Mes projets ». */
+.projects-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+.projects-list {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.projects-list .card {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-left: 6px solid var(--color-sakura);
+}
+
+/* Glossaire : champ de filtre étroit, tableau détaché du filtre. */
+.glossary-filter {
+  max-width: var(--glossary-filter-width);
+}
+/* Le tableau peut être plus large que l'écran (quatre colonnes de texte) :
+ * il défile seul plutôt que d'élargir la page entière, seule exception que
+ * WCAG 1.4.10 (reflow) accorde aux tableaux de données. */
+.glossary-table-scroll {
+  margin-top: var(--space-6);
+  overflow-x: auto;
+}
+.glossary-table-scroll .glossary-table {
+  margin-top: 0;
+}
+.glossary-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+  margin-top: var(--space-4);
+}
+.glossary-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.glossary-filter-label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-label);
+}
+.glossary-filters .seg {
+  flex-wrap: wrap;
+  border-radius: var(--radius-md);
+}
+.glossary-letters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}
+.glossary-letters a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: var(--radius-md);
+  background: var(--color-overlay);
+}
+.glossary-list th.glossary-letter {
+  scroll-margin-top: var(--space-10);
+  font-size: var(--text-base);
+  background: var(--color-overlay);
+}
+.glossary-list .tag {
+  margin-left: var(--space-2);
+}
+.glossary-empty {
+  margin-top: var(--space-6);
+}
+
+/* Sous 600 px, quatre colonnes de texte ne tiennent pas : chaque terme devient
+ * un bloc, les intitulés viennent de `data-label`. Les balises du tableau
+ * restent (référencement, lecteurs d'écran) ; l'en-tête n'est plus qu'audible. */
+@media (max-width: 600px) {
+  .glossary-list,
+  .glossary-list tbody {
+    display: block;
+  }
+  .glossary-list thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .glossary-list tbody > tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+  .glossary-list tbody > tr > * {
+    display: block;
+    border-top: 0;
+    padding: var(--space-1) var(--space-4);
+  }
+  .glossary-list tbody > tr > th[scope='row'] {
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-line);
+  }
+  .glossary-list tbody > tr > td:last-child {
+    padding-bottom: var(--space-3);
+  }
+  .glossary-list td::before {
+    content: attr(data-label) ' : ';
+    font-weight: 700;
+    color: var(--color-text-label);
+  }
+}
+
+/* Sigle absent du glossaire (page « lire un patron dans l'autre langue »). */
+.foreign-unknown {
+  text-decoration: underline dashed var(--color-momiji);
+}

@@ -58,7 +58,7 @@ URL avant d'accumuler du référencement.
 | 23  | Kit pour les créatrices            | acquisition : le canal le mieux noté n'a aucun support         |
 | 17  | Tailles de crochet mm ↔ US         | acquisition : requête fréquente, page qui reçoit ce public     |
 | 19  | Envoyer un projet                  | acquisition : boucle de recommandation, progression comprise   |
-| 20  | Comptes et paiement (cadrage)      | **ne s'exécute pas** : lot 8 gelé, décision de Phil requise    |
+| 20  | Comptes et paiement (cadrage)      | revenu : l'ADR-002 seul, gel levé par Phil le 30 septembre     |
 | 24  | Mode lecture                       | activation : la promesse « en très grand » tenue sur tablette  |
 | 26  | Première visite                    | activation : dire ce que fait l'outil avant de le montrer vide |
 | 32  | Libellés, pied de page, lastmod    | activation et maillage : chaque commande a un mot              |
@@ -91,6 +91,6 @@ la mesure et tranche, sans serveur ni clé d'API (règle n° 1).
 ## Règle d'enchaînement
 
 Une fiche terminée, c'est : `npm run verify` vert, une PR ouverte, le tableau
-ci-dessus relu. S'il reste une décision humaine en suspens (le gel du lot 8
-pour la fiche 20), **s'arrêter et demander**
+ci-dessus relu. S'il reste une décision humaine en suspens, **s'arrêter et
+demander**
 plutôt que d'inventer — c'est écrit dans chaque fiche concernée.

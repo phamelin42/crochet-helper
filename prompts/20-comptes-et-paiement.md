@@ -2,11 +2,12 @@
 
 **Étape d'entonnoir servie : revenu.**
 
-> **Fiche de cadrage. Elle ne s'exécute pas.** La monétisation (lot 8) est gelée
-> par décision explicite. Cette fiche décrit le problème et les décisions à
-> prendre ; elle n'autorise ni code, ni dépendance, ni compte chez un
-> prestataire. Dans `automation/avancement.md`, elle reste « Bloquée » tant
-> que Phil n'a pas tranché par écrit les questions du bas de page.
+> **Fiche de cadrage : elle ne livre qu'un document.** Phil a levé le gel du
+> lot 8 le 30 septembre 2026 (réponses en bas de page). Le livrable est
+> `docs/adr-002-comptes-et-paiement.md` et rien d'autre : ni code, ni
+> dépendance, ni compte chez un prestataire. L'ADR est une proposition ; la
+> mise en œuvre fera l'objet de fiches séparées, après la décision de Phil
+> sur cet ADR.
 
 ## Pourquoi en parler maintenant
 
@@ -50,11 +51,35 @@ Si le gel est levé, la première tâche n'est pas du code : c'est un
    le convertisseur.
 5. Comment on revient en arrière si l'option ne rapporte rien.
 
-## Questions pour Phil
+## Réponses de Phil (30 septembre 2026)
 
-- Lever le gel du lot 8 : oui / non / à quelle date ?
-- Option préférée parmi A–D, ou aucune ?
-- Budget mensuel acceptable pour un hébergement (option C) ?
+- **Gel du lot 8 : levé.**
+- **Option retenue : C ou D** (comptes + synchronisation), à départager dans
+  l'ADR. La raison : que les projets suivent la lectrice d'un appareil à
+  l'autre. C'est ce que la clé de licence (B) ne donne pas — elle ne débloque
+  que des fonctions, sans déplacer les projets. L'ADR rappelle en une section
+  ce que A et B coûteraient en regard, sans rouvrir le choix.
+- **Budget d'hébergement : 10 € par mois au plus.** Toute option qui le
+  dépasse aux volumes du jalon d'audience retenu est écartée, chiffre à l'appui.
+
+## Ce que l'ADR doit contenir en plus des cinq points ci-dessus
+
+- Le coût mensuel de C et de D (au moins deux services tiers nommés pour D)
+  à trois paliers d'usage, sources et date des tarifs citées.
+- Ce que l'option change aux règles de `CLAUDE.md` (règle n° 1, CSP, mesure
+  d'audience de l'ADR 001) : chaque règle touchée, et la nouvelle rédaction
+  proposée — sans modifier `CLAUDE.md` dans cette fiche.
+- La synchronisation chiffrée de bout en bout : ce que le service voit et ne
+  voit pas, et ce que devient une lectrice qui perd son mot de passe.
+- Une recommandation, et le découpage en fiches de mise en œuvre (titres et
+  étape d'entonnoir seulement).
+
+## Critères d'acceptation
+
+- `docs/adr-002-comptes-et-paiement.md` existe, en français soigné, et répond
+  à chaque point de cette fiche.
+- Aucun autre fichier modifié hors `automation/avancement.md`.
+- `npx prettier --check` sur les fichiers touchés, puis `npm run verify` vert.
 
 ## Hors périmètre
 

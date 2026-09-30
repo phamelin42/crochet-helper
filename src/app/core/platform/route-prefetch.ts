@@ -1,4 +1,10 @@
-import { PLATFORM_ID, Service, inject } from '@angular/core';
+import {
+  EnvironmentInjector,
+  PLATFORM_ID,
+  Service,
+  inject,
+  runInInjectionContext,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Route, Router } from '@angular/router';
 
@@ -54,6 +60,7 @@ type ConnectionNavigator = Navigator & {
 @Service()
 export class RoutePrefetch {
   private readonly router = inject(Router);
+  private readonly injector = inject(EnvironmentInjector);
   private readonly loaded = new WeakSet<Route>();
   private targets: Target[] = [];
   private observer: IntersectionObserver | null = null;
@@ -70,7 +77,11 @@ export class RoutePrefetch {
     if (!route?.loadComponent || this.loaded.has(route)) return;
     this.loaded.add(route);
     // Un échec (hors ligne) n'est pas grave : le routeur réessaiera au clic.
-    void Promise.resolve(route.loadComponent()).catch(() => this.loaded.delete(route));
+    // Dans un contexte d'injection, comme le routeur : `styled()` (`app.routes.ts`) y lit sa feuille.
+    const load = route.loadComponent;
+    void Promise.resolve(runInInjectionContext(this.injector, load)).catch(() =>
+      this.loaded.delete(route),
+    );
   }
 
   private start(): void {

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { DEMO_PATTERN } from '../data/demo-pattern';
 import { ReaderStore } from '../state/reader-store';
-import { ShareActions } from './share-actions';
+import { COPIED_VISIBLE_MS, ShareActions } from './share-actions';
 
 /** Texte volumineux et non compressible (aléatoire) : garantit un lien trop
  *  long quel que soit le support de `CompressionStream` dans l'environnement
@@ -43,11 +43,11 @@ describe('ShareActions', () => {
 
   function copyButton(fixture: ReturnType<typeof setup>['fixture']): HTMLButtonElement {
     return Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
-      (b as HTMLButtonElement).textContent?.includes('Copy the pattern link'),
+      (b as HTMLButtonElement).textContent?.includes('Share this pattern'),
     ) as HTMLButtonElement;
   }
 
-  it('désactive « Copier le lien du patron » quand le lien dépasse la longueur maximale', async () => {
+  it('désactive « Partager le patron » quand le lien dépasse la longueur maximale', async () => {
     const { fixture, store } = setup();
     store.load(hugeIncompressibleSource());
     fixture.detectChanges();
@@ -92,27 +92,47 @@ describe('ShareActions', () => {
     });
   });
 
-  it('émet `project_shared` une fois par copie réussie du lien de projet, jamais plus', async () => {
+  it('émet `pattern_shared` une fois par copie réussie, jamais plus', async () => {
     const { fixture, store } = setup();
     store.load(DEMO_PATTERN);
     fixture.detectChanges();
 
-    const sendButton = Array.from(
-      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
-    ).find((b) => b.textContent?.includes('Send this project'))!;
-
-    // Même principe que ci-dessus : le lien de projet se recalcule de façon
-    // asynchrone, on réessaie le clic jusqu'à la première copie réussie.
+    const button = copyButton(fixture);
     await vi.waitFor(() => {
       fixture.detectChanges();
-      sendButton.click();
+      button.click();
       fixture.detectChanges();
-      expect(track.mock.calls.some(([event]) => event === 'project_shared')).toBe(true);
+      expect(track.mock.calls.some(([event]) => event === 'pattern_shared')).toBe(true);
     });
 
-    // Chaque copie réussie du presse-papiers émet exactement un `project_shared` :
-    // les deux comptes progressent ensemble, quel que soit le nombre de clics.
-    const shared = track.mock.calls.filter(([event]) => event === 'project_shared').length;
+    const shared = track.mock.calls.filter(([event]) => event === 'pattern_shared').length;
     expect(shared).toBe(writeText.mock.calls.length);
+  });
+
+  it('« Lien copié » disparaît de lui-même après quelques secondes', async () => {
+    const { fixture, store } = setup();
+    store.load(DEMO_PATTERN);
+    fixture.detectChanges();
+
+    const button = copyButton(fixture);
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      button.click();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('Link copied to clipboard.');
+    });
+
+    vi.useFakeTimers();
+    try {
+      button.click();
+      await vi.waitFor(() => expect(writeText.mock.calls.length).toBeGreaterThan(1));
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('Link copied to clipboard.');
+      vi.advanceTimersByTime(COPIED_VISIBLE_MS);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).not.toContain('Link copied to clipboard.');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

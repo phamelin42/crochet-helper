@@ -751,10 +751,6 @@ export class ReaderStore {
     this.reps.update((reps) => ({ ...reps, [key]: 0 }));
   }
 
-  toggleExpandAbbreviations(): void {
-    this.expandAbbreviations.update((on) => !on);
-  }
-
   /**
    * Avance en marquant l'étape courante terminée.
    *

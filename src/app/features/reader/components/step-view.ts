@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject, output, viewChild } from '@angular/core';
+import { Component, computed, inject, output } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
@@ -10,7 +10,6 @@ import { ChartPanel } from './chart-panel';
 import { GlossaryText } from './glossary-text';
 import { ImageGallery } from './image-gallery';
 import { ShareActions } from './share-actions';
-import { StepsList } from './steps-list';
 
 /**
  * L'étape en cours, en très grand : c'est l'écran que l'on regarde crochet en
@@ -18,17 +17,7 @@ import { StepsList } from './steps-list';
  */
 @Component({
   selector: 'fil-step-view',
-  imports: [
-    Button,
-    ChartPanel,
-    GlossaryText,
-    Icon,
-    ImageGallery,
-    Segmented,
-    ShareActions,
-    StepsList,
-    Tile,
-  ],
+  imports: [Button, ChartPanel, GlossaryText, Icon, ImageGallery, Segmented, ShareActions, Tile],
   template: `
     @if (pieceOptions().length > 1) {
       <div class="pieces">
@@ -42,34 +31,21 @@ import { StepsList } from './steps-list';
       </div>
     }
 
-    <div class="stepmeta">
-      <button
-        type="button"
-        filButton="ghost"
-        class="abbr-toggle"
-        [attr.aria-pressed]="store.expandAbbreviations()"
-        (click)="store.toggleExpandAbbreviations()"
-      >
-        {{ store.expandAbbreviations() ? t('ui.abbrev') : t('ui.expand') }}
-      </button>
-      @if (store.step(); as step) {
-        <span class="steplabel">{{ step.label || t('ui.repeat') }}</span>
-        <!-- Sur la même ligne que le libellé : la position ne coûte aucune
-             hauteur, l'étape reste dans le premier écran (garde de la fiche 24). -->
+    <!-- Seule la position : le libellé du rang et le nom de la pièce
+         redisaient ce que l'étape et le sélecteur de pièces montrent déjà. -->
+    @if (store.step()) {
+      <p class="stepmeta">
         <span class="stepcount"
           >{{ t('ui.stepOf') }} {{ store.stepIndex() + 1 }} / {{ store.stepCount() }}</span
         >
-      }
-      @if (title()) {
-        <span class="piecename">{{ title() }}</span>
-      }
-    </div>
+      </p>
+    }
 
     @if (notes(); as notes) {
       <p class="note"><span aria-hidden="true">›</span><fil-glossary-text [text]="notes" /></p>
     }
 
-    <p #stepBody class="step-body" tabindex="-1" [class.empty]="!store.step()" aria-live="polite">
+    <p class="step-body" tabindex="-1" [class.empty]="!store.step()" aria-live="polite">
       @if (store.step(); as step) {
         <fil-glossary-text [text]="step.body" />
       } @else {
@@ -97,39 +73,41 @@ import { StepsList } from './steps-list';
       </div>
     }
 
-    <fil-tile class="reps-tile" [label]="t('ui.reps')">
-      <div class="big reps">
-        {{ store.currentReps() }}
-        @if (store.step()?.reps) {
-          <span class="sub"> / {{ store.step()!.reps }}</span>
-        }
-      </div>
-      <div class="row tight">
-        <button
-          type="button"
-          filButton="secondary"
-          [iconOnly]="true"
-          aria-label="−"
-          [disabled]="!store.step() || store.currentReps() <= 0"
-          (click)="store.addRepeat(-1)"
-        >
-          <fil-icon name="minus" />
-        </button>
-        <button
-          type="button"
-          filButton="primary"
-          [iconOnly]="true"
-          aria-label="+"
-          [disabled]="!store.step()"
-          (click)="store.addRepeat(1)"
-        >
-          <fil-icon name="plus" />
-        </button>
-        <button type="button" filButton="ghost" (click)="store.resetRepeat()">
-          {{ t('ui.reset') }}
-        </button>
-      </div>
-    </fil-tile>
+    <!-- Seulement quand l'étape annonce une répétition (« x 6 ») : ailleurs,
+         le compteur n'avait rien à compter. -->
+    @if (store.step()?.reps; as reps) {
+      <fil-tile class="reps-tile" [label]="t('ui.reps')">
+        <div class="big reps">
+          {{ store.currentReps() }}
+          <span class="sub"> / {{ reps }}</span>
+        </div>
+        <div class="row tight">
+          <button
+            type="button"
+            filButton="secondary"
+            [iconOnly]="true"
+            aria-label="−"
+            [disabled]="!store.step() || store.currentReps() <= 0"
+            (click)="store.addRepeat(-1)"
+          >
+            <fil-icon name="minus" />
+          </button>
+          <button
+            type="button"
+            filButton="primary"
+            [iconOnly]="true"
+            aria-label="+"
+            [disabled]="!store.step()"
+            (click)="store.addRepeat(1)"
+          >
+            <fil-icon name="plus" />
+          </button>
+          <button type="button" filButton="ghost" (click)="store.resetRepeat()">
+            {{ t('ui.reset') }}
+          </button>
+        </div>
+      </fil-tile>
+    }
 
     <div class="navrow">
       <button
@@ -155,12 +133,8 @@ import { StepsList } from './steps-list';
     </div>
 
     @if (store.step()) {
-      <fil-steps-list (jumped)="focusStepBody()" />
-      <!--
-        Les actions de partage restent visibles, hors du panneau replié : la
-        boucle qui amène une deuxième lectrice ne doit pas être à chercher
-        (audit UX-4). La liste des étapes, elle, se déplie à la demande.
-      -->
+      <!-- Visibles, jamais repliées : la boucle qui amène une deuxième
+           lectrice ne doit pas être à chercher (audit UX-4). -->
       <fil-share-actions (changePattern)="changePattern.emit()" />
     }
   `,
@@ -173,15 +147,7 @@ export class StepView {
    *  seule à savoir où vit le panneau d'import. */
   readonly changePattern = output<void>();
 
-  private readonly stepBody = viewChild<ElementRef<HTMLElement>>('stepBody');
-
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
-
-  /** Ramène le focus sur l'étape après un saut depuis la liste ou le champ
-   *  « Aller à l'étape n° » : la lectrice vient de choisir où reprendre. */
-  protected focusStepBody(): void {
-    this.stepBody()?.nativeElement.focus();
-  }
 
   protected readonly pieceOptions = computed<SegmentedOption[]>(() =>
     this.store.pieces().map((piece, index) => ({
@@ -190,7 +156,6 @@ export class StepView {
     })),
   );
 
-  protected readonly title = computed(() => this.store.piece()?.name || this.store.pattern().title);
   protected readonly notes = computed(() => {
     const notes = this.store.step()?.notes ?? [];
     return notes.length ? notes.join(' · ') : '';

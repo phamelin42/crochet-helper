@@ -1,11 +1,10 @@
-import { Component, PLATFORM_ID, effect, inject, output, signal } from '@angular/core';
+import { Component, DestroyRef, PLATFORM_ID, effect, inject, output, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { PrintService } from '../../../core/platform/print.service';
 import { Button } from '../../../shared/ui/button/button';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
-import { SharedProgress } from '../data/project-link';
 import { ReaderStore } from '../state/reader-store';
 
 /** Un lien plus long qu'une adresse de partage usuelle est un lien qui échoue
@@ -13,10 +12,15 @@ import { ReaderStore } from '../state/reader-store';
  *  livrer un lien tronqué, silencieusement cassé. */
 const MAX_LINK_LENGTH = 8000;
 
+/** Durée d'affichage de « Lien copié » : le temps de le lire, pas plus. */
+export const COPIED_VISIBLE_MS = 3000;
+
 /**
- * Actions du patron en cours : copier le lien du patron, envoyer le projet
- * (patron et progression), imprimer, changer de patron. Rassemblées ici, en
- * un seul endroit, plutôt que dispersées dans le panneau d'import.
+ * Actions du patron en cours : partager le patron (un lien qui l'ouvre à la
+ * première étape, chez l'autre), imprimer, changer de patron. Un seul bouton
+ * de partage : « Copier le lien du patron » et « Envoyer ce projet » copiaient
+ * tous deux un lien, indiscernables pour la lectrice. Les liens de projet
+ * (`#j=`) déjà envoyés s'ouvrent toujours (`reader-page.ts`).
  */
 @Component({
   selector: 'fil-share-actions',
@@ -26,16 +30,6 @@ const MAX_LINK_LENGTH = 8000;
       <button type="button" filButton="secondary" [disabled]="linkTooLong()" (click)="copyLink()">
         {{ t('ui.copyPatternLink') }}
       </button>
-      @if (store.currentId()) {
-        <button
-          type="button"
-          filButton="secondary"
-          [disabled]="projectLinkTooLong()"
-          (click)="sendProject()"
-        >
-          {{ t('ui.sendProject') }}
-        </button>
-      }
       <button type="button" filButton="secondary" (click)="print()">{{ t('ui.print') }}</button>
       <button type="button" filButton="ghost" (click)="changePattern.emit()">
         {{ t('ui.changePattern') }}
@@ -48,18 +42,6 @@ const MAX_LINK_LENGTH = 8000;
       <p class="hint" role="status">{{ t('ui.linkCopied') }}</p>
     }
     @if (linkCopyFailed()) {
-      <p class="hint" role="alert">{{ t('ui.linkCopyFailed') }}</p>
-    }
-    @if (store.currentId()) {
-      <p class="hint">{{ t('ui.projectShareHint') }}</p>
-    }
-    @if (projectLinkTooLong()) {
-      <p class="hint" role="alert">{{ t('ui.projectLinkTooLong') }}</p>
-    }
-    @if (projectLinkCopied()) {
-      <p class="hint" role="status">{{ t('ui.linkCopied') }}</p>
-    }
-    @if (projectLinkCopyFailed()) {
       <p class="hint" role="alert">{{ t('ui.linkCopyFailed') }}</p>
     }
   `,
@@ -81,11 +63,7 @@ export class ShareActions {
   private shareUrl: string | null = null;
   private shareTicket = 0;
 
-  protected readonly projectLinkTooLong = signal(false);
-  protected readonly projectLinkCopied = signal(false);
-  protected readonly projectLinkCopyFailed = signal(false);
-  private projectShareUrl: string | null = null;
-  private projectShareTicket = 0;
+  private hideCopied: ReturnType<typeof setTimeout> | undefined;
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
 
@@ -99,20 +77,7 @@ export class ShareActions {
       void this.refreshShareUrl(source);
     });
 
-    // Même principe pour le lien de projet : refait à chaque changement de
-    // position, de rang coché ou de répétition — pas seulement au chargement.
-    effect(() => {
-      const progress: SharedProgress = {
-        source: this.store.source(),
-        name: this.store.currentName(),
-        pieceIndex: this.store.pieceIndex(),
-        stepIndex: this.store.stepIndex(),
-        done: this.store.done(),
-        reps: this.store.reps(),
-      };
-      if (!this.isBrowser) return;
-      void this.refreshProjectShareUrl(progress);
-    });
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.hideCopied));
   }
 
   private async refreshShareUrl(source: string): Promise<void> {
@@ -138,39 +103,14 @@ export class ShareActions {
     try {
       await navigator.clipboard.writeText(this.shareUrl);
       this.linkCopied.set(true);
+      this.analytics.track('pattern_shared');
+      // Une confirmation, pas un état : elle s'efface d'elle-même.
+      clearTimeout(this.hideCopied);
+      this.hideCopied = setTimeout(() => this.linkCopied.set(false), COPIED_VISIBLE_MS);
     } catch {
       // Presse-papiers refusé (permission, contexte non sécurisé) : on le dit
       // plutôt que d'échouer en silence.
       this.linkCopyFailed.set(true);
-    }
-  }
-
-  private async refreshProjectShareUrl(progress: SharedProgress): Promise<void> {
-    const ticket = ++this.projectShareTicket;
-    this.projectLinkCopied.set(false);
-    this.projectLinkCopyFailed.set(false);
-    if (!progress.source) {
-      this.projectShareUrl = null;
-      this.projectLinkTooLong.set(false);
-      return;
-    }
-    // Chargé à la demande : le lien de projet n'a pas sa place dans le bundle initial.
-    const { encodeProject } = await import('../data/project-link');
-    const encoded = await encodeProject(progress);
-    if (ticket !== this.projectShareTicket) return; // une progression plus récente a pris le dessus
-    const url = `${window.location.origin}${window.location.pathname}#j=${encoded}`;
-    this.projectShareUrl = url;
-    this.projectLinkTooLong.set(url.length > MAX_LINK_LENGTH);
-  }
-
-  protected async sendProject(): Promise<void> {
-    if (!this.projectShareUrl || this.projectLinkTooLong()) return;
-    try {
-      await navigator.clipboard.writeText(this.projectShareUrl);
-      this.projectLinkCopied.set(true);
-      this.analytics.track('project_shared');
-    } catch {
-      this.projectLinkCopyFailed.set(true);
     }
   }
 

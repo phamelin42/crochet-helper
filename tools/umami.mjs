@@ -230,14 +230,33 @@ async function lireFenetre(lire, f, detail) {
     entonnoir: entonnoir(stats, evenements),
     pages: null,
     provenances: null,
+    utm: null,
   };
   if (detail) {
     sortie.pages = await lirePages(lire, temps);
+    sortie.utm = await lireUtm(lire, temps);
     sortie.provenances = lireMetriques(
       await lire('metrics', { ...temps, type: 'referrer', limit: 5 }),
     ).slice(0, 5);
   }
   return sortie;
+}
+
+/**
+ * Visites venues d'une campagne balisée (fiche 41 : `utm_source=play_store`
+ * pour l'application Android). Umami range ces paramètres dans la requête
+ * de l'adresse, pas dans `referrer`. Une instance qui ne connaît pas ce type
+ * répond 400 : on rend `null`, le rapport s'en passe.
+ */
+async function lireUtm(lire, temps) {
+  try {
+    return lireMetriques(await lire('metrics', { ...temps, type: 'query', limit: 50 }))
+      .filter((l) => l.nom.includes('utm_source='))
+      .slice(0, 5);
+  } catch (e) {
+    if (e.statut !== 400) throw e;
+    return null;
+  }
 }
 
 async function lirePages(lire, temps) {
@@ -355,6 +374,7 @@ export async function forme({ env, fetch, maintenant = Date.now() }) {
     'metrics?type=path': ['metrics', { ...temps, type: 'path', limit: 5 }],
     'metrics?type=url': ['metrics', { ...temps, type: 'url', limit: 5 }],
     'metrics?type=referrer': ['metrics', { ...temps, type: 'referrer', limit: 5 }],
+    'metrics?type=query': ['metrics', { ...temps, type: 'query', limit: 50 }],
   };
   const sortie = { ok: true, jour: f.debut, reponses: {} };
   for (const [nom, [chemin, params]] of Object.entries(appels)) {

@@ -53,7 +53,7 @@ branche.
 | 38 — Mode page pleine                   | Terminée | —   | 2026-09-30 |
 | 39 — Installer, hors ligne              | Terminée | —   | 2026-09-30 |
 | 40 — Page de confidentialité            | Terminée | —   | 2026-09-30 |
-| 41 — Application Android (Play Store)   | À faire  | —   | —          |
+| 41 — Application Android (Play Store)   | Terminée | —   | 2026-09-30 |
 
 ## États possibles
 

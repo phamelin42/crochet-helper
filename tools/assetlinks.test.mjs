@@ -26,7 +26,10 @@ test('fichier absent, JSON invalide ou mauvais paquet : refusés', () => {
   assert.match(controler(null), /absent/);
   assert.match(controler('{pas du json'), /invalide/);
   assert.match(controler('[]'), /android_app/);
-  assert.match(controler('[{"target":{"namespace":"android_app","package_name":"x"}}]'), /android_app/);
+  assert.match(
+    controler('[{"target":{"namespace":"android_app","package_name":"x"}}]'),
+    /android_app/,
+  );
 });
 
 test('une empreinte mal formée est refusée, pas publiée', () => {
@@ -41,7 +44,9 @@ test('les deux scripts : le dépôt passe avec ses empreintes vides, et check é
   const racine = mkdtempSync(join(tmpdir(), 'assetlinks-'));
   mkdirSync(join(racine, 'sortie'));
   execFileSync('node', ['tools/assetlinks.mjs', join(racine, 'sortie')]);
-  const publie = JSON.parse(readFileSync(join(racine, 'sortie', '.well-known', 'assetlinks.json'), 'utf8'));
+  const publie = JSON.parse(
+    readFileSync(join(racine, 'sortie', '.well-known', 'assetlinks.json'), 'utf8'),
+  );
   assert.equal(publie[0].target.package_name, PACKAGE_NAME);
   execFileSync('node', ['tools/check-assetlinks.mjs', join(racine, 'sortie')]);
 

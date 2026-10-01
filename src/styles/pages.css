@@ -299,10 +299,18 @@
     margin-bottom: var(--space-5);
   }
   fil-glossary-page .hero p {
-    font-size: var(--text-base);
+    font-size: var(--text-sm);
   }
   .glossary-filters {
-    gap: var(--space-3);
+    gap: var(--space-2);
+  }
+  /* Libellé à gauche du filtre quand il tient sur la même ligne
+   * (« Craft »), au-dessus sinon (« Pattern language »). */
+  .glossary-filter-group {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--space-3);
   }
   .glossary-letters {
     flex-wrap: nowrap;

@@ -1,0 +1,31 @@
+{
+  "slug": "devis-artisan",
+  "nom": "Devis Artisan",
+  "domaine": "devis-artisan.fr",
+  "requete": "modèle devis plombier auto-entrepreneur",
+  "description": "Créez gratuitement un devis d'artisan ou d'auto-entrepreneur conforme : logo, mentions légales obligatoires, TVA ou franchise, export PDF. Sans inscription.",
+  "promesse": "Un devis conforme, avec votre logo et les mentions obligatoires, prêt en PDF en cinq minutes.",
+  "exports": ["pdf", "impression"],
+  "logo": "logo.svg",
+  "theme": {
+    "accent": "#e8a33d",
+    "accentFonce": "#8a4b00",
+    "typographie": "geometrique",
+    "sombre": false
+  },
+  "offre": {
+    "statut": "bientot"
+  },
+  "editeur": {
+    "nom": "À COMPLÉTER",
+    "statut": "À COMPLÉTER (entrepreneur individuel, SIREN …)",
+    "adresse": "À COMPLÉTER",
+    "contact": "À COMPLÉTER",
+    "hebergeur": "Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis"
+  },
+  "mesure": {
+    "origine": "https://analytics.patternreader.com",
+    "siteId": "",
+    "googleVerification": ""
+  }
+}

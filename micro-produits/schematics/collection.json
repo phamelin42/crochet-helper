@@ -1,0 +1,10 @@
+{
+  "$schema": "../node_modules/@angular-devkit/schematics/collection-schema.json",
+  "schematics": {
+    "produit": {
+      "description": "Crée un micro-produit (application, configuration, routes, contenu à rédiger, fiches) à partir de sa ligne de produits.json.",
+      "factory": "./produit/index.js#produit",
+      "schema": "./produit/schema.json"
+    }
+  }
+}

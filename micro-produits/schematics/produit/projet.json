@@ -1,0 +1,91 @@
+{
+  "projectType": "application",
+  "root": "projects/__SLUG__",
+  "sourceRoot": "projects/__SLUG__/src",
+  "prefix": "app",
+  "architect": {
+    "build": {
+      "builder": "@angular/build:application",
+      "options": {
+        "outputPath": "dist/__SLUG__",
+        "browser": "projects/__SLUG__/src/main.ts",
+        "server": "projects/__SLUG__/src/main.server.ts",
+        "tsConfig": "projects/__SLUG__/tsconfig.app.json",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "projects/__SLUG__/public"
+          }
+        ],
+        "styles": [
+          "projects/__SLUG__/src/styles.css",
+          {
+            "input": "libs/ui/styles/print.css",
+            "bundleName": "print",
+            "inject": false
+          }
+        ],
+        "outputMode": "static",
+        "security": {
+          "allowedHosts": []
+        }
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "300kB",
+              "maximumError": "340kB"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "2kB",
+              "maximumError": "4kB"
+            }
+          ],
+          "outputHashing": "all",
+          "optimization": {
+            "scripts": true,
+            "styles": {
+              "minify": true,
+              "inlineCritical": false
+            },
+            "fonts": true
+          },
+          "serviceWorker": "ngsw-config.json"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "builder": "@angular/build:dev-server",
+      "configurations": {
+        "production": {
+          "buildTarget": "__SLUG__:build:production"
+        },
+        "development": {
+          "buildTarget": "__SLUG__:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "test": {
+      "builder": "@angular/build:unit-test",
+      "options": {
+        "tsConfig": "projects/__SLUG__/tsconfig.spec.json"
+      }
+    },
+    "lint": {
+      "builder": "@angular-eslint/builder:lint",
+      "options": {
+        "lintFilePatterns": ["projects/__SLUG__/**/*.ts", "projects/__SLUG__/**/*.html"]
+      }
+    }
+  }
+}

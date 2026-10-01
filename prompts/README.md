@@ -78,11 +78,14 @@ URL avant d'accumuler du référencement.
 | 40  | Page de confidentialité            | acquisition : exigée par le Play Store ; confiance             |
 | 41  | Application Android (Play Store)   | acquisition : la boutique est un canal de recherche            |
 | 42  | Taille du texte du système         | activation : le texte grossi du téléphone l'est aussi ici      |
+| 43  | Mode appli (coquille mobile)       | rétention : une appli qui se comporte en appli se rouvre       |
 
 Les fiches 38 à 41 répondent à la demande de Phil du 30 septembre (mode page
 pleine comme l'application Filo, hors ligne mis en avant, Play Store ; pas
 d'App Store pour l'instant). La 41 suppose la 40 (URL de confidentialité).
 La 42 répond à celle du 1er octobre : la taille du texte suit le système.
+La 43 aussi : l'application installée doit ressembler à une application (onglets
+en bas, plus d'en-tête ni de pied de page de site), avec le même code.
 
 La fiche `01` est absorbée par la `16` : ne pas l'exécuter séparément.
 

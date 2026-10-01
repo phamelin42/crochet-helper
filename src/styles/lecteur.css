@@ -90,8 +90,8 @@
   flex: none;
 }
 /* Sur ordinateur, marque, navigation et boutons se répartissent la ligne
-   (elle ne tient qu'à partir de 1024 px). */
-@media (min-width: 1024px) {
+   (elle ne tient, avec une marge, qu’à partir de 1100 px). */
+@media (min-width: 1100px) {
   .nav {
     justify-content: space-between;
     align-items: center;
@@ -156,9 +156,9 @@ main {
   }
 }
 
-/* Sous 1024 px : marque et boutons sur la première ligne, navigation sur la
+/* Sous 1100 px : marque et boutons sur la première ligne, navigation sur la
    seconde. */
-@media (max-width: 1023px) {
+@media (max-width: 1099px) {
   /* Une seule ligne, qui défile au doigt : sur deux lignes, l'en-tête
      prenait un tiers de l'écran d'un téléphone. Hauteur fixe par nature
      (aucun retour à la ligne) : rien ne bouge à l'hydratation, même quand

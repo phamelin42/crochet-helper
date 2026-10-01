@@ -191,8 +191,8 @@ test.describe('en-tête : boutons en icône nommée', () => {
   // Phil, 1er octobre : sur ordinateur, « Fond sombre » et Discord perdent
   // leur libellé visible (l'en-tête se répartit la ligne) ; ils restent
   // nommés par aria-label et expliqués au survol par title.
-  test('à 1024 px, « Fond sombre » et Discord sont des icônes nommées', async ({ page }) => {
-    await page.setViewportSize({ width: 1024, height: 800 });
+  test('à 1200 px, « Fond sombre » et Discord sont des icônes nommées', async ({ page }) => {
+    await page.setViewportSize({ width: 1200, height: 800 });
     await page.goto('/');
     const header = page.locator('fil-site-header');
     for (const button of [

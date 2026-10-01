@@ -52,8 +52,13 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # Le paquet `tools`, installé par défaut par l'action, n'existe plus :
+      # on nomme ceux dont Bubblewrap a besoin (outils de build pour signer
+      # et aligner, plateforme cible).
       - uses: android-actions/setup-android@v3
         if: steps.secrets.outputs.complet == 'true'
+        with:
+          packages: platform-tools build-tools;34.0.0 platforms;android-35
 
       - name: Préparer Bubblewrap
         if: steps.secrets.outputs.complet == 'true'

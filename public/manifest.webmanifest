@@ -50,32 +50,25 @@
   ],
   "screenshots": [
     {
-      "src": "screenshots/lecteur.png",
-      "sizes": "540x960",
+      "src": "screenshots/page-pleine.png",
+      "sizes": "540x1080",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "One step at a time, in large print"
     },
     {
-      "src": "screenshots/repetitions.png",
-      "sizes": "540x960",
+      "src": "screenshots/page-complete.png",
+      "sizes": "540x1080",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "A repeat counter"
+      "label": "Counters, timer and reading settings"
     },
     {
-      "src": "screenshots/abreviation.png",
-      "sizes": "540x960",
+      "src": "screenshots/glossaire.png",
+      "sizes": "540x1080",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Abbreviations explained"
-    },
-    {
-      "src": "screenshots/sombre.png",
-      "sizes": "540x960",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "A dark background"
+      "label": "Every abbreviation explained"
     }
   ]
 }

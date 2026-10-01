@@ -58,7 +58,6 @@ src/app/features/<nom>/
      pages/          composants routés, portent le SEO de la page
 tools/               scripts de build (génération du sitemap)
 prompts/             fiches de tâche autoportantes pour déléguer du travail
-micro-produits/       workspace Angular des dix micro-produits, indépendant de Fil (voir son README)
 ```
 
 Règles de dépendance : `features` → `shared` → `core`. Jamais l'inverse, et pas

@@ -75,11 +75,11 @@ h6 {
 }
 
 h1 {
-  font-size: clamp(2rem, 5.5vw, 3rem);
+  font-size: clamp(2rem, calc(5.5vw * var(--text-scale)), 3rem);
   letter-spacing: -0.01em;
 }
 h2 {
-  font-size: clamp(1.5rem, 3.6vw, 2rem);
+  font-size: clamp(1.5rem, calc(3.6vw * var(--text-scale)), 2rem);
 }
 h3 {
   font-size: 1.5rem;

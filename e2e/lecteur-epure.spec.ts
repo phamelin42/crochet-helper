@@ -104,9 +104,12 @@ for (const viewport of [
 ]) {
   // Page pleine : le sélecteur de taille y est masqué, la taille de base seule.
   // Base 16 px par défaut ; 24 px simule un système réglé en « grand » (fiche 42).
-  for (const [base, size] of [16, 24].flatMap((b) =>
-    ['A', 'A+', 'A++', 'page pleine'].map((s) => [b, s] as const),
-  )) {
+  // Exception : page pleine à 390 px et 24 px. L'écran n'y contient plus l'étape,
+  // les compteurs et la navigation (le défilement est permis, fiche 42) : la
+  // navigation collante se pose selon le défilement, qu'aucune étape ne fixe.
+  for (const [base, size] of [16, 24]
+    .flatMap((b) => ['A', 'A+', 'A++', 'page pleine'].map((s) => [b, s] as const))
+    .filter(([b, s]) => !(b === 24 && s === 'page pleine' && viewport.width === 390))) {
     const suffixe = base === 24 ? ', texte du système à 24 px' : '';
     test(`${viewport.width} px, ${size === 'page pleine' ? size : 'taille ' + size}${suffixe} : les boutons ne bougent pas d’une étape à l’autre`, async ({
       page,

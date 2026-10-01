@@ -54,7 +54,7 @@ branche.
 | 39 — Installer, hors ligne              | Terminée | —   | 2026-09-30 |
 | 40 — Page de confidentialité            | Terminée | —   | 2026-09-30 |
 | 41 — Application Android (Play Store)   | Terminée | —   | 2026-09-30 |
-| 42 — Taille du texte du système         | À faire  | —   | —          |
+| 42 — Taille du texte du système         | Terminée | —   | 2026-10-01 |
 | 43 — Mode appli (coquille mobile)       | À faire  | —   | —          |
 
 ## États possibles

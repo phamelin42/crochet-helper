@@ -292,6 +292,42 @@
     font-weight: 700;
     color: var(--color-text-label);
   }
+  /* Premier écran d'un téléphone : au moins le premier terme doit y être,
+   * pas seulement l'introduction et les filtres. L'index des lettres tient
+   * sur une ligne qui défile, les espacements se resserrent. */
+  fil-glossary-page .hero {
+    margin-bottom: var(--space-5);
+  }
+  fil-glossary-page .hero p {
+    font-size: var(--text-sm);
+  }
+  .glossary-filters {
+    gap: var(--space-2);
+  }
+  /* Libellé à gauche du filtre quand il tient sur la même ligne
+   * (« Craft »), au-dessus sinon (« Pattern language »). */
+  .glossary-filter-group {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--space-3);
+  }
+  .glossary-letters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-top: var(--space-4);
+    padding-bottom: var(--space-1);
+    scrollbar-width: none;
+  }
+  .glossary-letters::-webkit-scrollbar {
+    display: none;
+  }
+  .glossary-letters a {
+    flex: none;
+  }
+  .glossary-table-scroll {
+    margin-top: var(--space-4);
+  }
 }
 
 /* Sigle absent du glossaire (page « lire un patron dans l'autre langue »). */

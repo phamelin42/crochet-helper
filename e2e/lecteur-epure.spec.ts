@@ -76,7 +76,15 @@ test('un seul bouton de partage, et « Lien copié » s’efface de lui-même', 
   await context.close();
 });
 
-test('taille du texte et pièces sur la même ligne', async ({ page }) => {
+/**
+ * Taille du texte et pièces sur la même ligne dès qu'il y a la place
+ * (demande de Phil). Sur un téléphone, les pièces de l'exemple demandent
+ * 391 px avec la taille du texte pour 358 disponibles : elles passent alors
+ * sur leur propre ligne, entières, plutôt que coupées en plein mot (garde de
+ * `e2e/telephone-premier-ecran.spec.ts`).
+ */
+test('taille du texte et pièces sur la même ligne quand elles y tiennent', async ({ page }) => {
+  await page.setViewportSize({ width: 820, height: 1180 });
   await page.getByRole('button', { name: 'Example', exact: true }).click();
   const pieces = await page.locator('.pieces').boundingBox();
   const size = await page.locator('.reader-tools .text-size').boundingBox();

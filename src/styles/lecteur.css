@@ -89,15 +89,20 @@
   height: var(--control-size);
   flex: none;
 }
-/* Au-delà de 900 px, le bouton affiche son libellé (`.btn-icon-text` dans
-   `hanami.css`) : la réservation de largeur fixe ne s'applique plus qu'à sa
-   hauteur, sinon le texte serait tronqué. */
-@media (min-width: 900px) {
-  .tool-slot {
-    width: auto;
+/* Sur ordinateur, marque, navigation et boutons se répartissent la ligne
+   (elle ne tient, avec une marge, qu’à partir de 1100 px). */
+@media (min-width: 1100px) {
+  .nav {
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-links {
+    flex: 0 1 auto;
+  }
+  .tools {
+    margin-left: 0;
   }
 }
-
 main {
   padding-bottom: var(--space-10);
 }
@@ -151,9 +156,9 @@ main {
   }
 }
 
-/* Sous 900 px : marque et boutons sur la première ligne, navigation sur la
+/* Sous 1100 px : marque et boutons sur la première ligne, navigation sur la
    seconde. */
-@media (max-width: 899px) {
+@media (max-width: 1099px) {
   /* Une seule ligne, qui défile au doigt : sur deux lignes, l'en-tête
      prenait un tiers de l'écran d'un téléphone. Hauteur fixe par nature
      (aucun retour à la ligne) : rien ne bouge à l'hydratation, même quand
@@ -335,7 +340,6 @@ textarea.src-input {
   );
   overflow: hidden;
 }
-.reader::before,
 .hero::before {
   content: '';
   position: absolute;
@@ -464,6 +468,7 @@ textarea.src-input {
 
 .navrow {
   display: flex;
+  justify-content: space-between;
   gap: var(--space-3);
   margin-top: var(--space-5);
   flex-wrap: wrap;
@@ -782,17 +787,6 @@ fil-install-slot {
   text-decoration-color: var(--color-sakura);
 }
 
-/* UX-8 : entre 600 et 900 px, l'écusson de pelote de `.reader` (le lecteur,
-   pas les bandeaux `.hero` des autres pages) passait sous le bouton Suivante,
-   le contenu occupant alors toute la hauteur de la carte. Mieux vaut l'écarter
-   que la voir mordre sur un contrôle : au-delà de 900 px, la carte respire
-   assez pour l'accueillir. */
-@media (max-width: 900px) {
-  .reader::before {
-    content: none;
-  }
-}
-
 /* Les trois preuves sous l'accroche de l'accueil (fiche 26). */
 .proof-list {
   list-style: none;
@@ -994,9 +988,7 @@ fil-install-slot {
   html[data-focus] fil-materials-list,
   html[data-focus] fil-share-actions,
   html[data-focus] fil-reader-page > .hr,
-  html[data-focus] .reader-tools,
-  html[data-focus] .meter > .done-tile,
-  html[data-focus] .meter > .timer-tile {
+  html[data-focus] .reader-tools {
     display: none;
   }
   html[data-focus] main {
@@ -1036,25 +1028,32 @@ fil-install-slot {
   }
   html[data-focus] .meter {
     order: 4;
-    grid-template-columns: minmax(0, 1fr);
     margin-top: var(--space-4);
-  }
-  /* Répétitions compactes : le même composant, sur une ligne. */
-  html[data-focus] .meter > .reps-tile {
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: wrap;
     gap: var(--space-3);
+  }
+  /* Les trois compteurs restent, en compact : mêmes tuiles, moins hautes. */
+  html[data-focus] .meter > .tile {
+    gap: var(--space-2);
     padding: var(--space-3) var(--space-4);
   }
-  html[data-focus] .meter > .reps-tile .big {
-    font-size: 32px;
-  }
-  html[data-focus] .meter > .reps-tile .row {
-    margin-top: 0;
-    margin-left: auto;
+  html[data-focus] .meter > .tile .big {
+    font-size: 28px;
   }
   /* « Précédent » et « Suivant » restent à portée de pouce, immobiles. */
+  /* Sur téléphone, le chronomètre (seul sur sa ligne) tient sur une ligne :
+     libellé, temps, boutons. */
+  @media (max-width: 699px) {
+    html[data-focus] .meter > .timer-tile {
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+    html[data-focus] .meter > .timer-tile .row {
+      margin-top: 0;
+      margin-left: auto;
+    }
+  }
   html[data-focus] .navrow {
     order: 5;
     position: sticky;

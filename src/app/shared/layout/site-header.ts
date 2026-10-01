@@ -79,12 +79,15 @@ import { Icon } from '../ui/icon/icon';
         apparition après l'hydratation (sur les navigateurs qui le supportent)
         décale tout l'en-tête — mesuré : CLS ≈ 0,34 sur les trois pages.
       -->
+      <!-- Boutons d'en-tête en icône seule, même sur ordinateur (Phil,
+           1er octobre) : marque, navigation et boutons tiennent sur une
+           ligne. Nommés par aria-label, expliqués au survol par title. -->
       <span class="tool-slot">
         @if (wakeLock.supported()) {
           <button
             type="button"
             filButton="secondary"
-            [iconText]="true"
+            [iconOnly]="true"
             [attr.aria-pressed]="wakeLock.active()"
             [attr.aria-label]="i18n.t('ui.wake')"
             [title]="i18n.t('ui.wake')"
@@ -100,7 +103,7 @@ import { Icon } from '../ui/icon/icon';
       <button
         type="button"
         filButton="secondary"
-        [iconText]="true"
+        [iconOnly]="true"
         [attr.aria-pressed]="prefs.dim()"
         [attr.aria-label]="i18n.t('ui.dim')"
         [title]="i18n.t('ui.dim')"
@@ -114,7 +117,7 @@ import { Icon } from '../ui/icon/icon';
       <a
         class="nav-discord"
         filButton="secondary"
-        [iconText]="true"
+        [iconOnly]="true"
         href="https://discord.gg/DPYydhZRND"
         target="_blank"
         rel="noopener"

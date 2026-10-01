@@ -2,7 +2,6 @@ import { Component, ElementRef, computed, inject, output, viewChild } from '@ang
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DisplayPrefsService, ReaderTextSize } from '../../../core/platform/display-prefs.service';
-import { FullscreenService } from '../../../core/platform/fullscreen.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
@@ -161,7 +160,6 @@ export class StepView {
   private readonly i18n = inject(I18nService);
   protected readonly prefs = inject(DisplayPrefsService);
   private readonly analytics = inject(AnalyticsService);
-  private readonly fullscreen = inject(FullscreenService);
   private readonly focusToggle = viewChild<ElementRef<HTMLButtonElement>>('focusToggle');
 
   /** « Changer de patron », relayé depuis la liste des étapes jusqu'à la page,
@@ -182,7 +180,7 @@ export class StepView {
   }
 
   /** Échap quitte la page pleine, sauf s'il ferme déjà autre chose (boîte de
-   *  dialogue, plein écran du navigateur : celui-ci garde la main). */
+   *  dialogue, diagramme agrandi : celui-ci garde la main). */
   protected leaveFocus(event: Event): void {
     if (event.defaultPrevented || !this.prefs.focus() || !this.store.step()) return;
     this.setFocus(false);
@@ -191,8 +189,6 @@ export class StepView {
   private setFocus(value: boolean): void {
     this.prefs.setFocus(value);
     this.analytics.track('focus_mode_toggled', { value: value ? 'on' : 'off' });
-    if (value) this.fullscreen.enter();
-    else this.fullscreen.exit();
     // Le bouton reste le même élément : le focus ne se perd pas avec le mode.
     this.focusToggle()?.nativeElement.focus();
   }

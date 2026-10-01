@@ -2,7 +2,9 @@ import { type Page, expect, test } from '@playwright/test';
 
 /**
  * Mode page pleine (fiche 38) : une fois le patron chargé, l'écran ne montre
- * que l'étape, ses répétitions et « Précédent » / « Suivant », sans défilement.
+ * que l'étape, les trois compteurs (répétitions, avancement, session) et
+ * « Précédent » / « Suivant », sans défilement. Pas de plein écran du
+ * navigateur : décision de Phil du 1er octobre.
  */
 
 const VIEWPORTS = [
@@ -38,7 +40,6 @@ for (const viewport of VIEWPORTS) {
       for (const masque of [
         page.locator('.nav'),
         page.getByRole('button', { name: 'Share this pattern' }),
-        page.getByText('Progress', { exact: true }),
         page.getByRole('contentinfo'),
       ]) {
         await expect(masque).toBeHidden();
@@ -49,6 +50,8 @@ for (const viewport of VIEWPORTS) {
         page.locator('.step-body'),
         page.locator('.step-progress'),
         page.locator('.reps-tile'),
+        page.locator('.done-tile'),
+        page.locator('.timer-tile'),
         page.getByRole('button', { name: 'Previous', exact: true }),
         page.getByRole('button', { name: 'Next', exact: true }),
         page.getByRole('button', { name: 'Tools', exact: true }),
@@ -72,7 +75,7 @@ for (const viewport of VIEWPORTS) {
 
       await expect(page.locator('html[data-focus]')).toHaveCount(0);
       await expect(page.locator('.nav')).toBeVisible();
-      await expect(page.getByText('Progress', { exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Share this pattern' })).toBeVisible();
       const retour = page.getByRole('button', { name: 'Full page', exact: true });
       await expect(retour).toHaveAttribute('aria-pressed', 'false');
       await expect(retour).toBeFocused();

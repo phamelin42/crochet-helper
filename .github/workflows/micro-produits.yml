@@ -1,0 +1,42 @@
+# Workspace des micro-produits (micro-produits/), tant qu'il vit dans ce
+# dépôt : il a ses propres dépendances et son propre build, que la CI de Fil
+# ne lance pas. Même contenu que micro-produits/.github/workflows/ci.yml, qui
+# prendra le relais quand le workspace aura son dépôt.
+name: Micro-produits
+
+on:
+  push:
+    branches: [main]
+    paths: ['micro-produits/**', '.github/workflows/micro-produits.yml']
+  pull_request:
+    paths: ['micro-produits/**', '.github/workflows/micro-produits.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Micro-produits · lint · tests · build · audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: micro-produits
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: micro-produits/package-lock.json
+
+      - run: npm ci
+
+      - name: Navigateur
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run verify:ci

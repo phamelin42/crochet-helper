@@ -29,13 +29,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 /* `--color-text-label` plutôt que `.card-meta` (color-mix … 50%) : sous 18px,
  * seule sur fond `.card`, cette dernière tombe sous le seuil AA — c'est
  * exactement ce que `--color-text-label` a déjà été calculé pour éviter. */
 .ds-caption {
-  font-size: 11px;
+  font-size: 0.6875rem;
   margin: 0 0 var(--space-2);
   color: var(--color-text-label);
 }
@@ -82,10 +82,10 @@
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: var(--space-3);
   text-align: center;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .ds-icon-grid fil-icon {
-  font-size: 28px;
+  font-size: 1.75rem;
   color: var(--color-sakura-ink);
 }
 

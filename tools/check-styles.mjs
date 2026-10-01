@@ -32,7 +32,11 @@ for await (const file of walk('src/styles')) {
   if (!file.endsWith('.css') || file.endsWith('tokens.css')) continue;
   const lines = (await readFile(file, 'utf8')).split('\n');
   lines.forEach((line, i) => {
-    if (/#[0-9a-f]{3,8}\b/i.test(line.replace(/\/\*.*?\*\//g, ''))) {
+    const sansCommentaire = line.replace(/\/\*.*?\*\//g, '');
+    if (/font-size:[^;]*\d(\.\d+)?px/.test(sansCommentaire)) {
+      problems.push(`${file}:${i + 1} — font-size en px, utiliser rem ou em (fiche 42)`);
+    }
+    if (/#[0-9a-f]{3,8}\b/i.test(sansCommentaire)) {
       problems.push(`${file}:${i + 1} — couleur brute, utiliser un jeton de tokens.css`);
     }
   });

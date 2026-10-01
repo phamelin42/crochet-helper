@@ -1,9 +1,5 @@
 # Construit l'application Android (Trusted Web Activity) : fiche 41.
 #
-# Ce fichier vit ici et non dans `.github/workflows/` parce que le pilote n'a pas
-# le droit d'y écrire. Pour l'activer, le copier tel quel :
-#   cp twa/android.yml .github/workflows/android.yml
-#
 # Lancé à la main seulement. Sans les quatre secrets, il s'arrête proprement et
 # dit lesquels manquent. Le guide est dans `docs/play-store.md`.
 name: Android

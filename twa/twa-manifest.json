@@ -17,7 +17,7 @@
   "webManifestUrl": "https://patternreader.com/manifest.webmanifest",
   "fullScopeUrl": "https://patternreader.com/",
   "appVersion": "1.0.0",
-  "appVersionCode": 1,
+  "appVersionCode": 2,
   "enableNotifications": false,
   "enableSiteSettingsShortcut": false,
   "fallbackType": "customtabs",
@@ -25,7 +25,7 @@
     "path": "./android.keystore",
     "alias": "upload"
   },
-  "minSdkVersion": 21,
+  "minSdkVersion": 24,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
   "generatorApp": "bubblewrap-cli"

@@ -21,6 +21,7 @@ import { Disclosure } from '../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../shared/ui/field/input';
 import { ICONS, Icon, IconName } from '../../shared/ui/icon/icon';
 import { Segmented, SegmentedOption } from '../../shared/ui/segmented/segmented';
+import { TabBar, TabItem } from '../../shared/ui/tab-bar/tab-bar';
 import { Tile } from '../../shared/ui/tile/tile';
 import { TooltipService } from '../../shared/ui/tooltip/tooltip.service';
 
@@ -71,7 +72,7 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
  */
 @Component({
   selector: 'fil-design-system-page',
-  imports: [Button, Checkbox, Dialog, Disclosure, Icon, InputField, Segmented, Tile],
+  imports: [Button, Checkbox, Dialog, Disclosure, Icon, InputField, Segmented, TabBar, Tile],
   host: { class: 'wrap' },
   template: `
     <section class="hero">
@@ -332,6 +333,13 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
         </fil-tile>
       </div>
 
+      <h3>TabBar</h3>
+      <p class="ds-caption">
+        Barre d'onglets du mode appli : icône et libellé toujours visibles. Ici dans le flux ; dans
+        l'application, elle est fixée en bas de l'écran.
+      </p>
+      <fil-tab-bar label="Exemple" [tabs]="tabs" current="projects" />
+
       <h3>Disclosure</h3>
       <div class="grid-cards">
         <div class="card">
@@ -454,6 +462,12 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
 &lt;/fil-disclosure&gt;</pre>
       </div>
 
+      <h3>TabBar</h3>
+      <div class="prompt-box">
+        <pre tabindex="0">
+&lt;fil-tab-bar label="Navigation" [tabs]="tabs" current="projects" (selected)="onTab($event)" /&gt;</pre>
+      </div>
+
       <h3>Dialog</h3>
       <div class="prompt-box">
         <pre tabindex="0">
@@ -503,6 +517,13 @@ export default class DesignSystemPage {
   protected readonly iconNames = Object.keys(ICONS) as IconName[];
 
   protected readonly computedValues = signal<Record<string, string>>({});
+
+  protected readonly tabs: TabItem[] = [
+    { id: 'read', label: 'Lire', icon: 'book', href: '/design-system' },
+    { id: 'projects', label: 'Mes projets', icon: 'folder', href: '/design-system' },
+    { id: 'glossary', label: 'Glossaire', icon: 'glossary', href: '/design-system' },
+    { id: 'settings', label: 'Réglages', icon: 'sliders', href: '/design-system' },
+  ];
 
   protected readonly themeOptions: SegmentedOption[] = [
     { value: 0, label: 'Clair' },

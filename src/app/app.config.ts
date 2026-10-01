@@ -9,7 +9,8 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { provideClientHydration } from '@angular/platform-browser';
-import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { provideRouter, withInMemoryScrolling, withViewTransitions } from '@angular/router';
+import { AppModeService } from './core/platform/app-mode.service';
 import { DisplayPrefsService } from './core/platform/display-prefs.service';
 import { UpdateService } from './core/platform/update.service';
 import { routes } from './app.routes';
@@ -20,6 +21,13 @@ export const appConfig: ApplicationConfig = {
     provideRouter(
       routes,
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
+      // Transitions entre onglets (fiche 43) : le site dans un navigateur
+      // garde ses changements de page secs.
+      withViewTransitions({
+        onViewTransitionCreated: ({ transition }) => {
+          if (!inject(AppModeService).active()) transition.skipTransition();
+        },
+      }),
     ),
     // `withEventReplay()` est volontairement absent. Il rejouerait les clics
     // survenus avant l'hydratation, mais pour cela il injecte deux scripts
@@ -41,6 +49,8 @@ export const appConfig: ApplicationConfig = {
     // `import()` une fois la page rendue, hors du bundle initial (2,2 ko).
     provideAppInitializer(() => {
       inject(UpdateService);
+      // Avant les préférences : `data-app` est posé dès le premier rendu.
+      inject(AppModeService);
       inject(DisplayPrefsService);
       if (!isPlatformBrowser(inject(PLATFORM_ID))) return;
       const injector = inject(Injector);

@@ -8,7 +8,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AppModeService } from '../../../core/platform/app-mode.service';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
@@ -512,6 +513,8 @@ export default class ReaderPage {
   private readonly analytics = inject(AnalyticsService);
   private readonly seo = inject(SeoService);
   private readonly prefs = inject(DisplayPrefsService);
+  private readonly appMode = inject(AppModeService);
+  private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly platformId = inject(PLATFORM_ID);
 
@@ -579,9 +582,25 @@ export default class ReaderPage {
       const untilRestored = effect(() => {
         if (!this.store.restored()) return;
         untilRestored.destroy();
+        if (this.opensOnProjects()) {
+          void this.router.navigateByUrl(this.i18n.link('projects'));
+          return;
+        }
         void this.loadFromFragment();
       });
     }
+  }
+
+  /** À l'ouverture de l'application, « Mes projets » s'il en existe un, sinon
+   *  l'import. Une fois par session, sur l'accueil seulement, et jamais quand
+   *  un permalien attend d'être lu. */
+  private opensOnProjects(): boolean {
+    return (
+      this.appMode.consumeLaunch() &&
+      this.route.snapshot.url.length === 0 &&
+      !window.location.hash &&
+      this.store.projects().length > 0
+    );
   }
 
   /** Bouton primaire du bandeau : charge le patron de démonstration et amène

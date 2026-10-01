@@ -144,6 +144,14 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     en: 'the browser’s install prompt is shown',
   },
   app_installed: { fr: 'l’application est installée', en: 'the app is installed' },
+  app_opened: {
+    fr: 'l’application est ouverte (une fois par session, depuis le Play Store ou l’écran d’accueil)',
+    en: 'the app is opened (once per session, from the Play Store or the home screen)',
+  },
+  app_tab_selected: {
+    fr: 'un onglet de l’application est touché (lire, projets, glossaire ou réglages)',
+    en: 'an app tab is tapped (read, projects, glossary or settings)',
+  },
 };
 
 export const PRIVACY_EVENT_NAMES = Object.keys(PRIVACY_EVENTS) as AnalyticsEvent[];

@@ -86,7 +86,11 @@ export type AnalyticsEvent =
   /** Invite d'installation native affichée (propriété `mode`). */
   | 'install_prompted'
   /** Application installée, événement `appinstalled` (propriété `mode`). */
-  | 'app_installed';
+  | 'app_installed'
+  /** Application ouverte en mode appli, une fois par session (propriété `mode`, `twa` ou `standalone`). */
+  | 'app_opened'
+  /** Onglet de la barre du mode appli touché (propriété `tab` : `read`, `projects`, `glossary` ou `settings`). */
+  | 'app_tab_selected';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

@@ -52,14 +52,24 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # Le paquet `tools`, installé par défaut par l'action, n'existe plus :
+      # on nomme ceux dont Bubblewrap 1.25 a besoin (BUILD_TOOLS_VERSION
+      # 36.1.0, compileSdkVersion 36 de son gabarit).
       - uses: android-actions/setup-android@v3
         if: steps.secrets.outputs.complet == 'true'
+        with:
+          packages: platform-tools build-tools;36.1.0 platforms;android-36
 
       - name: Préparer Bubblewrap
         if: steps.secrets.outputs.complet == 'true'
         run: |
           npm install --global @bubblewrap/cli@1.25.0
           mkdir -p ~/.bubblewrap
+          # Bubblewrap veut `tools/` (ou `bin/`) à la racine du SDK, l'ancienne
+          # disposition : un lien vers les cmdline-tools les plus récents.
+          if [ ! -e "$ANDROID_HOME/tools" ]; then
+            ln -s "$(ls -d "$ANDROID_HOME"/cmdline-tools/* | sort -V | tail -1)" "$ANDROID_HOME/tools"
+          fi
           printf '{"jdkPath":"%s","androidSdkPath":"%s"}\n' "$JAVA_HOME" "$ANDROID_HOME" > ~/.bubblewrap/config.json
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > twa/android.keystore
           # L'alias vient du secret : le manifeste du dépôt n'en porte qu'un par défaut.

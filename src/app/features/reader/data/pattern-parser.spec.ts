@@ -506,4 +506,48 @@ describe('parsePattern', () => {
       expect(pattern.pieces[0].steps[0].images).toEqual([1]);
     });
   });
+
+  /**
+   * Un patron passé par un assistant IA revient en Markdown. Chaque forme
+   * ci-dessous donnait zéro étape, sans message : la lectrice cliquait
+   * « Split into steps » et rien ne se passait.
+   */
+  describe('mise en forme Markdown d’un assistant IA', () => {
+    const FORMES: Record<string, string> = {
+      'gras autour du libellé et des deux-points':
+        '**Row 1:** ch 86, sc across.\n**Row 2:** ch 1, sc across.',
+      'gras autour du libellé seul': '**Row 1**: ch 86, sc across.\n**Row 2**: ch 1, sc across.',
+      puce: '- Row 1: ch 86, sc across.\n- Row 2: ch 1, sc across.',
+      'puce et gras': '- **Row 1:** ch 86, sc across.\n- **Row 2:** ch 1, sc across.',
+      'puce ronde': '• Row 1: ch 86, sc across.\n• Row 2: ch 1, sc across.',
+      'liste numérotée et gras': '1. **Row 1**: ch 86, sc across.\n2. **Row 2**: ch 1, sc across.',
+      'titre de section': '### Back\n**Row 1:** ch 86, sc across.\n**Row 2:** ch 1, sc across.',
+      'souligné double': '__Row 1:__ ch 86, sc across.\n__Row 2:__ ch 1, sc across.',
+      'étapes en anglais': 'Step 1: ch 86, sc across.\nStep 2: ch 1, sc across.',
+      'étapes en français': 'Étape 1 : ch 86, sc across.\nÉtape 2 : ch 1, sc across.',
+    };
+
+    for (const [forme, texte] of Object.entries(FORMES)) {
+      it(`découpe en étapes : ${forme}`, () => {
+        const steps = parsePattern(texte).pieces.flatMap((piece) => piece.steps);
+        expect(steps.map((step) => step.body)).toEqual(['ch 86, sc across.', 'ch 1, sc across.']);
+        for (const step of steps) expect(step.label).not.toMatch(/[*_#]/);
+      });
+    }
+
+    it('garde une marque de répétition « ** » en tête de ligne', () => {
+      // La ligne de répétition se rattache au rang précédent (comportement
+      // existant) : seuls les « ** » importent ici, ils doivent rester.
+      const pattern = parsePattern('Row 1: **sc, inc** 6 times (18)\n**sc 2, inc** rep 6 times');
+      expect(pattern.pieces[0].steps[0].body).toBe(
+        '**sc, inc** 6 times (18) **sc 2, inc** rep 6 times',
+      );
+    });
+
+    it('ne fait pas d’une liste de matériel à puces des étapes', () => {
+      const pattern = parsePattern('Materials:\n- 100 g DK yarn\n- 4 mm hook\n\nRow 1: ch 10');
+      expect(pattern.total).toBe(1);
+      expect(pattern.materials.join(' ')).toContain('4 mm hook');
+    });
+  });
 });

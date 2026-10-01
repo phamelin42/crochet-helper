@@ -35,6 +35,8 @@ const FR = {
   'ui.pdfEmpty':
     'Ce PDF ressemble à une image scannée : le texte ne peut pas en être extrait. Collez le texte du patron ci-dessus à la place.',
   'ui.pdfError': "Ce PDF n'a pas pu être lu. Collez le texte du patron ci-dessus à la place.",
+  'ui.noRows':
+    'Aucun rang numéroté trouvé. Pattern Reader crée une étape par rang ou tour numéroté (« Rang 1 : », « Tour 2 : », « 1. »). Un patron rédigé en paragraphes ou donné en grille ne peut pas encore être découpé.',
   'ui.cancel': 'Annuler',
   'ui.copyPatternLink': 'Partager le patron',
   'ui.linkCopied': 'Lien copié dans le presse-papiers.',
@@ -139,6 +141,8 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.pdfEmpty':
     "This PDF looks like a scanned image: its text can't be extracted. Paste the pattern text above instead.",
   'ui.pdfError': "This PDF couldn't be read. Paste the pattern text above instead.",
+  'ui.noRows':
+    'No numbered rows found. Pattern Reader makes one step per numbered row or round (“Row 1:”, “Rnd 2:”, “1.”). A pattern written as paragraphs, or given as a chart, can’t be split yet.',
   'ui.cancel': 'Cancel',
   'ui.copyPatternLink': 'Share this pattern',
   'ui.linkCopied': 'Link copied to clipboard.',

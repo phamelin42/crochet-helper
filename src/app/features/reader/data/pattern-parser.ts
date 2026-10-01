@@ -14,9 +14,13 @@ import { EMPTY_PATTERN, Pattern, PatternPiece, PatternStep } from './pattern.mod
  *     mailles à réaliser, pour que le lecteur affiche une ou deux lignes.
  */
 
-/** « Rang 1 », « Rangs 3-6 », « Round 12 », « Rnd 5 », « T. 4 », « Row 2 à 4 ». */
+/**
+ * « Rang 1 », « Rangs 3-6 », « Round 12 », « Rnd 5 », « T. 4 », « Row 2 à 4 »,
+ * et « Step 1 » / « Étape 1 », la numérotation que choisit souvent un
+ * assistant IA quand on lui demande de mettre un patron en étapes.
+ */
 const ROW =
-  /^(rangs?|tours?|rows?|rounds?|rnds?|rgs?|r|t)\s*\.?\s*(\d+)\s*(?:(?:[-–—/]|\s+(?:à|a|to|au)\s+)\s*(\d+))?\s*(?:[:.)\]]|\s+[-–—]\s+)?\s*/i;
+  /^(rangs?|tours?|rows?|rounds?|rnds?|rgs?|steps?|[ée]tapes?|r|t)\s*\.?\s*(\d+)\s*(?:(?:[-–—/]|\s+(?:à|a|to|au)\s+)\s*(\d+))?\s*(?:[:.)\]]|\s+[-–—]\s+)?\s*/i;
 
 /**
  * Numérotation nue : « 1. », « 5-17. », « 4-5 - », « 3) ».
@@ -95,6 +99,42 @@ function stripHeaderDecoration(line: string): string {
     .replace(/^#{1,6}\s+/, '')
     .replace(BULLET, '')
     .trim();
+}
+
+/**
+ * Mise en forme Markdown d'un texte passé par un assistant IA : titres
+ * (`### Back`), gras autour du libellé (`**Row 1:**`, `**Row 1**:`), puce ou
+ * numéro de liste devant un rang (`- Row 1:`, `1. **Row 1**:`). Sans ce
+ * nettoyage, le libellé de rang n'est plus en tête de ligne et le patron
+ * entier donne zéro étape.
+ *
+ * Prudente par construction : le gras n'est retiré que s'il entoure un
+ * libellé de rang, un en-tête (`**Back:**`) ou la ligne entière, et la puce
+ * ou le numéro de liste seulement s'ils précèdent un rang. Une ligne qui
+ * commence par `**` comme marque de répétition (`**sc, inc** 6 fois`) reste
+ * intacte, comme une liste de matériel à puces.
+ */
+const MD_HEADING = /^#{1,6}\s+/;
+const MD_LIST = /^(?:[-•·]|\d{1,3}[.)])\s+/;
+const MD_BOLD_LEAD = /^(\*\*|__)(.{1,60}?)\1/;
+
+function unbold(line: string): string {
+  const match = MD_BOLD_LEAD.exec(line);
+  if (!match) return line;
+  const inner = match[2].trim();
+  const rest = line.slice(match[0].length);
+  const labelled = ROW.test(inner) || inner.endsWith(':') || /^\s*:/.test(rest) || !rest.trim();
+  return labelled ? `${inner}${rest}` : line;
+}
+
+function stripMarkdown(line: string): string {
+  const text = unbold(line.replace(MD_HEADING, ''));
+  const listless = text.replace(MD_LIST, '');
+  if (listless !== text) {
+    const row = unbold(listless);
+    if (ROW.test(row)) return row;
+  }
+  return text;
 }
 
 /** Cases à cocher des patrons imprimables : « [_] », « [ ] », « [x][x] ». */
@@ -352,7 +392,7 @@ export function parsePattern(raw: string): Pattern {
     .replace(/&amp;/g, '&')
     .replace(/&nbsp;/g, ' ')
     .split('\n')
-    .map((line) => line.trim().replace(CHECKBOX, '').trim())
+    .map((line) => stripMarkdown(line.trim().replace(CHECKBOX, '').trim()).trim())
     .filter((line) => line && !CHROME.test(line));
 
   // Pré-passe : la numérotation nue ne s'active qu'à défaut de vrai libellé.

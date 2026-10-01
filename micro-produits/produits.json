@@ -1,5 +1,5 @@
 {
-  "$commentaire": "Une entrée par micro-produit. `domaine` est provisoire tant qu'il n'est pas acheté : il ne sert qu'aux URL canoniques et au sitemap. `accentFonce` porte du texte blanc (bouton principal) : contraste ≥ 4,5:1 exigé par outils/nouveau-produit.test.mjs. `editeur` et `mesure` sont communs : recopiés dans le produit.json de chaque dépôt, où siteId et googleVerification se complètent au lancement.",
+  "$commentaire": "Une entrée par produit : c'est la configuration que le schematic recopie dans projects/<slug>/produit.json, avec `editeur` et `mesure` communs. `domaine` est provisoire tant qu'il n'est pas acheté. `theme.accentFonce` porte du texte blanc (contraste ≥ 4,5:1) ; avec `theme.sombre`, `theme.accent` sert de couleur de lien sur fond sombre (≥ 4,5:1). `public`, `fonction` et `offreEnvisagee` sont des notes internes, jamais affichées : le texte visible vit dans le contenu.json du produit, rédigé pour lui seul.",
   "editeur": {
     "nom": "À COMPLÉTER",
     "statut": "À COMPLÉTER (entrepreneur individuel, SIREN …)",
@@ -24,9 +24,17 @@
       "description": "Créez gratuitement un devis d'artisan ou d'auto-entrepreneur conforme : logo, mentions légales obligatoires, TVA ou franchise, export PDF. Sans inscription.",
       "fonction": "formulaire de devis (client, lignes, TVA ou franchise en base, conditions), logo chargé localement, mentions obligatoires selon le statut, aperçu fidèle",
       "exports": ["pdf", "impression"],
-      "offre": "devis illimités, numérotation suivie et relances (après validation d'un back-end, ADR à écrire)",
-      "accent": "#e8a33d",
-      "accentFonce": "#8a4b00"
+      "offreEnvisagee": "devis illimités, numérotation suivie et relances (après validation d'un back-end, ADR à écrire)",
+      "logo": "logo.svg",
+      "theme": {
+        "accent": "#e8a33d",
+        "accentFonce": "#8a4b00",
+        "typographie": "geometrique",
+        "sombre": false
+      },
+      "offre": {
+        "statut": "bientot"
+      }
     },
     {
       "semaine": 2,
@@ -39,9 +47,17 @@
       "description": "Calendrier de garde alternée (une semaine sur deux, 2-2-3, 2-2-5-5) avec vacances scolaires, à imprimer en PDF ou exporter en iCal. Gratuit.",
       "fonction": "choix d'un modèle de rythme, date de départ, parent de la première période, vacances scolaires par zone, calendrier annuel coloré par parent",
       "exports": ["pdf", "ical", "impression"],
-      "offre": "partage synchronisé entre les deux parents et historique des échanges de jours",
-      "accent": "#5aa9c9",
-      "accentFonce": "#1e5d78"
+      "offreEnvisagee": "partage synchronisé entre les deux parents et historique des échanges de jours",
+      "logo": "logo.svg",
+      "theme": {
+        "accent": "#5aa9c9",
+        "accentFonce": "#1e5d78",
+        "typographie": "arrondie",
+        "sombre": false
+      },
+      "offre": {
+        "statut": "bientot"
+      }
     },
     {
       "semaine": 3,
@@ -54,9 +70,17 @@
       "description": "Inventaire de collection (vinyles, timbres, Lego, cartes) : photo, état, valeur, export assurance. Gratuit, hors ligne, données sur votre appareil.",
       "fonction": "fiches d'objets par collection (photo réduite localement, état normalisé, valeur estimée, date d'achat), recherche, total par collection",
       "exports": ["pdf", "csv"],
-      "offre": "synchronisation entre appareils et sauvegarde des photos",
-      "accent": "#9b7bc4",
-      "accentFonce": "#5b3a87"
+      "offreEnvisagee": "synchronisation entre appareils et sauvegarde des photos",
+      "logo": "logo.svg",
+      "theme": {
+        "accent": "#9b7bc4",
+        "accentFonce": "#5b3a87",
+        "typographie": "serif",
+        "sombre": false
+      },
+      "offre": {
+        "statut": "bientot"
+      }
     },
     {
       "semaine": 4,
@@ -69,9 +93,17 @@
       "description": "Calculez le prix de vente de vos créations fait main : matières, temps de travail, charges, commission Etsy et marge. Gratuit, sans inscription.",
       "fonction": "saisie des matières (quantité utilisée sur quantité achetée), du temps et du taux horaire, des charges et commissions de plateforme, prix conseillé gros et détail",
       "exports": ["pdf", "csv"],
-      "offre": "catalogue de fiches produit et mise à jour des prix quand une matière augmente",
-      "accent": "#e07a8f",
-      "accentFonce": "#9c2f48"
+      "offreEnvisagee": "catalogue de fiches produit et mise à jour des prix quand une matière augmente",
+      "logo": "logo.svg",
+      "theme": {
+        "accent": "#e07a8f",
+        "accentFonce": "#9c2f48",
+        "typographie": "arrondie",
+        "sombre": false
+      },
+      "offre": {
+        "statut": "bientot"
+      }
     },
     {
       "semaine": 5,
@@ -84,9 +116,17 @@
       "description": "Rédigez gratuitement un contrat de location saisonnière pour un meublé de tourisme, avec état des lieux et inventaire, prêt à imprimer en PDF.",
       "fonction": "formulaire guidé (parties, logement, dates, prix, arrhes ou acompte, taxe de séjour, dépôt de garantie), état des lieux et inventaire pièce par pièce",
       "exports": ["pdf", "impression"],
-      "offre": "modèles enregistrés par logement et contrats successifs pré-remplis",
-      "accent": "#6fb56d",
-      "accentFonce": "#2f6b2d"
+      "offreEnvisagee": "modèles enregistrés par logement et contrats successifs pré-remplis",
+      "logo": "logo.svg",
+      "theme": {
+        "accent": "#6fb56d",
+        "accentFonce": "#2f6b2d",
+        "typographie": "serif",
+        "sombre": false
+      },
+      "offre": {
+        "statut": "bientot"
+      }
     },
     {
       "semaine": 6,
@@ -99,9 +139,17 @@
       "description": "Planifiez votre road trip en van ou camping-car : étapes, aires, autonomie en eau et batterie, feuille de route à imprimer. Gratuit, fonctionne hors ligne.",
       "fonction": "liste d'étapes avec distances saisies, calcul d'autonomie (réservoir, consommation par personne, batterie et panneaux), alertes de ravitaillement",
       "exports": ["pdf", "impression"],
-      "offre": "itinéraires multiples, partage avec les co-voyageurs",
-      "accent": "#e3874b",
-      "accentFonce": "#9a4512"
+      "offreEnvisagee": "itinéraires multiples, partage avec les co-voyageurs",
+      "logo": "logo.svg",
+      "theme": {
+        "accent": "#e3874b",
+        "accentFonce": "#9a4512",
+        "typographie": "geometrique",
+        "sombre": true
+      },
+      "offre": {
+        "statut": "bientot"
+      }
     },
     {
       "semaine": 7,
@@ -114,9 +162,17 @@
       "description": "Adaptez une recette au nombre de personnes, convertissez les unités américaines (cups, oz, °F) en métrique et ajustez à la taille de votre moule. Gratuit.",
       "fonction": "collage d'une recette, détection des quantités et unités, mise à l'échelle par convives ou par surface de moule, conversion US / métrique",
       "exports": ["impression", "pdf"],
-      "offre": "carnet de recettes synchronisé",
-      "accent": "#d9a441",
-      "accentFonce": "#7d5300"
+      "offreEnvisagee": "carnet de recettes synchronisé",
+      "logo": "logo.svg",
+      "theme": {
+        "accent": "#d9a441",
+        "accentFonce": "#7d5300",
+        "typographie": "serif",
+        "sombre": false
+      },
+      "offre": {
+        "statut": "bientot"
+      }
     },
     {
       "semaine": 8,
@@ -129,9 +185,17 @@
       "description": "Carnet d'entretien voiture en ligne : rappels de vidange, courroie, contrôle technique, historique à remettre à l'acheteur. Gratuit, sans inscription.",
       "fonction": "véhicule, kilométrage, opérations faites avec date et coût, échéances calculées (kilométrage ou date), historique imprimable",
       "exports": ["pdf", "ical"],
-      "offre": "plusieurs véhicules, rappels par e-mail",
-      "accent": "#5b8dd6",
-      "accentFonce": "#234f8f"
+      "offreEnvisagee": "plusieurs véhicules, rappels par e-mail",
+      "logo": "logo.svg",
+      "theme": {
+        "accent": "#5b8dd6",
+        "accentFonce": "#234f8f",
+        "typographie": "geometrique",
+        "sombre": false
+      },
+      "offre": {
+        "statut": "bientot"
+      }
     },
     {
       "semaine": 9,
@@ -144,9 +208,17 @@
       "description": "Créez votre planning de révisions pour le bac ou un examen : répartition par matière et coefficient jusqu'à la date, répétitions espacées, à imprimer. Gratuit.",
       "fonction": "date d'examen, matières et coefficients, disponibilités par jour, répartition automatique avec répétitions espacées, cases à cocher",
       "exports": ["pdf", "ical", "impression"],
-      "offre": "suivi de progression et ajustement automatique quand on prend du retard",
-      "accent": "#c46fb8",
-      "accentFonce": "#7f2f74"
+      "offreEnvisagee": "suivi de progression et ajustement automatique quand on prend du retard",
+      "logo": "logo.svg",
+      "theme": {
+        "accent": "#d17fc5",
+        "accentFonce": "#7f2f74",
+        "typographie": "humaniste",
+        "sombre": true
+      },
+      "offre": {
+        "statut": "bientot"
+      }
     },
     {
       "semaine": 10,
@@ -159,9 +231,17 @@
       "description": "Calculez le volume de votre aquarium en litres (rectangulaire, cylindrique, d'angle), la dose d'engrais ou de traitement, et un planning d'entretien. Gratuit.",
       "fonction": "formes de bac et dimensions, volume brut et net (décor, sable), doses par produit et par litre, planning de changements d'eau ou d'arrosage",
       "exports": ["impression", "ical"],
-      "offre": "suivi de plusieurs bacs ou plantes, journal des paramètres de l'eau",
-      "accent": "#3fb0a8",
-      "accentFonce": "#14635e"
+      "offreEnvisagee": "suivi de plusieurs bacs ou plantes, journal des paramètres de l'eau",
+      "logo": "logo.svg",
+      "theme": {
+        "accent": "#3fb0a8",
+        "accentFonce": "#14635e",
+        "typographie": "humaniste",
+        "sombre": false
+      },
+      "offre": {
+        "statut": "bientot"
+      }
     }
   ]
 }

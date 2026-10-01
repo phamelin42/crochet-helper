@@ -1,0 +1,60 @@
+/*
+ * Seul fichier où vivent des valeurs brutes de style (tools/check-styles.mjs).
+ * L'accent et le bouton principal (`--color-accent`, `--color-primary`) et la
+ * typographie (`--font-body`) viennent du produit.json de chaque produit :
+ * la coquille (`mp-shell`) les pose en propriétés CSS.
+ */
+:root {
+  --color-bg: #fbf8f3;
+  --color-surface: #ffffff;
+  --color-ink: #2b2433;
+  --color-ink-soft: #5c5466;
+  --color-line: #ddd5e0;
+  --color-on-primary: #ffffff;
+  --color-focus: #1f5fbf;
+
+  --font-humaniste: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-geometrique: 'Avenir Next', 'Century Gothic', Futura, system-ui, sans-serif;
+  --font-serif: Charter, 'Bitstream Charter', 'Sitka Text', Cambria, Georgia, serif;
+  --font-arrondie: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT', system-ui, sans-serif;
+
+  --text-base: 1.125rem;
+  --text-lead: 1.375rem;
+  --text-h1: clamp(1.875rem, 1.4rem + 2.4vw, 2.75rem);
+  --text-h2: 1.5rem;
+  --text-h3: 1.1875rem;
+  --leading: 1.55;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  --radius: 0.75rem;
+  --shadow: 0 1px 2px rgb(43 36 51 / 8%), 0 4px 16px rgb(43 36 51 / 6%);
+  --measure: 42rem;
+  --tap: 3rem;
+}
+
+/* Thème sombre : choix explicite (`data-theme`), jamais `prefers-color-scheme`. */
+:root[data-theme='sombre'] {
+  --color-bg: #1f1b24;
+  --color-surface: #2a2530;
+  --color-ink: #f2edf5;
+  --color-ink-soft: #c9c0d0;
+  --color-line: #4a4252;
+  --color-focus: #8fb8ff;
+  --shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

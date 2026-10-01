@@ -8,7 +8,8 @@ import { expect, test } from '@playwright/test';
  *
  * Profil : mobile bridé (4G lente, processeur ÷4), le même que le rapport.
  */
-const PAGES = ['/', '/glossary', '/fr/glossaire/ms'] as const;
+// `/?mode=app` : l'accueil en mode appli (fiche 43), barres fixes comprises.
+const PAGES = ['/', '/glossary', '/fr/glossaire/ms', '/?mode=app'] as const;
 const CLS_MAX = 0.05;
 const LCP_MAX_MS = 2000;
 

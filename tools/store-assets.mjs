@@ -8,11 +8,12 @@ import { chromium } from '@playwright/test';
 /**
  * Visuels de la fiche Play Store (fiche 41), tirés du build statique de `dist/` :
  *
- * - `docs/play-store/capture-{1..4}-*.png` — 1080 × 1920 : page pleine, répétitions,
- *   abréviation expliquée, fond sombre, avec le patron d'exemple du site ;
+ * - `docs/play-store/capture-{1..3}-*.png` — 1080 × 2160 (rapport 2:1, le plus
+ *   haut qu'accepte Google) : page pleine, page complète, glossaire, avec le
+ *   patron d'exemple du site ;
  * - `docs/play-store/presentation-{en,fr}.png` — image de présentation 1024 × 500 ;
  * - `docs/play-store/icone-512.png` — l'icône du manifeste ;
- * - `public/screenshots/*.png` — les mêmes captures en 540 × 960, que le manifeste
+ * - `public/screenshots/*.png` — les mêmes captures en 540 × 1080, que le manifeste
  *   annonce pour l'invite d'installation enrichie.
  *
  * Hors de la chaîne de build et de la CI : à relancer après `npm run build:app`
@@ -29,10 +30,9 @@ const PUBLIC_SHOTS = join(ROOT, 'public', 'screenshots');
 const url = (path) => pathToFileURL(join(ROOT, path)).href;
 
 const SHOTS = [
-  { name: 'lecteur', label: '1-lecteur' },
-  { name: 'repetitions', label: '2-repetitions' },
-  { name: 'abreviation', label: '3-abreviation' },
-  { name: 'sombre', label: '4-sombre' },
+  { name: 'page-pleine', label: '1-page-pleine' },
+  { name: 'page-complete', label: '2-page-complete' },
+  { name: 'glossaire', label: '3-glossaire' },
 ];
 
 const PRESENTATION = {
@@ -42,30 +42,53 @@ const PRESENTATION = {
 
 /** Les étapes qui mènent à chaque capture, dans l'ordre : chacune prolonge la précédente. */
 async function prendre(page, nom, fichier) {
-  if (nom === 'lecteur') {
+  if (nom === 'page-pleine') {
+    // Le lecteur s'ouvre en page pleine (fiche 38). Deux étapes plus loin et
+    // deux répétitions comptées : un ouvrage en cours, pas un écran vierge.
+    // Horloge simulée : le chronomètre affiche une vraie séance, pas « 0:00 ».
+    await page.clock.install();
     await page.goto(BASE + '/');
     await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
     await page.getByRole('button', { name: 'Example', exact: true }).click();
     await page.locator('.step-body').waitFor();
-  } else if (nom === 'repetitions') {
+    const next = page.getByRole('button', { name: 'Next', exact: true });
+    for (let i = 0; i < 2; i++) {
+      const avant = await page.locator('.step-body').innerText();
+      await next.click();
+      await page.waitForFunction(
+        (texte) => document.querySelector('.step-body')?.textContent?.trim() !== texte.trim(),
+        avant,
+      );
+    }
     const plus = page.getByRole('button', { name: '+', exact: true });
     await plus.click();
     await plus.click();
-  } else if (nom === 'abreviation') {
-    await page.locator('.abbr', { hasText: /^sc$/ }).first().hover();
-    await page.locator('.tip.on').waitFor();
+    await page.clock.runFor('12:34');
+  } else if (nom === 'page-complete') {
+    // « Tools » rend la page complète : en-tête, réglages, partage.
+    await page.getByRole('button', { name: 'Tools', exact: true }).click();
+    await page.locator('html:not([data-focus])').waitFor({ state: 'attached' });
+    await page.evaluate(() => window.scrollTo(0, 0));
   } else {
-    await page.mouse.move(0, 0);
-    await page.evaluate(() => document.documentElement.setAttribute('data-dim', 'true'));
-    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(BASE + '/glossary');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    // La liste elle-même, pas seulement l'introduction : on défile jusqu'aux filtres.
+    await page
+      .getByText('Filter abbreviations')
+      .evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 16));
   }
+  await page.mouse.move(0, 0);
+  await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: fichier });
 }
 
-async function captures(browser, scale, dossier, nomDe) {
+/** Téléphone courant (390 px de large), rapport 2:1 : 1080 × 2160 à l'échelle de la boutique. */
+const LARGEUR = 390;
+
+async function captures(browser, largeurPx, dossier, nomDe) {
   const context = await browser.newContext({
-    viewport: { width: 360, height: 640 },
-    deviceScaleFactor: scale,
+    viewport: { width: LARGEUR, height: LARGEUR * 2 },
+    deviceScaleFactor: largeurPx / LARGEUR,
     isMobile: true,
     hasTouch: false,
     reducedMotion: 'reduce',
@@ -111,8 +134,8 @@ const browser = await chromium.launch({
   executablePath: process.env.PW_CHROMIUM || undefined,
 });
 try {
-  await captures(browser, 3, DOCS, (s) => `capture-${s.label}.png`);
-  await captures(browser, 1.5, PUBLIC_SHOTS, (s) => `${s.name}.png`);
+  await captures(browser, 1080, DOCS, (s) => `capture-${s.label}.png`);
+  await captures(browser, 540, PUBLIC_SHOTS, (s) => `${s.name}.png`);
 
   const page = await browser.newPage({ viewport: { width: 1024, height: 500 } });
   // Un fichier local, pas `setContent` : une page `about:blank` ne peut charger

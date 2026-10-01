@@ -215,11 +215,12 @@ Produits par `node tools/store-assets.mjs` (à relancer après un changement du
 lecteur, voir l'en-tête du script). Jamais un patron de tiers : le patron
 d'exemple du site.
 
-| Fichier                              | Usage                                                     |
-| ------------------------------------ | --------------------------------------------------------- |
-| `docs/play-store/icone-512.png`      | icône de l'application (512 × 512)                        |
-| `docs/play-store/presentation-*.png` | image de présentation (1024 × 500), `en` et `fr`          |
-| `docs/play-store/capture-1…4-*.png`  | captures téléphone 1080 × 1920 : page pleine, répétitions |
+| Fichier                              | Usage                                                                  |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| `docs/play-store/icone-512.png`      | icône de l'application (512 × 512)                                     |
+| `docs/play-store/presentation-*.png` | image de présentation (1024 × 500), `en` et `fr`                       |
+| `docs/play-store/capture-1…3-*.png`  | captures téléphone 1080 × 2160 : page pleine, page complète, glossaire |
 
-Les captures montrent, dans l'ordre : la page pleine, le compteur de répétitions,
-une abréviation expliquée, le fond sombre.
+Les captures montrent, dans l'ordre : la page pleine (une étape en cours, deux
+répétitions comptées, une séance de 12 min 34), la page complète du lecteur et le
+glossaire.

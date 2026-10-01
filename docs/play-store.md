@@ -37,9 +37,8 @@ secrets :
 
 ### 3. Lancer la construction et récupérer l'`.aab`
 
-Le workflow est livré dans `twa/android.yml` parce que le pilote n'a pas le droit
-d'écrire dans `.github/`. Une fois : `cp twa/android.yml .github/workflows/android.yml`,
-commit, merge. Puis Actions → **Android** → Run workflow. Sans les secrets, il
+Actions → **Android** → Run workflow (le workflow est
+`.github/workflows/android.yml`). Sans les secrets, il
 s'arrête en listant ceux qui manquent. Sinon, l'artefact `application-android`
 contient `app-release-bundle.aab`.
 

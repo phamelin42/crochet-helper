@@ -164,15 +164,12 @@ for (const route of ROUTES) {
 }
 
 /**
- * Fiche 32 : un public de 50 à 70 ans ne clique pas une icône seule (audit
- * UX-6). Sous 900 px, seul `aria-label` porte le nom des boutons d'en-tête ;
- * au-delà, `.btn-icon-text::after` (`hanami.css`) l'affiche aussi à l'écran,
- * via `content: attr(aria-label)` — pas de libellé dupliqué dans le gabarit,
- * pour ne pas alourdir le bundle initial. Sur téléphone, le bouton Discord
- * quitte l'en-tête pour laisser la place au fond sombre : le pied de page
- * garde le lien.
+ * Boutons d'en-tête en icône seule à toutes les tailles (Phil, 1er octobre,
+ * revenant sur la fiche 32) : nommés par `aria-label`, expliqués au survol
+ * par `title`. Sur téléphone, le bouton Discord quitte l'en-tête pour laisser
+ * la place au fond sombre : le pied de page garde le lien.
  */
-test.describe('en-tête : icône + texte des boutons', () => {
+test.describe('en-tête : boutons en icône nommée', () => {
   test('sous 900 px, « Fond sombre » est une icône nommée ; Discord reste au pied de page', async ({
     page,
   }) => {
@@ -191,7 +188,10 @@ test.describe('en-tête : icône + texte des boutons', () => {
     expect(await seriousViolations(page)).toEqual([]);
   });
 
-  test('à 1024 px, les libellés apparaissent à côté des icônes', async ({ page }) => {
+  // Phil, 1er octobre : sur ordinateur, « Fond sombre » et Discord perdent
+  // leur libellé visible (l'en-tête se répartit la ligne) ; ils restent
+  // nommés par aria-label et expliqués au survol par title.
+  test('à 1024 px, « Fond sombre » et Discord sont des icônes nommées', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 800 });
     await page.goto('/');
     const header = page.locator('fil-site-header');
@@ -199,9 +199,16 @@ test.describe('en-tête : icône + texte des boutons', () => {
       header.getByRole('link', { name: 'Join the Discord' }),
       header.getByRole('button', { name: 'Dark background' }),
     ]) {
+      await expect(button).toBeVisible();
       const content = await button.evaluate((el) => getComputedStyle(el, '::after').content);
-      expect(content).toContain(await button.getAttribute('aria-label'));
+      expect(content).toBe('none');
+      expect(await button.getAttribute('title')).toBe(await button.getAttribute('aria-label'));
     }
+    // Marque, navigation et boutons sur une seule ligne.
+    const marque = (await header.locator('.nav-brand').boundingBox())!;
+    const outils = (await header.locator('.tools').boundingBox())!;
+    expect(Math.abs(outils.y + outils.height / 2 - (marque.y + marque.height / 2))).toBeLessThan(8);
+    expect(await seriousViolations(page)).toEqual([]);
   });
 });
 

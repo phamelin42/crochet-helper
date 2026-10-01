@@ -89,15 +89,20 @@
   height: var(--control-size);
   flex: none;
 }
-/* Au-delà de 900 px, le bouton affiche son libellé (`.btn-icon-text` dans
-   `hanami.css`) : la réservation de largeur fixe ne s'applique plus qu'à sa
-   hauteur, sinon le texte serait tronqué. */
-@media (min-width: 900px) {
-  .tool-slot {
-    width: auto;
+/* Sur ordinateur, marque, navigation et boutons se répartissent la ligne
+   (elle ne tient qu'à partir de 1024 px). */
+@media (min-width: 1024px) {
+  .nav {
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-links {
+    flex: 0 1 auto;
+  }
+  .tools {
+    margin-left: 0;
   }
 }
-
 main {
   padding-bottom: var(--space-10);
 }
@@ -151,9 +156,9 @@ main {
   }
 }
 
-/* Sous 900 px : marque et boutons sur la première ligne, navigation sur la
+/* Sous 1024 px : marque et boutons sur la première ligne, navigation sur la
    seconde. */
-@media (max-width: 899px) {
+@media (max-width: 1023px) {
   /* Une seule ligne, qui défile au doigt : sur deux lignes, l'en-tête
      prenait un tiers de l'écran d'un téléphone. Hauteur fixe par nature
      (aucun retour à la ligne) : rien ne bouge à l'hydratation, même quand

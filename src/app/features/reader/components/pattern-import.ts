@@ -1,4 +1,4 @@
-import { Component, ElementRef, effect, inject, model, viewChild } from '@angular/core';
+import { Component, ElementRef, effect, inject, model, signal, viewChild } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
@@ -84,6 +84,8 @@ import { ReaderStore } from '../state/reader-store';
           }
           @if (pdfErrorMessage(); as message) {
             <p class="hint" role="alert">{{ message }}</p>
+          } @else if (noRows()) {
+            <p class="hint" role="alert">{{ t('ui.noRows') }}</p>
           }
         </div>
       </div>
@@ -101,6 +103,12 @@ export class PatternImport {
   protected readonly intake = inject(ChartIntake);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
+
+  /**
+   * Texte chargé, mais aucun rang reconnu : sans ce message, « Split into
+   * steps » ne faisait rien de visible et la lectrice ne savait pas pourquoi.
+   */
+  protected readonly noRows = signal(false);
 
   constructor() {
     // Rouvre le panneau dès qu'une erreur de PDF survient, y compris quand le
@@ -124,7 +132,15 @@ export class PatternImport {
 
   protected load(text: string): void {
     this.store.load(text);
+    if (this.reportNoRows()) return;
     this.open.set(false);
+  }
+
+  /** Vrai, et le panneau reste ouvert avec le message, si rien n'est découpé. */
+  private reportNoRows(): boolean {
+    const empty = !!this.store.source().trim() && this.store.total() === 0;
+    this.noRows.set(empty);
+    return empty;
   }
 
   protected async onPdfChange(event: Event): Promise<void> {
@@ -136,6 +152,7 @@ export class PatternImport {
     if (this.store.pdfError()) return;
     const field = this.source();
     if (field) field.nativeElement.value = this.store.source();
+    if (this.reportNoRows()) return;
     this.open.set(false);
   }
 
@@ -150,11 +167,13 @@ export class PatternImport {
     this.store.loadDemo();
     const field = this.source();
     if (field) field.nativeElement.value = this.store.source();
+    if (this.reportNoRows()) return;
     this.open.set(false);
   }
 
   protected clear(): void {
     this.store.clear();
+    this.noRows.set(false);
     const field = this.source();
     if (field) field.nativeElement.value = '';
   }

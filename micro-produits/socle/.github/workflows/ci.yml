@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint · format · tests · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Historique complet : `<lastmod>` du sitemap vient du dernier commit sur src/.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Avant tout test : un test d'outil qui ouvre un navigateur passerait
+      # partout sauf ici (leçon de Pattern Reader, PR #78).
+      - name: Navigateur
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run test:ci
+      - run: npm run test:tools
+      - name: Build de production + pré-rendu
+        run: npm run build
+      - name: Audit Playwright (axe WCAG AA, reflow 320 px, pré-rendu, mesure)
+        run: npx playwright test

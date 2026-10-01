@@ -1,0 +1,151 @@
+# Rapport mensuel (AGENTS.md, « Rapport mensuel »).
+#
+# Seules les étapes de lecture voient les secrets d'Umami et de la Search
+# Console ; l'agent écrit le rapport à partir des deux JSON, sans réseau ni
+# droit d'écriture. Le job `publier`, sur une autre machine et depuis un
+# checkout propre de main, publie le rapport sur la branche `rapports` et ouvre
+# l'issue : l'agent n'atteint jamais le code qui détient le jeton d'écriture.
+name: Rapport mensuel
+
+on:
+  schedule:
+    # Le 4 : la Search Console publie ses données avec deux à trois jours de retard.
+    - cron: '0 5 4 * *'
+  workflow_dispatch:
+    inputs:
+      mois:
+        description: 'Mois couvert (AAAA-MM), défaut : le mois précédent'
+        required: false
+
+concurrency:
+  group: rapport-mensuel
+  cancel-in-progress: false
+
+jobs:
+  rapport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      mois: ${{ steps.mois.outputs.mois }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - id: mois
+        env:
+          MOIS: ${{ inputs.mois }}
+        run: |
+          mois="${MOIS:-$(date -u -d "$(date -u +%Y-%m-01) -1 day" +%Y-%m)}"
+          [[ "$mois" =~ ^[0-9]{4}-(0[1-9]|1[0-2])$ ]] || { echo "::error::Mois invalide : $mois"; exit 1; }
+          echo "mois=$mois" >> "$GITHUB_OUTPUT"
+
+      # Le rapport précédent : seule mémoire de l'agent d'un mois à l'autre.
+      - name: Rapport du mois précédent
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          MOIS: ${{ steps.mois.outputs.mois }}
+        run: |
+          mkdir -p .pilote reports
+          avant=$(date -u -d "$MOIS-01 -1 day" +%Y-%m)
+          if git fetch -q --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" rapports 2>/dev/null; then
+            git show "FETCH_HEAD:reports/$avant.md" > .pilote/rapport-precedent.md 2>/dev/null ||
+              rm -f .pilote/rapport-precedent.md
+          fi
+
+      - name: Lire Umami et la Search Console
+        env:
+          MOIS: ${{ steps.mois.outputs.mois }}
+          UMAMI_URL: ${{ secrets.UMAMI_URL }}
+          UMAMI_TOKEN: ${{ secrets.UMAMI_TOKEN }}
+          UMAMI_WEBSITE_ID: ${{ secrets.UMAMI_WEBSITE_ID }}
+          GSC_SERVICE_ACCOUNT: ${{ secrets.GSC_SERVICE_ACCOUNT }}
+          GSC_PROPRIETE: ${{ secrets.GSC_PROPRIETE }}
+        run: |
+          node tools/umami.mjs mensuel "$MOIS" > .pilote/umami.json
+          node tools/search-console.mjs mensuel "$MOIS" > .pilote/search-console.json
+          node -e 'for (const f of ["umami","search-console"]) { const r = require(`./.pilote/${f}.json`); console.log(`${f} : ok ${r.ok} ${r.erreur ?? ""}`) }' | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: '/rapport-mensuel ${{ steps.mois.outputs.mois }}'
+          claude_args: >-
+            --max-turns 20
+            --allowedTools "Read,Glob,Grep,Write"
+
+      - name: Empaqueter
+        if: always()
+        run: |
+          a="$RUNNER_TEMP/artefact"
+          mkdir -p "$a"
+          cp -r reports "$a/reports" 2>/dev/null || true
+          cp .pilote/issue-titre.txt "$a/" 2>/dev/null || true
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport
+          path: ${{ runner.temp }}/artefact
+          retention-days: 30
+
+  publier:
+    needs: rapport
+    if: always() && needs.rapport.outputs.mois != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: rapport
+          path: ${{ runner.temp }}/artefact
+
+      # L'artefact n'est lu que comme une donnée : un seul fichier attendu, au
+      # nom validé, de taille bornée. Rien de l'agent ne s'exécute ici.
+      - name: Publier le rapport et ouvrir l'issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          MOIS: ${{ needs.rapport.outputs.mois }}
+        run: |
+          set -euo pipefail
+          [[ "$MOIS" =~ ^[0-9]{4}-(0[1-9]|1[0-2])$ ]] || exit 1
+          rapport="$RUNNER_TEMP/artefact/reports/$MOIS.md"
+          if [ ! -f "$rapport" ] || [ -L "$rapport" ] || [ "$(stat -c %s "$rapport")" -gt 100000 ]; then
+            echo "::warning::Aucun rapport valide pour $MOIS."
+            exit 0
+          fi
+          cat "$rapport" >> "$GITHUB_STEP_SUMMARY"
+
+          d="$RUNNER_TEMP/rapports"
+          distant="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          if git clone -q --depth 1 --branch rapports "$distant" "$d" 2>/dev/null; then :; else
+            git init -q "$d" && git -C "$d" checkout -q --orphan rapports
+          fi
+          mkdir -p "$d/reports" && cp "$rapport" "$d/reports/$MOIS.md"
+          git -C "$d" add reports
+          git -C "$d" -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -q -m "Rapport mensuel $MOIS" || true
+          git -C "$d" push -q "$distant" HEAD:rapports
+
+          titre="Rapport mensuel $MOIS"
+          if [ -s "$RUNNER_TEMP/artefact/issue-titre.txt" ]; then
+            titre=$(head -n 1 "$RUNNER_TEMP/artefact/issue-titre.txt" | cut -c1-200)
+          fi
+          gh issue create --repo "$REPO" --title "$titre" --body-file "$rapport" --label rapport ||
+            gh issue create --repo "$REPO" --title "$titre" --body-file "$rapport"

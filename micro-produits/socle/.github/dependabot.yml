@@ -1,0 +1,21 @@
+# Entretien automatique (AGENTS.md, « Sans validation ») : une PR groupée par
+# semaine. Les mises à jour mineures et correctifs fusionnent seuls une fois la
+# CI verte (entretien.yml) ; une version majeure attend Phil.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      angular:
+        patterns: ['@angular/*', '@angular-devkit/*', 'angular-eslint']
+      outils:
+        patterns: ['*']
+        exclude-patterns: ['@angular/*', '@angular-devkit/*', 'angular-eslint']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

@@ -1,0 +1,27 @@
+# Fusion automatique des mises à jour mineures et correctifs de Dependabot,
+# seulement quand la CI requise sur main est verte (`gh pr merge --auto`).
+# Une version majeure n'est jamais fusionnée ici : elle attend une relecture.
+#
+# Prérequis du dépôt : « Allow auto-merge » coché et le check
+# « Lint · format · tests · build » requis sur main. Sans eux, la commande
+# échoue proprement et la PR attend.
+name: Entretien
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  fusion-auto:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - id: meta
+        uses: dependabot/fetch-metadata@v2
+      - if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash "$PR" || echo "Fusion auto non activée sur ce dépôt."

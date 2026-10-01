@@ -1,0 +1,27 @@
+{
+  "semaine": 0,
+  "slug": "produit-exemple",
+  "nom": "Produit Exemple",
+  "domaine": "produit-exemple.fr",
+  "requete": "requête exemple",
+  "public": "public visé",
+  "promesse": "Ce que l'outil fait pour vous, en une phrase.",
+  "description": "Description de 140 à 160 caractères pour la page d'accueil, reprise par Google sous le titre du résultat.",
+  "fonction": "fonction principale",
+  "exports": ["pdf"],
+  "offre": "offre payante envisagée",
+  "accent": "#e07a8f",
+  "accentFonce": "#9c2f48",
+  "editeur": {
+    "nom": "À COMPLÉTER",
+    "statut": "À COMPLÉTER (entrepreneur individuel, SIREN …)",
+    "adresse": "À COMPLÉTER",
+    "contact": "À COMPLÉTER",
+    "hebergeur": "Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis"
+  },
+  "mesure": {
+    "origine": "https://analytics.patternreader.com",
+    "siteId": "",
+    "googleVerification": ""
+  }
+}

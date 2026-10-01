@@ -232,7 +232,7 @@ h6.kicker b {
   list-style: none;
   font-family: var(--font-display);
   font-weight: var(--font-display-weight);
-  font-size: 18px;
+  font-size: 1.125rem;
   color: var(--color-text-strong);
 }
 .import > summary::-webkit-details-marker {
@@ -430,7 +430,9 @@ textarea.src-input {
    sous la barre plutôt qu'entre le texte et elle. Une étape plus longue
    s'écrit plus petit (`.long`, `.longer`, `.longest`) pour y tenir. */
 .step-block {
-  min-height: calc(var(--reader-step) * 1.3 * 2 + var(--space-3) * 2);
+  /* Une base de texte plus grande rétrécit la ligne en caractères : le bloc
+     réserve davantage de lignes, au prorata (fiche 42). */
+  min-height: calc(var(--reader-step) * 1.3 * 2 * max(1, var(--text-scale)) + var(--space-3) * 2);
 }
 .step-block.empty {
   min-height: 0;
@@ -482,7 +484,7 @@ textarea.src-input {
 .btn-step {
   min-height: 64px;
   padding-inline: var(--space-6);
-  font-size: 18px;
+  font-size: 1.125rem;
   flex: 1 1 150px;
   max-width: 280px;
 }
@@ -552,13 +554,13 @@ textarea.src-input {
 .tile .big {
   font-family: var(--font-display);
   font-weight: var(--font-display-weight);
-  font-size: 40px;
+  font-size: 2.5rem;
   line-height: 1;
   color: var(--color-text-strong);
   font-variant-numeric: tabular-nums;
 }
 .tile .big .sub {
-  font-size: 20px;
+  font-size: 1.25rem;
   color: var(--color-text-label);
 }
 .tile .row {
@@ -735,7 +737,7 @@ fil-install-slot {
 }
 .hero p {
   max-width: 60ch;
-  font-size: 19px;
+  font-size: 1.1875rem;
 }
 /* Accueil : le titre à gauche, l'illustration (une vraie image, indexable)
    à droite ; au-dessus sur téléphone. */
@@ -748,7 +750,7 @@ fil-install-slot {
 }
 /* Compact : le lecteur, en dessous, doit rester visible sans défiler. */
 .home-hero h1 {
-  font-size: clamp(24px, 4vw, 38px);
+  font-size: clamp(1.5rem, calc(4vw * var(--text-scale)), 2.375rem);
 }
 .home-hero p {
   font-size: var(--text-base);
@@ -868,7 +870,7 @@ fil-install-slot {
   display: block;
   font-family: var(--font-display);
   font-weight: var(--font-display-weight);
-  font-size: 20px;
+  font-size: 1.25rem;
   color: var(--color-text-strong);
   margin-bottom: var(--space-1);
 }
@@ -934,7 +936,7 @@ fil-install-slot {
     min-height: 68px;
   }
   .tile .big {
-    font-size: 34px;
+    font-size: 2.125rem;
   }
 }
 
@@ -1043,7 +1045,7 @@ fil-install-slot {
     padding: var(--space-3) var(--space-4);
   }
   html[data-focus] .meter > .tile .big {
-    font-size: 28px;
+    font-size: 1.75rem;
   }
   /* « Précédent » et « Suivant » restent à portée de pouce, immobiles. */
   /* Sur téléphone, le chronomètre (seul sur sa ligne) tient sur une ligne :

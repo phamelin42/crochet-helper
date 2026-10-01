@@ -66,9 +66,9 @@
   --font-display: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', system-ui, sans-serif;
   --font-display-weight: 700;
   --font-body: 'Karla Variable', 'Karla', 'Helvetica Neue', Arial, sans-serif;
-  --text-base: 17px;
-  --text-sm: 15px;
-  --text-xs: 13px;
+  --text-base: 1.0625rem;
+  --text-sm: 0.9375rem;
+  --text-xs: 0.8125rem;
 
   /* — espacement — */
   --space-1: 4px;
@@ -91,9 +91,15 @@
   --shadow-md: 0 1px 2px rgb(81 74 98 / 6%), 0 8px 24px -12px rgb(81 74 98 / 22%);
   --shadow-lg: 0 2px 4px rgb(81 74 98 / 8%), 0 24px 48px -16px rgb(81 74 98 / 32%);
 
+  /* Rapport entre la base du système et 16 px. Les tailles fluides du lecteur
+     (`vw`) le multiplient : sans lui, leur borne basse en `rem` grossit seule
+     et l'étape ne suit plus le réglage du système. Sans division d'unités
+     (`@supports` plus bas), il reste à 1 et seules les bornes suivent. */
+  --text-scale: 1;
+
   /* — spécifiques lecteur — */
-  --reader-step: clamp(28px, 4.4vw, 48px);
-  --reader-step-sm: clamp(20px, 2.4vw, 26px);
+  --reader-step: clamp(1.75rem, calc(4.4vw * var(--text-scale)), 3rem);
+  --reader-step-sm: clamp(1.25rem, calc(2.4vw * var(--text-scale)), 1.625rem);
 
   /* Impression : encre noire sur papier blanc, quel que soit le thème. */
   --print-ink: #000;
@@ -107,15 +113,21 @@
   --glossary-filter-width: 360px;
 }
 
+@supports (line-height: calc(1rem / 1px)) {
+  :root {
+    --text-scale: calc(1rem / 16px);
+  }
+}
+
 /* Taille du texte de lecture (fiche 24) : trois crans, choisis par la
    lectrice via `DisplayPrefsService`, jamais par défaut du système. */
 [data-text-size='lg'] {
-  --reader-step: clamp(34px, 5.6vw, 60px);
-  --reader-step-sm: clamp(24px, 3vw, 32px);
+  --reader-step: clamp(2.125rem, calc(5.6vw * var(--text-scale)), 3.75rem);
+  --reader-step-sm: clamp(1.5rem, calc(3vw * var(--text-scale)), 2rem);
 }
 [data-text-size='xl'] {
-  --reader-step: clamp(40px, 7vw, 72px);
-  --reader-step-sm: clamp(28px, 3.6vw, 38px);
+  --reader-step: clamp(2.5rem, calc(7vw * var(--text-scale)), 4.5rem);
+  --reader-step-sm: clamp(1.75rem, calc(3.6vw * var(--text-scale)), 2.375rem);
 }
 
 /* Sombre (Rosé Pine Moon) : lecture prolongée, faible luminosité ambiante.

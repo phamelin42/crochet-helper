@@ -103,11 +103,20 @@ for (const viewport of [
   { width: 820, height: 1180 },
 ]) {
   // Page pleine : le sélecteur de taille y est masqué, la taille de base seule.
-  for (const size of ['A', 'A+', 'A++', 'page pleine']) {
-    test(`${viewport.width} px, ${size === 'page pleine' ? size : `taille ${size}`} : les boutons ne bougent pas d’une étape à l’autre`, async ({
+  // Base 16 px par défaut ; 24 px simule un système réglé en « grand » (fiche 42).
+  // Exception : page pleine à 390 px et 24 px. L'écran n'y contient plus l'étape,
+  // les compteurs et la navigation (le défilement est permis, fiche 42) : la
+  // navigation collante se pose selon le défilement, qu'aucune étape ne fixe.
+  for (const [base, size] of [16, 24]
+    .flatMap((b) => ['A', 'A+', 'A++', 'page pleine'].map((s) => [b, s] as const))
+    .filter(([b, s]) => !(b === 24 && s === 'page pleine' && viewport.width === 390))) {
+    const suffixe = base === 24 ? ', texte du système à 24 px' : '';
+    test(`${viewport.width} px, ${size === 'page pleine' ? size : 'taille ' + size}${suffixe} : les boutons ne bougent pas d’une étape à l’autre`, async ({
       page,
     }) => {
       await page.setViewportSize(viewport);
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Page.setFontSizes', { fontSizes: { standard: base } });
       await page.getByRole('button', { name: 'Example', exact: true }).click();
       if (size !== 'page pleine') await page.getByText(size, { exact: true }).click();
       const next = page.getByRole('button', { name: 'Next', exact: true });

@@ -28,6 +28,8 @@ async function home(page: Page): Promise<void> {
 async function writtenRounds(page: Page): Promise<string[]> {
   const dialog = page.getByRole('dialog', { name: DIALOG });
   await expect(dialog).toBeVisible({ timeout: 20_000 });
+  // Les tours lus arrivent par un effet, un rendu après l'ouverture du dialogue.
+  await expect(dialog.getByTestId('written-round').first()).toBeVisible();
   return (await dialog.getByTestId('written-round').allTextContents()).map((t) => t.trim());
 }
 
@@ -77,11 +79,14 @@ test('la lectrice corrige un tour lu avant de découper', async ({ page }) => {
   const dialog = page.getByRole('dialog', { name: DIALOG });
   await dialog.getByRole('button', { name: 'Edit the round 1' }).click();
   await dialog.getByRole('button', { name: /^Remove 6 × sc/ }).click();
+  await expect(dialog.getByTestId('current-count')).toHaveText(/^0 /);
   for (let i = 0; i < 6; i++) {
     await dialog.getByRole('button', { name: /^hdc — / }).click();
   }
+  await expect(dialog.getByTestId('current-count')).toHaveText(/^6 /);
   await dialog.getByRole('button', { name: 'Finish the round' }).click();
-  expect(await writtenRounds(page)).toEqual(['Rnd 1: 6 hdc (6)']);
+  // Le rendu suit le clic d'un tour de planificateur : une assertion qui réessaie, pas une lecture.
+  await expect(dialog.getByTestId('written-round')).toHaveText(['Rnd 1: 6 hdc (6)']);
 
   await dialog.getByRole('button', { name: 'Split into steps' }).click();
   await expect(page.locator('.step-body')).toContainText('6 hdc');

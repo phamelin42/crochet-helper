@@ -1,7 +1,37 @@
 # ADR 002 — Reconnaissance automatique des diagrammes
 
-**Statut : en attente d'une décision de Phil.** Aucun code serveur, aucune clé,
-aucune dépendance n'a été ajouté.
+**Statut : décidé le 2026-10-02 — lecture dans le navigateur, en brouillon
+relu.** Aucun code serveur, aucune clé, aucune dépendance n'a été ajouté.
+
+## Décision
+
+Phil choisit d'intégrer la lecture du prototype **sans attendre la mesure sur
+le réel** (option A sans son préalable), à une condition qui en limite le
+risque : la lecture ne fait que **pré-remplir** le composeur de la fiche 36, la
+lectrice relit chaque tour avant que le patron soit découpé, et rien n'est
+enregistré sans elle.
+
+- « Ouvrir un diagramme » (panneau d'import) marche sans patron chargé : image
+  ou pages de PDF → lecture → relecture → nouveau projet découpé en étapes, le
+  diagramme épinglé à la première pièce. Le projet actif n'est jamais touché.
+- Code : `features/reader/data/chart-recognition.ts` (fonctions pures, port du
+  prototype, plus le repérage des répétitions `*…* x N`) et
+  `core/platform/image-pixels.ts` (décodage), chargés par `import()` : le
+  bundle initial ne bouge pas.
+- Bornes : image lue réduite à 1 600 px, au-delà de 600 composantes l'image
+  est jugée trop bruitée et la relecture s'ouvre vide, sans exception.
+- Mesure : `chart_recognized` (tours et symboles lus, à la dizaine) et
+  `chart_transcribed` avec `origine: 'lecture'`. Le rapport entre les deux dit
+  si la lecture sert ou si les lectrices la refont à la main.
+- Tests : `e2e/chart-open.spec.ts` lit les huit diagrammes nets du jeu
+  d'essai dans Chromium (bon nombre de tours, bon compte), sans requête vers
+  un autre site.
+
+Ce qui reste vrai : la qualité sur une **photo** est inconnue et sans doute
+faible (symboles collés). Déposer des diagrammes réels dans
+`tools/fixtures/charts/real/` et relancer `npm run etude:charts` reste la
+façon de le savoir ; l'option B ne se rouvre que si les chiffres d'usage
+montrent que les lectrices refont la lecture à la main.
 
 ## Constat
 

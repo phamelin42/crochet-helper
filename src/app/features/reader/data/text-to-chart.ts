@@ -18,8 +18,8 @@ export interface PieceChart {
 const field = (convention: Convention) =>
   convention === 'FR' ? 'fr' : convention === 'UK' ? 'uk' : 'us';
 
-const normalize = (text: string): string =>
-  text.replace(/[  ]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+// `\s` couvre déjà les espaces insécables que le français place avant « : ».
+const normalize = (text: string): string => text.replace(/\s+/g, ' ').trim().toLowerCase();
 
 const TABLES: Record<Convention, ReadonlyMap<string, string>> = {
   US: abbreviationTable('US'),
@@ -120,7 +120,7 @@ export function stepToRound(
     // « sc in each st around (24) » : le compte écrit dit combien de fois.
     const tokens = written ? parseTokens(text.replace(EACH, ' '), table) : null;
     if (!tokens || tokens.length !== 1 || tokens[0].count !== 1) return null;
-    groups = [{ tokens: [{ symbol: tokens[0].symbol, count: written! }], repeat: 1 }];
+    groups = [{ tokens: [{ symbol: tokens[0].symbol, count: written ?? 0 }], repeat: 1 }];
   } else {
     groups = parseGroups(text, table);
   }

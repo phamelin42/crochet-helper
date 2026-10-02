@@ -107,7 +107,11 @@ describe('ChartComposer', () => {
     expect(store.source().endsWith('Chart 1\nRnd 1: 2 sc (2)')).toBe(true);
     expect(store.pieces().map((piece) => piece.name)).toEqual(['Tree', 'Chart 1']);
     expect(store.pieceIndex()).toBe(0);
-    expect(track).toHaveBeenCalledWith('chart_transcribed', { rounds: 1, convention: 'US' });
+    expect(track).toHaveBeenCalledWith('chart_transcribed', {
+      rounds: 1,
+      convention: 'US',
+      origine: 'composeur',
+    });
   });
 
   it('garde le nom donné à la pièce', async () => {
@@ -155,5 +159,87 @@ describe('ChartComposer', () => {
     const { host } = await setup();
 
     expect(host.querySelectorAll('[data-testid="written-round"]')).toHaveLength(0);
+  });
+
+  describe('relecture d’un diagramme lu (mode open)', () => {
+    const SEED = {
+      rounds: [
+        {
+          kind: 'round' as const,
+          groups: [{ tokens: [{ symbol: 'sc', count: 6 }], repeat: 1 }],
+          into: 'magic-ring' as const,
+        },
+        {
+          kind: 'round' as const,
+          groups: [
+            {
+              tokens: [
+                { symbol: 'sc', count: 1 },
+                { symbol: 'dc', count: 1 },
+              ],
+              repeat: 1,
+            },
+          ],
+        },
+      ],
+      symbols: 8,
+      uncertain: 2,
+    };
+
+    async function open() {
+      const result = await setup();
+      const { fixture } = result;
+      fixture.componentRef.setInput('mode', 'open');
+      fixture.componentRef.setInput('seed', SEED);
+      fixture.detectChanges();
+      const emitted: string[] = [];
+      fixture.componentInstance.composed.subscribe((text) => emitted.push(text));
+      return { ...result, emitted };
+    }
+
+    it('montre les tours lus, et combien de symboles vérifier en premier', async () => {
+      const { host, written } = await open();
+
+      expect(written()).toEqual(['Rnd 1: 6 sc in a magic ring (6)', 'Rnd 2: sc, dc (2)']);
+      expect(host.textContent).toContain('2 symbol(s) read with low confidence');
+    });
+
+    it('un tour repris se corrige à sa place, sans changer l’ordre', async () => {
+      const { button, click, symbol, written, host } = await open();
+
+      click(button('Edit the round')); // tour 1
+      expect(host.textContent).toContain('Editing round 1');
+      // Le tour 1 était « 6 sc » : on retire et on retape « 6 sc inc ».
+      click(button('Remove'));
+      for (let i = 0; i < 6; i++) click(symbol('sc inc'));
+      click(button('Finish the round'));
+
+      expect(written()).toEqual(['Rnd 1: 6 sc inc in a magic ring (12)', 'Rnd 2: sc, dc (2)']);
+    });
+
+    it('« Découper en étapes » émet le patron écrit, sans toucher au patron actif', async () => {
+      const { button, click, emitted, store } = await open();
+
+      click(button('Split into steps'));
+
+      expect(emitted).toEqual(['Chart 1\nRnd 1: 6 sc in a magic ring (6)\nRnd 2: sc, dc (2)']);
+      expect(store.source()).toBe(PATTERN);
+      expect(track).toHaveBeenCalledWith('chart_transcribed', {
+        rounds: 2,
+        convention: 'US',
+        origine: 'lecture',
+      });
+    });
+
+    it('ne remplace pas le brouillon d’une transcription en cours', async () => {
+      const draft = { rounds: [], groups: [], pending: [{ symbol: 'dc', count: 3 }] };
+      localStorage.setItem('fil.chartDraft', JSON.stringify(draft));
+      const { fixture } = await open();
+      fixture.detectChanges();
+
+      const kept = JSON.parse(localStorage.getItem('fil.chartDraft')!);
+      expect(kept.pending).toEqual(draft.pending);
+      expect(kept.rounds).toEqual([]);
+    });
   });
 });

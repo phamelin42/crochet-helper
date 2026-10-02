@@ -11,7 +11,7 @@ import { pageComplete } from './page-complete';
  */
 
 const FIXTURE = join(process.cwd(), 'tools', 'fixtures', 'diagramme.png');
-const CHART_INPUT = 'input[accept*="image/png"]';
+const CHART_INPUT = '[data-testid="chart-add-file"]';
 
 interface Saved {
   readonly charts: Record<string, number>;

@@ -56,6 +56,12 @@ branche.
 | 41 — Application Android (Play Store)   | Terminée | —   | 2026-09-30 |
 | 42 — Taille du texte du système         | Terminée | —   | 2026-10-01 |
 | 43 — Mode appli (coquille mobile)       | Terminée | —   | 2026-10-01 |
+| 44 — Du texte aux tours                 | À faire  | —   | —          |
+| 45 — Affichage diagramme                | À faire  | —   | —          |
+| 46 — Choix d'affichage à l'import       | À faire  | —   | —          |
+| 47 — Grille de couleurs (tapisserie)    | À faire  | —   | —          |
+| 48 — Image en grille de crochet         | À faire  | —   | —          |
+| 49 — Page-outil image en grille         | À faire  | —   | —          |
 
 ## États possibles
 

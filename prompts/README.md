@@ -79,6 +79,12 @@ URL avant d'accumuler du référencement.
 | 41  | Application Android (Play Store)   | acquisition : la boutique est un canal de recherche            |
 | 42  | Taille du texte du système         | activation : le texte grossi du téléphone l'est aussi ici      |
 | 43  | Mode appli (coquille mobile)       | rétention : une appli qui se comporte en appli se rouvre       |
+| 44  | Du texte aux tours                 | activation : sans elle, aucun patron écrit ne se dessine       |
+| 45  | Affichage diagramme                | rétention : toucher la maille où l'on en est, la retrouver     |
+| 46  | Choix d'affichage à l'import       | activation : la lectrice choisit sa façon de suivre, retenue   |
+| 47  | Grille de couleurs (tapisserie)    | rétention : un ouvrage en couleurs se suit sur des semaines    |
+| 48  | Image en grille de crochet         | activation : une photo devient un ouvrage suivable             |
+| 49  | Page-outil image en grille         | acquisition : requête fréquente, outils concurrents payants    |
 
 Les fiches 38 à 41 répondent à la demande de Phil du 30 septembre (mode page
 pleine comme l'application Filo, hors ligne mis en avant, Play Store ; pas
@@ -86,6 +92,16 @@ d'App Store pour l'instant). La 41 suppose la 40 (URL de confidentialité).
 La 42 répond à celle du 1er octobre : la taille du texte suit le système.
 La 43 aussi : l'application installée doit ressembler à une application (onglets
 en bas, plus d'en-tête ni de pied de page de site), avec le même code.
+
+Les fiches 44 à 49 répondent à la demande de Phil du 2 octobre : deux
+affichages du même patron, **texte** et **diagramme**, au choix à l'import
+(choix retenu, modifiable) ; dans le diagramme, toucher une maille retient la
+position et le survol dit quelle maille c'est ; une image devient une grille
+de mailles serrées colorées, suivie comme dans Stitch Fiddle, gratuitement.
+Elles s'enchaînent : 44 → 45 → 46, puis 47 → 48 → 49 (la 47 dessine dans le
+cadre de la 45). Le passage diagramme → texte est déjà fait (lecture
+automatique, branche `claude/diagram-image-recognition-g2b062`) : les 44 et 48
+supposent cette branche fusionnée.
 
 La fiche `01` est absorbée par la `16` : ne pas l'exécuter séparément.
 

@@ -15,5 +15,6 @@
   "hookSizes": { "fr": "/tailles-de-crochet", "en": "/crochet-hook-sizes" },
   "gaugeCalculator": { "fr": "/calculateur-d-echantillon", "en": "/gauge-calculator" },
   "readForeignPattern": { "fr": "/lire-un-patron-anglais", "en": "/read-a-french-pattern" },
-  "privacy": { "fr": "/confidentialite", "en": "/privacy" }
+  "privacy": { "fr": "/confidentialite", "en": "/privacy" },
+  "settings": { "fr": "/reglages", "en": "/settings" }
 }

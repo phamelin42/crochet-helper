@@ -330,6 +330,24 @@
   }
 }
 
+/* — Réglages (fiche 43) — */
+.settings-group {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  margin-block: var(--space-6);
+}
+.settings-group h2 {
+  margin: 0;
+}
+.settings-links {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 /* Sigle absent du glossaire (page « lire un patron dans l'autre langue »). */
 .foreign-unknown {
   text-decoration: underline dashed var(--color-momiji);

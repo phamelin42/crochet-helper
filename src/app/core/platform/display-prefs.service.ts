@@ -1,6 +1,7 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, Service, afterNextRender, inject, signal } from '@angular/core';
 import { LocalStorageService } from '../storage/local-storage.service';
+import { AppModeService } from './app-mode.service';
 
 export type ReaderTextSize = 'base' | 'lg' | 'xl';
 
@@ -18,6 +19,7 @@ const FOCUS_KEY = 'fil.focus';
 export class DisplayPrefsService {
   private readonly doc = inject(DOCUMENT);
   private readonly storage = inject(LocalStorageService);
+  private readonly appMode = inject(AppModeService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly textSize = signal<ReaderTextSize>('base');
@@ -48,8 +50,13 @@ export class DisplayPrefsService {
     this.dim.set(value);
     this.storage.write(DIM_KEY, value);
     if (!this.isBrowser) return;
-    if (value) this.doc.documentElement.setAttribute('data-dim', 'true');
-    else this.doc.documentElement.removeAttribute('data-dim');
+    const root = this.doc.documentElement;
+    if (value) root.setAttribute('data-dim', 'true');
+    else root.removeAttribute('data-dim');
+    // La barre d'état d'Android suit le fond : la couleur est lue sur le jeton,
+    // jamais recopiée ici.
+    const bg = getComputedStyle(root).getPropertyValue('--color-bg').trim();
+    if (bg) this.doc.querySelector('meta[name="theme-color"]')?.setAttribute('content', bg);
   }
 
   setFocus(value: boolean): void {
@@ -63,7 +70,13 @@ export class DisplayPrefsService {
    */
   applyFocus(active: boolean): void {
     if (!this.isBrowser) return;
-    if (active) this.doc.documentElement.setAttribute('data-focus', 'true');
-    else this.doc.documentElement.removeAttribute('data-focus');
+    if (active) {
+      this.doc.documentElement.setAttribute('data-focus', 'true');
+      // Le retour d'Android quitte la page pleine avant l'application (comme Échap).
+      this.appMode.trapBack(() => this.setFocus(false));
+    } else {
+      this.doc.documentElement.removeAttribute('data-focus');
+      this.appMode.releaseBack();
+    }
   }
 }

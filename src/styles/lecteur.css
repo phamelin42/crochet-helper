@@ -1071,3 +1071,129 @@ fil-install-slot {
     background: var(--color-bg);
   }
 }
+
+/* — mode appli (fiche 43) — le site installé ou l'application du Play Store
+   prend la forme d'une application : barre de titre, onglets en bas, plus
+   d'en-tête ni de pied de page de site, plus de contenu de présentation.
+   Tout est masqué par CSS, jamais détruit, et le même bloc est écrit deux
+   fois : `@media (display-mode: standalone)` rend le premier affichage juste
+   sans JavaScript, `html[data-app]` couvre la TWA (`?mode=app`) quand le
+   navigateur ne répond pas « standalone ». Le HTML pré-rendu reste celui du
+   site : hors mode appli, rien ne change. */
+:root {
+  --app-bar-h: 3rem;
+  --app-tab-h: 4rem;
+}
+fil-app-chrome {
+  display: none;
+}
+.tab-bar {
+  display: flex;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-line);
+}
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: var(--app-tab-h);
+  padding: var(--space-2) var(--space-1);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+.tab fil-icon {
+  font-size: 1.5rem;
+}
+.tab[aria-current='page'] {
+  color: var(--color-primary);
+}
+fil-app-chrome .app-bar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(var(--app-bar-h) + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-line);
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: 1.25rem;
+  color: var(--color-text-strong);
+}
+fil-app-chrome .tab-bar {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 10;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@media screen {
+  @media (display-mode: standalone) {
+    fil-app-chrome {
+      display: block;
+    }
+    fil-site-header,
+    fil-site-footer,
+    .home-hero img,
+    .home-hero p,
+    .proof-list,
+    .how-it-works,
+    fil-waitlist-banner,
+    fil-install-slot {
+      display: none;
+    }
+    .home-hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    main {
+      padding-top: calc(var(--app-bar-h) + env(safe-area-inset-top) + var(--space-2));
+      padding-bottom: calc(var(--app-tab-h) + env(safe-area-inset-bottom) + var(--space-4));
+    }
+  }
+  html[data-app] fil-app-chrome {
+    display: block;
+  }
+  html[data-app] fil-site-header,
+  html[data-app] fil-site-footer,
+  html[data-app] .home-hero img,
+  html[data-app] .home-hero p,
+  html[data-app] .proof-list,
+  html[data-app] .how-it-works,
+  html[data-app] fil-waitlist-banner,
+  html[data-app] fil-install-slot {
+    display: none;
+  }
+  html[data-app] .home-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  html[data-app] main {
+    padding-top: calc(var(--app-bar-h) + env(safe-area-inset-top) + var(--space-2));
+    padding-bottom: calc(var(--app-tab-h) + env(safe-area-inset-bottom) + var(--space-4));
+  }
+  /* Page pleine : l'étape garde tout l'écran, barres comprises. Après les
+     règles ci-dessus, à spécificité égale. */
+  html[data-focus] fil-app-chrome {
+    display: none;
+  }
+  html[data-focus] main {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}

@@ -55,7 +55,7 @@ branche.
 | 40 — Page de confidentialité            | Terminée | —   | 2026-09-30 |
 | 41 — Application Android (Play Store)   | Terminée | —   | 2026-09-30 |
 | 42 — Taille du texte du système         | Terminée | —   | 2026-10-01 |
-| 43 — Mode appli (coquille mobile)       | À faire  | —   | —          |
+| 43 — Mode appli (coquille mobile)       | Terminée | —   | 2026-10-01 |
 
 ## États possibles
 

@@ -29,7 +29,7 @@ test('le projet TWA vise le bon paquet, porte l’UTM et ne contient aucun secre
   const twa = JSON.parse(brut);
   assert.equal(twa.packageId, PACKAGE_NAME);
   assert.equal(twa.host, 'patternreader.com');
-  assert.equal(twa.startUrl, '/?utm_source=play_store&utm_medium=app');
+  assert.equal(twa.startUrl, '/?mode=app&utm_source=play_store&utm_medium=app');
   assert.equal(twa.enableNotifications, false);
   assert.equal(twa.fallbackType, 'customtabs');
   assert.doesNotMatch(brut, /password|BEGIN .*PRIVATE/i);

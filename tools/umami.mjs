@@ -67,6 +67,8 @@ export const EVENEMENTS = [
   'foreign_pattern_tried',
   'install_prompted',
   'app_installed',
+  'app_opened',
+  'app_tab_selected',
 ];
 
 /** Sept noms distincts : la tranche ou le palier vit dans le nom, pas dans une propriété. */

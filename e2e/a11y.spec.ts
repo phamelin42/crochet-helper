@@ -212,6 +212,30 @@ test.describe('en-tête : boutons en icône nommée', () => {
   });
 });
 
+/**
+ * Mode appli (fiche 43) : barre de titre et onglets en bas, sur l'accueil et
+ * sur Réglages, en clair et en sombre. L'onglet actif est en `--color-primary`
+ * sur la surface : c'est le contraste à tenir.
+ */
+for (const theme of THEMES) {
+  for (const onglet of ['Read', 'Settings']) {
+    test(`mode appli, onglet ${onglet} — thème ${theme.name} — aucune violation axe sérieuse`, async ({
+      page,
+    }) => {
+      await page.goto('/?mode=app');
+      await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+      await page
+        .getByRole('navigation', { name: 'Main navigation' })
+        .getByRole('link', { name: onglet, exact: true })
+        .click();
+      await expect(page.locator('.app-bar')).toHaveText(onglet);
+      await applyTheme(page, theme.dim);
+
+      expect(await seriousViolations(page)).toEqual([]);
+    });
+  }
+}
+
 async function seriousViolations(page: Page): Promise<unknown[]> {
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

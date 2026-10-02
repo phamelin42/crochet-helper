@@ -90,23 +90,33 @@ for (const viewport of VIEWPORTS) {
     }) => {
       await ouvrirEnModeAppli(page);
 
-      for (const { nom } of ONGLETS) {
+      for (const { nom, chemin } of ONGLETS) {
         await barre(page).getByRole('link', { name: nom, exact: true }).click();
+        await expect(page).toHaveURL(new RegExp(`${chemin}$`));
         await expect(page.locator('.app-bar')).toHaveText(nom);
-        await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-        const haut = (await barre(page).boundingBox())!.y;
-        // Le bas du dernier élément réellement dessiné, pas celui de `main`
-        // (qui compte sa propre marge basse, justement réservée aux onglets).
-        const dernier = await page.evaluate(() =>
-          Math.max(
-            ...[...document.querySelectorAll('main *')]
-              .map((element) => element.getBoundingClientRect())
-              .filter((boite) => boite.height > 0 && boite.width > 0)
-              .map((boite) => boite.bottom),
-          ),
-        );
-        // Le contenu finit au-dessus de la barre : rien n'est caché dessous.
-        expect(dernier, `bas du contenu de « ${nom} »`).toBeLessThanOrEqual(haut);
+        // Le routeur remonte en haut de page à la fin de la navigation, un
+        // tour de planificateur après le changement d'URL : un défilement fait
+        // trop tôt est annulé, et l'on mesure alors le contenu depuis le haut
+        // (« Lire », déjà courant, ne change même pas de titre). On défile et
+        // on mesure jusqu'à être vraiment en bas de page.
+        await expect(async () => {
+          await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+          const mesure = await page.evaluate(() => ({
+            enBas: window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1,
+            // Le bas du dernier élément réellement dessiné, pas celui de `main`
+            // (qui compte sa propre marge basse, justement réservée aux onglets).
+            dernier: Math.max(
+              ...[...document.querySelectorAll('main *')]
+                .map((element) => element.getBoundingClientRect())
+                .filter((boite) => boite.height > 0 && boite.width > 0)
+                .map((boite) => boite.bottom),
+            ),
+          }));
+          expect(mesure.enBas, `« ${nom} » défilé jusqu'en bas`).toBe(true);
+          const haut = (await barre(page).boundingBox())!.y;
+          // Le contenu finit au-dessus de la barre : rien n'est caché dessous.
+          expect(mesure.dernier, `bas du contenu de « ${nom} »`).toBeLessThanOrEqual(haut);
+        }).toPass();
       }
     });
 

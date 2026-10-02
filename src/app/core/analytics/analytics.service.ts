@@ -77,6 +77,8 @@ export type AnalyticsEvent =
   | 'chart_viewed'
   /** Transcription d'un diagramme ajoutée au patron (propriétés `rounds` et `convention`). */
   | 'chart_transcribed'
+  /** Diagramme ouvert comme patron et lu automatiquement (propriétés `rounds` et `symbols`, à la dizaine). */
+  | 'chart_recognized'
   /** Échantillon comparé à celui du patron (propriétés `unit` et `advice`), une fois par combinaison. */
   | 'gauge_calculated'
   /** Filtre du glossaire changé (propriétés `craft` et `lang`, jamais la recherche). */

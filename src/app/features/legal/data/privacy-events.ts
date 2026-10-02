@@ -124,8 +124,12 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
   },
   chart_viewed: { fr: 'un diagramme est affiché', en: 'a chart is shown' },
   chart_transcribed: {
-    fr: 'un diagramme est transcrit en texte (nombre de tours, convention)',
-    en: 'a chart is transcribed to text (number of rounds, convention)',
+    fr: 'un diagramme est transcrit en texte (nombre de tours, convention, lu automatiquement ou à la main)',
+    en: 'a chart is transcribed to text (number of rounds, convention, read automatically or by hand)',
+  },
+  chart_recognized: {
+    fr: 'un diagramme est lu automatiquement (nombre de tours et de symboles lus, jamais l’image)',
+    en: 'a chart is read automatically (number of rounds and symbols read, never the image)',
   },
   gauge_calculated: {
     fr: 'un échantillon est comparé à celui du patron (unité, conseil)',

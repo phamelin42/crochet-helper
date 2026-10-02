@@ -1,7 +1,9 @@
 import { InjectionToken, Service, inject, signal } from '@angular/core';
+import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import type { ResizedImage } from '../../../core/platform/image-resize';
+import type { Recognition } from '../data/chart-recognition';
 import type { RenderedPage } from '../data/pdf-extract';
-import { ReaderStore } from './reader-store';
+import { NewChart, ReaderStore } from './reader-store';
 
 /** Image d'un diagramme : au plus 10 Mo en entrée, 2400 px de côté en sortie. */
 export const MAX_CHART_FILE_BYTES = 10 * 1024 * 1024;
@@ -48,6 +50,44 @@ export const DATA_URL_READER = new InjectionToken<(file: File) => Promise<string
   },
 );
 
+/**
+ * Lecture automatique d'un diagramme (image du disque ou page de PDF rendue).
+ * Remplaçable en test : jsdom n'a ni `OffscreenCanvas` ni décodeur. Chargée par
+ * `import()` : ni le code de lecture ni le décodage ne pèsent au premier affichage.
+ */
+export const CHART_RECOGNIZER = new InjectionToken<(image: Blob) => Promise<Recognition>>(
+  'CHART_RECOGNIZER',
+  {
+    factory: () => async (image) => {
+      const [{ decodePixels, svgPixels }, recognition, { CHART_SYMBOLS, symbolUrl }] =
+        await Promise.all([
+          import('../../../core/platform/image-pixels'),
+          import('../data/chart-recognition'),
+          import('../data/chart-symbols'),
+        ]);
+      const { MAX_RECOGNITION_SIDE, TEMPLATE_SIZE, recognize } = recognition;
+      const pixels = await decodePixels(image, MAX_RECOGNITION_SIDE);
+      if (!pixels) return { rounds: [], symbols: 0, uncertain: 0 };
+      const templates = await Promise.all(
+        CHART_SYMBOLS.map(async ({ id }) => ({
+          id,
+          pixels: await svgPixels(symbolUrl(id), TEMPLATE_SIZE),
+        })),
+      );
+      return recognize(
+        pixels,
+        templates.flatMap(({ id, pixels }) => (pixels ? [{ id, pixels }] : [])),
+      );
+    },
+  },
+);
+
+/** Un diagramme ouvert comme patron, lu, en attente de la relecture de la lectrice. */
+export interface ChartOpening {
+  readonly charts: readonly NewChart[];
+  readonly recognition: Recognition;
+}
+
 export type ChartIntakeError = 'format' | 'lourd' | 'pdf' | 'illisible';
 
 /**
@@ -62,12 +102,20 @@ export class ChartIntake {
   private readonly resize = inject(IMAGE_RESIZER);
   private readonly renderPages = inject(PDF_PAGE_RENDERER);
   private readonly readDataUrl = inject(DATA_URL_READER);
+  private readonly recognize = inject(CHART_RECOGNIZER);
+  private readonly analytics = inject(AnalyticsService);
 
   /** Image collée ou déposée, en attente de la réponse « couverture ou diagramme ? ». */
   readonly question = signal<File | null>(null);
   /** Pages du PDF à cocher ; `null` tant qu'aucun PDF n'est ouvert. */
   readonly pages = signal<readonly RenderedPage[] | null>(null);
   readonly pdfTotal = signal(0);
+  /** `open` : les pages cochées ouvriront un nouveau patron ; `add` : elles rejoignent le projet actif. */
+  readonly pagesFor = signal<'add' | 'open'>('add');
+  /** Diagramme lu, montré dans le composeur pour relecture ; `null` hors de ce moment. */
+  readonly opening = signal<ChartOpening | null>(null);
+  /** Compte les diagrammes ouverts comme patrons : le panneau d'import se replie à chaque fois. */
+  readonly opened = signal(0);
   readonly busy = signal(false);
   readonly error = signal<ChartIntakeError | null>(null);
 
@@ -79,13 +127,65 @@ export class ChartIntake {
   async submit(file: File, ask = false): Promise<void> {
     this.error.set(null);
     if (file.type === 'application/pdf') {
-      await this.openPdf(file);
+      await this.openPdf(file, 'add');
       return;
     }
     if (!IMAGE_TYPES.has(file.type)) return this.fail('format');
     if (file.size > MAX_CHART_FILE_BYTES) return this.fail('lourd');
     if (ask) this.question.set(file);
     else await this.addImage(file);
+  }
+
+  /**
+   * « Ouvrir un diagramme » : un patron donné seulement en diagramme. L'image
+   * est lue, et le résultat ouvert dans le composeur pour que la lectrice le
+   * corrige ; rien n'est enregistré avant qu'elle ne valide (`confirmOpening`).
+   * Pas besoin d'un patron chargé : c'est ce diagramme qui deviendra le patron.
+   */
+  async open(file: File): Promise<void> {
+    this.error.set(null);
+    if (file.type === 'application/pdf') {
+      await this.openPdf(file, 'open');
+      return;
+    }
+    if (!IMAGE_TYPES.has(file.type)) return this.fail('format');
+    if (file.size > MAX_CHART_FILE_BYTES) return this.fail('lourd');
+    this.busy.set(true);
+    try {
+      const resized = await this.resize(file);
+      if (!resized) return this.fail('illisible');
+      await this.read([resized], file);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** Lit le premier diagramme ; une lecture qui échoue donne un brouillon vide, pas une erreur. */
+  private async read(charts: readonly NewChart[], image: Blob): Promise<void> {
+    let recognition: Recognition;
+    try {
+      recognition = await this.recognize(image);
+    } catch {
+      recognition = { rounds: [], symbols: 0, uncertain: 0 };
+    }
+    this.opening.set({ charts, recognition });
+    this.analytics.track('chart_recognized', {
+      rounds: recognition.rounds.length,
+      symbols: roundToTen(recognition.symbols),
+    });
+  }
+
+  /** La lectrice a relu le brouillon : son texte devient un nouveau projet, avec le diagramme. */
+  async confirmOpening(text: string): Promise<void> {
+    const opening = this.opening();
+    this.opening.set(null);
+    if (!opening || !text) return;
+    await this.store.openFromChart(text, opening.charts);
+    this.opened.update((n) => n + 1);
+  }
+
+  cancelOpening(): void {
+    this.opening.set(null);
   }
 
   /**
@@ -131,7 +231,8 @@ export class ChartIntake {
     if (!pages.length) return;
     this.busy.set(true);
     try {
-      await this.store.addCharts(pages, 'pdf');
+      if (this.pagesFor() === 'open') await this.read(pages, pages[0].blob);
+      else await this.store.addCharts(pages, 'pdf');
     } finally {
       this.busy.set(false);
     }
@@ -152,8 +253,9 @@ export class ChartIntake {
     }
   }
 
-  private async openPdf(file: File): Promise<void> {
+  private async openPdf(file: File, mode: 'add' | 'open'): Promise<void> {
     if (file.size > MAX_CHART_PDF_BYTES) return this.fail('lourd');
+    this.pagesFor.set(mode);
     this.busy.set(true);
     try {
       const { pages, total } = await this.renderPages(file);
@@ -171,3 +273,6 @@ export class ChartIntake {
     this.error.set(error);
   }
 }
+
+/** Le nombre de symboles lus, à la dizaine : assez pour juger la lecture, rien du diagramme. */
+const roundToTen = (n: number): number => Math.round(n / 10) * 10;

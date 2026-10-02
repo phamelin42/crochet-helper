@@ -7,7 +7,8 @@ import { Checkbox } from '../../../shared/ui/checkbox/checkbox';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ChartIntake, MAX_PDF_CHART_PAGES, MAX_RENDERED_PAGES } from '../state/chart-intake';
-import { ReaderStore } from '../state/reader-store';
+import { ReaderStore, ShownPhoto } from '../state/reader-store';
+import { ChartComposer } from './chart-composer';
 
 interface PageThumb {
   readonly number: number;
@@ -15,14 +16,14 @@ interface PageThumb {
 }
 
 /**
- * Les deux questions du chargement d'un diagramme : « couverture ou
- * diagramme ? » pour une image collée ou déposée, et le choix des pages d'un
- * PDF. Montées hors du panneau d'import, replié une fois le patron chargé :
+ * Les questions du chargement d'un diagramme : « couverture ou
+ * diagramme ? » pour une image collée ou déposée, le choix des pages d'un
+ * PDF, et la relecture d'un diagramme ouvert comme patron. Montées hors du panneau d'import, replié une fois le patron chargé :
  * une boîte de dialogue dans un panneau fermé ne s'afficherait pas.
  */
 @Component({
   selector: 'fil-chart-intake-dialogs',
-  imports: [Button, Checkbox, Dialog],
+  imports: [Button, ChartComposer, Checkbox, Dialog],
   template: `
     @if (message(); as message) {
       <p class="hint" role="alert">{{ message }}</p>
@@ -84,6 +85,18 @@ interface PageThumb {
         </div>
       </fil-dialog>
     }
+
+    @if (intake.opening(); as opening) {
+      <fil-chart-composer
+        mode="open"
+        [open]="true"
+        (openChange)="!$event && intake.cancelOpening()"
+        [seed]="opening.recognition"
+        [chart]="preview()"
+        [label]="t('ui.chartOf')"
+        (composed)="confirm($event)"
+      />
+    }
   `,
 })
 export class ChartIntakeDialogs {
@@ -111,6 +124,8 @@ export class ChartIntakeDialogs {
   });
 
   protected readonly thumbs = signal<readonly PageThumb[]>([]);
+  /** Le diagramme lu, affiché au-dessus de sa transcription pour la comparer. */
+  protected readonly preview = signal<ShownPhoto | null>(null);
   protected readonly selected = signal<ReadonlySet<number>>(new Set());
 
   constructor() {
@@ -131,6 +146,23 @@ export class ChartIntakeDialogs {
         );
       });
     });
+    effect(() => {
+      const chart = this.intake.opening()?.charts[0] ?? null;
+      untracked(() => {
+        if (chart) void styles.load('chart.css');
+        const previous = this.preview();
+        if (previous) this.objectUrls.revoke(previous.url);
+        this.preview.set(
+          chart
+            ? { url: this.objectUrls.create(chart.blob), width: chart.width, height: chart.height }
+            : null,
+        );
+      });
+    });
+  }
+
+  protected confirm(text: string): void {
+    void this.intake.confirmOpening(text);
   }
 
   protected toggle(number: number, checked: boolean): void {

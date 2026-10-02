@@ -19,7 +19,7 @@ test('transcrire : deux tours, ajoutés comme nouvelle pièce que le lecteur lit
   await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
   await page.getByRole('button', { name: 'Example', exact: true }).click();
   await expect(page.locator('.step-body')).toBeVisible();
-  await page.locator('input[accept*="image/png"]').setInputFiles(FIXTURE);
+  await page.locator('[data-testid="chart-add-file"]').setInputFiles(FIXTURE);
   await expect(page.getByRole('region', { name: 'Chart 1' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Transcribe this chart', exact: true }).click();

@@ -36,7 +36,7 @@ const FR = {
     'Ce PDF ressemble à une image scannée : le texte ne peut pas en être extrait. Collez le texte du patron ci-dessus à la place.',
   'ui.pdfError': "Ce PDF n'a pas pu être lu. Collez le texte du patron ci-dessus à la place.",
   'ui.noRows':
-    'Aucun rang numéroté trouvé. Pattern Reader crée une étape par rang ou tour numéroté (« Rang 1 : », « Tour 2 : », « 1. »). Un patron rédigé en paragraphes ou donné en grille ne peut pas encore être découpé.',
+    'Aucun rang numéroté trouvé. Pattern Reader crée une étape par rang ou tour numéroté (« Rang 1 : », « Tour 2 : », « 1. »). Un patron rédigé en paragraphes ne peut pas encore être découpé ; un patron donné en diagramme s’ouvre avec « Ouvrir un diagramme ».',
   'ui.cancel': 'Annuler',
   'ui.copyPatternLink': 'Partager le patron',
   'ui.linkCopied': 'Lien copié dans le presse-papiers.',
@@ -71,7 +71,7 @@ const FR = {
   'ui.photosNotSaved':
     'Les photos de ce PDF n’ont pas pu être enregistrées : l’espace de stockage de l’appareil est plein. Le patron est bien là, sans ses photos.',
   'ui.chartAdd': 'Ajouter un diagramme',
-  'ui.chartNeedsPattern': 'Chargez d’abord un patron : le diagramme est rangé dans son projet.',
+  'ui.chartOpen': 'Ouvrir un diagramme',
   'ui.chartBusy': 'Lecture du diagramme…',
   'ui.chartErrorFormat':
     'Ce fichier n’est pas un diagramme lisible : choisissez une image PNG, JPEG ou WebP, ou un PDF.',
@@ -142,7 +142,7 @@ const EN: Record<ReaderTranslationKey, string> = {
     "This PDF looks like a scanned image: its text can't be extracted. Paste the pattern text above instead.",
   'ui.pdfError': "This PDF couldn't be read. Paste the pattern text above instead.",
   'ui.noRows':
-    'No numbered rows found. Pattern Reader makes one step per numbered row or round (“Row 1:”, “Rnd 2:”, “1.”). A pattern written as paragraphs, or given as a chart, can’t be split yet.',
+    'No numbered rows found. Pattern Reader makes one step per numbered row or round (“Row 1:”, “Rnd 2:”, “1.”). A pattern written as paragraphs can’t be split yet; a pattern given as a chart opens with “Open a chart”.',
   'ui.cancel': 'Cancel',
   'ui.copyPatternLink': 'Share this pattern',
   'ui.linkCopied': 'Link copied to clipboard.',
@@ -175,7 +175,7 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.photosNotSaved':
     'This PDF’s photos couldn’t be saved: the device storage is full. The pattern is here, without its photos.',
   'ui.chartAdd': 'Add a chart',
-  'ui.chartNeedsPattern': 'Load a pattern first: the chart is kept in its project.',
+  'ui.chartOpen': 'Open a chart',
   'ui.chartBusy': 'Reading the chart…',
   'ui.chartErrorFormat':
     'This file isn’t a readable chart: choose a PNG, JPEG or WebP image, or a PDF.',

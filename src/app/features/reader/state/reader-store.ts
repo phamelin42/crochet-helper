@@ -411,6 +411,48 @@ export class ReaderStore {
     return true;
   }
 
+  /**
+   * Ouvre un patron écrit à partir d'un diagramme : **toujours un nouveau
+   * projet**, le texte relu par la lectrice et ses diagrammes enregistrés
+   * dans une seule transaction, le premier épinglé à la première pièce. Si
+   * l'écriture des images avorte (quota), le patron s'ouvre quand même et
+   * `chartError` le dit : le texte n'est jamais perdu.
+   */
+  async openFromChart(text: string, items: readonly NewChart[]): Promise<boolean> {
+    if (!text) return false;
+    if (this.currentId()) this.detach();
+    this.holdPersist = true;
+    let saved: boolean;
+    try {
+      this.load(text, 'diagramme');
+      const id = this.currentId();
+      if (!id) return false;
+      const count = Math.min(items.length, MAX_CHARTS);
+      const charts: Record<number, number> = count ? { 0: 1 } : {};
+      const files: ProjectImage[] = items.slice(0, count).map(({ blob, width, height }, i) => ({
+        id: chartId(id!, i + 1),
+        projectId: id!,
+        n: i + 1,
+        blob,
+        width,
+        height,
+        kind: 'chart',
+      }));
+      const project: Project = { ...this.snapshot(id), chartCount: count, charts };
+      saved = await this.projectStore.putAll([project], files);
+      if (saved && this.currentId() === id) {
+        this.chartCount.set(count);
+        this.charts.set(charts);
+      }
+    } finally {
+      this.holdPersist = false;
+    }
+    if (!saved) this.chartError.set('non-enregistre');
+    await this.persist();
+    if (saved && items.length) this.analytics.track('chart_added', { source: 'diagramme' });
+    return saved;
+  }
+
   /** Épingle le diagramme n à la pièce : un diagramme n'est épinglé qu'à une pièce à la fois. */
   pinChart(piece: number, n: number): void {
     if (n < 1 || n > this.chartCount() || piece < 0 || piece >= this.pieces().length) return;
@@ -544,7 +586,10 @@ export class ReaderStore {
    * en cours reste intact dans la liste. Recharger le même texte garde le
    * projet et remet sa progression à zéro, comme avant la fiche 16.
    */
-  load(text: string, origine: 'saisie' | 'pdf' | 'exemple' | 'lien' = 'saisie'): void {
+  load(
+    text: string,
+    origine: 'saisie' | 'pdf' | 'exemple' | 'lien' | 'diagramme' = 'saisie',
+  ): void {
     this.pdfError.set(null);
     if (text && this.currentId() && text !== this.source()) this.detach();
     this.source.set(text);

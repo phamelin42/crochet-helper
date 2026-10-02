@@ -52,12 +52,21 @@ import { ReaderStore } from '../state/reader-store';
             <button
               type="button"
               filButton="secondary"
-              [disabled]="!store.currentId() || intake.busy()"
-              [attr.aria-describedby]="store.currentId() ? null : 'chart-needs-pattern'"
-              (click)="chartInput().nativeElement.click()"
+              [disabled]="intake.busy()"
+              (click)="openInput().nativeElement.click()"
             >
-              {{ intake.busy() ? t('ui.chartBusy') : t('ui.chartAdd') }}
+              {{ intake.busy() ? t('ui.chartBusy') : t('ui.chartOpen') }}
             </button>
+            @if (store.currentId()) {
+              <button
+                type="button"
+                filButton="secondary"
+                [disabled]="intake.busy()"
+                (click)="chartInput().nativeElement.click()"
+              >
+                {{ t('ui.chartAdd') }}
+              </button>
+            }
             <button type="button" filButton="secondary" (click)="demo()">{{ t('ui.demo') }}</button>
             <button type="button" filButton="ghost" (click)="clear()">{{ t('ui.clear') }}</button>
           </div>
@@ -71,7 +80,18 @@ import { ReaderStore } from '../state/reader-store';
             (change)="onPdfChange($event)"
           />
           <input
+            #openFile
+            data-testid="chart-open-file"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,application/pdf,.pdf"
+            class="visually-hidden"
+            tabindex="-1"
+            aria-hidden="true"
+            (change)="onOpenChange($event)"
+          />
+          <input
             #chartFile
+            data-testid="chart-add-file"
             type="file"
             accept="image/png,image/jpeg,image/webp,application/pdf,.pdf"
             class="visually-hidden"
@@ -79,9 +99,6 @@ import { ReaderStore } from '../state/reader-store';
             aria-hidden="true"
             (change)="onChartChange($event)"
           />
-          @if (!store.currentId()) {
-            <p id="chart-needs-pattern" class="hint">{{ t('ui.chartNeedsPattern') }}</p>
-          }
           @if (pdfErrorMessage(); as message) {
             <p class="hint" role="alert">{{ message }}</p>
           } @else if (noRows()) {
@@ -100,6 +117,7 @@ export class PatternImport {
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
   protected readonly pdfInput = viewChild.required<ElementRef<HTMLInputElement>>('pdfFile');
   protected readonly chartInput = viewChild.required<ElementRef<HTMLInputElement>>('chartFile');
+  protected readonly openInput = viewChild.required<ElementRef<HTMLInputElement>>('openFile');
   protected readonly intake = inject(ChartIntake);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
@@ -115,6 +133,10 @@ export class PatternImport {
     // PDF a été collé ou déposé ailleurs sur la page, panneau replié.
     effect(() => {
       if (this.store.pdfError()) this.open.set(true);
+    });
+    // Un diagramme relu et découpé en étapes : le panneau se replie comme après « Découper ».
+    effect(() => {
+      if (this.intake.opened()) this.open.set(false);
     });
   }
 
@@ -154,6 +176,13 @@ export class PatternImport {
     if (field) field.nativeElement.value = this.store.source();
     if (this.reportNoRows()) return;
     this.open.set(false);
+  }
+
+  protected async onOpenChange(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (file) await this.intake.open(file);
   }
 
   protected async onChartChange(event: Event): Promise<void> {

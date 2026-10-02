@@ -58,3 +58,4 @@
 | 2026-10-01 | lot | 1 tours | 0.00 $ | fiche 42 |
 | 2026-10-01 | lot | 69 tours | 1.10 $ | fiche 42 |
 | 2026-10-01 | lot | 138 tours | 3.54 $ | fiche 43 |
+| 2026-10-02 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |

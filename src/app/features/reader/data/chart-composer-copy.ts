@@ -34,6 +34,17 @@ const FR = {
     'Le tour {n} a moins de la moitié ou plus du double des mailles du précédent.',
   'ui.composeWarnRepeat':
     'Dans le tour {n}, la répétition ne tombe pas juste sur le tour précédent.',
+  'ui.composeOpenTitle': 'Relire le diagramme lu',
+  'ui.composeOpenIntro':
+    'Fil a lu ce diagramme automatiquement. Comparez chaque tour à l’image, corrigez ce qui ne va pas, puis découpez en étapes.',
+  'ui.composeOpenUncertain':
+    '{n} symbole(s) lu(s) avec peu de certitude : vérifiez-les en premier.',
+  'ui.composeOpenNothing':
+    'Aucun symbole n’a pu être lu sur cette image. Transcrivez-la en touchant les symboles ci-dessous.',
+  'ui.composeOpenAdd': 'Découper en étapes',
+  'ui.composeEditRound': 'Modifier le tour',
+  'ui.composeAddRound': 'Ajouter un tour',
+  'ui.composeEditing': 'Tour {n} en cours de modification',
 };
 
 export type ComposerKey = keyof typeof FR;
@@ -66,6 +77,16 @@ const EN: Record<ComposerKey, string> = {
   'ui.composeWarnEmpty': 'Round {n} is empty.',
   'ui.composeWarnJump': 'Round {n} has less than half or more than double the previous stitches.',
   'ui.composeWarnRepeat': 'In round {n}, the repeat does not fit the previous round.',
+  'ui.composeOpenTitle': 'Check the chart reading',
+  'ui.composeOpenIntro':
+    'Fil read this chart automatically. Compare each round with the picture, fix what is wrong, then split into steps.',
+  'ui.composeOpenUncertain': '{n} symbol(s) read with low confidence: check them first.',
+  'ui.composeOpenNothing':
+    'No symbol could be read in this picture. Transcribe it by tapping the symbols below.',
+  'ui.composeOpenAdd': 'Split into steps',
+  'ui.composeEditRound': 'Edit the round',
+  'ui.composeAddRound': 'Add a round',
+  'ui.composeEditing': 'Editing round {n}',
 };
 
 export const COMPOSER_COPY: Record<Locale, Record<ComposerKey, string>> = { fr: FR, en: EN };

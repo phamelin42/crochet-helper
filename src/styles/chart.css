@@ -131,8 +131,16 @@
   max-height: 70vh;
   overflow-y: auto;
 }
+/* Le diagramme entier tient dans son cadre à l'échelle 1 : on compare un tour à
+ * l'image sans la faire défiler. Le zoom reste là pour les détails. */
 .compose-chart .chart-frame {
-  max-height: 30vh;
+  height: 30vh;
+}
+.compose-chart .chart-stage {
+  height: 100%;
+}
+.compose-chart .chart-img {
+  object-fit: contain;
 }
 .compose-options {
   display: flex;
@@ -183,6 +191,14 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+}
+/* Le texte du tour prend la place : « Modifier » et « Retirer » restent côte à côte. */
+.compose-list li > span {
+  flex: 1 1 12rem;
+}
+/* Le tour repris pour correction se repère dans la liste. */
+.compose-list li[aria-current] {
+  font-weight: var(--font-display-weight);
 }
 .compose-actions {
   display: flex;

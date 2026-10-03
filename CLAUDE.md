@@ -214,6 +214,17 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   navigateur s'installe désormais en tête de `ci.yml`. Toute étape ajoutée à
   la préparation du pilote (`lot-suivant.yml`) l'est aussi, au même rang, dans
   `ci.yml`.
+- **Session cloud (claude.ai/code) : deux corrections d'environnement avant
+  toute commande.** Le Node fourni (22.22.0) est sous le minimum d'Angular CLI
+  (`^22.22.3 || ^24.15.0`) : `ng` refuse de démarrer. Installer Node 24 dans le
+  scratchpad (`curl -sS https://nodejs.org/dist/v24.15.0/node-v24.15.0-linux-x64.tar.xz | tar xJ`)
+  et le mettre en tête du `PATH`. Les navigateurs de `/opt/pw-browsers` ne sont
+  pas ceux qu'attend la version de Playwright du dépôt, et `playwright install`
+  est interdit : exporter `PW_CHROMIUM=/opt/pw-browsers/chromium`, que
+  `playwright.config.ts` et `tools/charts/recognize.mjs` lisent déjà. Sans lui,
+  `test:tools` et toute la suite e2e échouent sur « Executable doesn't exist ».
+  Le hook `pre-push` lance `verify:ci` avec l'environnement du shell : pousser
+  avec ces deux variables exportées, pas avec `--no-verify` (refusé).
 - **`npx playwright test` sert le dernier build, pas le code du moment**
   (`e2e/static-server.mjs` sur `dist/`, plus `reuseExistingServer`). Debugger un
   échec e2e sans `ng build` préalable fait chercher un bug de test là où il n'y

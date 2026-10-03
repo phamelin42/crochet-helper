@@ -64,3 +64,4 @@
 | 2026-10-02 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
 | 2026-10-02 | lot | 43 tours | 0.99 $ | fiche 44 |
 | 2026-10-03 | lot | 103 tours | 2.58 $ | fiche 45 |
+| 2026-10-03 | rapport | agent sauté | — | 32 visites sur 8 jours |

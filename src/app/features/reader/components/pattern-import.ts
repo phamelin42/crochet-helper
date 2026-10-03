@@ -57,6 +57,14 @@ import { ReaderStore } from '../state/reader-store';
             >
               {{ intake.busy() ? t('ui.chartBusy') : t('ui.chartOpen') }}
             </button>
+            <button
+              type="button"
+              filButton="secondary"
+              data-testid="grid-open"
+              (click)="gridInput().nativeElement.click()"
+            >
+              {{ t('ui.gridOpen') }}
+            </button>
             @if (store.currentId()) {
               <button
                 type="button"
@@ -90,6 +98,16 @@ import { ReaderStore } from '../state/reader-store';
             (change)="onOpenChange($event)"
           />
           <input
+            #gridFile
+            data-testid="grid-open-file"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            class="visually-hidden"
+            tabindex="-1"
+            aria-hidden="true"
+            (change)="onGridChange($event)"
+          />
+          <input
             #chartFile
             data-testid="chart-add-file"
             type="file"
@@ -117,6 +135,7 @@ export class PatternImport {
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
   protected readonly pdfInput = viewChild.required<ElementRef<HTMLInputElement>>('pdfFile');
   protected readonly chartInput = viewChild.required<ElementRef<HTMLInputElement>>('chartFile');
+  protected readonly gridInput = viewChild.required<ElementRef<HTMLInputElement>>('gridFile');
   protected readonly openInput = viewChild.required<ElementRef<HTMLInputElement>>('openFile');
   protected readonly intake = inject(ChartIntake);
 
@@ -183,6 +202,13 @@ export class PatternImport {
     const file = input.files?.[0];
     input.value = '';
     if (file) await this.intake.open(file);
+  }
+
+  protected onGridChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (file) this.intake.chooseGridImage(file);
   }
 
   protected async onChartChange(event: Event): Promise<void> {

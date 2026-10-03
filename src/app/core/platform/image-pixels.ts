@@ -56,6 +56,26 @@ export async function decodePixels(file: Blob, maxSide: number): Promise<Decoded
   }
 }
 
+/** Dessine une grille de mailles sur un `<canvas>` : un pixel par maille, le rang 1 en bas. */
+export function paintCells(
+  canvas: HTMLCanvasElement,
+  width: number,
+  height: number,
+  palette: readonly string[],
+  cells: Uint8Array,
+): void {
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  if (!context) return;
+  for (let row = 0; row < height; row++) {
+    for (let column = 0; column < width; column++) {
+      context.fillStyle = palette[cells[row * width + column]];
+      context.fillRect(column, height - 1 - row, 1, 1);
+    }
+  }
+}
+
 /**
  * Pixels d'un SVG du site (un symbole de diagramme), dessiné sur un carré de
  * `size` pixels. Passe par `Image` : `createImageBitmap` ne décode pas le SVG

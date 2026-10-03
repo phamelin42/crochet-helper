@@ -2,6 +2,7 @@ import { InjectionToken, Service, inject, signal } from '@angular/core';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import type { ResizedImage } from '../../../core/platform/image-resize';
 import type { Recognition } from '../data/chart-recognition';
+import type { ColorGrid } from '../data/color-grid';
 import type { RenderedPage } from '../data/pdf-extract';
 import { NewChart, ReaderStore } from './reader-store';
 
@@ -88,7 +89,7 @@ export interface ChartOpening {
   readonly recognition: Recognition;
 }
 
-export type ChartIntakeError = 'format' | 'lourd' | 'pdf' | 'illisible';
+export type ChartIntakeError = 'format' | 'lourd' | 'pdf' | 'illisible' | 'non-enregistre';
 
 /**
  * Chemin d'entrée d'un diagramme : image du disque, image collée ou déposée
@@ -114,6 +115,8 @@ export class ChartIntake {
   readonly pagesFor = signal<'add' | 'open'>('add');
   /** Diagramme lu, montré dans le composeur pour relecture ; `null` hors de ce moment. */
   readonly opening = signal<ChartOpening | null>(null);
+  /** Image choisie pour devenir une grille, en attente des réglages ; `null` hors de ce moment. */
+  readonly gridFile = signal<File | null>(null);
   /** Compte les diagrammes ouverts comme patrons : le panneau d'import se replie à chaque fois. */
   readonly opened = signal(0);
   readonly busy = signal(false);
@@ -186,6 +189,35 @@ export class ChartIntake {
 
   cancelOpening(): void {
     this.opening.set(null);
+  }
+
+  /**
+   * « Ouvrir une image en grille » : mêmes bornes que les diagrammes (type,
+   * 10 Mo), refusées avant tout décodage. L'image est lue par le dialogue, qui
+   * n'existe qu'une fois ce fichier accepté.
+   */
+  chooseGridImage(file: File): void {
+    this.error.set(null);
+    if (!IMAGE_TYPES.has(file.type)) return this.fail('format');
+    if (file.size > MAX_CHART_FILE_BYTES) return this.fail('lourd');
+    this.gridFile.set(file);
+  }
+
+  /** L'image n'a pas pu être décodée (illisible, ou plus de 64 millions de pixels). */
+  failGridImage(): void {
+    this.gridFile.set(null);
+    this.fail('illisible');
+  }
+
+  cancelGrid(): void {
+    this.gridFile.set(null);
+  }
+
+  /** La grille choisie devient un nouveau projet ; l'image d'origine n'est pas gardée. */
+  async createGrid(grid: ColorGrid, name: string): Promise<void> {
+    this.gridFile.set(null);
+    if (await this.store.openFromGrid(grid, name)) this.opened.update((n) => n + 1);
+    else this.fail('non-enregistre');
   }
 
   /**

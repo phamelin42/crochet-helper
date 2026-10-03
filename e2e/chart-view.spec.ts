@@ -76,7 +76,8 @@ test('le survol d’une maille dit laquelle c’est', async ({ page }) => {
 
   await page.locator('.chart-cell').nth(1).hover();
 
-  await expect(page.getByRole('tooltip')).toContainText('Round 1 · stitch 2');
+  await expect(page.locator('.tip.on')).toContainText('Round 1 · stitch 2');
+  await expect(page.locator('.tip.on')).toContainText('single crochet');
 });
 
 test('revenir au texte garde la maille : « stitch 5 of 12 » sur la ligne de l’étape', async ({
@@ -92,7 +93,7 @@ test('revenir au texte garde la maille : « stitch 5 of 12 » sur la ligne de l�
   await page.locator('.view-toggle').getByText('Text', { exact: true }).click();
 
   await expect(page.locator('.stepcount')).toContainText('stitch 5 of 12');
-  await expect(page.locator('.step-body')).toContainText('Round 2');
+  await expect(page.locator('.step-body')).toContainText('12 sc (12)');
 });
 
 test('un patron qui ne se dessine pas : « Chart » est grisé et dit pourquoi', async ({ page }) => {

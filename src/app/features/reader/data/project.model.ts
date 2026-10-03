@@ -27,7 +27,13 @@ export interface Project {
   readonly chartCount?: number;
   /** Diagramme épinglé à chaque pièce : indice de la pièce → numéro du diagramme. */
   readonly charts?: Record<number, number>;
+  /** Maille courante de l'étape (fiche 45), à partir de 0. Absente des anciens projets : 0. */
+  readonly stitch?: number;
+  /** Affichage choisi (fiche 45). Absent : texte. */
+  readonly view?: ReaderView;
 }
+
+export type ReaderView = 'text' | 'chart';
 
 /** Plafond de diagrammes par projet : chacun pèse jusqu'à quelques Mo dans IndexedDB. */
 export const MAX_CHARTS = 20;

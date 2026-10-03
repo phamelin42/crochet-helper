@@ -122,6 +122,14 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     fr: 'un diagramme est ajouté (image ou PDF)',
     en: 'a chart is added (image or PDF)',
   },
+  view_changed: {
+    fr: 'l’affichage du lecteur change (texte ou diagramme)',
+    en: 'the reader view changes (text or chart)',
+  },
+  stitch_marked: {
+    fr: 'une maille est touchée dans le diagramme (une fois par tour, jamais laquelle)',
+    en: 'a stitch is tapped in the chart (once per round, never which one)',
+  },
   chart_viewed: { fr: 'un diagramme est affiché', en: 'a chart is shown' },
   chart_transcribed: {
     fr: 'un diagramme est transcrit en texte (nombre de tours, convention, lu automatiquement ou à la main)',

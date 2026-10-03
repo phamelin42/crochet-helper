@@ -400,6 +400,11 @@ textarea.src-input {
 .stepmeta {
   margin: 0 0 var(--space-4);
 }
+/* Option de segment grisée (« Diagramme » quand la pièce ne se dessine pas). */
+.seg-opt:has(input:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .note {
   display: flex;
   gap: var(--space-2);

@@ -13,6 +13,7 @@ import { AnalyticsService, roundToHundred } from '../../../core/analytics/analyt
 import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
+import type { PieceChart } from '../data/text-to-chart';
 import { DEMO_PATTERN } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
 import { SharedProgress } from '../data/project-link';
@@ -32,6 +33,7 @@ import {
   legacyToProject,
   mergeProjects,
   sanitizeCharts,
+  type ReaderView,
 } from '../data/project.model';
 
 /** Un diagramme prêt à être enregistré : image déjà réduite et encodée. */
@@ -102,6 +104,12 @@ export class ReaderStore {
   readonly image = signal('');
   readonly pieceIndex = signal(0);
   readonly stepIndex = signal(0);
+  /** Maille courante de l'étape, à partir de 0 ; remise à 0 quand l'étape change. */
+  readonly stitchIndex = signal(0);
+  /** Affichage du lecteur, retenu par projet. */
+  readonly view = signal<ReaderView>('text');
+  /** Tours où une maille a déjà été comptée dans cette session. */
+  private readonly markedRounds = new Set<string>();
   /** Paliers de profondeur déjà atteints par le projet courant — évite de réémettre. */
   private readonly depthsReached = signal<ReadonlySet<(typeof DEPTH_THRESHOLDS)[number]>>(
     new Set(),
@@ -155,6 +163,13 @@ export class ReaderStore {
   readonly steps = computed<readonly PatternStep[]>(() => this.piece()?.steps ?? []);
   readonly step = computed<PatternStep | null>(() => this.steps()[this.stepIndex()] ?? null);
   readonly stepCount = computed(() => this.steps().length);
+  /** La pièce en tours de diagramme ; `null` tant que le parseur de tours, chargé à la demande, n'a pas répondu. */
+  readonly pieceChart = signal<PieceChart | null>(null);
+  private chartParse = 0;
+  /** Mailles dessinées dans l'étape courante ; 0 si elle ne se dessine pas. */
+  readonly stitchTotal = computed(() => {
+    return this.pieceChart()?.stitches[this.stepIndex()] ?? 0;
+  });
   readonly total = computed(() => this.pattern().total);
   /** Position 1-indexée de l'étape courante dans l'ensemble des pièces —
    *  sert aussi à `WaitlistBanner` pour savoir si la troisième étape est atteinte. */
@@ -198,6 +213,8 @@ export class ReaderStore {
       this.image();
       this.pieceIndex();
       this.stepIndex();
+      this.stitchIndex();
+      this.view();
       this.done();
       this.reps();
       this.elapsed();
@@ -209,6 +226,13 @@ export class ReaderStore {
       this.charts();
       if (!this.restored()) return;
       void this.persist();
+    });
+
+    // Les tours de la pièce se calculent hors du premier affichage : seule
+    // une lectrice qui ouvre un patron en a besoin.
+    effect(() => {
+      const piece = this.piece();
+      untracked(() => void this.parsePieceChart(piece));
     });
 
     // Les photos suivent le projet actif : les adresses du précédent sont
@@ -304,6 +328,8 @@ export class ReaderStore {
       image: this.image(),
       pieceIndex: this.pieceIndex(),
       stepIndex: this.stepIndex(),
+      stitch: this.stitchIndex(),
+      view: this.view(),
       done: this.done(),
       reps: this.reps(),
       elapsed: this.elapsed(),
@@ -314,6 +340,14 @@ export class ReaderStore {
       chartCount: this.chartCount(),
       charts: this.charts(),
     };
+  }
+
+  private async parsePieceChart(piece: PatternPiece | null): Promise<void> {
+    const parse = ++this.chartParse;
+    this.pieceChart.set(null);
+    if (!piece) return;
+    const { pieceToChart } = await import('../data/text-to-chart');
+    if (parse === this.chartParse) this.pieceChart.set(pieceToChart(piece));
   }
 
   private async loadPhotos(id: string | null, count: number): Promise<void> {
@@ -488,6 +522,8 @@ export class ReaderStore {
     this.pdfImagesNote.set(null);
     this.pieceIndex.set(Math.min(project.pieceIndex, Math.max(0, this.pieces().length - 1)));
     this.stepIndex.set(Math.min(project.stepIndex, Math.max(0, this.stepCount() - 1)));
+    this.stitchIndex.set(Math.max(0, Math.floor(project.stitch ?? 0)));
+    this.view.set(project.view === 'chart' ? 'chart' : 'text');
     this.depthsReached.set(new Set(DEPTH_THRESHOLDS.filter((t) => this.absoluteStep() >= t)));
     if (touch) {
       const touched: Project = { ...project, lastOpenedAt: Date.now() };
@@ -595,6 +631,7 @@ export class ReaderStore {
     this.source.set(text);
     this.pieceIndex.set(0);
     this.stepIndex.set(0);
+    this.stitchIndex.set(0);
     this.done.set({});
     this.reps.set({});
     this.depthsReached.set(new Set());
@@ -630,6 +667,7 @@ export class ReaderStore {
     this.source.set(progress.source);
     this.pieceIndex.set(progress.pieceIndex);
     this.stepIndex.set(progress.stepIndex);
+    this.stitchIndex.set(0);
     this.done.set(progress.done);
     this.reps.set(progress.reps);
     this.depthsReached.set(new Set(DEPTH_THRESHOLDS.filter((t) => this.absoluteStep() >= t)));
@@ -734,6 +772,27 @@ export class ReaderStore {
   selectPiece(index: number): void {
     this.pieceIndex.set(index);
     this.stepIndex.set(0);
+    this.stitchIndex.set(0);
+  }
+
+  setView(view: ReaderView): void {
+    if (view === this.view()) return;
+    this.view.set(view);
+    this.analytics.track('view_changed', { view });
+  }
+
+  /**
+   * Place la progression sur une maille du diagramme : l'étape et la maille
+   * d'un coup, pour que l'effet de persistance les écrive ensemble.
+   */
+  markStitch(stepIndex: number, stitch: number): void {
+    if (stepIndex < 0 || stepIndex >= this.stepCount() || stitch < 0) return;
+    this.stepIndex.set(stepIndex);
+    this.stitchIndex.set(stitch);
+    const key = `${this.currentId() ?? ''}:${this.positionKey()}`;
+    if (this.markedRounds.has(key)) return;
+    this.markedRounds.add(key);
+    this.analytics.track('stitch_marked');
   }
 
   /** Avance ou recule d'une étape, en franchissant les frontières de pièce. */
@@ -755,6 +814,7 @@ export class ReaderStore {
 
     this.pieceIndex.set(pieceIndex);
     this.stepIndex.set(stepIndex);
+    this.stitchIndex.set(0);
     this.analytics.track('step_advanced');
     this.checkDepth();
     if (!this.running()) this.startTimer();
@@ -768,6 +828,7 @@ export class ReaderStore {
   goTo(oneBased: number, origin: 'list' | 'field'): void {
     if (!this.stepCount() || !Number.isFinite(oneBased)) return;
     this.stepIndex.set(Math.max(0, Math.min(this.stepCount() - 1, oneBased - 1)));
+    this.stitchIndex.set(0);
     this.analytics.track('step_jumped', { origin });
     this.checkDepth();
   }

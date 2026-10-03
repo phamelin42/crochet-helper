@@ -1,4 +1,4 @@
-import { Convention, Group, Round, Token, stitchCount } from './chart-composer';
+import { Convention, Group, Round, Token, roundSymbols, stitchCount } from './chart-composer';
 import { CHART_SYMBOLS } from './chart-symbols';
 import { PatternPiece, PatternStep } from './pattern.model';
 
@@ -13,6 +13,8 @@ export interface PieceChart {
   readonly rounds: readonly (Round | null)[];
   /** Nombre d'étapes non nulles. */
   readonly drawable: number;
+  /** Mailles dessinées par étape, 0 si elle ne se dessine pas : le lecteur le lit sans charger le dessin. */
+  readonly stitches: readonly number[];
 }
 
 const field = (convention: Convention) =>
@@ -170,5 +172,10 @@ export function pieceToChart(piece: PatternPiece, convention?: Convention): Piec
   const charts = piece.steps.map((step, i) =>
     i < MAX_ROUNDS ? stepToRound(step, kind, used) : null,
   );
-  return { kind, rounds: charts, drawable: charts.filter(Boolean).length };
+  return {
+    kind,
+    rounds: charts,
+    drawable: charts.filter(Boolean).length,
+    stitches: charts.map((round) => (round ? roundSymbols(round).length : 0)),
+  };
 }

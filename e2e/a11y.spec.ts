@@ -145,6 +145,25 @@ for (const theme of THEMES) {
   });
 }
 
+/** Affichage diagramme (fiche 45) : le dessin, ses commandes et la maille marquée. */
+for (const theme of THEMES) {
+  test(`lecteur en diagramme — thème ${theme.name} — aucune violation axe sérieuse`, async ({
+    page,
+  }) => {
+    await pageComplete(page);
+    await page.goto('/');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await page.locator('#pattern-source').fill('Tree\nRound 1: 6 sc (6)\nRound 2: 12 sc (12)');
+    await page.getByRole('button', { name: 'Split into steps', exact: true }).click();
+    await page.locator('.view-toggle').getByText('Chart', { exact: true }).click();
+    await page.locator('.chart-cell').nth(7).click();
+    await expect(page.getByRole('img', { name: /stitch 2 of 12/ })).toBeVisible();
+    await applyTheme(page, theme.dim);
+
+    expect(await seriousViolations(page)).toEqual([]);
+  });
+}
+
 /**
  * WCAG 1.4.10 (reflow) : à 320 px de large — l'équivalent d'un zoom à 400 %
  * sur un écran de 1280 px — aucune page ne défile horizontalement. Axe ne le

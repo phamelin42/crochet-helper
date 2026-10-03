@@ -13,7 +13,6 @@ import { AnalyticsService, roundToHundred } from '../../../core/analytics/analyt
 import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
-import { roundSymbols } from '../data/chart-composer';
 import type { PieceChart } from '../data/text-to-chart';
 import { DEMO_PATTERN } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
@@ -169,8 +168,7 @@ export class ReaderStore {
   private chartParse = 0;
   /** Mailles dessinées dans l'étape courante ; 0 si elle ne se dessine pas. */
   readonly stitchTotal = computed(() => {
-    const round = this.pieceChart()?.rounds[this.stepIndex()];
-    return round ? roundSymbols(round).length : 0;
+    return this.pieceChart()?.stitches[this.stepIndex()] ?? 0;
   });
   readonly total = computed(() => this.pattern().total);
   /** Position 1-indexée de l'étape courante dans l'ensemble des pièces —

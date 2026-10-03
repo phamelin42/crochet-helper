@@ -168,7 +168,9 @@ export class ChartView {
 
   protected readonly previous = computed(() => {
     const position = this.position();
-    const before = this.layout().cells.filter((cell) => cell.round * ORDER + cell.stitch < position);
+    const before = this.layout().cells.filter(
+      (cell) => cell.round * ORDER + cell.stitch < position,
+    );
     return before.at(-1) ?? null;
   });
 

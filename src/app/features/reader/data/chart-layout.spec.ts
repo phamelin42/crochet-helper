@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Round } from './chart-composer';
+import { Round, roundSymbols } from './chart-composer';
 import { CELL, layoutPiece } from './chart-layout';
 import { PieceChart } from './text-to-chart';
 
@@ -12,6 +12,7 @@ const chartOf = (kind: Round['kind'], rounds: (Round | null)[]): PieceChart => (
   kind,
   rounds,
   drawable: rounds.filter(Boolean).length,
+  stitches: rounds.map((round) => (round ? roundSymbols(round).length : 0)),
 });
 
 describe('layoutPiece', () => {
@@ -66,8 +67,11 @@ describe('layoutPiece', () => {
     expect(cells.every((cell) => cell.angle === 0)).toBe(true);
   });
 
-  it.each(['round', 'row'] as const)('ne produit aucune maille pour une pièce vide (%s)', (kind) => {
-    const { cells } = layoutPiece(chartOf(kind, [null, null]));
-    expect(cells).toEqual([]);
-  });
+  it.each(['round', 'row'] as const)(
+    'ne produit aucune maille pour une pièce vide (%s)',
+    (kind) => {
+      const { cells } = layoutPiece(chartOf(kind, [null, null]));
+      expect(cells).toEqual([]);
+    },
+  );
 });

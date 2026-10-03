@@ -71,6 +71,7 @@ export const EVENEMENTS = [
   'app_opened',
   'app_tab_selected',
   'view_changed',
+  'view_chosen',
   'stitch_marked',
 ];
 

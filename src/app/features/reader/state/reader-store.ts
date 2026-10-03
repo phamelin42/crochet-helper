@@ -10,6 +10,7 @@ import {
   untracked,
 } from '@angular/core';
 import { AnalyticsService, roundToHundred } from '../../../core/analytics/analytics.service';
+import { DisplayPrefsService } from '../../../core/platform/display-prefs.service';
 import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
@@ -87,6 +88,7 @@ const DEPTH_THRESHOLDS = [5, 20, 50] as const;
 @Service()
 export class ReaderStore {
   private readonly storage = inject(LocalStorageService);
+  private readonly prefs = inject(DisplayPrefsService);
   private readonly projectStore = inject(ProjectStoreService);
   private readonly analytics = inject(AnalyticsService);
   private readonly objectUrls = inject(ObjectUrlService);
@@ -108,6 +110,10 @@ export class ReaderStore {
   readonly stitchIndex = signal(0);
   /** Affichage du lecteur, retenu par projet. */
   readonly view = signal<ReaderView>('text');
+  /** Projet qui vient d'être créé et attend la réponse à « étapes écrites ou diagramme ? ». */
+  readonly viewChoice = signal<string | null>(null);
+  /** Préférence « diagramme » sans étape dessinable : l'affichage texte s'applique, et on le dit. */
+  readonly viewFallback = signal(false);
   /** Tours où une maille a déjà été comptée dans cette session. */
   private readonly markedRounds = new Set<string>();
   /** Paliers de profondeur déjà atteints par le projet courant — évite de réémettre. */
@@ -520,6 +526,8 @@ export class ReaderStore {
     this.charts.set(sanitizeCharts(project.charts, project.chartCount ?? 0));
     this.chartError.set(null);
     this.pdfImagesNote.set(null);
+    this.viewChoice.set(null);
+    this.viewFallback.set(false);
     this.pieceIndex.set(Math.min(project.pieceIndex, Math.max(0, this.pieces().length - 1)));
     this.stepIndex.set(Math.min(project.stepIndex, Math.max(0, this.stepCount() - 1)));
     this.stitchIndex.set(Math.max(0, Math.floor(project.stitch ?? 0)));
@@ -636,9 +644,16 @@ export class ReaderStore {
     this.reps.set({});
     this.depthsReached.set(new Set());
     if (!text) return;
+    let created = false;
     if (!this.currentId()) {
       this.currentId.set(crypto.randomUUID());
       this.analytics.track('project_created');
+      created = true;
+    }
+    if (created) {
+      this.view.set('text');
+      this.viewChoice.set(null);
+      this.viewFallback.set(false);
     }
     if (origine === 'saisie') {
       this.analytics.track('pattern_pasted', { length: roundToHundred(text.length) });
@@ -649,6 +664,39 @@ export class ReaderStore {
       materials: this.materials().length,
       origine,
     });
+    if (created) void this.applyDefaultView(this.currentId()!);
+  }
+
+  /**
+   * Applique la préférence d'affichage au projet qui vient d'être créé. La
+   * question ne se pose que si une étape se dessine : sinon le texte
+   * s'applique sans rien demander.
+   */
+  private async applyDefaultView(id: string): Promise<void> {
+    const pref = this.prefs.defaultView();
+    if (pref === 'text') return;
+    const { pieceToChart } = await import('../data/text-to-chart');
+    // Un autre patron a été ouvert pendant le chargement : la question n'est plus la sienne.
+    if (this.currentId() !== id) return;
+    const drawable = this.pieces().some((piece) => pieceToChart(piece).drawable > 0);
+    if (!drawable) {
+      if (pref === 'chart') this.viewFallback.set(true);
+    } else if (pref === 'chart') this.view.set('chart');
+    else this.viewChoice.set(id);
+  }
+
+  /** Réponse à la question : fixe l'affichage du projet qui vient d'être créé, et le retient si demandé. */
+  chooseView(view: ReaderView, remember: boolean): void {
+    const id = this.viewChoice();
+    this.viewChoice.set(null);
+    this.analytics.track('view_chosen', { view, remembered: remember ? 'yes' : 'no' });
+    if (remember) this.prefs.setDefaultView(view);
+    if (id && id === this.currentId()) this.view.set(view);
+  }
+
+  /** Fermer sans choisir : texte, rien de retenu. */
+  dismissViewChoice(): void {
+    this.viewChoice.set(null);
   }
 
   loadDemo(): void {
@@ -668,6 +716,7 @@ export class ReaderStore {
     this.pieceIndex.set(progress.pieceIndex);
     this.stepIndex.set(progress.stepIndex);
     this.stitchIndex.set(0);
+    this.view.set('text');
     this.done.set(progress.done);
     this.reps.set(progress.reps);
     this.depthsReached.set(new Set(DEPTH_THRESHOLDS.filter((t) => this.absoluteStep() >= t)));
@@ -767,6 +816,8 @@ export class ReaderStore {
     this.charts.set({});
     this.chartError.set(null);
     this.pdfImagesNote.set(null);
+    this.viewChoice.set(null);
+    this.viewFallback.set(false);
   }
 
   selectPiece(index: number): void {

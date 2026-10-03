@@ -5,6 +5,11 @@ import { AppModeService } from './app-mode.service';
 
 export type ReaderTextSize = 'base' | 'lg' | 'xl';
 
+/** Affichage d'un nouveau patron : `ask` pose la question à chaque import (fiche 46). */
+export type DefaultView = 'ask' | 'text' | 'chart';
+
+const DEFAULT_VIEWS: readonly DefaultView[] = ['ask', 'text', 'chart'];
+const DEFAULT_VIEW_KEY = 'fil.defaultView';
 const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
 const TEXT_SIZE_KEY = 'fil.textSize';
 const DIM_KEY = 'fil.dim';
@@ -27,6 +32,8 @@ export class DisplayPrefsService {
   /** Mode page pleine (fiche 38) : activé tant que la lectrice ne l'a pas quitté. */
   readonly focus = signal(true);
 
+  readonly defaultView = signal<DefaultView>('ask');
+
   constructor() {
     // Après le premier rendu plutôt qu'au constructeur : la préférence vient
     // de `localStorage`, absent au pré-rendu. Un bref flash clair est accepté.
@@ -35,6 +42,8 @@ export class DisplayPrefsService {
       if (size && TEXT_SIZES.includes(size)) this.setTextSize(size);
       if (this.storage.read<boolean>(DIM_KEY)) this.setDim(true);
       if (this.storage.read<boolean>(FOCUS_KEY) === false) this.focus.set(false);
+      const view = this.storage.read<DefaultView>(DEFAULT_VIEW_KEY);
+      if (view && DEFAULT_VIEWS.includes(view)) this.defaultView.set(view);
     });
   }
 
@@ -57,6 +66,11 @@ export class DisplayPrefsService {
     // jamais recopiée ici.
     const bg = getComputedStyle(root).getPropertyValue('--color-bg').trim();
     if (bg) this.doc.querySelector('meta[name="theme-color"]')?.setAttribute('content', bg);
+  }
+
+  setDefaultView(value: DefaultView): void {
+    this.defaultView.set(value);
+    this.storage.write(DEFAULT_VIEW_KEY, value);
   }
 
   setFocus(value: boolean): void {

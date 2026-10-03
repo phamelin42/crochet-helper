@@ -95,6 +95,8 @@ export type AnalyticsEvent =
   | 'app_tab_selected'
   /** Affichage du lecteur changé (propriété `view`, `text` ou `chart`). */
   | 'view_changed'
+  /** Réponse à « Comment suivre ce patron ? » (propriétés `view`, `remembered` : `yes` / `no`). */
+  | 'view_chosen'
   /** Maille touchée dans le diagramme, une fois par tour et par session. */
   | 'stitch_marked';
 

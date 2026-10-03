@@ -71,10 +71,6 @@ export type AnalyticsEvent =
   | 'row_counted'
   /** Photo d'un patron PDF agrandie depuis sa vignette, dans le lecteur. */
   | 'image_opened'
-  /** Diagramme chargé dans un projet (propriété `source`, image ou PDF). */
-  | 'chart_added'
-  /** Diagramme affiché dans le panneau ou en plein écran, une fois par session et par diagramme. */
-  | 'chart_viewed'
   /** Transcription d'un diagramme ajoutée au patron (propriétés `rounds` et `convention`). */
   | 'chart_transcribed'
   /** Diagramme ouvert comme patron et lu automatiquement (propriétés `rounds` et `symbols`, à la dizaine). */

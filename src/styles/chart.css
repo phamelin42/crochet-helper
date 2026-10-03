@@ -64,44 +64,6 @@
   transform: translate(-50%, -50%) rotate(270deg);
 }
 
-.chart-pick {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.chart-for {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-}
-.chart-for .seg {
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-/* Légende : une ligne par symbole, sur fond clair comme le diagramme. */
-.chart-legend {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-2);
-  max-height: 60vh;
-  overflow-y: auto;
-}
-.chart-legend li {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: var(--space-3);
-}
-.chart-legend code {
-  font-weight: 700;
-}
-
 /* Choix des pages d'un PDF : une vignette et sa case par page. */
 .chart-pages {
   list-style: none;

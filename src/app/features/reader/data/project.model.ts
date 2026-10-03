@@ -23,12 +23,10 @@ export interface Project {
    */
   readonly imageCount?: number;
   /**
-   * Nombre de diagrammes chargés par la lectrice (fiche 35), numérotés de 1 à
-   * `chartCount`. Absent des projets antérieurs : 0.
+   * Nombre de diagrammes joints par la lectrice (fiche 35), fonction retirée
+   * depuis. Gardé pour effacer leurs fichiers avec le projet ; jamais affiché.
    */
   readonly chartCount?: number;
-  /** Diagramme épinglé à chaque pièce : indice de la pièce → numéro du diagramme. */
-  readonly charts?: Record<number, number>;
   /** Maille courante de l'étape (fiche 45), à partir de 0. Absente des anciens projets : 0. */
   readonly stitch?: number;
   /** Affichage choisi (fiche 45). Absent : texte. */
@@ -42,7 +40,7 @@ export interface Project {
 
 export type ReaderView = 'text' | 'chart';
 
-/** Plafond de diagrammes par projet : chacun pèse jusqu'à quelques Mo dans IndexedDB. */
+/** Plafond des anciens diagrammes joints par projet : borne la validation des sauvegardes. */
 export const MAX_CHARTS = 20;
 
 /** Une photo d'un projet, enregistrée à part dans IndexedDB (magasin `images`). */
@@ -76,25 +74,9 @@ export function chartIds(project: Pick<Project, 'id' | 'chartCount'>): string[] 
   return Array.from({ length: project.chartCount ?? 0 }, (_, i) => chartId(project.id, i + 1));
 }
 
-/** Toutes les clés de fichiers d'un projet : photos et diagrammes. */
+/** Toutes les clés de fichiers d'un projet, anciens diagrammes joints compris : ce qu'efface sa suppression. */
 export function fileIds(project: Pick<Project, 'id' | 'imageCount' | 'chartCount'>): string[] {
   return [...imageIds(project), ...chartIds(project)];
-}
-
-/**
- * Épingles lisibles : indices de pièce entiers positifs ou nuls, numéros de
- * diagramme dans `1..count`. Ce qui ne l'est pas est écarté sans erreur.
- */
-export function sanitizeCharts(value: unknown, count: number): Record<number, number> {
-  if (!value || typeof value !== 'object') return {};
-  const clean: Record<number, number> = {};
-  for (const [key, n] of Object.entries(value)) {
-    const piece = Number(key);
-    if (Number.isInteger(piece) && piece >= 0 && Number.isInteger(n) && n >= 1 && n <= count) {
-      clean[piece] = n;
-    }
-  }
-  return clean;
 }
 
 /** Forme de l'ancien état unique, stocké dans `localStorage` avant la fiche 16. */

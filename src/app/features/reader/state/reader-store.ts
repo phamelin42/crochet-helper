@@ -22,18 +22,14 @@ import type { ExtractedImage, ExtractedPdf } from '../data/pdf-extract';
 import { EMPTY_PATTERN, PatternPiece, PatternStep } from '../data/pattern.model';
 import {
   LegacyReaderState,
-  MAX_CHARTS,
   Project,
   ProjectImage,
-  chartId,
-  chartIds,
   deriveProjectName,
   fileIds,
   imageId,
   imageIds,
   legacyToProject,
   mergeProjects,
-  sanitizeCharts,
   type ReaderView,
 } from '../data/project.model';
 import { ColorGrid, validGrid } from '../data/color-grid';
@@ -143,21 +139,16 @@ export class ReaderStore {
   /** Photos du projet actif, prêtes à afficher : l'image n est à l'indice
    *  n - 1, `null` si son fichier manque. Vide tant qu'elles ne sont pas lues. */
   readonly photos = signal<readonly (ShownPhoto | null)[]>([]);
-  /** Nombre de diagrammes du projet actif, enregistrés à part dans IndexedDB. */
-  readonly chartCount = signal(0);
-  /** Diagramme épinglé à chaque pièce du projet actif : indice de pièce → numéro. */
-  readonly charts = signal<Record<number, number>>({});
-  /** Diagrammes du projet actif, prêts à afficher : le n est à l'indice n - 1. */
-  readonly chartFiles = signal<readonly (ShownPhoto | null)[]>([]);
-  /** Dernier ajout de diagramme refusé : quota plein, ou plafond atteint. */
-  readonly chartError = signal<'non-enregistre' | 'plafond' | null>(null);
+  /**
+   * Diagrammes joints au projet avant le retrait de cette fonction : jamais
+   * affichés, mais leur compte est réécrit tel quel pour que la suppression
+   * du projet efface aussi leurs fichiers.
+   */
+  private legacyChartCount = 0;
   /** Suspend l'effet de persistance pendant l'écriture groupée d'un PDF et de ses photos. */
   private holdPersist = false;
   /** Numéro de la dernière lecture de photos : une lecture dépassée est ignorée. */
   private imageLoad = 0;
-  private chartLoad = 0;
-  /** Diagrammes déjà comptés comme vus dans cette session de lecture. */
-  private readonly viewedCharts = new Set<string>();
 
   /** Projet actif, `null` avant tout patron chargé. */
   readonly currentId = signal<string | null>(null);
@@ -235,8 +226,6 @@ export class ReaderStore {
       this.currentId();
       this.nameOverride();
       this.imageCount();
-      this.chartCount();
-      this.charts();
       if (!this.restored()) return;
       void this.persist();
     });
@@ -269,11 +258,6 @@ export class ReaderStore {
       const count = this.imageCount();
       untracked(() => void this.loadPhotos(id, count));
     });
-    effect(() => {
-      const id = this.currentId();
-      const count = this.chartCount();
-      untracked(() => void this.loadCharts(id, count));
-    });
 
     // Le pointeur vers le projet actif est la seule donnée qui reste dans
     // localStorage : assez petite pour ne jamais dépasser son quota.
@@ -287,9 +271,7 @@ export class ReaderStore {
     this.destroyRef.onDestroy(() => {
       this.stopTimer();
       this.imageLoad++;
-      this.chartLoad++;
       this.releasePhotos();
-      this.releaseCharts();
     });
   }
 
@@ -364,8 +346,7 @@ export class ReaderStore {
       createdAt: existing?.createdAt ?? now,
       lastOpenedAt: existing?.lastOpenedAt ?? now,
       imageCount: this.imageCount(),
-      chartCount: this.chartCount(),
-      charts: this.charts(),
+      ...(this.legacyChartCount ? { chartCount: this.legacyChartCount } : {}),
       ...(this.grid() ? { grid: this.grid()! } : {}),
     };
   }
@@ -401,118 +382,15 @@ export class ReaderStore {
     this.photos.set([]);
   }
 
-  private async loadCharts(id: string | null, count: number): Promise<void> {
-    const load = ++this.chartLoad;
-    this.releaseCharts();
-    if (!id || !count) return;
-    const files = await this.projectStore.getFiles<ProjectImage>(
-      chartIds({ id, chartCount: count }),
-    );
-    // Un autre projet a été ouvert pendant la lecture : ces diagrammes ne sont plus les siens.
-    if (load !== this.chartLoad) return;
-    this.chartFiles.set(
-      files.map((file) =>
-        file
-          ? { url: this.objectUrls.create(file.blob), width: file.width, height: file.height }
-          : null,
-      ),
-    );
-  }
-
-  private releaseCharts(): void {
-    this.chartFiles().forEach((chart) => chart && this.objectUrls.revoke(chart.url));
-    this.chartFiles.set([]);
-  }
-
   /**
-   * Enregistre des diagrammes avec le projet actif, dans **une seule**
-   * transaction : rien n'est ajouté à l'écran tant qu'elle n'est pas validée.
-   * Le premier est épinglé à la pièce en cours si elle n'en a pas encore.
+   * Ouvre un patron écrit à partir d'un diagramme relu par la lectrice :
+   * **toujours un nouveau projet**, même si le texte est celui du projet
+   * actif, qui reste intact dans la liste.
    */
-  async addCharts(items: readonly NewChart[], source: 'image' | 'pdf'): Promise<boolean> {
-    const id = this.currentId();
-    const start = this.chartCount();
-    if (!id || !items.length) return false;
-    if (start + items.length > MAX_CHARTS) {
-      this.chartError.set('plafond');
-      return false;
-    }
-    this.chartError.set(null);
-    const files: ProjectImage[] = items.map(({ blob, width, height }, index) => ({
-      id: chartId(id, start + index + 1),
-      projectId: id,
-      n: start + index + 1,
-      blob,
-      width,
-      height,
-      kind: 'chart',
-    }));
-    const piece = this.pieceIndex();
-    const pins = this.charts();
-    const charts = pins[piece] === undefined ? { ...pins, [piece]: start + 1 } : pins;
-    // L'effet de persistance attend : il écrirait le projet dans une autre
-    // transaction, avec le compte d'avant.
-    this.holdPersist = true;
-    let saved: boolean;
-    try {
-      const project: Project = { ...this.snapshot(id), chartCount: start + items.length, charts };
-      saved = await this.projectStore.putAll([project], files);
-      if (saved && this.currentId() === id) {
-        this.chartCount.set(start + items.length);
-        this.charts.set(charts);
-      }
-    } finally {
-      this.holdPersist = false;
-    }
-    if (!saved) {
-      this.chartError.set('non-enregistre');
-      return false;
-    }
-    await this.persist();
-    this.analytics.track('chart_added', { source });
-    return true;
-  }
-
-  /**
-   * Ouvre un patron écrit à partir d'un diagramme : **toujours un nouveau
-   * projet**, le texte relu par la lectrice et ses diagrammes enregistrés
-   * dans une seule transaction, le premier épinglé à la première pièce. Si
-   * l'écriture des images avorte (quota), le patron s'ouvre quand même et
-   * `chartError` le dit : le texte n'est jamais perdu.
-   */
-  async openFromChart(text: string, items: readonly NewChart[]): Promise<boolean> {
-    if (!text) return false;
+  openFromChart(text: string): void {
+    if (!text) return;
     if (this.currentId()) this.detach();
-    this.holdPersist = true;
-    let saved: boolean;
-    try {
-      this.load(text, 'diagramme');
-      const id = this.currentId();
-      if (!id) return false;
-      const count = Math.min(items.length, MAX_CHARTS);
-      const charts: Record<number, number> = count ? { 0: 1 } : {};
-      const files: ProjectImage[] = items.slice(0, count).map(({ blob, width, height }, i) => ({
-        id: chartId(id!, i + 1),
-        projectId: id!,
-        n: i + 1,
-        blob,
-        width,
-        height,
-        kind: 'chart',
-      }));
-      const project: Project = { ...this.snapshot(id), chartCount: count, charts };
-      saved = await this.projectStore.putAll([project], files);
-      if (saved && this.currentId() === id) {
-        this.chartCount.set(count);
-        this.charts.set(charts);
-      }
-    } finally {
-      this.holdPersist = false;
-    }
-    if (!saved) this.chartError.set('non-enregistre');
-    await this.persist();
-    if (saved && items.length) this.analytics.track('chart_added', { source: 'diagramme' });
-    return saved;
+    this.load(text, 'diagramme');
   }
 
   /**
@@ -540,25 +418,6 @@ export class ReaderStore {
     return saved;
   }
 
-  /** Épingle le diagramme n à la pièce : un diagramme n'est épinglé qu'à une pièce à la fois. */
-  pinChart(piece: number, n: number): void {
-    if (n < 1 || n > this.chartCount() || piece < 0 || piece >= this.pieces().length) return;
-    this.charts.update((pins) => {
-      const next: Record<number, number> = {};
-      for (const [key, value] of Object.entries(pins)) if (value !== n) next[Number(key)] = value;
-      next[piece] = n;
-      return next;
-    });
-  }
-
-  /** Compte un diagramme comme vu, une fois par session de lecture. */
-  markChartViewed(n: number): void {
-    const key = `${this.currentId()}:${n}`;
-    if (this.viewedCharts.has(key)) return;
-    this.viewedCharts.add(key);
-    this.analytics.track('chart_viewed');
-  }
-
   private hydrate(project: Project, touch = false): void {
     this.currentId.set(project.id);
     this.nameOverride.set(project.name || null);
@@ -569,9 +428,7 @@ export class ReaderStore {
     this.elapsed.set(project.elapsed);
     this.expandAbbreviations.set(project.expandAbbreviations);
     this.imageCount.set(project.imageCount ?? 0);
-    this.chartCount.set(project.chartCount ?? 0);
-    this.charts.set(sanitizeCharts(project.charts, project.chartCount ?? 0));
-    this.chartError.set(null);
+    this.legacyChartCount = project.chartCount ?? 0;
     this.pdfImagesNote.set(null);
     this.viewChoice.set(null);
     this.viewFallback.set(false);
@@ -622,7 +479,7 @@ export class ReaderStore {
     this.analytics.track('backup_exported', { projects: projects.length });
     const [{ encodeBackup }, files] = await Promise.all([
       import('../data/project-backup'),
-      this.projectStore.getFiles<ProjectImage>(projects.flatMap(fileIds)),
+      this.projectStore.getFiles<ProjectImage>(projects.flatMap(imageIds)),
     ]);
     return encodeBackup(projects, files);
   }
@@ -866,10 +723,8 @@ export class ReaderStore {
     this.elapsed.set(0);
     this.image.set('');
     this.imageCount.set(0);
-    this.chartCount.set(0);
-    this.charts.set({});
+    this.legacyChartCount = 0;
     this.grid.set(null);
-    this.chartError.set(null);
     this.pdfImagesNote.set(null);
     this.viewChoice.set(null);
     this.viewFallback.set(false);

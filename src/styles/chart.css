@@ -276,3 +276,47 @@
   stroke-width: 3;
   pointer-events: none;
 }
+
+/* Image en grille (fiche 48) : réglages à gauche, aperçu à droite, l'un sous
+ * l'autre sur téléphone. L'aperçu est sur papier blanc, comme un diagramme. */
+.image-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  align-items: start;
+}
+.image-grid-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.image-grid-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.image-grid-stepper {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.image-grid-stepper input {
+  max-width: 6rem;
+  text-align: center;
+}
+.image-grid-preview {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.image-grid-preview svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 50vh;
+  background: var(--print-paper);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  shape-rendering: crispEdges;
+}

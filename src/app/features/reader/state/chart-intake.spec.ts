@@ -100,6 +100,48 @@ describe('ChartIntake', () => {
     expect(resize).not.toHaveBeenCalled();
   });
 
+  describe('ouvrir une image en grille', () => {
+    it('garde une image PNG, JPEG ou WebP de 10 Mo au plus pour le dialogue, sans la lire', async () => {
+      const intake = TestBed.inject(ChartIntake);
+      for (const type of ['image/png', 'image/jpeg', 'image/webp']) {
+        const image = file(type, MAX_CHART_FILE_BYTES);
+        intake.openImageGrid(image);
+        expect(intake.gridImage()).toBe(image);
+        expect(intake.error()).toBeNull();
+        intake.closeImageGrid(false);
+      }
+      expect(resize).not.toHaveBeenCalled();
+      expect(recognizer).not.toHaveBeenCalled();
+    });
+
+    it('refuse un autre type ou un fichier trop lourd, avec les messages des diagrammes', () => {
+      const intake = TestBed.inject(ChartIntake);
+      const cases: [File, string][] = [
+        [file('image/gif'), 'format'],
+        [file('application/pdf'), 'format'],
+        [file('image/png', MAX_CHART_FILE_BYTES + 1), 'lourd'],
+      ];
+      for (const [f, error] of cases) {
+        intake.openImageGrid(f);
+        expect(intake.error()).toBe(error);
+        expect(intake.gridImage()).toBeNull();
+      }
+    });
+
+    it('une grille créée replie le panneau d’import ; une image illisible le dit', () => {
+      const intake = TestBed.inject(ChartIntake);
+      intake.openImageGrid(file('image/png'));
+      intake.closeImageGrid(true);
+      expect(intake.opened()).toBe(1);
+
+      intake.openImageGrid(file('image/png'));
+      intake.closeImageGrid(false, 'illisible');
+      expect(intake.gridImage()).toBeNull();
+      expect(intake.error()).toBe('illisible');
+      expect(intake.opened()).toBe(1);
+    });
+  });
+
   describe('ouvrir un diagramme comme patron', () => {
     async function fresh() {
       const store = TestBed.inject(ReaderStore);

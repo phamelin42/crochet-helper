@@ -1,4 +1,13 @@
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import {
+  Component,
+  ViewContainerRef,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import { StylesheetService } from '../../../core/platform/stylesheet.service';
@@ -64,6 +73,9 @@ interface PageThumb {
       </fil-dialog>
     }
 
+    <!-- « Image en grille » : le dialogue et la réduction viennent à la demande. -->
+    <ng-container #gridHost />
+
     @if (intake.opening(); as opening) {
       <fil-chart-composer
         [open]="true"
@@ -101,7 +113,15 @@ export class ChartIntakeDialogs {
   protected readonly preview = signal<ShownPhoto | null>(null);
   protected readonly selected = signal<ReadonlySet<number>>(new Set());
 
+  private readonly gridHost = viewChild.required('gridHost', { read: ViewContainerRef });
+  private gridLoad = 0;
+
   constructor() {
+    effect(() => {
+      const file = this.intake.gridImage();
+      untracked(() => void this.mountGrid(file));
+    });
+
     const styles = inject(StylesheetService);
     // Les adresses `blob:` des vignettes suivent les pages : révoquées à la
     // fermeture ou avant d'en créer d'autres.
@@ -132,6 +152,22 @@ export class ChartIntakeDialogs {
         );
       });
     });
+  }
+
+  private async mountGrid(file: File | null): Promise<void> {
+    const load = ++this.gridLoad;
+    const host = this.gridHost();
+    host.clear();
+    if (!file) return;
+    let dialog: typeof import('./image-grid-dialog').ImageGridDialog;
+    try {
+      ({ ImageGridDialog: dialog } = await import('./image-grid-dialog'));
+    } catch {
+      // Hors ligne sans le morceau en cache : l'image n'a pas pu être lue.
+      this.intake.closeImageGrid(false, 'illisible');
+      return;
+    }
+    if (load === this.gridLoad) host.createComponent(dialog);
   }
 
   protected confirm(text: string): void {

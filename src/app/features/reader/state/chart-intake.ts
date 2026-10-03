@@ -113,6 +113,8 @@ export class ChartIntake {
   /** Compte les diagrammes ouverts comme patrons : le panneau d'import se replie à chaque fois. */
   readonly opened = signal(0);
   readonly busy = signal(false);
+  /** Image choisie pour « Ouvrir une image en grille », en attente de ses réglages. */
+  readonly gridImage = signal<File | null>(null);
   readonly error = signal<ChartIntakeError | null>(null);
 
   /**
@@ -210,6 +212,24 @@ export class ChartIntake {
     } finally {
       this.busy.set(false);
     }
+  }
+
+  /**
+   * « Ouvrir une image en grille » : l'image est bornée comme un diagramme
+   * (types, 10 Mo), puis passe au dialogue de réglages. Rien n'est lu ici.
+   */
+  openImageGrid(file: File): void {
+    this.error.set(null);
+    if (!IMAGE_TYPES.has(file.type)) return this.fail('format');
+    if (file.size > MAX_CHART_FILE_BYTES) return this.fail('lourd');
+    this.gridImage.set(file);
+  }
+
+  /** Le dialogue se ferme : `created` replie le panneau d'import, comme un patron découpé. */
+  closeImageGrid(created: boolean, error: ChartIntakeError | null = null): void {
+    this.gridImage.set(null);
+    if (error) this.fail(error);
+    if (created) this.opened.update((n) => n + 1);
   }
 
   private fail(error: ChartIntakeError): void {

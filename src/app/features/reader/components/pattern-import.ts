@@ -57,6 +57,14 @@ import { ReaderStore } from '../state/reader-store';
             >
               {{ intake.busy() ? t('ui.chartBusy') : t('ui.chartOpen') }}
             </button>
+            <button
+              type="button"
+              filButton="secondary"
+              [disabled]="!!intake.gridImage()"
+              (click)="gridInput().nativeElement.click()"
+            >
+              {{ t('ui.gridImageOpen') }}
+            </button>
             <button type="button" filButton="secondary" (click)="demo()">{{ t('ui.demo') }}</button>
             <button type="button" filButton="ghost" (click)="clear()">{{ t('ui.clear') }}</button>
           </div>
@@ -79,6 +87,16 @@ import { ReaderStore } from '../state/reader-store';
             aria-hidden="true"
             (change)="onOpenChange($event)"
           />
+          <input
+            #gridFile
+            data-testid="grid-image-file"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            class="visually-hidden"
+            tabindex="-1"
+            aria-hidden="true"
+            (change)="onGridChange($event)"
+          />
           @if (pdfErrorMessage(); as message) {
             <p class="hint" role="alert">{{ message }}</p>
           } @else if (noRows()) {
@@ -97,6 +115,7 @@ export class PatternImport {
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
   protected readonly pdfInput = viewChild.required<ElementRef<HTMLInputElement>>('pdfFile');
   protected readonly openInput = viewChild.required<ElementRef<HTMLInputElement>>('openFile');
+  protected readonly gridInput = viewChild.required<ElementRef<HTMLInputElement>>('gridFile');
   protected readonly intake = inject(ChartIntake);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
@@ -162,6 +181,13 @@ export class PatternImport {
     const file = input.files?.[0];
     input.value = '';
     if (file) await this.intake.open(file);
+  }
+
+  protected onGridChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (file) this.intake.openImageGrid(file);
   }
 
   protected demo(): void {

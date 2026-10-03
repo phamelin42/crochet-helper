@@ -80,6 +80,7 @@ const FR = {
   'ui.photosNotSaved':
     'Les photos de ce PDF n’ont pas pu être enregistrées : l’espace de stockage de l’appareil est plein. Le patron est bien là, sans ses photos.',
   'ui.chartOpen': 'Ouvrir un diagramme',
+  'ui.gridImageOpen': 'Ouvrir une image en grille',
   'ui.chartBusy': 'Lecture du diagramme…',
   'ui.chartErrorFormat':
     'Ce fichier n’est pas un diagramme lisible : choisissez une image PNG, JPEG ou WebP, ou un PDF.',
@@ -176,6 +177,7 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.photosNotSaved':
     'This PDF’s photos couldn’t be saved: the device storage is full. The pattern is here, without its photos.',
   'ui.chartOpen': 'Open a chart',
+  'ui.gridImageOpen': 'Turn a picture into a grid',
   'ui.chartBusy': 'Reading the chart…',
   'ui.chartErrorFormat':
     'This file isn’t a readable chart: choose a PNG, JPEG or WebP image, or a PDF.',

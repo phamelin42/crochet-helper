@@ -36,7 +36,7 @@ for (const p of PAGES) {
   }) => {
     const html = await (await request.get(p.path)).text();
     expect(html).toContain(`<h1>${p.h1}</h1>`);
-    expect(html).toContain(p.faq.replace(' ', '&nbsp;').replace('&nbsp;', ' '));
+    expect(html).toContain(p.faq);
     expect(html).toContain('"@type":"FAQPage"');
     const sitemap = await (await request.get('/sitemap.xml')).text();
     expect(sitemap).toContain(`${p.path}</loc>`);

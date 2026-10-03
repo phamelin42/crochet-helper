@@ -58,7 +58,7 @@ branche.
 | 43 — Mode appli (coquille mobile)       | Terminée | —   | 2026-10-01 |
 | 44 — Du texte aux tours                 | Terminée | —   | 2026-10-02 |
 | 45 — Affichage diagramme                | Terminée | —   | 2026-10-03 |
-| 46 — Choix d'affichage à l'import       | À faire  | —   | —          |
+| 46 — Choix d'affichage à l'import       | Terminée | —   | 2026-10-03 |
 | 47 — Grille de couleurs (tapisserie)    | À faire  | —   | —          |
 | 48 — Image en grille de crochet         | À faire  | —   | —          |
 | 49 — Page-outil image en grille         | À faire  | —   | —          |

@@ -340,6 +340,11 @@
 .settings-group h2 {
   margin: 0;
 }
+/* Trois options à 320 px : la piste passe à la ligne plutôt que de déborder (fiche 46). */
+.settings-group .seg {
+  flex-wrap: wrap;
+  border-radius: var(--radius-lg);
+}
 .settings-links {
   display: grid;
   gap: var(--space-3);

@@ -33,7 +33,11 @@ const COPY = {
   imports: [Button, Checkbox, Dialog],
   template: `
     @if (store.viewChoice()) {
-      <fil-dialog [open]="true" (openChange)="!$event && store.dismissViewChoice()" [label]="c.title">
+      <fil-dialog
+        [open]="true"
+        (openChange)="!$event && store.dismissViewChoice()"
+        [label]="c.title"
+      >
         <h2 class="dialog-title">{{ c.title }}</h2>
         <fil-checkbox [label]="c.remember" [(checked)]="remember" />
         <div class="dialog-actions">

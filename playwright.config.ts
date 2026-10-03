@@ -13,6 +13,18 @@ export default defineConfig({
   reporter: 'list',
   use: {
     baseURL: `http://localhost:${PORT}`,
+    // Fiche 46 : sans préférence, un patron dessinable ouvre la question
+    // « étapes écrites ou diagramme ? », modale. Les tests qui ne parlent pas
+    // d'elle partent d'un choix retenu ; `view-choice.spec.ts` repart de zéro.
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: `http://localhost:${PORT}`,
+          localStorage: [{ name: 'fil.defaultView', value: JSON.stringify('text') }],
+        },
+      ],
+    },
   },
   projects: [
     {

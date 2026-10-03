@@ -114,6 +114,8 @@ export class ReaderStore {
   readonly viewChoice = signal<string | null>(null);
   /** Préférence « diagramme » sans étape dessinable : l'affichage texte s'applique, et on le dit. */
   readonly viewFallback = signal(false);
+  /** Projet neuf dont l'affichage se décide dès que ses tours sont connus. */
+  private readonly pendingView = signal<string | null>(null);
   /** Tours où une maille a déjà été comptée dans cette session. */
   private readonly markedRounds = new Set<string>();
   /** Paliers de profondeur déjà atteints par le projet courant — évite de réémettre. */
@@ -239,6 +241,20 @@ export class ReaderStore {
     effect(() => {
       const piece = this.piece();
       untracked(() => void this.parsePieceChart(piece));
+    });
+
+    // Déclarée après l'effet ci-dessus, donc exécutée après lui : `pieceChart`
+    // est déjà remis à `null` pour le nouveau patron, jamais celui du précédent.
+    // La décision attend les tours : le parseur n'est chargé que si une lectrice
+    // ouvre un patron, et pas avant que le premier affichage soit passé.
+    effect(() => {
+      const id = this.pendingView();
+      if (id && this.pieceChart()) {
+        untracked(() => {
+          this.pendingView.set(null);
+          void this.applyDefaultView(id);
+        });
+      }
     });
 
     // Les photos suivent le projet actif : les adresses du précédent sont
@@ -664,7 +680,7 @@ export class ReaderStore {
       materials: this.materials().length,
       origine,
     });
-    if (created) void this.applyDefaultView(this.currentId()!);
+    if (created) this.pendingView.set(this.currentId());
   }
 
   /**
@@ -675,7 +691,13 @@ export class ReaderStore {
   private async applyDefaultView(id: string): Promise<void> {
     const pref = this.prefs.defaultView();
     if (pref === 'text') return;
-    const { pieceToChart } = await import('../data/text-to-chart');
+    let pieceToChart: typeof import('../data/text-to-chart').pieceToChart;
+    try {
+      ({ pieceToChart } = await import('../data/text-to-chart'));
+    } catch {
+      // Hors ligne sans le morceau en cache : le texte s'applique, rien n'est demandé.
+      return;
+    }
     // Un autre patron a été ouvert pendant le chargement : la question n'est plus la sienne.
     if (this.currentId() !== id) return;
     const drawable = this.pieces().some((piece) => pieceToChart(piece).drawable > 0);

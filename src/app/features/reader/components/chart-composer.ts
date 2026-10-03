@@ -12,7 +12,6 @@ import {
 } from '@angular/core';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
-import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { Button } from '../../../shared/ui/button/button';
 import { InputField } from '../../../shared/ui/field/input';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
@@ -34,100 +33,22 @@ import { CHART_SYMBOLS, symbolName, symbolUrl } from '../data/chart-symbols';
 import { appendTranscription, defaultPieceName } from '../data/chart-transcription';
 import { COMPOSER_COPY, ComposerKey } from '../data/chart-composer-copy';
 import { READER_COPY } from '../data/reader-copy';
-import { ReaderStore } from '../state/reader-store';
 import type { ShownPhoto } from '../state/reader-store';
 import { ChartViewer } from './chart-viewer';
 
-const DRAFT_KEY = 'fil.chartDraft';
 const CONVENTIONS: readonly Convention[] = ['US', 'UK', 'FR'];
-/** Bornes d'un brouillon relu : un stockage altéré ne doit rien pouvoir faire grossir. */
+/** Bornes d'une transcription : ni la lecture automatique ni la lectrice ne la font grossir sans fin. */
 const MAX_ROUNDS = 200;
 const MAX_TOKENS = 60;
 const MAX_COUNT = 99;
 const MAX_NAME = 60;
 
-interface Draft {
-  rounds: readonly Round[];
-  groups: readonly Group[];
-  pending: readonly Token[];
-  convention: number;
-  kind: number;
-  into: number;
-  name: string;
-}
-
-const EMPTY_DRAFT: Draft = {
-  rounds: [],
-  groups: [],
-  pending: [],
-  convention: -1,
-  kind: 0,
-  into: 0,
-  name: '',
-};
-
-const int = (value: unknown, min: number, max: number, fallback: number): number =>
-  typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max
-    ? value
-    : fallback;
-
-function readTokens(value: unknown): Token[] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .slice(0, MAX_TOKENS)
-    .filter((t): t is Token => !!t && typeof t === 'object' && !!findSymbol((t as Token).symbol))
-    .map((t) => ({ symbol: t.symbol, count: int(t.count, 1, MAX_COUNT, 1) }));
-}
-
-function readGroups(value: unknown): Group[] {
-  if (!Array.isArray(value)) return [];
-  return value.slice(0, MAX_TOKENS).flatMap((g) => {
-    if (!g || typeof g !== 'object') return [];
-    const tokens = readTokens((g as Group).tokens);
-    return tokens.length ? [{ tokens, repeat: int((g as Group).repeat, 1, MAX_COUNT, 1) }] : [];
-  });
-}
-
-/** Relit le brouillon du stockage en le revalidant : toute forme inattendue devient « pas de brouillon ». */
-function readDraft(raw: unknown): Draft {
-  if (!raw || typeof raw !== 'object') return EMPTY_DRAFT;
-  const draft = raw as Partial<Draft>;
-  const rounds = Array.isArray(draft.rounds)
-    ? draft.rounds.slice(0, MAX_ROUNDS).flatMap((r): Round[] => {
-        if (!r || typeof r !== 'object') return [];
-        const groups = readGroups((r as Round).groups);
-        if (!groups.length) return [];
-        const into = (r as Round).into;
-        return [
-          {
-            kind: (r as Round).kind === 'row' ? 'row' : 'round',
-            groups,
-            ...(into === 'magic-ring' || into === 'chain' ? { into } : {}),
-          },
-        ];
-      })
-    : [];
-  return {
-    rounds,
-    groups: readGroups(draft.groups),
-    pending: readTokens(draft.pending),
-    convention: int(draft.convention, -1, 2, -1),
-    kind: int(draft.kind, 0, 1, 0),
-    into: int(draft.into, 0, 2, 0),
-    name: typeof draft.name === 'string' ? draft.name.slice(0, MAX_NAME) : '',
-  };
-}
-
 /**
- * Composeur de transcription : la lectrice touche les symboles qu'elle voit
- * sur le diagramme, l'outil écrit le tour, compte les mailles et signale les
- * incohérences. « Ajouter au patron » écrit le résultat en nouvelle pièce ;
- * le brouillon survit à un rechargement tant qu'il n'est pas ajouté.
- *
- * Mode `open` (« Ouvrir un diagramme ») : les tours arrivent pré-remplis par
- * la lecture automatique (`seed`), la lectrice les relit et les corrige, et
- * « Découper en étapes » émet le patron écrit (`composed`) au lieu de
- * l'ajouter au projet actif. Ce mode ne touche pas au brouillon enregistré.
+ * Relecture de « Ouvrir un diagramme » : les tours arrivent pré-remplis par
+ * la lecture automatique (`seed`). La lectrice touche les symboles qu'elle
+ * voit pour corriger ou compléter un tour ; l'outil écrit le tour, compte les
+ * mailles et signale les incohérences. « Découper en étapes » émet le patron
+ * écrit (`composed`).
  */
 @Component({
   selector: 'fil-chart-composer',
@@ -136,11 +57,9 @@ function readDraft(raw: unknown): Draft {
     <fil-dialog [(open)]="open" [label]="title()" [wide]="true">
       @if (open()) {
         <h2 class="dialog-title">{{ title() }}</h2>
-        @if (mode() === 'open') {
-          <p class="dialog-body">{{ t('ui.composeOpenIntro') }}</p>
-          @if (readingNote(); as note) {
-            <p class="hint" role="status">{{ note }}</p>
-          }
+        <p class="dialog-body">{{ t('ui.composeOpenIntro') }}</p>
+        @if (readingNote(); as note) {
+          <p class="hint" role="status">{{ note }}</p>
         }
         <div class="compose">
           @if (chart(); as chart) {
@@ -321,7 +240,7 @@ function readDraft(raw: unknown): Draft {
             {{ closeLabel() }}
           </button>
           <button type="button" filButton="primary" [disabled]="!canAdd()" (click)="add()">
-            {{ mode() === 'open' ? t('ui.composeOpenAdd') : t('ui.composeAdd') }}
+            {{ t('ui.composeOpenAdd') }}
           </button>
         </div>
       }
@@ -332,16 +251,12 @@ export class ChartComposer {
   readonly open = model(false);
   readonly chart = input<ShownPhoto | null>(null);
   readonly label = input('');
-  /** `transcribe` : ajoute une pièce au patron actif. `open` : relit une lecture automatique. */
-  readonly mode = input<'transcribe' | 'open'>('transcribe');
-  /** Lecture automatique du diagramme, en mode `open`. */
+  /** Lecture automatique du diagramme. */
   readonly seed = input<Recognition | null>(null);
-  /** Mode `open` : le patron écrit, relu par la lectrice. */
+  /** Le patron écrit, relu par la lectrice. */
   readonly composed = output<string>();
 
-  private readonly store = inject(ReaderStore);
   private readonly i18n = inject(I18nService);
-  private readonly storage = inject(LocalStorageService);
 
   private readonly analytics = inject(AnalyticsService);
 
@@ -356,19 +271,15 @@ export class ChartComposer {
     (label, value) => ({ value, label }),
   );
 
-  private readonly draft = readDraft(this.storage.read<unknown>(DRAFT_KEY));
-
   /** Convention de la page (FR sous /fr, US ailleurs) tant que la lectrice n'en a pas choisi une. */
-  protected readonly convention = linkedSignal(() =>
-    this.draft.convention >= 0 ? this.draft.convention : this.i18n.locale() === 'fr' ? 2 : 0,
-  );
-  protected readonly kind = signal(this.draft.kind);
-  protected readonly into = signal(this.draft.into);
-  protected readonly rounds = signal<readonly Round[]>(this.draft.rounds);
-  protected readonly groups = signal<readonly Group[]>(this.draft.groups);
-  protected readonly pending = signal<readonly Token[]>(this.draft.pending);
+  protected readonly convention = linkedSignal(() => (this.i18n.locale() === 'fr' ? 2 : 0));
+  protected readonly kind = signal(0);
+  protected readonly into = signal(0);
+  protected readonly rounds = signal<readonly Round[]>([]);
+  protected readonly groups = signal<readonly Group[]>([]);
+  protected readonly pending = signal<readonly Token[]>([]);
   protected readonly repeatN = signal(6);
-  protected readonly name = signal(this.draft.name);
+  protected readonly name = signal('');
   /** Tour repris pour correction : « Terminer le tour » le remplace à sa place. */
   protected readonly editing = signal<number | null>(null);
   /** Relecture : la lectrice a demandé à ajouter un tour que la lecture a manqué. */
@@ -377,17 +288,10 @@ export class ChartComposer {
   protected readonly busy = computed(() => this.groups().length > 0 || this.pending().length > 0);
 
   protected readonly palette = computed(
-    () =>
-      this.mode() !== 'open' ||
-      this.editing() !== null ||
-      this.adding() ||
-      this.busy() ||
-      !this.rounds().length,
+    () => this.editing() !== null || this.adding() || this.busy() || !this.rounds().length,
   );
 
-  protected readonly title = computed(() =>
-    this.t(this.mode() === 'open' ? 'ui.composeOpenTitle' : 'ui.composeTitle'),
-  );
+  protected readonly title = computed(() => this.t('ui.composeOpenTitle'));
   protected readonly currentHeading = computed(() => {
     const editing = this.editing();
     return editing === null
@@ -447,12 +351,9 @@ export class ChartComposer {
   });
   protected readonly canAdd = computed(() => this.all().length > 0);
 
-  /** En mode `open`, le patron est neuf : aucune pièce existante à éviter. */
+  /** Le patron est neuf : aucune pièce existante à éviter. */
   protected readonly defaultName = computed(() =>
-    defaultPieceName(
-      this.mode() === 'open' ? [] : this.store.pieces().map((piece) => piece.name),
-      this.t('ui.composeDefaultName'),
-    ),
+    defaultPieceName([], this.t('ui.composeDefaultName')),
   );
 
   protected readonly messages = computed(() =>
@@ -463,9 +364,9 @@ export class ChartComposer {
     // Une nouvelle lecture remplace le contenu du composeur de relecture.
     effect(() => {
       const seed = this.seed();
-      if (this.mode() !== 'open') return;
+      if (!seed) return;
       untracked(() => {
-        const rounds = (seed?.rounds ?? []).slice(0, MAX_ROUNDS);
+        const rounds = seed.rounds.slice(0, MAX_ROUNDS);
         this.rounds.set(rounds);
         this.groups.set([]);
         this.pending.set([]);
@@ -475,25 +376,6 @@ export class ChartComposer {
         this.kind.set(rounds[0]?.kind === 'row' ? 1 : 0);
         this.into.set(0);
       });
-    });
-
-    // Le brouillon suit chaque geste : il n'attend ni la fermeture ni « Ajouter ».
-    // La relecture d'une lecture automatique n'y touche pas : elle écraserait
-    // une transcription en cours.
-    effect(() => {
-      if (this.mode() === 'open') return;
-      const draft: Draft = {
-        rounds: this.rounds(),
-        groups: this.groups(),
-        pending: this.pending(),
-        convention: this.convention(),
-        kind: this.kind(),
-        into: this.into(),
-        name: this.name(),
-      };
-      const blank = !draft.rounds.length && !draft.groups.length && !draft.pending.length;
-      if (blank && !draft.name) this.storage.remove(DRAFT_KEY);
-      else this.storage.write(DRAFT_KEY, draft);
     });
   }
 
@@ -606,20 +488,17 @@ export class ChartComposer {
   protected add(): void {
     const rounds = this.all();
     if (!rounds.length) return;
-    const open = this.mode() === 'open';
-    // La nouvelle pièce vient après toutes les autres : la position de lecture ne bouge pas.
     const text = appendTranscription(
-      open ? '' : this.store.source(),
+      '',
       this.name(),
       renderPattern(rounds, this.conv()),
       this.defaultName(),
     );
-    if (open) this.composed.emit(text);
-    else this.store.source.set(text);
+    this.composed.emit(text);
     this.analytics.track('chart_transcribed', {
       rounds: rounds.length,
       convention: this.conv(),
-      origine: open ? 'lecture' : 'composeur',
+      origine: 'lecture',
     });
     this.editing.set(null);
     this.rounds.set([]);

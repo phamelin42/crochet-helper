@@ -57,16 +57,14 @@ import { ReaderStore } from '../state/reader-store';
             >
               {{ intake.busy() ? t('ui.chartBusy') : t('ui.chartOpen') }}
             </button>
-            @if (store.currentId()) {
-              <button
-                type="button"
-                filButton="secondary"
-                [disabled]="intake.busy()"
-                (click)="chartInput().nativeElement.click()"
-              >
-                {{ t('ui.chartAdd') }}
-              </button>
-            }
+            <button
+              type="button"
+              filButton="secondary"
+              [disabled]="!!intake.gridImage()"
+              (click)="pickGridImage()"
+            >
+              {{ t('ui.gridImageOpen') }}
+            </button>
             <button type="button" filButton="secondary" (click)="demo()">{{ t('ui.demo') }}</button>
             <button type="button" filButton="ghost" (click)="clear()">{{ t('ui.clear') }}</button>
           </div>
@@ -90,14 +88,14 @@ import { ReaderStore } from '../state/reader-store';
             (change)="onOpenChange($event)"
           />
           <input
-            #chartFile
-            data-testid="chart-add-file"
+            #gridFile
+            data-testid="grid-image-file"
             type="file"
-            accept="image/png,image/jpeg,image/webp,application/pdf,.pdf"
+            accept="image/png,image/jpeg,image/webp"
             class="visually-hidden"
             tabindex="-1"
             aria-hidden="true"
-            (change)="onChartChange($event)"
+            (change)="onGridChange($event)"
           />
           @if (pdfErrorMessage(); as message) {
             <p class="hint" role="alert">{{ message }}</p>
@@ -116,8 +114,8 @@ export class PatternImport {
   readonly open = model(true);
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
   protected readonly pdfInput = viewChild.required<ElementRef<HTMLInputElement>>('pdfFile');
-  protected readonly chartInput = viewChild.required<ElementRef<HTMLInputElement>>('chartFile');
   protected readonly openInput = viewChild.required<ElementRef<HTMLInputElement>>('openFile');
+  protected readonly gridInput = viewChild.required<ElementRef<HTMLInputElement>>('gridFile');
   protected readonly intake = inject(ChartIntake);
 
   protected t = (key: ReaderTranslationKey) => READER_COPY[this.i18n.locale()][key];
@@ -185,11 +183,21 @@ export class PatternImport {
     if (file) await this.intake.open(file);
   }
 
-  protected async onChartChange(event: Event): Promise<void> {
+  /**
+   * Le dialogue et la réduction se chargent pendant que la lectrice choisit
+   * son image : à la première visite, le service worker occupe le réseau, et
+   * un morceau demandé après le choix arrivait une seconde trop tard.
+   */
+  protected pickGridImage(): void {
+    void import('./image-grid-dialog').catch(() => undefined);
+    this.gridInput().nativeElement.click();
+  }
+
+  protected onGridChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
-    if (file) await this.intake.submit(file);
+    if (file) this.intake.openImageGrid(file);
   }
 
   protected demo(): void {

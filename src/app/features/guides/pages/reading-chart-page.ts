@@ -38,6 +38,7 @@ interface GuideCopy {
   readonly seeAlso: string;
   readonly linkPattern: string;
   readonly linkCraft: string;
+  readonly linkImageGrid: string;
   readonly backToReader: string;
   readonly backToGlossary: string;
 }
@@ -71,6 +72,7 @@ const COPY: Record<Locale, GuideCopy> = {
     bodyTrack: `Sur une grille dense, l'œil saute facilement d'une ligne à l'autre, et l'erreur ne se voit que deux rangs plus tard. Trois habitudes l'évitent${NBSP}: masquer les rangs déjà faits avec une règle aimantée ou une simple bande de papier posée juste au-dessus de la ligne en cours, de sorte que le rang travaillé reste en bas de la zone visible${NBSP}; photographier le diagramme et l'agrandir sur un téléphone, ce qui permet aussi de le suivre avec le doigt${NBSP}; et poser un marqueur toutes les dix mailles sur l'ouvrage, pour recompter un segment court plutôt que le rang entier. Sur un motif qui se répète, encadrer au crayon la seule répétition de base évite de relire chaque fois la grille complète.`,
     seeAlso: 'À lire aussi',
     linkPattern: 'Comment lire un patron de crochet',
+    linkImageGrid: 'Transformer une image en grille de crochet',
     linkCraft: 'Crochet ou tricot : par lequel commencer',
     backToReader: 'Lire un patron pas à pas',
     backToGlossary: 'Toutes les abréviations',
@@ -109,6 +111,7 @@ const COPY: Record<Locale, GuideCopy> = {
     bodyTrack: `On a dense chart the eye slips from one row to the next, and the mistake only shows up two rows later. Three habits prevent it: cover the finished rows with a magnetic ruler or a plain strip of paper laid just above the current line, so the row you are working stays at the bottom edge of what you can see; photograph the chart and zoom in on a phone, which also lets you follow it with a finger; and place a stitch marker every ten stitches in the work, so a miscount means recounting a short segment instead of the whole row. On a repeating motif, pencilling a box around the base repeat saves rereading the full chart every time.`,
     seeAlso: 'Read next',
     linkPattern: 'How to read a crochet pattern',
+    linkImageGrid: 'Turn a picture into a crochet chart',
     linkCraft: 'Crochet or knitting: which to start with',
     backToReader: 'Read a pattern step by step',
     backToGlossary: 'All abbreviations',
@@ -192,6 +195,9 @@ const COPY: Record<Locale, GuideCopy> = {
         </li>
         <li>
           <a [routerLink]="hrefOf('guideCrochetOrKnitting')">{{ c.linkCraft }}</a>
+        </li>
+        <li>
+          <a [routerLink]="i18n.link('imageGrid')">{{ c.linkImageGrid }}</a>
         </li>
       </ul>
 

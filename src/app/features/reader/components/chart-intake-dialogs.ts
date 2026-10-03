@@ -1,4 +1,13 @@
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import {
+  Component,
+  ViewContainerRef,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import { StylesheetService } from '../../../core/platform/stylesheet.service';
@@ -7,7 +16,7 @@ import { Checkbox } from '../../../shared/ui/checkbox/checkbox';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ChartIntake, MAX_PDF_CHART_PAGES, MAX_RENDERED_PAGES } from '../state/chart-intake';
-import { ReaderStore, ShownPhoto } from '../state/reader-store';
+import type { ShownPhoto } from '../state/reader-store';
 import { ChartComposer } from './chart-composer';
 
 interface PageThumb {
@@ -16,9 +25,8 @@ interface PageThumb {
 }
 
 /**
- * Les questions du chargement d'un diagramme : « couverture ou
- * diagramme ? » pour une image collée ou déposée, le choix des pages d'un
- * PDF, et la relecture d'un diagramme ouvert comme patron. Montées hors du panneau d'import, replié une fois le patron chargé :
+ * Les questions de « Ouvrir un diagramme » : le choix des pages d'un PDF, et
+ * la relecture du diagramme lu avant qu'il ne devienne un patron. Montées hors du panneau d'import, replié une fois le patron chargé :
  * une boîte de dialogue dans un panneau fermé ne s'afficherait pas.
  */
 @Component({
@@ -27,27 +35,6 @@ interface PageThumb {
   template: `
     @if (message(); as message) {
       <p class="hint" role="alert">{{ message }}</p>
-    }
-
-    @if (intake.question()) {
-      <fil-dialog
-        [open]="true"
-        (openChange)="!$event && intake.cancelQuestion()"
-        [label]="t('ui.chartAskTitle')"
-      >
-        <h2 class="dialog-title">{{ t('ui.chartAskTitle') }}</h2>
-        <div class="dialog-actions">
-          <button type="button" filButton="ghost" (click)="intake.cancelQuestion()">
-            {{ t('ui.chartCancel') }}
-          </button>
-          <button type="button" filButton="secondary" (click)="intake.answerCover()">
-            {{ t('ui.chartAskCover') }}
-          </button>
-          <button type="button" filButton="primary" (click)="intake.answerChart()">
-            {{ t('ui.chartAskChart') }}
-          </button>
-        </div>
-      </fil-dialog>
     }
 
     @if (intake.pages()) {
@@ -86,9 +73,11 @@ interface PageThumb {
       </fil-dialog>
     }
 
+    <!-- « Image en grille » : le dialogue et la réduction viennent à la demande. -->
+    <ng-container #gridHost />
+
     @if (intake.opening(); as opening) {
       <fil-chart-composer
-        mode="open"
         [open]="true"
         (openChange)="!$event && intake.cancelOpening()"
         [seed]="opening.recognition"
@@ -101,7 +90,6 @@ interface PageThumb {
 })
 export class ChartIntakeDialogs {
   protected readonly intake = inject(ChartIntake);
-  private readonly store = inject(ReaderStore);
   private readonly i18n = inject(I18nService);
   private readonly objectUrls = inject(ObjectUrlService);
 
@@ -117,9 +105,6 @@ export class ChartIntakeDialogs {
     if (error === 'lourd') return this.t('ui.chartErrorHeavy');
     if (error === 'illisible') return this.t('ui.chartErrorUnreadable');
     if (error === 'pdf') return this.t('ui.chartErrorPdf');
-    const stored = this.store.chartError();
-    if (stored === 'non-enregistre') return this.t('ui.chartNotSaved');
-    if (stored === 'plafond') return this.t('ui.chartLimit');
     return '';
   });
 
@@ -128,7 +113,15 @@ export class ChartIntakeDialogs {
   protected readonly preview = signal<ShownPhoto | null>(null);
   protected readonly selected = signal<ReadonlySet<number>>(new Set());
 
+  private readonly gridHost = viewChild.required('gridHost', { read: ViewContainerRef });
+  private gridLoad = 0;
+
   constructor() {
+    effect(() => {
+      const file = this.intake.gridImage();
+      untracked(() => void this.mountGrid(file));
+    });
+
     const styles = inject(StylesheetService);
     // Les adresses `blob:` des vignettes suivent les pages : révoquées à la
     // fermeture ou avant d'en créer d'autres.
@@ -159,6 +152,22 @@ export class ChartIntakeDialogs {
         );
       });
     });
+  }
+
+  private async mountGrid(file: File | null): Promise<void> {
+    const load = ++this.gridLoad;
+    const host = this.gridHost();
+    host.clear();
+    if (!file) return;
+    let dialog: typeof import('./image-grid-dialog').ImageGridDialog;
+    try {
+      ({ ImageGridDialog: dialog } = await import('./image-grid-dialog'));
+    } catch {
+      // Hors ligne sans le morceau en cache : l'image n'a pas pu être lue.
+      this.intake.closeImageGrid(false, 'illisible');
+      return;
+    }
+    if (load === this.gridLoad) host.createComponent(dialog);
   }
 
   protected confirm(text: string): void {

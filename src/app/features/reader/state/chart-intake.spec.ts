@@ -85,120 +85,61 @@ describe('ChartIntake', () => {
     return { store, intake: TestBed.inject(ChartIntake) };
   }
 
-  it('range une image choisie comme diagramme, réduite, avec la source « image »', async () => {
-    const { store, intake } = await setup();
-
-    await intake.submit(file('image/png'));
-
-    expect(resize).toHaveBeenCalledTimes(1);
-    expect(store.chartCount()).toBe(1);
-    expect(intake.error()).toBeNull();
-    expect(track).toHaveBeenCalledWith('chart_added', { source: 'image' });
-  });
-
-  it('refuse un fichier d’un autre type, ou de plus de 10 Mo, sans rien enregistrer', async () => {
-    const { store, intake } = await setup();
-
-    await intake.submit(file('image/gif'));
-    expect(intake.error()).toBe('format');
-
-    await intake.submit(file('image/png', MAX_CHART_FILE_BYTES + 1));
-    expect(intake.error()).toBe('lourd');
-
-    await intake.submit(file('application/pdf', MAX_CHART_PDF_BYTES + 1));
-    expect(intake.error()).toBe('lourd');
-
-    expect(resize).not.toHaveBeenCalled();
-    expect(store.chartCount()).toBe(0);
-  });
-
-  it('dit qu’une image illisible l’est, et n’enregistre rien', async () => {
-    const { store, intake } = await setup();
-    resize.mockResolvedValueOnce(null);
-
-    await intake.submit(file('image/png'));
-
-    expect(intake.error()).toBe('illisible');
-    expect(store.chartCount()).toBe(0);
-  });
-
-  it('demande « couverture ou diagramme ? » pour une image collée, sans rien remplacer avant la réponse', async () => {
-    const { store, intake } = await setup();
-    store.setImage('data:image/png;base64,ANCIENNE');
-
-    await intake.receive(file('image/png'));
-
-    expect(intake.question()).not.toBeNull();
-    expect(store.image()).toBe('data:image/png;base64,ANCIENNE');
-    expect(store.chartCount()).toBe(0);
-  });
-
-  it('la réponse « diagramme » l’ajoute au projet, la couverture reste', async () => {
-    const { store, intake } = await setup();
-    store.setImage('data:image/png;base64,ANCIENNE');
-    await intake.receive(file('image/png'));
-
-    await intake.answerChart();
-
-    expect(intake.question()).toBeNull();
-    expect(store.chartCount()).toBe(1);
-    expect(store.image()).toBe('data:image/png;base64,ANCIENNE');
-  });
-
-  it('la réponse « couverture » remplace la couverture, aucun diagramme', async () => {
-    const { store, intake } = await setup();
-    await intake.receive(file('image/png'));
-
-    await intake.answerCover();
-
-    expect(store.image()).toBe('data:image/png;base64,AAAA');
-    expect(store.chartCount()).toBe(0);
-  });
-
-  it('annuler la question ne change rien', async () => {
-    const { store, intake } = await setup();
-    await intake.receive(file('image/png'));
-
-    intake.cancelQuestion();
-
-    expect(intake.question()).toBeNull();
-    expect(store.image()).toBe('');
-    expect(store.chartCount()).toBe(0);
-  });
-
-  it('sans projet, une image collée reste la couverture, comme avant', async () => {
+  it('une image collée ou déposée devient la couverture, avec ou sans projet ouvert', async () => {
+    const intake = TestBed.inject(ChartIntake);
     const store = TestBed.inject(ReaderStore);
     await store.initialize();
-    const intake = TestBed.inject(ChartIntake);
 
     await intake.receive(file('image/png'));
-
-    expect(intake.question()).toBeNull();
     expect(store.image()).toBe('data:image/png;base64,AAAA');
+
+    store.load('Rang 1 : 6 ms\nRang 2 : 12 ms');
+    store.setImage('data:image/png;base64,ANCIENNE');
+    await intake.receive(file('image/png'));
+    expect(store.image()).toBe('data:image/png;base64,AAAA');
+    expect(resize).not.toHaveBeenCalled();
   });
 
-  it('propose les pages d’un PDF, et n’enregistre que celles qu’on a cochées, dans l’ordre', async () => {
-    const { store, intake } = await setup();
+  describe('ouvrir une image en grille', () => {
+    it('garde une image PNG, JPEG ou WebP de 10 Mo au plus pour le dialogue, sans la lire', async () => {
+      const intake = TestBed.inject(ChartIntake);
+      for (const type of ['image/png', 'image/jpeg', 'image/webp']) {
+        const image = file(type, MAX_CHART_FILE_BYTES);
+        intake.openImageGrid(image);
+        expect(intake.gridImage()).toBe(image);
+        expect(intake.error()).toBeNull();
+        intake.closeImageGrid(false);
+      }
+      expect(resize).not.toHaveBeenCalled();
+      expect(recognizer).not.toHaveBeenCalled();
+    });
 
-    await intake.submit(file('application/pdf'));
-    expect(intake.pages()?.map((p) => p.number)).toEqual([1, 2, 3]);
-    expect(store.chartCount()).toBe(0);
+    it('refuse un autre type ou un fichier trop lourd, avec les messages des diagrammes', () => {
+      const intake = TestBed.inject(ChartIntake);
+      const cases: [File, string][] = [
+        [file('image/gif'), 'format'],
+        [file('application/pdf'), 'format'],
+        [file('image/png', MAX_CHART_FILE_BYTES + 1), 'lourd'],
+      ];
+      for (const [f, error] of cases) {
+        intake.openImageGrid(f);
+        expect(intake.error()).toBe(error);
+        expect(intake.gridImage()).toBeNull();
+      }
+    });
 
-    await intake.addPages([3, 1]);
+    it('une grille créée replie le panneau d’import ; une image illisible le dit', () => {
+      const intake = TestBed.inject(ChartIntake);
+      intake.openImageGrid(file('image/png'));
+      intake.closeImageGrid(true);
+      expect(intake.opened()).toBe(1);
 
-    expect(intake.pages()).toBeNull();
-    expect(store.chartCount()).toBe(2);
-    expect(track).toHaveBeenCalledWith('chart_added', { source: 'pdf' });
-  });
-
-  it('dit qu’un PDF illisible l’est', async () => {
-    const { intake } = await setup();
-    render.mockRejectedValueOnce(new Error('pdf.js'));
-
-    await intake.submit(file('application/pdf'));
-
-    expect(intake.error()).toBe('pdf');
-    expect(intake.pages()).toBeNull();
+      intake.openImageGrid(file('image/png'));
+      intake.closeImageGrid(false, 'illisible');
+      expect(intake.gridImage()).toBeNull();
+      expect(intake.error()).toBe('illisible');
+      expect(intake.opened()).toBe(1);
+    });
   });
 
   describe('ouvrir un diagramme comme patron', () => {
@@ -223,7 +164,7 @@ describe('ChartIntake', () => {
       expect(await TestBed.inject(ProjectStoreService).list()).toEqual([]);
     });
 
-    it('le texte relu ouvre un nouveau projet découpé en étapes, avec son diagramme enregistré', async () => {
+    it('le texte relu ouvre un nouveau projet découpé en étapes, sans fichier joint', async () => {
       const { store, intake } = await fresh();
       await intake.open(file('image/png'));
 
@@ -236,31 +177,29 @@ describe('ChartIntake', () => {
       await vi.waitFor(async () => {
         const [saved] = await db.list<Project>();
         expect(saved.source).toBe(TEXT);
-        expect(saved.chartCount).toBe(1);
-        expect(saved.charts).toEqual({ 0: 1 });
+        expect(saved.chartCount).toBeUndefined();
       });
       const [saved] = await db.list<Project>();
-      const [chart] = await db.getFiles<ProjectImage>([`${saved.id}:chart:1`]);
-      expect(chart?.blob).toBe(RESIZED.blob);
-      expect(track).toHaveBeenCalledWith('chart_added', { source: 'diagramme' });
+      expect(await db.getFiles<ProjectImage>([`${saved.id}:chart:1`])).toEqual([undefined]);
     });
 
     it('n’écrase jamais le projet actif : il reste intact dans la liste', async () => {
       const { store, intake } = await setup();
       const before = store.currentId();
-      await intake.submit(file('image/png'));
+      TestBed.tick();
+      const db = TestBed.inject(ProjectStoreService);
+      await vi.waitFor(async () => expect(await db.list()).toHaveLength(1));
       await intake.open(file('image/png'));
 
       await intake.confirmOpening(TEXT);
 
       expect(store.currentId()).not.toBe(before);
-      const db = TestBed.inject(ProjectStoreService);
+      TestBed.tick();
       await vi.waitFor(async () => {
         const projects = await db.list<Project>();
         expect(projects).toHaveLength(2);
         const old = projects.find((p) => p.id === before);
         expect(old?.source).toBe('Rang 1 : 6 ms\nRang 2 : 12 ms');
-        expect(old?.chartCount).toBe(1);
       });
     });
 
@@ -273,6 +212,37 @@ describe('ChartIntake', () => {
 
       expect(store.currentId()).toBeNull();
       expect(await TestBed.inject(ProjectStoreService).list()).toEqual([]);
+    });
+
+    it('n’écrase pas non plus le projet actif quand le texte relu est le même', async () => {
+      const { store, intake } = await fresh();
+      store.load(TEXT);
+      store.move(1);
+      const before = store.currentId();
+      TestBed.tick();
+      const db = TestBed.inject(ProjectStoreService);
+      await vi.waitFor(async () => expect((await db.list<Project>())[0]?.stepIndex).toBe(1));
+
+      await intake.open(file('image/png'));
+      await intake.confirmOpening(TEXT);
+      TestBed.tick();
+
+      expect(store.currentId()).not.toBe(before);
+      await vi.waitFor(async () => {
+        const projects = await db.list<Project>();
+        expect(projects).toHaveLength(2);
+        expect(projects.find((p) => p.id === before)?.stepIndex).toBe(1);
+      });
+    });
+
+    it('dit qu’un PDF illisible l’est', async () => {
+      const { intake } = await fresh();
+      render.mockRejectedValueOnce(new Error('pdf.js'));
+
+      await intake.open(file('application/pdf'));
+
+      expect(intake.error()).toBe('pdf');
+      expect(intake.pages()).toBeNull();
     });
 
     it('une lecture qui échoue ouvre un brouillon vide plutôt qu’une erreur', async () => {
@@ -304,16 +274,17 @@ describe('ChartIntake', () => {
       expect(intake.opening()).toBeNull();
     });
 
-    it('un PDF : les pages cochées sont lues (la première) et gardées pour le nouveau projet', async () => {
+    it('un PDF : seules les pages cochées sont lues, dans l’ordre du PDF', async () => {
       const { store, intake } = await setup();
+      const before = store.currentId();
 
       await intake.open(file('application/pdf'));
       await intake.addPages([2, 3]);
 
       expect(recognizer).toHaveBeenCalledWith(page(2).blob);
       expect(intake.opening()?.charts.map((c) => c.width)).toEqual([1200, 1200]);
-      // Le projet actif ne reçoit rien.
-      expect(store.chartCount()).toBe(0);
+      // Rien n'est ouvert avant la relecture.
+      expect(store.currentId()).toBe(before);
     });
   });
 });

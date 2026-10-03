@@ -60,8 +60,8 @@ branche.
 | 45 — Affichage diagramme                | Terminée | —   | 2026-10-03 |
 | 46 — Choix d'affichage à l'import       | Terminée | —   | 2026-10-03 |
 | 47 — Grille de couleurs (tapisserie)    | Terminée | —   | 2026-10-03 |
-| 48 — Image en grille de crochet         | À faire  | —   | —          |
-| 49 — Page-outil image en grille         | À faire  | —   | —          |
+| 48 — Image en grille de crochet         | Terminée | —   | 2026-10-03 |
+| 49 — Page-outil image en grille         | Terminée | —   | 2026-10-03 |
 
 ## États possibles
 

@@ -55,7 +55,7 @@ describe('ReaderStore — choix d’affichage à l’import', () => {
     await vi.waitFor(() => expect(store.restored()).toBe(true));
     if (origin === 'saisie') store.load(text);
     else if (origin === 'exemple') store.loadDemo();
-    else if (origin === 'diagramme') await store.openFromChart(text, []);
+    else if (origin === 'diagramme') store.openFromChart(text);
     else {
       pdfText = text;
       await store.importPdf(new File(['%PDF-1.7'], 'a.pdf', { type: 'application/pdf' }));

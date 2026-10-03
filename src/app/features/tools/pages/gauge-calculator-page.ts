@@ -48,6 +48,7 @@ interface GaugeCopy {
   readonly sections: readonly { readonly h2: string; readonly paragraphs: readonly string[] }[];
   readonly toHooks: string;
   readonly toConverter: string;
+  readonly toImageGrid: string;
   readonly toReader: string;
 }
 
@@ -128,6 +129,7 @@ const COPY: Record<Locale, GaugeCopy> = {
     ],
     toHooks: 'Le tableau des tailles de crochet',
     toConverter: 'Convertir un patron entier',
+    toImageGrid: 'Une image en grille de crochet',
     toReader: 'Le lecteur de patron',
   },
   en: {
@@ -207,6 +209,7 @@ const COPY: Record<Locale, GaugeCopy> = {
     ],
     toHooks: 'The crochet hook size chart',
     toConverter: 'Convert a whole pattern',
+    toImageGrid: 'Turn a picture into a crochet chart',
     toReader: 'The pattern reader',
   },
 };
@@ -377,6 +380,7 @@ function parseNumber(text: string): number {
     <div class="navrow">
       <a filButton="primary" [routerLink]="i18n.link('hookSizes')">{{ c.toHooks }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('converter')">{{ c.toConverter }}</a>
+      <a filButton="ghost" [routerLink]="i18n.link('imageGrid')">{{ c.toImageGrid }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('reader')">{{ c.toReader }}</a>
     </div>
   `,

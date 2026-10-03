@@ -403,7 +403,12 @@ export class ReaderStore {
    * `name` (le nom du fichier d'origine, par exemple) est borné à 60 signes.
    * Renvoie `false` si l'écriture a échoué : la grille reste ouverte à l'écran.
    */
-  async openFromGrid(grid: ColorGrid, text: string, name = ''): Promise<boolean> {
+  async openFromGrid(
+    grid: ColorGrid,
+    text: string,
+    name = '',
+    origine: 'lecteur' | 'page' = 'lecteur',
+  ): Promise<boolean> {
     if (!text) return false;
     if (this.currentId()) this.detach();
     this.holdPersist = true;
@@ -427,6 +432,7 @@ export class ReaderStore {
         width: Math.round(grid.width / 10) * 10,
         colors: grid.palette.length,
         worked: grid.worked,
+        origine,
       });
     }
     return saved;

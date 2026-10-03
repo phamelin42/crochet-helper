@@ -1,4 +1,14 @@
-import { Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  untracked,
+} from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import type { DecodedPixels } from '../../../core/platform/image-pixels';
 import { StylesheetService } from '../../../core/platform/stylesheet.service';
@@ -147,6 +157,11 @@ const MAX_NAME = 60;
   `,
 })
 export class ImageGridDialog {
+  /** D'où vient la lectrice : le lecteur ou la page-outil (fiche 49), pour la mesure. */
+  readonly origin = input<'lecteur' | 'page'>('lecteur');
+  /** La grille est enregistrée et ouverte dans le magasin du lecteur. */
+  readonly created = output<void>();
+
   private readonly intake = inject(ChartIntake);
   private readonly store = inject(ReaderStore);
   private readonly i18n = inject(I18nService);
@@ -250,10 +265,17 @@ export class ImageGridDialog {
     this.creating.set(true);
     this.saveFailed.set(false);
     const name = (this.intake.gridImage()?.name ?? '').replace(/\.[^.]*$/, '').slice(0, MAX_NAME);
-    const saved = await this.store.openFromGrid(grid, gridToText(grid, this.i18n.locale()), name);
+    const saved = await this.store.openFromGrid(
+      grid,
+      gridToText(grid, this.i18n.locale()),
+      name,
+      this.origin(),
+    );
     this.creating.set(false);
-    if (saved) this.intake.closeImageGrid(true);
-    else this.saveFailed.set(true);
+    if (saved) {
+      this.created.emit();
+      this.intake.closeImageGrid(true);
+    } else this.saveFailed.set(true);
   }
 
   protected close(): void {

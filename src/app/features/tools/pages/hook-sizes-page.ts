@@ -25,6 +25,7 @@ interface HookSizesCopy {
   readonly colUs: string;
   readonly sections: readonly { readonly h2: string; readonly paragraphs: readonly string[] }[];
   readonly toConverter: string;
+  readonly toImageGrid: string;
   readonly toReader: string;
 }
 
@@ -78,6 +79,7 @@ const COPY: Record<Locale, HookSizesCopy> = {
       },
     ],
     toConverter: 'Convertir un patron entier',
+    toImageGrid: 'Une image en grille de crochet',
     toReader: 'Le lecteur de patron',
   },
   en: {
@@ -129,6 +131,7 @@ const COPY: Record<Locale, HookSizesCopy> = {
       },
     ],
     toConverter: 'Convert a whole pattern',
+    toImageGrid: 'Turn a picture into a crochet chart',
     toReader: 'The pattern reader',
   },
 };
@@ -209,6 +212,7 @@ const COPY: Record<Locale, HookSizesCopy> = {
 
     <div class="navrow">
       <a filButton="primary" [routerLink]="i18n.link('converter')">{{ c.toConverter }}</a>
+      <a filButton="ghost" [routerLink]="i18n.link('imageGrid')">{{ c.toImageGrid }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('reader')">{{ c.toReader }}</a>
     </div>
   `,

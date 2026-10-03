@@ -71,6 +71,7 @@ function routesFor(locale: Locale): Routes {
         page('projects', () => import('./features/reader/pages/projects-page')),
         page('hookSizes', () => import('./features/tools/pages/hook-sizes-page')),
         page('gaugeCalculator', () => import('./features/tools/pages/gauge-calculator-page')),
+        page('imageGrid', () => import('./features/reader/pages/image-grid-page')),
         page('readForeignPattern', () => import('./features/guides/pages/foreign-pattern-page')),
         page('rowCounter', () => import('./features/tools/pages/row-counter-page')),
         page('guideReadingPattern', () => import('./features/guides/pages/reading-pattern-page')),

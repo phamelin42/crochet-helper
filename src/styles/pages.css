@@ -357,3 +357,63 @@
 .foreign-unknown {
   text-decoration: underline dashed var(--color-momiji);
 }
+
+/* Page-outil « image en grille » (fiche 49) : l'outil, puis trois étapes
+ * illustrées côte à côte, l'une sous l'autre sur téléphone. */
+.image-grid-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.image-grid-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  counter-reset: etape;
+}
+.image-grid-steps li {
+  counter-increment: etape;
+}
+.image-grid-steps h3::before {
+  content: counter(etape) '. ';
+}
+.image-grid-ill {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+.image-grid-ill .ill-paper {
+  fill: var(--color-asagi-pale);
+}
+.image-grid-ill .ill-sun {
+  fill: var(--color-yamabuki);
+}
+.image-grid-ill .ill-hill {
+  fill: var(--color-wakaba);
+}
+.image-grid-ill .ill-track {
+  fill: var(--color-line);
+}
+.image-grid-ill .ill-knob {
+  fill: var(--color-sakura);
+}
+.image-grid-ill .ill-knob-alt {
+  fill: var(--color-kikyo);
+}
+.image-grid-ill .ill-a {
+  fill: var(--color-sakura-pale);
+}
+.image-grid-ill .ill-b {
+  fill: var(--color-sakura);
+}
+.image-grid-ill .ill-c {
+  fill: var(--color-kikyo);
+}
+.image-grid-ill .ill-mark {
+  fill: none;
+  stroke: var(--color-text-strong);
+  stroke-width: 2;
+}

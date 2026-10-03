@@ -73,6 +73,11 @@ describe('ReaderStore.openFromGrid', () => {
       expect(created.view).toBe('chart');
       expect(created.source).toBe(gridToText(GRID, 'fr'));
     });
-    expect(track).toHaveBeenCalledWith('grid_created', { width: 10, colors: 2, worked: 'flat' });
+    expect(track).toHaveBeenCalledWith('grid_created', {
+      width: 10,
+      colors: 2,
+      worked: 'flat',
+      origine: 'lecteur',
+    });
   });
 });

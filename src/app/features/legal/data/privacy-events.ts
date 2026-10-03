@@ -131,8 +131,8 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     en: 'a stitch is tapped in the chart (once per round, never which one)',
   },
   grid_created: {
-    fr: 'une image devient une grille de mailles (largeur à la dizaine, nombre de couleurs, à plat ou en rond ; jamais l’image ni ses couleurs)',
-    en: 'a picture becomes a stitch grid (width to the nearest ten, number of colours, flat or in the round; never the picture or its colours)',
+    fr: 'une image devient une grille de mailles (largeur à la dizaine, nombre de couleurs, à plat ou en rond, depuis le lecteur ou la page dédiée ; jamais l’image ni ses couleurs)',
+    en: 'a picture becomes a stitch grid (width to the nearest ten, number of colours, flat or in the round, from the reader or the dedicated page; never the picture or its colours)',
   },
   grid_stitch_marked: {
     fr: 'une maille est touchée dans la grille de couleurs (une fois par rang, jamais laquelle)',

@@ -92,7 +92,11 @@ export type AnalyticsEvent =
   /** Application ouverte en mode appli, une fois par session (propriété `mode`, `twa` ou `standalone`). */
   | 'app_opened'
   /** Onglet de la barre du mode appli touché (propriété `tab` : `read`, `projects`, `glossary` ou `settings`). */
-  | 'app_tab_selected';
+  | 'app_tab_selected'
+  /** Affichage du lecteur changé (propriété `view`, `text` ou `chart`). */
+  | 'view_changed'
+  /** Maille touchée dans le diagramme, une fois par tour et par session. */
+  | 'stitch_marked';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

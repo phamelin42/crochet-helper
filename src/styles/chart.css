@@ -220,3 +220,29 @@
   margin-top: var(--space-3);
   color: var(--color-yamabuki-ink);
 }
+
+/* Affichage diagramme (fiche 45) : la pièce dessinée, une maille marquée. Le
+ * tour courant garde toute son opacité, les autres reculent ; les mailles déjà
+ * faites s'estompent sans disparaître. */
+.chart-svg {
+  display: block;
+  max-width: none;
+}
+.chart-cell {
+  cursor: pointer;
+}
+.chart-hit {
+  fill: transparent;
+}
+.chart-cell.is-off {
+  opacity: 0.35;
+}
+.chart-cell.is-done:not(.is-off) {
+  opacity: 0.55;
+}
+.chart-mark {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  pointer-events: none;
+}

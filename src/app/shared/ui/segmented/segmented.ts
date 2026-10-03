@@ -3,6 +3,8 @@ import { Component, input, model } from '@angular/core';
 export interface SegmentedOption {
   readonly value: number;
   readonly label: string;
+  /** Option grisée : visible, mais pas choisissable. */
+  readonly disabled?: boolean;
 }
 
 /**
@@ -21,6 +23,7 @@ export interface SegmentedOption {
             [name]="name()"
             [value]="option.value"
             [checked]="option.value === selected()"
+            [disabled]="option.disabled ?? false"
             (change)="selected.set(option.value)"
           />
           {{ option.label }}

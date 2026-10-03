@@ -1,4 +1,13 @@
-import { Component, ElementRef, computed, inject, output, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  ViewContainerRef,
+  computed,
+  effect,
+  inject,
+  output,
+  viewChild,
+} from '@angular/core';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DisplayPrefsService, ReaderTextSize } from '../../../core/platform/display-prefs.service';
@@ -58,7 +67,20 @@ const LONGEST_STEP = 90;
       <div class="stepmeta">
         <p class="stepcount">
           {{ t('ui.stepOf') }} {{ store.stepIndex() + 1 }} / {{ store.stepCount() }}
+          @if (store.stitchIndex() > 0 && store.stitchTotal()) {
+            · {{ t('ui.stitchOf') }} {{ stitchNumber() }} {{ t('ui.stitchTotal') }}
+            {{ store.stitchTotal() }}
+          }
         </p>
+        <!-- Sur la ligne du libellé : l'étape ne descend pas (garde de la fiche 24). -->
+        <fil-segmented
+          class="view-toggle"
+          name="reader-view"
+          [label]="t('ui.view')"
+          [options]="viewOptions()"
+          [selected]="store.view() === 'chart' ? 1 : 0"
+          (selectedChange)="store.setView($event === 1 ? 'chart' : 'text')"
+        />
         <!-- Même emplacement dans les deux modes : « Outils » quitte la page
              pleine, « Page pleine » y revient. -->
         <button
@@ -83,27 +105,32 @@ const LONGEST_STEP = 90;
     <!-- L'étape et sa barre de progression, collée dessous. Le bloc réserve
          sa hauteur (\`.step-block\`) : « Précédent » et « Suivant » ne bougent
          pas d'une étape à l'autre, et l'espace libre va sous la barre. -->
-    <div class="step-block" [class.empty]="!store.step()">
-      <p
-        class="step-body"
-        tabindex="-1"
-        [class.empty]="!store.step()"
-        [class.long]="length() === 'long'"
-        [class.longer]="length() === 'longer'"
-        [class.longest]="length() === 'longest'"
-        aria-live="polite"
-      >
-        @if (store.step(); as step) {
-          <fil-glossary-text [text]="step.body" />
-        } @else {
-          {{ t('ui.empty') }}
-        }
-      </p>
+    <div class="step-block" [class.empty]="!store.step()" [class.chart]="chartMode()">
+      @if (chartMode()) {
+        <!-- Le dessin et sa géométrie viennent à la demande : hors du premier affichage. -->
+        <ng-container #chartHost />
+      } @else {
+        <p
+          class="step-body"
+          tabindex="-1"
+          [class.empty]="!store.step()"
+          [class.long]="length() === 'long'"
+          [class.longer]="length() === 'longer'"
+          [class.longest]="length() === 'longest'"
+          aria-live="polite"
+        >
+          @if (store.step(); as step) {
+            <fil-glossary-text [text]="step.body" />
+          } @else {
+            {{ t('ui.empty') }}
+          }
+        </p>
 
-      @if (store.step()) {
-        <div class="progress step-progress" aria-hidden="true">
-          <i [style.width.%]="store.progress()"></i>
-        </div>
+        @if (store.step()) {
+          <div class="progress step-progress" aria-hidden="true">
+            <i [style.width.%]="store.progress()"></i>
+          </div>
+        }
       }
     </div>
 
@@ -129,6 +156,10 @@ const LONGEST_STEP = 90;
         ><fil-icon name="right" />
       </button>
     </div>
+
+    @if (store.step() && store.pieceChart() && !chartAvailable()) {
+      <p class="hint" role="status">{{ t('ui.viewChartOff') }}</p>
+    }
 
     <!--
       Tout ce qui varie d'une étape à l'autre (notes, astuce, photos,
@@ -173,6 +204,34 @@ export class StepView {
     { value: 1, label: this.t('ui.textSizeLg') },
     { value: 2, label: this.t('ui.textSizeXl') },
   ]);
+  /** Au moins une étape de la pièce se dessine. */
+  protected readonly chartAvailable = computed(() => (this.store.pieceChart()?.drawable ?? 0) > 0);
+  /** Le choix retenu ne vaut que si la pièce a de quoi être dessinée. */
+  protected readonly chartMode = computed(
+    () => this.store.view() === 'chart' && this.chartAvailable(),
+  );
+  protected readonly viewOptions = computed<SegmentedOption[]>(() => [
+    { value: 0, label: this.t('ui.viewText') },
+    { value: 1, label: this.t('ui.viewChart'), disabled: !this.chartAvailable() },
+  ]);
+  protected readonly stitchNumber = computed(
+    () => Math.min(this.store.stitchIndex(), this.store.stitchTotal() - 1) + 1,
+  );
+  private readonly chartHost = viewChild('chartHost', { read: ViewContainerRef });
+
+  constructor() {
+    effect(() => {
+      const host = this.chartHost();
+      if (host) void this.mountChart(host);
+    });
+  }
+
+  private async mountChart(host: ViewContainerRef): Promise<void> {
+    const { ChartView } = await import('./chart-view');
+    // Le conteneur a pu disparaître (retour au texte) pendant le chargement.
+    if (this.chartHost() === host && host.length === 0) host.createComponent(ChartView);
+  }
+
   protected readonly textSizeIndex = computed(() => TEXT_SIZES.indexOf(this.prefs.textSize()));
 
   protected toggleFocus(): void {

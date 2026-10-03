@@ -70,6 +70,8 @@ export const EVENEMENTS = [
   'app_installed',
   'app_opened',
   'app_tab_selected',
+  'view_changed',
+  'stitch_marked',
 ];
 
 /** Sept noms distincts : la tranche ou le palier vit dans le nom, pas dans une propriété. */

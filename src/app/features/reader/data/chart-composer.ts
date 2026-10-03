@@ -72,6 +72,15 @@ const arity = (id: string): Arity => ARITY[id] ?? PLAIN;
 const tokens = (round: Round): readonly { token: Token; repeat: number }[] =>
   round.groups.flatMap((group) => group.tokens.map((token) => ({ token, repeat: group.repeat })));
 
+/** Un symbole par maille dessinée, dans l'ordre de lecture : « *sc, inc* x 2 » en donne quatre. */
+export function roundSymbols(round: Round): string[] {
+  return round.groups.flatMap((group) =>
+    Array.from({ length: group.repeat }, () =>
+      group.tokens.flatMap((token) => Array.from({ length: token.count }, () => token.symbol)),
+    ).flat(),
+  );
+}
+
 /** Mailles produites par le tour. */
 export function stitchCount(round: Round): number {
   return tokens(round).reduce(

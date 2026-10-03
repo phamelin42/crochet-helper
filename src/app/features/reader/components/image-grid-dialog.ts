@@ -1,6 +1,6 @@
-import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
-import { decodePixels, DecodedPixels } from '../../../core/platform/image-pixels';
+import type { DecodedPixels } from '../../../core/platform/image-pixels';
 import { StylesheetService } from '../../../core/platform/stylesheet.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
@@ -9,7 +9,6 @@ import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segment
 import { ColorGrid, gridToText } from '../data/color-grid';
 import { IMAGE_GRID_COPY, ImageGridKey } from '../data/image-grid-copy';
 import {
-  DECODE_MAX_SIDE,
   DEFAULT_GRID_COLORS,
   DEFAULT_GRID_WIDTH,
   MAX_GRID_WIDTH,
@@ -222,13 +221,14 @@ export class ImageGridDialog {
       };
       clearTimeout(timer);
       if (!pixels) return;
-      timer = setTimeout(() => this.grid.set(imageToGrid(pixels, options)), PREVIEW_DELAY_MS);
+      // Le premier aperçu part tout de suite ; les suivants attendent la fin du réglage.
+      if (!untracked(this.grid)) this.grid.set(imageToGrid(pixels, options));
+      else timer = setTimeout(() => this.grid.set(imageToGrid(pixels, options)), PREVIEW_DELAY_MS);
     });
   }
 
   private async decode(): Promise<void> {
-    const file = this.intake.gridImage();
-    const pixels = file ? await decodePixels(file, DECODE_MAX_SIDE) : null;
+    const pixels = await this.intake.gridPixels;
     // Illisible ou démesurée (plus de 64 millions de pixels) : refus propre, dit à la lectrice.
     if (!pixels) this.intake.closeImageGrid(false, 'illisible');
     else this.pixels.set(pixels);

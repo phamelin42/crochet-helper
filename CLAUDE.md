@@ -225,6 +225,12 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   `test:tools` et toute la suite e2e échouent sur « Executable doesn't exist ».
   Le hook `pre-push` lance `verify:ci` avec l'environnement du shell : pousser
   avec ces deux variables exportées, pas avec `--no-verify` (refusé).
+- **Un morceau paresseux demandé à la première visite attend le service
+  worker**, qui télécharge tout le site juste après le premier affichage : la
+  fiche 48 mesurait 1,1 s pour trois petits `import()`, contre 5 ms sans
+  service worker. Une action qui ouvre un sélecteur de fichiers lance son
+  `import()` au clic, pas au choix du fichier ; une mesure e2e de temps de
+  réponse imite ce geste plutôt que d'envoyer l'événement `change` à vide.
 - **`npx playwright test` sert le dernier build, pas le code du moment**
   (`e2e/static-server.mjs` sur `dist/`, plus `reuseExistingServer`). Debugger un
   échec e2e sans `ng build` préalable fait chercher un bug de test là où il n'y

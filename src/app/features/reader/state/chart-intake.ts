@@ -1,3 +1,4 @@
+import type { DecodedPixels } from '../../../core/platform/image-pixels';
 import { InjectionToken, Service, inject, signal } from '@angular/core';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import type { ResizedImage } from '../../../core/platform/image-resize';
@@ -115,6 +116,11 @@ export class ChartIntake {
   readonly busy = signal(false);
   /** Image choisie pour « Ouvrir une image en grille », en attente de ses réglages. */
   readonly gridImage = signal<File | null>(null);
+  /**
+   * Ses pixels, décodés pendant que le dialogue se charge : les deux en même
+   * temps, l'aperçu arrive plus tôt. `null` : image illisible ou démesurée.
+   */
+  gridPixels: Promise<DecodedPixels | null> = Promise.resolve(null);
   readonly error = signal<ChartIntakeError | null>(null);
 
   /**
@@ -222,7 +228,20 @@ export class ChartIntake {
     this.error.set(null);
     if (!IMAGE_TYPES.has(file.type)) return this.fail('format');
     if (file.size > MAX_CHART_FILE_BYTES) return this.fail('lourd');
+    this.gridPixels = this.decodeGridImage(file);
     this.gridImage.set(file);
+  }
+
+  private async decodeGridImage(file: File): Promise<DecodedPixels | null> {
+    try {
+      const [{ decodePixels }, { DECODE_MAX_SIDE }] = await Promise.all([
+        import('../../../core/platform/image-pixels'),
+        import('../data/image-to-grid'),
+      ]);
+      return await decodePixels(file, DECODE_MAX_SIDE);
+    } catch {
+      return null;
+    }
   }
 
   /** Le dialogue se ferme : `created` replie le panneau d'import, comme un patron découpé. */

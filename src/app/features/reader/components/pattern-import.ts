@@ -61,7 +61,7 @@ import { ReaderStore } from '../state/reader-store';
               type="button"
               filButton="secondary"
               [disabled]="!!intake.gridImage()"
-              (click)="gridInput().nativeElement.click()"
+              (click)="pickGridImage()"
             >
               {{ t('ui.gridImageOpen') }}
             </button>
@@ -181,6 +181,16 @@ export class PatternImport {
     const file = input.files?.[0];
     input.value = '';
     if (file) await this.intake.open(file);
+  }
+
+  /**
+   * Le dialogue et la réduction se chargent pendant que la lectrice choisit
+   * son image : à la première visite, le service worker occupe le réseau, et
+   * un morceau demandé après le choix arrivait une seconde trop tard.
+   */
+  protected pickGridImage(): void {
+    void import('./image-grid-dialog').catch(() => undefined);
+    this.gridInput().nativeElement.click();
   }
 
   protected onGridChange(event: Event): void {

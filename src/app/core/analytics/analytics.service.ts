@@ -98,7 +98,9 @@ export type AnalyticsEvent =
   /** Réponse à « Comment suivre ce patron ? » (propriétés `view`, `remembered` : `yes` / `no`). */
   | 'view_chosen'
   /** Maille touchée dans le diagramme, une fois par tour et par session. */
-  | 'stitch_marked';
+  | 'stitch_marked'
+  /** Maille touchée dans la grille de couleurs, une fois par rang et par session. */
+  | 'grid_stitch_marked';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

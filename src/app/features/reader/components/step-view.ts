@@ -1,6 +1,7 @@
 import {
   Component,
   ElementRef,
+  Type,
   ViewContainerRef,
   computed,
   effect,
@@ -208,7 +209,9 @@ export class StepView {
     { value: 2, label: this.t('ui.textSizeXl') },
   ]);
   /** Au moins une étape de la pièce se dessine. */
-  protected readonly chartAvailable = computed(() => (this.store.pieceChart()?.drawable ?? 0) > 0);
+  protected readonly chartAvailable = computed(
+    () => this.store.grid() !== null || (this.store.pieceChart()?.drawable ?? 0) > 0,
+  );
   /** Le choix retenu ne vaut que si la pièce a de quoi être dessinée. */
   protected readonly chartMode = computed(
     () => this.store.view() === 'chart' && this.chartAvailable(),
@@ -230,9 +233,12 @@ export class StepView {
   }
 
   private async mountChart(host: ViewContainerRef): Promise<void> {
-    const { ChartView } = await import('./chart-view');
+    // Une grille de couleurs est un autre rendu, dans le même cadre.
+    const view: Type<unknown> = this.store.grid()
+      ? (await import('./grid-view')).GridView
+      : (await import('./chart-view')).ChartView;
     // Le conteneur a pu disparaître (retour au texte) pendant le chargement.
-    if (this.chartHost() === host && host.length === 0) host.createComponent(ChartView);
+    if (this.chartHost() === host && host.length === 0) host.createComponent(view);
   }
 
   protected readonly textSizeIndex = computed(() => TEXT_SIZES.indexOf(this.prefs.textSize()));

@@ -134,6 +134,10 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     fr: 'une maille est touchée dans le diagramme (une fois par tour, jamais laquelle)',
     en: 'a stitch is tapped in the chart (once per round, never which one)',
   },
+  grid_stitch_marked: {
+    fr: 'une maille est touchée dans la grille de couleurs (une fois par rang, jamais laquelle)',
+    en: 'a stitch is tapped in the colour grid (once per row, never which one)',
+  },
   chart_viewed: { fr: 'un diagramme est affiché', en: 'a chart is shown' },
   chart_transcribed: {
     fr: 'un diagramme est transcrit en texte (nombre de tours, convention, lu automatiquement ou à la main)',

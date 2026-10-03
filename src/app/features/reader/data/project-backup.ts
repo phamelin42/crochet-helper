@@ -1,3 +1,4 @@
+import { encodeGrid, validGrid } from './color-grid';
 import {
   MAX_CHARTS,
   Project,
@@ -63,7 +64,12 @@ export function parseBackup(data: unknown): ProjectBackup | null {
   return {
     version,
     projects: projects.map((project) => {
-      const normalized = { ...project, imageCount: project.imageCount ?? 0 };
+      const grid = validGrid(project.grid);
+      const normalized = {
+        ...project,
+        imageCount: project.imageCount ?? 0,
+        ...(grid ? { grid } : {}),
+      };
       // Un projet sans diagramme reste tel qu'il est écrit ; les épingles d'un
       // autre sont écartées quand elles visent un diagramme qui n'existe pas.
       return project.charts === undefined
@@ -121,6 +127,7 @@ function isProject(value: unknown): value is Project {
     typeof p['expandAbbreviations'] === 'boolean' &&
     typeof p['createdAt'] === 'number' &&
     typeof p['lastOpenedAt'] === 'number' &&
+    (p['grid'] === undefined || validGrid(p['grid']) !== null) &&
     (p['imageCount'] === undefined ||
       (Number.isInteger(p['imageCount']) && (p['imageCount'] as number) >= 0)) &&
     (p['chartCount'] === undefined ||
@@ -160,7 +167,11 @@ export async function encodeBackup(
     const data = bytesToBase64(new Uint8Array(await blob.arrayBuffer()));
     images.push({ id, projectId, n, width, height, kind, type: blob.type || 'image/jpeg', data });
   }
-  const backup: ProjectBackup = { version: BACKUP_SCHEMA_VERSION, projects, images };
+  // Une grille s'écrit avec ses cellules en base64 : un `Uint8Array` sortirait en objet indexé.
+  const written = projects.map((project) =>
+    project.grid ? { ...project, grid: encodeGrid(project.grid) } : project,
+  );
+  const backup = { version: BACKUP_SCHEMA_VERSION, projects: written, images };
   return new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
 }
 

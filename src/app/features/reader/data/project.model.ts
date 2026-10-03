@@ -1,3 +1,5 @@
+import type { ColorGrid } from './color-grid';
+
 const MAX_NAME_LENGTH = 80;
 
 /** Un projet : un patron, sa progression, ses compteurs et son chronomètre. */
@@ -31,6 +33,11 @@ export interface Project {
   readonly stitch?: number;
   /** Affichage choisi (fiche 45). Absent : texte. */
   readonly view?: ReaderView;
+  /**
+   * Grille de couleurs (fiche 47). `source` en est l'écriture, rang par rang :
+   * l'affichage texte, le compteur et l'impression n'ont rien à savoir d'elle.
+   */
+  readonly grid?: ColorGrid;
 }
 
 export type ReaderView = 'text' | 'chart';

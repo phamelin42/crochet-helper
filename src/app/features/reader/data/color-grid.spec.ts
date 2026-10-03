@@ -9,6 +9,8 @@ import {
   validGrid,
 } from './color-grid';
 import { parsePattern } from './pattern-parser';
+import { encodeBackup, parseBackup } from './project-backup';
+import { Project } from './project.model';
 
 // Rang 1 (en bas) : AAAABB — rang 2 : BBAAAA — rang 3 : AABBAA — rang 4 : ABABAB.
 const ROWS = ['AAAABB', 'BBAAAA', 'AABBAA', 'ABABAB'];
@@ -155,5 +157,38 @@ describe('validGrid', () => {
 
   it.each([null, undefined, 12, 'x', []])('refuse %j sans exception', (raw) => {
     expect(validGrid(raw)).toBeNull();
+  });
+});
+
+describe('sauvegarde', () => {
+  const project: Project = {
+    id: 'p1',
+    name: 'Tapis',
+    source: gridToText(grid('flat'), 'fr'),
+    image: '',
+    pieceIndex: 0,
+    stepIndex: 2,
+    stitch: 3,
+    done: {},
+    reps: {},
+    elapsed: 0,
+    expandAbbreviations: false,
+    createdAt: 1,
+    lastOpenedAt: 1,
+    grid: grid('flat'),
+  };
+
+  it('la grille d’un projet survit à l’export puis à l’import', async () => {
+    const blob = await encodeBackup([project], []);
+    const backup = parseBackup(JSON.parse(await blob.text()));
+    expect(backup?.projects[0].grid).toEqual(project.grid);
+    expect(backup?.projects[0].stitch).toBe(3);
+  });
+
+  it('une sauvegarde dont la grille est mal formée est refusée en bloc', async () => {
+    const blob = await encodeBackup([project], []);
+    const raw = JSON.parse(await blob.text());
+    raw.projects[0].grid.palette = ['rouge', 'bleu'];
+    expect(parseBackup(raw)).toBeNull();
   });
 });

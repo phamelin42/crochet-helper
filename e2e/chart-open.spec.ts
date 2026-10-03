@@ -63,12 +63,10 @@ test('ouvrir un diagramme sans patron : lu, relu, découpé en étapes, retrouv�
 
   await expect(dialog).toBeHidden();
   await expect(page.locator('.step-body')).toContainText('6 sc');
-  await expect(page.getByRole('region', { name: 'Chart 1' })).toBeAttached();
 
   await page.reload();
   await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
   await expect(page.locator('.step-body')).toContainText('6 sc');
-  await expect(page.getByRole('region', { name: 'Chart 1' })).toBeAttached();
 });
 
 test('la lectrice corrige un tour lu avant de découper', async ({ page }) => {

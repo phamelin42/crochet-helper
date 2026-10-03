@@ -524,7 +524,7 @@ export class ReaderStore {
     if (!text) return false;
     if (this.currentId()) this.detach();
     this.holdPersist = true;
-    let saved = false;
+    let saved: boolean;
     try {
       this.load(text, 'grille');
       const id = this.currentId();

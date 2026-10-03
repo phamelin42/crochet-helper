@@ -65,6 +65,7 @@ const MAX_LETTERED_CELLS = 2500;
           tabindex="0"
           [attr.aria-label]="t('frame')"
           (keydown)="onKey($event)"
+          (click)="onTap($event)"
         >
           <svg
             class="chart-svg grid-svg"
@@ -73,7 +74,7 @@ const MAX_LETTERED_CELLS = 2500;
             [attr.viewBox]="'0 0 ' + width() + ' ' + height()"
             [attr.width]="width() * zoom()"
             [attr.height]="height() * zoom()"
-            (click)="onTap($event)"
+            #svg
             (pointerover)="onHover($event)"
             (pointerleave)="tooltips.hide()"
           >
@@ -219,6 +220,7 @@ export class GridView {
   protected readonly store = inject(ReaderStore);
   protected readonly tooltips = inject(TooltipService);
   private readonly i18n = inject(I18nService);
+  private readonly svgRef = viewChild<ElementRef<SVGSVGElement>>('svg');
   private readonly markerRef = viewChild<ElementRef<SVGRectElement>>('marker');
 
   protected readonly SIDE = SIDE;
@@ -431,8 +433,8 @@ export class GridView {
   /** La maille sous le pointeur : rang et position dans le sens de travail, ou `null` hors grille. */
   private cellAt(event: MouseEvent): { row: number; stitch: number } | null {
     const grid = this.grid();
-    const svg = event.currentTarget as SVGSVGElement;
-    if (!grid) return null;
+    const svg = this.svgRef()?.nativeElement;
+    if (!grid || !svg) return null;
     const box = svg.getBoundingClientRect();
     const scale = this.zoom();
     const column = Math.floor(((event.clientX - box.left) / scale - GUTTER) / SIDE);

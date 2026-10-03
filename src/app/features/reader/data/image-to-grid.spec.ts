@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { validGrid } from './color-grid';
-import { GridPixels, MAX_IMAGE_GRID_WIDTH, MIN_IMAGE_GRID_WIDTH, imageToGrid } from './image-to-grid';
+import {
+  GridPixels,
+  MAX_IMAGE_GRID_WIDTH,
+  MIN_IMAGE_GRID_WIDTH,
+  imageToGrid,
+} from './image-to-grid';
 
 /** Image dont chaque pixel est donné par `paint(x, y)` → [r, g, b, a?]. */
 function image(
@@ -22,7 +27,10 @@ const flat = (width: number, colors: number) => ({ width, colors, worked: 'flat'
 
 describe('imageToGrid', () => {
   it("une image unie donne une seule couleur utile, sur une grille que l'application accepte", () => {
-    const grid = imageToGrid(image(40, 30, () => [200, 30, 30]), flat(20, 6));
+    const grid = imageToGrid(
+      image(40, 30, () => [200, 30, 30]),
+      flat(20, 6),
+    );
     expect(new Set(grid.cells)).toEqual(new Set([0]));
     expect(grid.palette[0]).toBe('#c81e1e');
     expect(validGrid(grid)).not.toBeNull();

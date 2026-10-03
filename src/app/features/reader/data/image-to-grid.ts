@@ -27,7 +27,10 @@ export function gridSize(
   width: number,
 ): { width: number; height: number } {
   const w = clamp(width, MIN_IMAGE_GRID_WIDTH, MAX_IMAGE_GRID_WIDTH);
-  return { width: w, height: clamp((w * image.height) / image.width, MIN_GRID_SIDE, MAX_GRID_SIDE) };
+  return {
+    width: w,
+    height: clamp((w * image.height) / image.width, MIN_GRID_SIDE, MAX_GRID_SIDE),
+  };
 }
 
 /**

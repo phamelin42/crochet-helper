@@ -254,7 +254,8 @@ export class ImageGridDialog {
   }
 
   protected setWidth(value: number): void {
-    if (Number.isFinite(value)) this.width.set(clamp(value, MIN_IMAGE_GRID_WIDTH, MAX_IMAGE_GRID_WIDTH));
+    if (Number.isFinite(value))
+      this.width.set(clamp(value, MIN_IMAGE_GRID_WIDTH, MAX_IMAGE_GRID_WIDTH));
   }
 
   protected setColors(value: number): void {

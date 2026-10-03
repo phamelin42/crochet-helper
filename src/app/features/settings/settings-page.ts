@@ -3,7 +3,11 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale } from '../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../core/i18n/route-paths';
-import { DisplayPrefsService, ReaderTextSize } from '../../core/platform/display-prefs.service';
+import {
+  DefaultView,
+  DisplayPrefsService,
+  ReaderTextSize,
+} from '../../core/platform/display-prefs.service';
 import { WakeLockService } from '../../core/platform/wake-lock.service';
 import { SeoService } from '../../core/seo/seo.service';
 import { SITE_NAME } from '../../core/seo/site';
@@ -11,6 +15,7 @@ import { Checkbox } from '../../shared/ui/checkbox/checkbox';
 import { Segmented, SegmentedOption } from '../../shared/ui/segmented/segmented';
 
 const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
+const DEFAULT_VIEWS: readonly DefaultView[] = ['ask', 'text', 'chart'];
 
 const COPY = {
   fr: {
@@ -21,6 +26,10 @@ const COPY = {
     dim: 'Fond sombre',
     wake: 'Garder l’écran allumé',
     textSize: 'Taille du texte',
+    defaultView: 'Affichage d’un nouveau patron',
+    viewAsk: 'Demander',
+    viewText: 'Texte',
+    viewChart: 'Diagramme',
     language: 'Langue',
     switchLanguage: 'Passer en English',
     more: 'Pour aller plus loin',
@@ -38,6 +47,10 @@ const COPY = {
     dim: 'Dark background',
     wake: 'Keep screen awake',
     textSize: 'Text size',
+    defaultView: 'Display of a new pattern',
+    viewAsk: 'Ask me',
+    viewText: 'Text',
+    viewChart: 'Chart',
     language: 'Language',
     switchLanguage: 'Passer en français',
     more: 'Learn more',
@@ -81,6 +94,13 @@ const GUIDES = ['guideReadingPattern', 'guideReadingChart', 'guideCrochetOrKnitt
           [options]="textSizeOptions"
           [selected]="textSizeIndex()"
           (selectedChange)="setTextSize($event)"
+        />
+        <fil-segmented
+          name="settings-default-view"
+          [label]="c.defaultView"
+          [options]="viewOptions"
+          [selected]="viewIndex()"
+          (selectedChange)="setDefaultView($event)"
         />
       </section>
 
@@ -127,6 +147,12 @@ export default class SettingsPage {
     { value: 2, label: 'A++' },
   ];
   protected readonly textSizeIndex = computed(() => TEXT_SIZES.indexOf(this.prefs.textSize()));
+  protected readonly viewOptions: SegmentedOption[] = [
+    { value: 0, label: this.c.viewAsk },
+    { value: 1, label: this.c.viewText },
+    { value: 2, label: this.c.viewChart },
+  ];
+  protected readonly viewIndex = computed(() => DEFAULT_VIEWS.indexOf(this.prefs.defaultView()));
 
   constructor() {
     this.i18n.setLocale(this.locale);
@@ -148,6 +174,12 @@ export default class SettingsPage {
     const value = TEXT_SIZES[index] ?? 'base';
     this.prefs.setTextSize(value);
     this.track('text_size', value);
+  }
+
+  protected setDefaultView(index: number): void {
+    const value = DEFAULT_VIEWS[index] ?? 'ask';
+    this.prefs.setDefaultView(value);
+    this.track('default_view', value);
   }
 
   private track(pref: string, value: string): void {

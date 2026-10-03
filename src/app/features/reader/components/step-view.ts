@@ -160,6 +160,9 @@ const LONGEST_STEP = 90;
     @if (store.step() && store.pieceChart() && !chartAvailable()) {
       <p class="hint" role="status">{{ t('ui.viewChartOff') }}</p>
     }
+    @if (store.viewFallback()) {
+      <p class="hint" role="status">{{ t('ui.viewFallback') }}</p>
+    }
 
     <!--
       Tout ce qui varie d'une étape à l'autre (notes, astuce, photos,

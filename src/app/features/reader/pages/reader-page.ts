@@ -23,6 +23,7 @@ import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Tile } from '../../../shared/ui/tile/tile';
 import { ChartIntakeDialogs } from '../components/chart-intake-dialogs';
+import { ViewChoiceSlot } from '../components/view-choice-slot';
 import { MaterialsList } from '../components/materials-list';
 import { PatternImport } from '../components/pattern-import';
 import { PrintView } from '../components/print-view';
@@ -343,6 +344,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
   imports: [
     Button,
     ChartIntakeDialogs,
+    ViewChoiceSlot,
     Dialog,
     Disclosure,
     Icon,
@@ -439,6 +441,7 @@ const SEO: Record<Locale, { title: string; description: string }> = {
     <fil-print-view />
 
     <fil-chart-intake-dialogs />
+    <fil-view-choice-slot />
 
     @if (!store.step()) {
       <hr class="hr" />

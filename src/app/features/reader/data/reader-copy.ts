@@ -64,6 +64,8 @@ const FR = {
   'ui.viewChart': 'Diagramme',
   'ui.viewChartOff':
     'Le diagramme n’est pas disponible : aucune étape de cette pièce ne se lit comme un tour de mailles.',
+  'ui.viewFallback':
+    'Ce patron est affiché en étapes écrites : aucune étape ne se lit comme un tour de mailles à dessiner.',
   'ui.stitchOf': 'maille',
   'ui.stitchTotal': 'sur',
   'ui.print': 'Imprimer',
@@ -175,6 +177,8 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.viewChart': 'Chart',
   'ui.viewChartOff':
     'The chart is not available: no step of this piece reads as a round of stitches.',
+  'ui.viewFallback':
+    'This pattern is shown as written steps: no step reads as a round of stitches to draw.',
   'ui.stitchOf': 'stitch',
   'ui.stitchTotal': 'of',
   'ui.print': 'Print',

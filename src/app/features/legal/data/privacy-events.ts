@@ -97,8 +97,8 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     en: 'the waiting-list link is clicked',
   },
   reading_pref_changed: {
-    fr: 'la taille du texte ou le fond sombre est changé',
-    en: 'the text size or dark background is changed',
+    fr: 'la taille du texte, le fond sombre ou l’affichage d’un nouveau patron est changé',
+    en: 'the text size, dark background or display of a new pattern is changed',
   },
   focus_mode_toggled: {
     fr: 'le mode page pleine est activé ou quitté',
@@ -125,6 +125,10 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
   view_changed: {
     fr: 'l’affichage du lecteur change (texte ou diagramme)',
     en: 'the reader view changes (text or chart)',
+  },
+  view_chosen: {
+    fr: 'la lectrice répond à la question « étapes écrites ou diagramme ? » (la réponse et si elle est retenue)',
+    en: 'the reader answers “written steps or chart?” (the answer and whether it is remembered)',
   },
   stitch_marked: {
     fr: 'une maille est touchée dans le diagramme (une fois par tour, jamais laquelle)',

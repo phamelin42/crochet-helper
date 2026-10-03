@@ -33,7 +33,11 @@ export class TooltipService {
    * mesure.
    */
   isStationaryHover(event: Event): boolean {
-    if (event.type !== 'pointerenter' || !this.lastPress) return false;
+    // `pointerover` : un conteneur à très nombreux enfants (grille de couleurs)
+    // écoute en délégation, `pointerenter` ne remontant pas.
+    if ((event.type !== 'pointerenter' && event.type !== 'pointerover') || !this.lastPress) {
+      return false;
+    }
     const { clientX, clientY } = event as PointerEvent;
     return clientX === this.lastPress.x && clientY === this.lastPress.y;
   }

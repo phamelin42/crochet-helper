@@ -36,6 +36,7 @@ import {
   sanitizeCharts,
   type ReaderView,
 } from '../data/project.model';
+import { ColorGrid, validGrid } from '../data/color-grid';
 
 /** Un diagramme prêt à être enregistré : image déjà réduite et encodée. */
 export interface NewChart {
@@ -110,6 +111,8 @@ export class ReaderStore {
   readonly stitchIndex = signal(0);
   /** Affichage du lecteur, retenu par projet. */
   readonly view = signal<ReaderView>('text');
+  /** Grille de couleurs du projet actif ; `null` pour un patron écrit. */
+  readonly grid = signal<ColorGrid | null>(null);
   /** Projet qui vient d'être créé et attend la réponse à « étapes écrites ou diagramme ? ». */
   readonly viewChoice = signal<string | null>(null);
   /** Préférence « diagramme » sans étape dessinable : l'affichage texte s'applique, et on le dit. */
@@ -176,6 +179,8 @@ export class ReaderStore {
   private chartParse = 0;
   /** Mailles dessinées dans l'étape courante ; 0 si elle ne se dessine pas. */
   readonly stitchTotal = computed(() => {
+    const grid = this.grid();
+    if (grid) return grid.width;
     return this.pieceChart()?.stitches[this.stepIndex()] ?? 0;
   });
   readonly total = computed(() => this.pattern().total);
@@ -361,6 +366,7 @@ export class ReaderStore {
       imageCount: this.imageCount(),
       chartCount: this.chartCount(),
       charts: this.charts(),
+      ...(this.grid() ? { grid: this.grid()! } : {}),
     };
   }
 
@@ -509,6 +515,31 @@ export class ReaderStore {
     return saved;
   }
 
+  /**
+   * Ouvre une grille de couleurs : **toujours un nouveau projet**, dont le
+   * texte est l'écriture de la grille, écrits dans une seule transaction. Le
+   * diagramme s'affiche d'emblée : un ouvrage en couleurs se lit en grille.
+   */
+  async openGrid(grid: ColorGrid, text: string): Promise<boolean> {
+    if (!text) return false;
+    if (this.currentId()) this.detach();
+    this.holdPersist = true;
+    let saved: boolean;
+    try {
+      this.load(text, 'grille');
+      const id = this.currentId();
+      if (!id) return false;
+      this.grid.set(grid);
+      this.view.set('chart');
+      this.pendingView.set(null);
+      saved = await this.projectStore.putAll([this.snapshot(id)]);
+    } finally {
+      this.holdPersist = false;
+    }
+    await this.persist();
+    return saved;
+  }
+
   /** Épingle le diagramme n à la pièce : un diagramme n'est épinglé qu'à une pièce à la fois. */
   pinChart(piece: number, n: number): void {
     if (n < 1 || n > this.chartCount() || piece < 0 || piece >= this.pieces().length) return;
@@ -548,6 +579,7 @@ export class ReaderStore {
     this.stepIndex.set(Math.min(project.stepIndex, Math.max(0, this.stepCount() - 1)));
     this.stitchIndex.set(Math.max(0, Math.floor(project.stitch ?? 0)));
     this.view.set(project.view === 'chart' ? 'chart' : 'text');
+    this.grid.set(validGrid(project.grid));
     this.depthsReached.set(new Set(DEPTH_THRESHOLDS.filter((t) => this.absoluteStep() >= t)));
     if (touch) {
       const touched: Project = { ...project, lastOpenedAt: Date.now() };
@@ -648,7 +680,7 @@ export class ReaderStore {
    */
   load(
     text: string,
-    origine: 'saisie' | 'pdf' | 'exemple' | 'lien' | 'diagramme' = 'saisie',
+    origine: 'saisie' | 'pdf' | 'exemple' | 'lien' | 'diagramme' | 'grille' = 'saisie',
   ): void {
     this.pdfError.set(null);
     if (text && this.currentId() && text !== this.source()) this.detach();
@@ -836,6 +868,7 @@ export class ReaderStore {
     this.imageCount.set(0);
     this.chartCount.set(0);
     this.charts.set({});
+    this.grid.set(null);
     this.chartError.set(null);
     this.pdfImagesNote.set(null);
     this.viewChoice.set(null);
@@ -865,7 +898,7 @@ export class ReaderStore {
     const key = `${this.currentId() ?? ''}:${this.positionKey()}`;
     if (this.markedRounds.has(key)) return;
     this.markedRounds.add(key);
-    this.analytics.track('stitch_marked');
+    this.analytics.track(this.grid() ? 'grid_stitch_marked' : 'stitch_marked');
   }
 
   /** Avance ou recule d'une étape, en franchissant les frontières de pièce. */

@@ -240,6 +240,74 @@
 .chart-cell.is-done:not(.is-off) {
   opacity: 0.55;
 }
+/* Grille de couleurs (fiche 47). Les couleurs des mailles sont celles de la
+ * lectrice : elles arrivent en attribut `fill`, jamais ici. Repère et rang
+ * courant : un contour clair sous un contour foncé, lisible sur toute teinte. */
+.grid-number {
+  fill: var(--print-ink);
+  font-size: 0.75rem;
+}
+.grid-number.is-current {
+  font-weight: 700;
+}
+.grid-letter {
+  fill: var(--print-ink);
+  paint-order: stroke;
+  stroke: var(--print-paper);
+  stroke-width: 3;
+  font-size: 0.875rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+.grid-dim {
+  fill: var(--print-paper);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.grid-outline {
+  fill: none;
+  pointer-events: none;
+}
+.grid-outline-light {
+  stroke: var(--print-paper);
+  stroke-width: 7;
+}
+.grid-outline-row {
+  stroke: var(--color-primary);
+  stroke-width: 3;
+}
+.grid-outline-mark {
+  stroke: var(--print-ink);
+  stroke-width: 3;
+}
+.grid-arrow {
+  fill: var(--color-primary);
+  pointer-events: none;
+}
+.grid-help {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-text-strong);
+}
+.grid-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.grid-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.grid-swatch {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+}
 .chart-mark {
   fill: none;
   stroke: var(--color-primary);

@@ -102,6 +102,34 @@
   font-weight: 700;
 }
 
+/* Réglages d'une image en grille (fiche 48) : l'aperçu, puis un réglage par ligne. */
+.grid-maker {
+  display: grid;
+  gap: var(--space-3);
+}
+.grid-preview {
+  width: 100%;
+  max-height: 40vh;
+  object-fit: contain;
+  image-rendering: pixelated;
+  background: var(--print-paper);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+}
+.grid-setting {
+  display: grid;
+  gap: var(--space-1);
+}
+.grid-stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.grid-stepper .input {
+  width: 6rem;
+  text-align: center;
+}
+
 /* Choix des pages d'un PDF : une vignette et sa case par page. */
 .chart-pages {
   list-style: none;

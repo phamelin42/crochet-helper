@@ -1,4 +1,5 @@
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { NgComponentOutlet } from '@angular/common';
+import { Component, Type, computed, effect, inject, signal, untracked } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import { StylesheetService } from '../../../core/platform/stylesheet.service';
@@ -23,7 +24,7 @@ interface PageThumb {
  */
 @Component({
   selector: 'fil-chart-intake-dialogs',
-  imports: [Button, ChartComposer, Checkbox, Dialog],
+  imports: [Button, ChartComposer, Checkbox, Dialog, NgComponentOutlet],
   template: `
     @if (message(); as message) {
       <p class="hint" role="alert">{{ message }}</p>
@@ -86,6 +87,10 @@ interface PageThumb {
       </fil-dialog>
     }
 
+    @if (gridDialog(); as component) {
+      <ng-container *ngComponentOutlet="component" />
+    }
+
     @if (intake.opening(); as opening) {
       <fil-chart-composer
         mode="open"
@@ -117,12 +122,15 @@ export class ChartIntakeDialogs {
     if (error === 'lourd') return this.t('ui.chartErrorHeavy');
     if (error === 'illisible') return this.t('ui.chartErrorUnreadable');
     if (error === 'pdf') return this.t('ui.chartErrorPdf');
+    if (error === 'non-enregistre') return this.t('ui.gridNotSaved');
     const stored = this.store.chartError();
     if (stored === 'non-enregistre') return this.t('ui.chartNotSaved');
     if (stored === 'plafond') return this.t('ui.chartLimit');
     return '';
   });
 
+  /** La boîte de réglage d'une image en grille : son code n'arrive qu'au premier fichier choisi. */
+  protected readonly gridDialog = signal<Type<unknown> | null>(null);
   protected readonly thumbs = signal<readonly PageThumb[]>([]);
   /** Le diagramme lu, affiché au-dessus de sa transcription pour la comparer. */
   protected readonly preview = signal<ShownPhoto | null>(null);
@@ -130,6 +138,11 @@ export class ChartIntakeDialogs {
 
   constructor() {
     const styles = inject(StylesheetService);
+    effect(() => {
+      if (this.intake.gridFile() && !this.gridDialog()) {
+        void import('./image-grid-dialog').then((m) => this.gridDialog.set(m.ImageGridDialog));
+      }
+    });
     // Les adresses `blob:` des vignettes suivent les pages : révoquées à la
     // fermeture ou avant d'en créer d'autres.
     effect(() => {

@@ -81,6 +81,7 @@ const FR = {
     'Les photos de ce PDF n’ont pas pu être enregistrées : l’espace de stockage de l’appareil est plein. Le patron est bien là, sans ses photos.',
   'ui.chartAdd': 'Ajouter un diagramme',
   'ui.chartOpen': 'Ouvrir un diagramme',
+  'ui.gridOpen': 'Ouvrir une image en grille',
   'ui.chartBusy': 'Lecture du diagramme…',
   'ui.chartErrorFormat':
     'Ce fichier n’est pas un diagramme lisible : choisissez une image PNG, JPEG ou WebP, ou un PDF.',
@@ -90,6 +91,8 @@ const FR = {
   'ui.chartErrorPdf': 'Les pages de ce PDF n’ont pas pu être lues.',
   'ui.chartNotSaved':
     'Le diagramme n’a pas pu être enregistré : l’espace de stockage de l’appareil est plein.',
+  'ui.gridNotSaved':
+    'La grille n’a pas pu être enregistrée : l’espace de stockage de l’appareil est plein.',
   'ui.chartLimit': 'Un projet garde 20 diagrammes au plus.',
   'ui.chartPanel': 'Diagramme',
   'ui.chartOf': 'Diagramme',
@@ -194,6 +197,7 @@ const EN: Record<ReaderTranslationKey, string> = {
     'This PDF’s photos couldn’t be saved: the device storage is full. The pattern is here, without its photos.',
   'ui.chartAdd': 'Add a chart',
   'ui.chartOpen': 'Open a chart',
+  'ui.gridOpen': 'Open an image as a grid',
   'ui.chartBusy': 'Reading the chart…',
   'ui.chartErrorFormat':
     'This file isn’t a readable chart: choose a PNG, JPEG or WebP image, or a PDF.',
@@ -201,6 +205,7 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.chartErrorUnreadable': 'This image couldn’t be read.',
   'ui.chartErrorPdf': 'The pages of this PDF couldn’t be read.',
   'ui.chartNotSaved': 'The chart couldn’t be saved: the device storage is full.',
+  'ui.gridNotSaved': 'The grid couldn’t be saved: the device storage is full.',
   'ui.chartLimit': 'A project keeps 20 charts at most.',
   'ui.chartPanel': 'Chart',
   'ui.chartOf': 'Chart',

@@ -10,6 +10,7 @@ import {
   untracked,
 } from '@angular/core';
 import { AnalyticsService, roundToHundred } from '../../../core/analytics/analytics.service';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { DisplayPrefsService } from '../../../core/platform/display-prefs.service';
 import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
@@ -36,7 +37,7 @@ import {
   sanitizeCharts,
   type ReaderView,
 } from '../data/project.model';
-import { ColorGrid, validGrid } from '../data/color-grid';
+import { ColorGrid, gridToText, validGrid } from '../data/color-grid';
 
 /** Un diagramme prêt à être enregistré : image déjà réduite et encodée. */
 export interface NewChart {
@@ -92,6 +93,7 @@ export class ReaderStore {
   private readonly prefs = inject(DisplayPrefsService);
   private readonly projectStore = inject(ProjectStoreService);
   private readonly analytics = inject(AnalyticsService);
+  private readonly i18n = inject(I18nService);
   private readonly objectUrls = inject(ObjectUrlService);
   private readonly extractPdf = inject(PDF_EXTRACTOR);
   private readonly destroyRef = inject(DestroyRef);
@@ -520,7 +522,7 @@ export class ReaderStore {
    * texte est l'écriture de la grille, écrits dans une seule transaction. Le
    * diagramme s'affiche d'emblée : un ouvrage en couleurs se lit en grille.
    */
-  async openGrid(grid: ColorGrid, text: string): Promise<boolean> {
+  async openGrid(grid: ColorGrid, text: string, name?: string): Promise<boolean> {
     if (!text) return false;
     if (this.currentId()) this.detach();
     this.holdPersist = true;
@@ -532,11 +534,26 @@ export class ReaderStore {
       this.grid.set(grid);
       this.view.set('chart');
       this.pendingView.set(null);
+      if (name) this.nameOverride.set(name);
       saved = await this.projectStore.putAll([this.snapshot(id)]);
     } finally {
       this.holdPersist = false;
     }
     await this.persist();
+    return saved;
+  }
+
+  /** Grille fabriquée depuis une image : son texte s'écrit dans la langue de la page. */
+  async openFromGrid(grid: ColorGrid, name: string): Promise<boolean> {
+    const text = gridToText(grid, this.i18n.locale());
+    const saved = await this.openGrid(grid, text, name.trim().slice(0, 60) || undefined);
+    if (saved) {
+      this.analytics.track('grid_created', {
+        width: Math.round(grid.width / 10) * 10,
+        colors: grid.palette.length,
+        worked: grid.worked,
+      });
+    }
     return saved;
   }
 

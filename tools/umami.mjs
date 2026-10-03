@@ -72,6 +72,7 @@ export const EVENEMENTS = [
   'view_chosen',
   'stitch_marked',
   'grid_stitch_marked',
+  'grid_created',
 ];
 
 /** Sept noms distincts : la tranche ou le palier vit dans le nom, pas dans une propriété. */

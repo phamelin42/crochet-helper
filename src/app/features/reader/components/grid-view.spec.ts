@@ -48,7 +48,7 @@ describe('GridView', () => {
     // avant le patron, sinon elle réhydrate l'état enregistré par-dessus.
     TestBed.tick();
     await store.initialize();
-    await store.openGrid(GRID, gridToText(GRID, 'en'));
+    await store.openFromGrid(GRID, gridToText(GRID, 'en'));
     const fixture = TestBed.createComponent(GridView);
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;

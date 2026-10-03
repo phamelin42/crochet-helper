@@ -67,6 +67,9 @@ const MIGRATION_FLAG = 'fil.storage.migrated';
 /** Pointeur — léger — vers le projet actif ; le reste vit dans IndexedDB. */
 const CURRENT_ID_KEY = 'fil.currentProjectId';
 /** Paliers de profondeur de lecture, en position absolue dans le patron. */
+/** Nom d'un projet grille tiré du nom de fichier : 60 signes au plus. */
+const MAX_GRID_NAME = 60;
+
 const DEPTH_THRESHOLDS = [5, 20, 50] as const;
 
 /**
@@ -397,8 +400,10 @@ export class ReaderStore {
    * Ouvre une grille de couleurs : **toujours un nouveau projet**, dont le
    * texte est l'écriture de la grille, écrits dans une seule transaction. Le
    * diagramme s'affiche d'emblée : un ouvrage en couleurs se lit en grille.
+   * `name` (le nom du fichier d'origine, par exemple) est borné à 60 signes.
+   * Renvoie `false` si l'écriture a échoué : la grille reste ouverte à l'écran.
    */
-  async openGrid(grid: ColorGrid, text: string): Promise<boolean> {
+  async openFromGrid(grid: ColorGrid, text: string, name = ''): Promise<boolean> {
     if (!text) return false;
     if (this.currentId()) this.detach();
     this.holdPersist = true;
@@ -407,6 +412,8 @@ export class ReaderStore {
       this.load(text, 'grille');
       const id = this.currentId();
       if (!id) return false;
+      const trimmed = name.trim().slice(0, MAX_GRID_NAME);
+      if (trimmed) this.nameOverride.set(trimmed);
       this.grid.set(grid);
       this.view.set('chart');
       this.pendingView.set(null);
@@ -415,6 +422,13 @@ export class ReaderStore {
       this.holdPersist = false;
     }
     await this.persist();
+    if (saved) {
+      this.analytics.track('grid_created', {
+        width: Math.round(grid.width / 10) * 10,
+        colors: grid.palette.length,
+        worked: grid.worked,
+      });
+    }
     return saved;
   }
 

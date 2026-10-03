@@ -100,7 +100,9 @@ export type AnalyticsEvent =
   /** Maille touchée dans le diagramme, une fois par tour et par session. */
   | 'stitch_marked'
   /** Maille touchée dans la grille de couleurs, une fois par rang et par session. */
-  | 'grid_stitch_marked';
+  | 'grid_stitch_marked'
+  /** Grille fabriquée depuis une image (propriétés `width` à la dizaine, `colors`, `worked`), jamais l'image. */
+  | 'grid_created';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

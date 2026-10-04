@@ -31,6 +31,13 @@ const SLUGS = [
   'rep',
   'blo',
 ];
+/**
+ * Abréviations ambiguës enrichies ensuite : article plus court (le geste est
+ * souvent simple), mais toujours une FAQ qui lève l'ambiguïté.
+ */
+const AMBIGUOUS_SLUGS = ['htr', 'dtr', 'trtr', 'ss', 'sp', 'dbr', 'cl', 'co', 'bo'];
+/** Entrées à article dont le sens dépend du patron : la FAQ le dit. */
+const WITH_FAQ = [...AMBIGUOUS_SLUGS, 'tr', 'mc', 'ml', 'ms'];
 const LOCALES: readonly Locale[] = ['fr', 'en'];
 /** Langues où un slug a sa page, donc son article. */
 const localesOf = (slug: string): readonly Locale[] => {
@@ -52,7 +59,8 @@ describe('TERM_ARTICLES', () => {
     for (const slug of SLUGS.slice(0, 7)) expect(french, slug).toContain(slug);
   });
 
-  for (const slug of SLUGS) {
+  for (const slug of [...SLUGS, ...AMBIGUOUS_SLUGS]) {
+    const [min, max] = SLUGS.includes(slug) ? [400, 600] : [200, 600];
     for (const locale of localesOf(slug)) {
       describe(`${slug} (${locale})`, () => {
         const article = TERM_ARTICLES[slug]?.[locale];
@@ -61,10 +69,20 @@ describe('TERM_ARTICLES', () => {
           expect(article).toBeDefined();
         });
 
-        it('compte entre 400 et 600 mots', () => {
-          expect(wordsOf(article!)).toBeGreaterThanOrEqual(400);
-          expect(wordsOf(article!)).toBeLessThanOrEqual(600);
+        it(`compte entre ${min} et ${max} mots`, () => {
+          expect(wordsOf(article!)).toBeGreaterThanOrEqual(min);
+          expect(wordsOf(article!)).toBeLessThanOrEqual(max);
         });
+
+        if (WITH_FAQ.includes(slug)) {
+          it('répond à au moins deux questions', () => {
+            expect(article!.faq?.length).toBeGreaterThanOrEqual(2);
+            for (const { q, a } of article!.faq!) {
+              expect(q.trim().endsWith('?'), q).toBe(true);
+              expect(a.length).toBeGreaterThan(20);
+            }
+          });
+        }
 
         it('donne au moins deux gestes et une erreur', () => {
           expect(article!.how.length).toBeGreaterThanOrEqual(2);
@@ -83,7 +101,7 @@ describe('TERM_ARTICLES', () => {
   });
 
   it('ne contient que les slugs prévus', () => {
-    expect(Object.keys(TERM_ARTICLES).sort()).toEqual([...SLUGS].sort());
+    expect(Object.keys(TERM_ARTICLES).sort()).toEqual([...SLUGS, ...AMBIGUOUS_SLUGS].sort());
   });
 
   it('n’écrit aucun article pour une langue où le slug redirige', () => {

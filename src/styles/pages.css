@@ -121,6 +121,10 @@
 .term-links a:hover {
   background: var(--color-kikyo-pale);
 }
+/* Graphie servie par la page elle-même : nommée, sans lien. */
+.term-variant {
+  padding: var(--space-1) var(--space-3);
+}
 
 /* — contenu éditorial (pages SEO) — */
 .prose {

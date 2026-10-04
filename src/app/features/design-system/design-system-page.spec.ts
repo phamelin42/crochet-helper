@@ -18,7 +18,7 @@ describe('DesignSystemPage', () => {
   it("n'est jamais indexable : une page d'équipe qui fuit dans les résultats de recherche serait une régression", () => {
     setup();
 
-    expect(TestBed.inject(Meta).getTag('name="robots"')?.content).toBe('noindex, nofollow');
+    expect(TestBed.inject(Meta).getTag('name="robots"')?.content).toBe('noindex, follow');
   });
 
   it('montre chaque icône du jeu — une grille incomplète cacherait une icône disponible', () => {

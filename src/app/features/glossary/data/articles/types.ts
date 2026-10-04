@@ -12,6 +12,16 @@ export interface TermArticle {
   readonly mistakes: readonly string[];
   /** Un conseil pour lire à distance : compter, marqueur, repère. */
   readonly tip: string;
+  /**
+   * Questions fréquentes, surtout quand l'abréviation est ambiguë (`tr`,
+   * `mc`, `bo`). Affichées sur la page et reprises mot pour mot en `FAQPage`.
+   */
+  readonly faq?: readonly TermQuestion[];
+}
+
+export interface TermQuestion {
+  readonly q: string;
+  readonly a: string;
 }
 
 /**

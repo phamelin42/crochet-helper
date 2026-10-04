@@ -54,6 +54,10 @@ interface TermCopy {
   regionUkOnly(term: string, otherTerm: string): string;
   readonly synonymsTitle: string;
   readonly relatedTitle: string;
+  readonly faqTitle: string;
+  readonly furtherTitle: string;
+  /** Guides à proposer : lire un patron dans sa langue, ou dans l'autre. */
+  readonly guides: { readonly reading: string; readonly foreign: string };
   readonly backToReader: string;
   readonly backToGlossary: string;
   /** Guillemets de la langue, posés autour de l'abréviation dans le titre. */
@@ -96,6 +100,12 @@ const COPY: Record<Locale, TermCopy> = {
       `«${NBSP}${term}${NBSP}» n’existe qu’en notation britannique. Un patron américain écrit «${NBSP}${otherTerm}${NBSP}» pour ce point.`,
     synonymsTitle: 'Autres façons de l’écrire',
     relatedTitle: 'À voir aussi',
+    faqTitle: 'Questions fréquentes',
+    furtherTitle: 'Pour aller plus loin',
+    guides: {
+      reading: 'Guide : lire un patron de crochet ou de tricot',
+      foreign: 'Guide : lire un patron anglais en français',
+    },
     backToReader: 'Lire tout un patron pas à pas',
     backToGlossary: 'Toutes les abréviations',
     quotes: [`«${NBSP}`, `${NBSP}»`],
@@ -131,6 +141,12 @@ const COPY: Record<Locale, TermCopy> = {
       `“${term}” only exists in British notation. A US pattern writes “${otherTerm}” for this stitch.`,
     synonymsTitle: 'Other ways to write it',
     relatedTitle: 'See also',
+    faqTitle: 'Frequently asked questions',
+    furtherTitle: 'Go further',
+    guides: {
+      reading: 'Guide: how to read a crochet or knitting pattern',
+      foreign: 'Guide: reading a French pattern in English',
+    },
     backToReader: 'Read a whole pattern step by step',
     backToGlossary: 'All abbreviations',
     quotes: ['“', '”'],
@@ -261,6 +277,16 @@ export function regionNoteOf(
         <h2 class="card-title">{{ c.articleTitles.tip }}</h2>
         <p>{{ a.tip }}</p>
       </section>
+
+      @if (a.faq?.length) {
+        <section class="term-section">
+          <h2 class="card-title">{{ c.faqTitle }}</h2>
+          @for (item of a.faq; track item.q) {
+            <h3>{{ item.q }}</h3>
+            <p>{{ item.a }}</p>
+          }
+        </section>
+      }
     }
 
     @if (regionRef(); as region) {
@@ -319,7 +345,7 @@ export function regionNoteOf(
         <h2 class="card-title">{{ c.synonymsTitle }}</h2>
         <ul class="term-links">
           @for (other of neighbors().variants; track other.slug) {
-            <li>
+            <li class="term-variant">
               <code>{{ other.term }}</code> — {{ c.notation[other.lang] }}
             </li>
           }
@@ -342,6 +368,20 @@ export function regionNoteOf(
             <a [routerLink]="hrefOf(other)"
               ><code>{{ other.term }}</code> — {{ headOf(other[locale]) }}</a
             >
+          </li>
+        }
+      </ul>
+    </section>
+
+    <section class="term-section">
+      <h2 class="card-title">{{ c.furtherTitle }}</h2>
+      <ul class="term-links">
+        <li>
+          <a [routerLink]="i18n.link(guide().route)">{{ guide().label }}</a>
+        </li>
+        @if (isRegional()) {
+          <li>
+            <a [routerLink]="i18n.link('converter')">{{ c.regionConvert }}</a>
           </li>
         }
       </ul>
@@ -393,6 +433,17 @@ export default class GlossaryTermPage {
 
   /** Variante régionale de ce terme, quand elle existe (voir `regionNoteOf`). */
   protected readonly regionRef = computed(() => regionNoteOf(this.entry(), this.locale));
+  /** Terme touché par le décalage US/UK : le convertisseur le concerne. */
+  protected readonly isRegional = computed(() => !!this.entry().region || !!this.regionRef());
+  /**
+   * Le guide utile : une abréviation de l'autre langue (`ms` lue en anglais,
+   * `sc` lue en français) mène au guide de lecture d'un patron étranger.
+   */
+  protected readonly guide = computed(() =>
+    this.entry().lang === this.locale
+      ? { route: 'guideReadingPattern' as const, label: this.c.guides.reading }
+      : { route: 'readForeignPattern' as const, label: this.c.guides.foreign },
+  );
 
   /** Article long, pour les vingt abréviations qui en ont un ; les autres gardent le gabarit. */
   protected readonly article = computed(() => articleOf(this.entry().slug, this.locale));
@@ -454,6 +505,11 @@ export default class GlossaryTermPage {
       description: this.c.description(entry),
       path,
       locale: this.locale,
+      // Une page sans article n'est que le gabarit (définition, rang
+      // d'exemple) : trop mince pour l'index, elle reste suivie pour ses
+      // liens et sort du sitemap. TODO(2026-10-04) : la réindexer en lui
+      // écrivant un article (`data/articles/`), qui lève ce `noIndex` seul.
+      noIndex: !this.article(),
       jsonLd: {
         '@context': 'https://schema.org',
         '@type': 'DefinedTerm',

@@ -1,4 +1,5 @@
 import { DOCUMENT } from '@angular/common';
+import { Meta } from '@angular/platform-browser';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -168,5 +169,29 @@ describe('GlossaryTermPage — une page par concept', () => {
         /\/(slst|rnds|sts|crab-st|mr|magic-loop|cercle-magique)$/,
       );
     }
+  });
+});
+
+describe('GlossaryTermPage — indexation', () => {
+  const robots = () => TestBed.inject(Meta).getTag('name="robots"')?.content;
+
+  it('une page à article est indexée, une page de gabarit ne l’est pas mais reste suivie', () => {
+    render('sc', 'en');
+    expect(robots()).toBe('index, follow, max-image-preview:large');
+
+    TestBed.resetTestingModule();
+    render('flo', 'en');
+    expect(robots()).toBe('noindex, follow');
+  });
+
+  it('affiche la FAQ d’une abréviation ambiguë, et le guide qui convient', () => {
+    const host = render('mc', 'en');
+    expect(headings(host)).toContain('Frequently asked questions');
+    expect(host.textContent).toContain('What does MC mean in an English pattern?');
+    // `mc` est française : lue en anglais, elle mène au guide du patron étranger.
+    const guide = [...host.querySelectorAll<HTMLAnchorElement>('.term-links a')].find((a) =>
+      a.textContent?.startsWith('Guide'),
+    );
+    expect(guide?.getAttribute('href')).toBe('/read-a-french-pattern');
   });
 });

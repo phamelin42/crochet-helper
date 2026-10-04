@@ -19,6 +19,16 @@ export const TR_CH_SLST: TermArticles = {
         'Mixing up the two conventions. A British “tr” worked as an American treble makes the piece far too tall and too loose. If the stitch count is right but the height is wrong, look at the convention first.',
       ],
       tip: 'A treble is tall enough to check with your eyes from far away: the posts stand up in neat lines. If one post is shorter than the others, you probably made only one wrap. Put a marker in the turning chain of each row, and count the rows by these markers.',
+      faq: [
+        {
+          q: 'Does tr mean treble or triple?',
+          a: 'Both names exist for the same American stitch: treble crochet, also called triple crochet, with two yarn overs. The question that matters is the convention: in a British pattern, tr is the stitch with one yarn over, the American double crochet.',
+        },
+        {
+          q: 'How do I know whether my pattern is American or British?',
+          a: 'Look for sc or hdc, which only exist in American notation, or htr and trtr, which only exist in British notation. One of them settles the whole pattern.',
+        },
+      ],
     },
     fr: {
       how: [
@@ -36,6 +46,16 @@ export const TR_CH_SLST: TermArticles = {
         'Confondre les deux conventions. Un « tr » britannique travaillé comme une double bride américaine donne un ouvrage beaucoup trop haut et trop lâche. Si le nombre de mailles est juste mais que la hauteur est fausse, regardez d’abord la convention.',
       ],
       tip: 'Une double bride est assez haute pour se contrôler à l’œil, de loin : les hampes forment des lignes bien droites. Si l’une est plus courte que les autres, vous n’avez sans doute fait qu’un enroulement. Posez un marqueur dans la montée de chaque rang et comptez les rangs grâce à eux.',
+      faq: [
+        {
+          q: 'tr veut-il dire treble ou triple ?',
+          a: 'Les deux noms existent pour la même maille américaine : treble crochet, aussi appelée triple crochet, à deux jetés, la double bride. La vraie question est la convention : dans un patron britannique, tr est la maille à un seul jeté, la bride.',
+        },
+        {
+          q: 'Comment savoir si mon patron est américain ou britannique ?',
+          a: 'Cherchez sc ou hdc, qui n’existent qu’en notation américaine, ou htr et trtr, qui n’existent qu’en notation britannique. L’un d’eux tranche pour tout le patron.',
+        },
+      ],
     },
   },
   ch: {

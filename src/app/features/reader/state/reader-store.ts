@@ -544,7 +544,11 @@ export class ReaderStore {
   }
 
   /** Grille fabriquée depuis une image : son texte s'écrit dans la langue de la page. */
-  async openFromGrid(grid: ColorGrid, name: string): Promise<boolean> {
+  async openFromGrid(
+    grid: ColorGrid,
+    name: string,
+    origine: 'lecteur' | 'page' = 'lecteur',
+  ): Promise<boolean> {
     const text = gridToText(grid, this.i18n.locale());
     const saved = await this.openGrid(grid, text, name.trim().slice(0, 60) || undefined);
     if (saved) {
@@ -552,6 +556,7 @@ export class ReaderStore {
         width: Math.round(grid.width / 10) * 10,
         colors: grid.palette.length,
         worked: grid.worked,
+        origine,
       });
     }
     return saved;

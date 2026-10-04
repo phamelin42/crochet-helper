@@ -101,7 +101,7 @@ export type AnalyticsEvent =
   | 'stitch_marked'
   /** Maille touchée dans la grille de couleurs, une fois par rang et par session. */
   | 'grid_stitch_marked'
-  /** Grille fabriquée depuis une image (propriétés `width` à la dizaine, `colors`, `worked`), jamais l'image. */
+  /** Grille fabriquée depuis une image (propriétés `width` à la dizaine, `colors`, `worked`, `origine` : lecteur ou page), jamais l'image. */
   | 'grid_created';
 
 interface Umami {

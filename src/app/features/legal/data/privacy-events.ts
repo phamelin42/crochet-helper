@@ -139,8 +139,8 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     en: 'a stitch is tapped in the colour grid (once per row, never which one)',
   },
   grid_created: {
-    fr: 'une grille est fabriquée depuis une image (largeur à la dizaine, nombre de couleurs, à plat ou en rond, jamais l’image ni ses couleurs)',
-    en: 'a grid is made from an image (width to the nearest ten, number of colours, flat or in the round, never the image or its colours)',
+    fr: 'une grille est fabriquée depuis une image (largeur à la dizaine, nombre de couleurs, à plat ou en rond, depuis le lecteur ou la page dédiée, jamais l’image ni ses couleurs)',
+    en: 'a grid is made from an image (width to the nearest ten, number of colours, flat or in the round, from the reader or the dedicated page, never the image or its colours)',
   },
   chart_viewed: { fr: 'un diagramme est affiché', en: 'a chart is shown' },
   chart_transcribed: {

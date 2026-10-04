@@ -92,6 +92,7 @@ describe('ReaderStore — openFromGrid', () => {
       width: 40,
       colors: 3,
       worked: 'round',
+      origine: 'lecteur',
     });
   });
 });

@@ -38,6 +38,7 @@ interface GuideCopy {
   readonly seeAlso: string;
   readonly linkPattern: string;
   readonly linkCraft: string;
+  readonly linkImageGrid: string;
   readonly backToReader: string;
   readonly backToGlossary: string;
 }
@@ -72,6 +73,7 @@ const COPY: Record<Locale, GuideCopy> = {
     seeAlso: 'À lire aussi',
     linkPattern: 'Comment lire un patron de crochet',
     linkCraft: 'Crochet ou tricot : par lequel commencer',
+    linkImageGrid: 'Transformer une image en grille de crochet',
     backToReader: 'Lire un patron pas à pas',
     backToGlossary: 'Toutes les abréviations',
   },
@@ -110,6 +112,7 @@ const COPY: Record<Locale, GuideCopy> = {
     seeAlso: 'Read next',
     linkPattern: 'How to read a crochet pattern',
     linkCraft: 'Crochet or knitting: which to start with',
+    linkImageGrid: 'Turn an image into a crochet chart',
     backToReader: 'Read a pattern step by step',
     backToGlossary: 'All abbreviations',
   },
@@ -193,6 +196,9 @@ const COPY: Record<Locale, GuideCopy> = {
         <li>
           <a [routerLink]="hrefOf('guideCrochetOrKnitting')">{{ c.linkCraft }}</a>
         </li>
+        <li>
+          <a [routerLink]="hrefOf('imageGrid')">{{ c.linkImageGrid }}</a>
+        </li>
       </ul>
 
       <div class="navrow">
@@ -214,7 +220,7 @@ export default class ReadingChartPage {
   protected readonly urlOf = symbolUrl;
   protected nameOf = (symbol: ChartSymbol) => symbolName(symbol, this.locale);
 
-  protected hrefOf(route: 'guideReadingPattern' | 'guideCrochetOrKnitting'): string {
+  protected hrefOf(route: 'guideReadingPattern' | 'guideCrochetOrKnitting' | 'imageGrid'): string {
     return `${localePrefix(this.locale)}${ROUTE_PATHS[route][this.locale]}`;
   }
 

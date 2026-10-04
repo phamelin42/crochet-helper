@@ -117,6 +117,8 @@ export class ChartIntake {
   readonly opening = signal<ChartOpening | null>(null);
   /** Image choisie pour devenir une grille, en attente des réglages ; `null` hors de ce moment. */
   readonly gridFile = signal<File | null>(null);
+  /** D'où vient l'image de la grille : le lecteur, ou la page dédiée (fiche 49). */
+  private gridOrigin: 'lecteur' | 'page' = 'lecteur';
   /** Compte les diagrammes ouverts comme patrons : le panneau d'import se replie à chaque fois. */
   readonly opened = signal(0);
   readonly busy = signal(false);
@@ -196,8 +198,9 @@ export class ChartIntake {
    * 10 Mo), refusées avant tout décodage. L'image est lue par le dialogue, qui
    * n'existe qu'une fois ce fichier accepté.
    */
-  chooseGridImage(file: File): void {
+  chooseGridImage(file: File, origin: 'lecteur' | 'page' = 'lecteur'): void {
     this.error.set(null);
+    this.gridOrigin = origin;
     if (!IMAGE_TYPES.has(file.type)) return this.fail('format');
     if (file.size > MAX_CHART_FILE_BYTES) return this.fail('lourd');
     this.gridFile.set(file);
@@ -216,7 +219,8 @@ export class ChartIntake {
   /** La grille choisie devient un nouveau projet ; l'image d'origine n'est pas gardée. */
   async createGrid(grid: ColorGrid, name: string): Promise<void> {
     this.gridFile.set(null);
-    if (await this.store.openFromGrid(grid, name)) this.opened.update((n) => n + 1);
+    if (await this.store.openFromGrid(grid, name, this.gridOrigin))
+      this.opened.update((n) => n + 1);
     else this.fail('non-enregistre');
   }
 

@@ -357,3 +357,16 @@
 .foreign-unknown {
   text-decoration: underline dashed var(--color-momiji);
 }
+
+/* Page « image en grille » : trois étapes en cartes, une colonne sur mobile. */
+.step-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-4);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.step-cards fil-icon {
+  color: var(--color-sakura-ink);
+}

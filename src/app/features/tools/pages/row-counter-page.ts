@@ -53,6 +53,7 @@ interface RowCounterCopy {
   readonly tryReader: string;
   readonly toGlossary: string;
   readonly toConverter: string;
+  readonly toImageGrid: string;
 }
 
 const COPY: Record<Locale, RowCounterCopy> = {
@@ -90,6 +91,7 @@ const COPY: Record<Locale, RowCounterCopy> = {
     tryReader: 'Essayer le lecteur',
     toGlossary: 'Le glossaire des abréviations',
     toConverter: 'Le convertisseur US ↔ UK',
+    toImageGrid: 'Une image en grille de crochet',
   },
   en: {
     seoTitle: `Free online row counter for crochet and knitting — ${SITE_NAME}`,
@@ -125,6 +127,7 @@ const COPY: Record<Locale, RowCounterCopy> = {
     tryReader: 'Try the reader',
     toGlossary: 'The abbreviation glossary',
     toConverter: 'The US ↔ UK converter',
+    toImageGrid: 'An image as a crochet chart',
   },
 };
 
@@ -248,6 +251,7 @@ const COPY: Record<Locale, RowCounterCopy> = {
     <div class="navrow">
       <a filButton="ghost" [routerLink]="i18n.link('glossary')">{{ c.toGlossary }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('converter')">{{ c.toConverter }}</a>
+      <a filButton="ghost" [routerLink]="i18n.link('imageGrid')">{{ c.toImageGrid }}</a>
     </div>
 
     <fil-dialog [(open)]="resetDialogOpen" [label]="c.resetConfirmTitle">

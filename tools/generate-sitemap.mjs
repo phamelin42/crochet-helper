@@ -43,6 +43,7 @@ const SOURCE_PATHS = {
   guideReadingPattern: ['src/app/features/guides/pages/reading-pattern-page.ts'],
   guideReadingChart: ['src/app/features/guides/pages/reading-chart-page.ts'],
   guideCrochetOrKnitting: ['src/app/features/guides/pages/crochet-or-knitting-page.ts'],
+  imageGrid: ['src/app/features/tools/pages/image-grid-page.ts'],
   forDesigners: ['src/app/features/designers'],
 };
 const GLOSSARY_TERM_SOURCES = [

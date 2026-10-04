@@ -60,3 +60,26 @@ export function seoProblems(loc, seo, alternatesOf) {
   if (seo.mainWords < MAIN_WORDS_MIN) problems.push(`${seo.mainWords} mots dans <main>`);
   return problems;
 }
+
+/** Chemins internes des liens `<a href>` d'une page, sans ancre ni paramètre. */
+export function linksFrom(html) {
+  return [...html.matchAll(/<a\s[^>]*href="(\/[^"#?]*)/g)].map((m) => m[1].replace(/(.)\/$/, '$1'));
+}
+
+/**
+ * Nombre de clics depuis `start` pour chaque chemin atteint, en suivant les
+ * liens de `linksOf(chemin)` (`null` : pas une page).
+ */
+export function clickDepths(start, linksOf) {
+  const depth = new Map([[start, 0]]);
+  const queue = [start];
+  while (queue.length) {
+    const path = queue.shift();
+    for (const next of linksOf(path) ?? []) {
+      if (depth.has(next)) continue;
+      depth.set(next, depth.get(path) + 1);
+      queue.push(next);
+    }
+  }
+  return depth;
+}

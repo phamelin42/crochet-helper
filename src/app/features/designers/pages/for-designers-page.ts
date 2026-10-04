@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
-import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
+import { ROUTE_PATHS, RouteName } from '../../../core/i18n/route-paths';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
 import { Button } from '../../../shared/ui/button/button';
@@ -92,6 +92,29 @@ const COPY: Record<Locale, DesignersCopy> = {
  * Kit pour les créatrices de patrons (fiche 23) : le canal le mieux noté du
  * plan d'acquisition n'avait ni page, ni badge, ni visuel à offrir.
  */
+/** Pour les créatrices : préparer un patron, et ce que lisent leurs clientes. */
+const FURTHER: Record<
+  Locale,
+  { title: string; links: readonly { route: RouteName; label: string }[] }
+> = {
+  fr: {
+    title: 'Pour aller plus loin',
+    links: [
+      { route: 'format', label: 'Bien formater son patron pour le lecteur' },
+      { route: 'glossary', label: 'Les abréviations de crochet et de tricot' },
+      { route: 'guideReadingPattern', label: 'Comment vos clientes lisent un patron' },
+    ],
+  },
+  en: {
+    title: 'Go further',
+    links: [
+      { route: 'format', label: 'Format your pattern for the reader' },
+      { route: 'glossary', label: 'Crochet and knitting abbreviations' },
+      { route: 'guideReadingPattern', label: 'How your customers read a pattern' },
+    ],
+  },
+};
+
 @Component({
   selector: 'fil-for-designers-page',
   imports: [Button, RouterLink],
@@ -134,6 +157,15 @@ const COPY: Record<Locale, DesignersCopy> = {
 
       <h2>{{ c.h2Limit }}</h2>
       <p>{{ c.bodyLimit }}</p>
+
+      <h2>{{ further.title }}</h2>
+      <ul class="term-links">
+        @for (link of further.links; track link.route) {
+          <li>
+            <a [routerLink]="i18n.link(link.route)">{{ link.label }}</a>
+          </li>
+        }
+      </ul>
     </article>
   `,
 })
@@ -145,6 +177,7 @@ export default class ForDesignersPage {
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
+  protected readonly further = FURTHER[this.locale];
   protected readonly codeCopied = signal(false);
 
   protected readonly badgeSrc =

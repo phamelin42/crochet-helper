@@ -1,7 +1,7 @@
 // Lancé par `npm run test:tools`.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { seoOf, seoProblems } from './seo.mjs';
+import { clickDepths, linksFrom, seoOf, seoProblems } from './seo.mjs';
 
 const LOC = 'https://x.com/glossary';
 const FR = 'https://x.com/fr/glossaire';
@@ -40,4 +40,22 @@ test('deux h1, titre trop long, hreflang sans retour', () => {
 test('contenu principal absent du HTML servi', () => {
   const seo = seoOf(html().replace(words, ''));
   assert.match(seoProblems(LOC, seo, back).at(-1), /mots dans <main>/);
+});
+
+test('linksFrom et clickDepths : profondeur en clics, pages orphelines absentes', () => {
+  assert.deepEqual(
+    linksFrom(
+      '<a href="/glossary/">x</a><a class="a" href="/fr#top">y</a><a href="https://e.com">z</a>',
+    ),
+    ['/glossary', '/fr'],
+  );
+  const site = {
+    '/': ['/glossary'],
+    '/glossary': ['/glossary/sc', '/'],
+    '/glossary/sc': [],
+    '/orpheline': ['/'],
+  };
+  const depths = clickDepths('/', (path) => site[path] ?? null);
+  assert.equal(depths.get('/glossary/sc'), 2);
+  assert.equal(depths.has('/orpheline'), false);
 });

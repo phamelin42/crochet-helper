@@ -43,9 +43,10 @@ interface GuideLink {
 }
 
 /**
- * Maille l'accueil vers les trois guides éditoriaux (fiche 04) : c'est la
- * seule page à fort trafic qui peut leur faire gagner du poids de lien
- * interne.
+ * Maille l'accueil vers les guides éditoriaux (fiche 04), le glossaire, le
+ * convertisseur et les outils : c'est la seule page à fort trafic qui peut
+ * leur faire gagner du poids de lien interne, et toute page importante doit
+ * s'y trouver à un clic.
  */
 const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[] }> = {
   fr: {
@@ -91,6 +92,16 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         title: 'Lire un patron anglais',
         lead: 'Collez un rang anglais : chaque abréviation s’écrit en français.',
       },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.glossary.fr}`,
+        title: 'Glossaire des abréviations',
+        lead: 'ms, ml, aug, sc, k2tog… chaque abréviation de crochet et de tricot, expliquée.',
+      },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.converter.fr}`,
+        title: 'Convertisseur US ↔ UK',
+        lead: 'Un patron américain ou britannique réécrit dans l’autre notation, maille par maille.',
+      },
     ],
   },
   en: {
@@ -135,6 +146,16 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.readForeignPattern.en}`,
         title: 'Reading a French pattern',
         lead: 'Paste a French row: every abbreviation is written out in English.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.glossary.en}`,
+        title: 'Abbreviation glossary',
+        lead: 'sc, dc, inc, k2tog, ms… every crochet and knitting abbreviation, explained.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.converter.en}`,
+        title: 'US ↔ UK converter',
+        lead: 'An American or British pattern rewritten in the other notation, stitch by stitch.',
       },
     ],
   },

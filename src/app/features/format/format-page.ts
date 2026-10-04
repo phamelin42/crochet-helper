@@ -1,8 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale } from '../../core/i18n/locale';
-import { ROUTE_PATHS } from '../../core/i18n/route-paths';
+import { ROUTE_PATHS, RouteName } from '../../core/i18n/route-paths';
 import { SeoService } from '../../core/seo/seo.service';
 import { Button } from '../../shared/ui/button/button';
 import { FORMAT_PROMPT } from './format-prompt';
@@ -18,9 +18,32 @@ import { FORMAT_PROMPT } from './format-prompt';
  * le quota — et il fonctionne avec un compte gratuit, ce qu'aucun montage par
  * API ne permettait.
  */
+/** Après la mise en forme : le lecteur, le glossaire, et le kit des créatrices. */
+const FURTHER: Record<
+  Locale,
+  { title: string; links: readonly { route: RouteName; label: string }[] }
+> = {
+  fr: {
+    title: 'Pour aller plus loin',
+    links: [
+      { route: 'reader', label: 'Ouvrir le patron dans le lecteur' },
+      { route: 'glossary', label: 'Les abréviations de crochet et de tricot' },
+      { route: 'forDesigners', label: 'Vous créez des patrons ? Le kit des créatrices' },
+    ],
+  },
+  en: {
+    title: 'Go further',
+    links: [
+      { route: 'reader', label: 'Open the pattern in the reader' },
+      { route: 'glossary', label: 'Crochet and knitting abbreviations' },
+      { route: 'forDesigners', label: 'Do you design patterns? The designer kit' },
+    ],
+  },
+};
+
 @Component({
   selector: 'fil-format-page',
-  imports: [Button],
+  imports: [Button, RouterLink],
   template: `
     <div class="wrap">
       <section class="tuto">
@@ -58,17 +81,27 @@ import { FORMAT_PROMPT } from './format-prompt';
 
         <h2>{{ c.check }}</h2>
         <p>{{ c.checkBody }}</p>
+
+        <h2>{{ further.title }}</h2>
+        <ul class="term-links">
+          @for (link of further.links; track link.route) {
+            <li>
+              <a [routerLink]="i18n.link(link.route)">{{ link.label }}</a>
+            </li>
+          }
+        </ul>
       </section>
     </div>
   `,
 })
 export default class FormatPage {
-  private readonly i18n = inject(I18nService);
+  protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
+  protected readonly further = FURTHER[this.locale];
   protected readonly prompt = FORMAT_PROMPT[this.locale];
   protected readonly copied = signal(false);
 

@@ -41,6 +41,11 @@ const COPY: Record<Locale, Record<string, string>> = {
     letters: 'Aller à la lettre',
     empty: 'Aucun terme ne correspond.',
     clear: 'Effacer les filtres',
+    further: 'Pour aller plus loin',
+    guideReading: 'Comment lire un patron de crochet ou de tricot',
+    guideForeign: 'Lire un patron anglais en français',
+    converter: 'Convertir un patron US ↔ UK',
+    reader: 'Lire tout un patron pas à pas',
   },
   en: {
     title: `Crochet and knitting abbreviations — ${SITE_NAME}`,
@@ -65,6 +70,11 @@ const COPY: Record<Locale, Record<string, string>> = {
     letters: 'Jump to letter',
     empty: 'No term matches.',
     clear: 'Clear filters',
+    further: 'Go further',
+    guideReading: 'How to read a crochet or knitting pattern',
+    guideForeign: 'Reading a French pattern in English',
+    converter: 'Convert a pattern US ↔ UK',
+    reader: 'Read a whole pattern step by step',
   },
 };
 
@@ -177,10 +187,28 @@ const COPY: Record<Locale, Record<string, string>> = {
         <button filButton="ghost" type="button" (click)="clearFilters()">{{ c['clear'] }}</button>
       </p>
     }
+
+    <section class="term-section">
+      <h2 class="card-title">{{ c['further'] }}</h2>
+      <ul class="term-links">
+        <li>
+          <a [routerLink]="i18n.link('guideReadingPattern')">{{ c['guideReading'] }}</a>
+        </li>
+        <li>
+          <a [routerLink]="i18n.link('readForeignPattern')">{{ c['guideForeign'] }}</a>
+        </li>
+        <li>
+          <a [routerLink]="i18n.link('converter')">{{ c['converter'] }}</a>
+        </li>
+        <li>
+          <a [routerLink]="i18n.link('reader')">{{ c['reader'] }}</a>
+        </li>
+      </ul>
+    </section>
   `,
 })
 export default class GlossaryPage {
-  private readonly i18n = inject(I18nService);
+  protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly origin = inject(SITE_ORIGIN);
   private readonly route = inject(ActivatedRoute);

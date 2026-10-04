@@ -6,7 +6,8 @@
  */
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { seoOf, seoProblems } from './seo.mjs';
+import { existsSync, readFileSync } from 'node:fs';
+import { clickDepths, linksFrom, seoOf, seoProblems } from './seo.mjs';
 
 const ROOT = 'dist/fil-patterns/browser';
 const sitemap = await readFile(join(ROOT, 'sitemap.xml'), 'utf8');
@@ -28,11 +29,29 @@ for (const [loc, seo] of pages) {
   if (seo.title.length < 50) short.push(`${loc} (${seo.title.length})`);
 }
 
+// Maillage : chaque page du sitemap à deux clics au plus de l'accueil de sa
+// langue (`/` ou `/fr`), en suivant les liens du HTML pré-rendu. Une page
+// qu'on n'atteint pas est orpheline.
+const MAX_CLICKS = 2;
+const linksOfPath = (path) => {
+  const file = join(ROOT, path, 'index.html');
+  return existsSync(file) ? linksFrom(readFileSync(file, 'utf8')) : null;
+};
+const depths = { en: clickDepths('/', linksOfPath), fr: clickDepths('/fr', linksOfPath) };
+for (const loc of locs) {
+  const path = loc.slice(origin.length) || '/';
+  const lang = path === '/fr' || path.startsWith('/fr/') ? 'fr' : 'en';
+  const depth = depths[lang].get(path);
+  if (depth === undefined) errors.push(`${loc} : orpheline, aucun lien depuis l'accueil`);
+  else if (depth > MAX_CLICKS)
+    errors.push(`${loc} : à ${depth} clics de l'accueil (> ${MAX_CLICKS})`);
+}
+
 if (errors.length) {
   console.error(`\nBalises SEO à corriger :\n${errors.join('\n')}\n`);
   process.exit(1);
 }
 console.log(
-  `SEO : ${pages.size} pages, un h1, titre ≤ 60, description 110-160, canonique et hreflang réciproques.` +
+  `SEO : ${pages.size} pages, un h1, titre ≤ 60, description 110-160, canonique et hreflang réciproques, toutes à ${MAX_CLICKS} clics au plus de l'accueil.` +
     (short.length ? ` Titres de moins de 50 caractères : ${short.length}.` : ''),
 );

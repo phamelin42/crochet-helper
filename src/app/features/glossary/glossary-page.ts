@@ -150,7 +150,9 @@ const COPY: Record<Locale, Record<string, string>> = {
                 </th>
               </tr>
               @for (entry of group.entries; track entry.term) {
-                <tr>
+                <!-- Ancre par terme (#blo) : un résultat de recherche ou la
+                     page du terme renvoie droit sur la ligne. -->
+                <tr class="glossary-row" [id]="entry.slug">
                   <th scope="row">
                     <a [routerLink]="hrefOf(entry)"
                       ><code>{{ entry.term }}</code></a

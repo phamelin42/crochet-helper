@@ -51,3 +51,19 @@ for (const page of PAGES) {
     expect(html).toContain(`<code>${page.present}</code>`);
   });
 }
+
+/**
+ * La requête type des visiteurs : « blo crochet traduction ». Le lien du
+ * résultat (ou de la page du terme) porte `#blo` : la page s'ouvre sur la
+ * ligne, pas en haut d'une liste de cent termes.
+ */
+for (const path of ['/fr/glossaire#blo', '/glossary#blo']) {
+  test(`${path} — arrive sur la ligne du terme`, async ({ page: p }) => {
+    await p.setViewportSize({ width: 820, height: 1180 });
+    await p.goto(path);
+    await p.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    const row = p.locator('tr#blo');
+    await expect(row).toBeInViewport();
+    await expect(row.locator('code')).toHaveText('blo');
+  });
+}

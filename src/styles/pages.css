@@ -247,6 +247,13 @@
   font-size: var(--text-base);
   background: var(--color-overlay);
 }
+.glossary-row {
+  scroll-margin-top: var(--space-10);
+}
+/* Le terme visé par l'ancre (#blo) se repère d'un coup d'œil. */
+.glossary-row:target > * {
+  background: var(--color-yamabuki-pale);
+}
 .glossary-list .tag {
   margin-left: var(--space-2);
 }

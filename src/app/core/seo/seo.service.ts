@@ -91,10 +91,14 @@ export class SeoService {
     );
   }
 
-  /** URL absolue d'une page dans une langue donnée. */
+  /**
+   * URL absolue d'une page dans une langue donnée, sous une seule forme : la
+   * racine garde sa barre (`https://patternreader.com/`, comme le `<loc>` du
+   * sitemap), aucune autre page n'en prend (`/fr`, `/glossary`).
+   */
   private absolute(locale: Locale, path: LocalizedPath): string {
     const segment = path[locale];
-    return `${this.origin}${localePrefix(locale)}${segment === '/' ? '' : segment}` || this.origin;
+    return this.origin + (localePrefix(locale) + (segment === '/' ? '' : segment) || '/');
   }
 
   private setLink(rel: string, href: string, hreflang?: string): void {

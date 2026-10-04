@@ -16,7 +16,14 @@
  */
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
-import { familiesFrom, isShallowRepository, lastmodFor, pairFor, sourcesFor } from './sitemap.mjs';
+import {
+  familiesFrom,
+  isShallowRepository,
+  lastmodFor,
+  linkProblems,
+  linksOf,
+  sourcesFor,
+} from './sitemap.mjs';
 
 const ORIGIN = process.env['SITE_ORIGIN'] ?? 'https://patternreader.com';
 const ROOT = 'dist/fil-patterns/browser';
@@ -65,15 +72,26 @@ async function findPages(dir) {
   return pages;
 }
 
-function alternatesFor(route) {
-  const pair = pairFor(FAMILIES, route);
-  if (!pair) return '';
-  const [en, fr] = pair;
-  return [
-    `    <xhtml:link rel="alternate" hreflang="en" href="${ORIGIN}${en === '/' ? '' : en}"/>`,
-    `    <xhtml:link rel="alternate" hreflang="fr" href="${ORIGIN}${fr}"/>`,
-    `    <xhtml:link rel="alternate" hreflang="x-default" href="${ORIGIN}${en === '/' ? '' : en}"/>`,
-  ].join('\n');
+/** Langue d'une route : tout ce qui vit sous `/fr` est français. */
+const localeOf = (route) => (route === '/fr' || route.startsWith('/fr/') ? 'fr' : 'en');
+const locOf = (route) => `${ORIGIN}${route}`;
+
+/**
+ * Les hreflang d'une page, recopiés de son `<head>` : une seule source pour la
+ * page et le sitemap. Une page dont la canonique ou le hreflang qui la désigne
+ * diffèrent de son `<loc>` fait échouer le build plutôt que d'être annoncée
+ * sous deux formes.
+ */
+const incoherent = [];
+async function alternatesFor(route) {
+  const html = await readFile(join(ROOT, route, 'index.html'), 'utf8');
+  const links = linksOf(html);
+  for (const problem of linkProblems(locOf(route), localeOf(route), links)) {
+    incoherent.push(`${route} : ${problem}`);
+  }
+  return links.alternates
+    .map((a) => `    <xhtml:link rel="alternate" hreflang="${a.hreflang}" href="${a.href}"/>`)
+    .join('\n');
 }
 
 /**
@@ -92,16 +110,22 @@ for (const route of allRoutes) if (await isIndexable(route)) routes.push(route);
 const shallow = isShallowRepository();
 let dated = 0;
 
-const body = routes
-  .map((route) => {
-    const alternates = alternatesFor(route);
+const entries = [];
+for (const route of routes) entries.push([route, await alternatesFor(route)]);
+if (incoherent.length) {
+  console.error(`\nURL incohérentes entre la page et le sitemap :\n${incoherent.join('\n')}\n`);
+  process.exit(1);
+}
+
+const body = entries
+  .map(([route, alternates]) => {
     const lastmod = shallow
       ? null
       : lastmodFor(sourcesFor(FAMILIES, SOURCE_PATHS, GLOSSARY_TERM_SOURCES, route));
     if (lastmod) dated++;
     return [
       '  <url>',
-      `    <loc>${ORIGIN}${route === '/' ? '/' : route}</loc>`,
+      `    <loc>${locOf(route)}</loc>`,
       lastmod ? `    <lastmod>${lastmod}</lastmod>` : '',
       `    <priority>${route === '/' ? '1.0' : '0.8'}</priority>`,
       alternates,

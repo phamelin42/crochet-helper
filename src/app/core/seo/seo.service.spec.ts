@@ -73,3 +73,33 @@ describe('SeoService — image de partage', () => {
     expect(jsonLd(doc)['image']).toBeUndefined();
   });
 });
+
+describe('SeoService — une seule forme d’URL par page', () => {
+  let seo: SeoService;
+  let doc: Document;
+
+  beforeEach(() => {
+    seo = TestBed.inject(SeoService);
+    doc = TestBed.inject(DOCUMENT);
+  });
+
+  const link = (selector: string) => doc.head.querySelector(selector)?.getAttribute('href');
+
+  it('la racine garde sa barre finale, partout où elle est citée', () => {
+    seo.apply({ title: 'T', description: 'D', path: { fr: '/', en: '/' }, locale: 'en' });
+    expect(link('link[rel="canonical"]')).toBe('https://patternreader.com/');
+    expect(link('link[rel="alternate"][hreflang="en"]')).toBe('https://patternreader.com/');
+    expect(link('link[rel="alternate"][hreflang="x-default"]')).toBe('https://patternreader.com/');
+    expect(link('link[rel="alternate"][hreflang="fr"]')).toBe('https://patternreader.com/fr');
+    expect(meta(doc, 'og:url')).toBe('https://patternreader.com/');
+  });
+
+  it('aucune autre page ne prend de barre finale', () => {
+    seo.apply({ title: 'T', description: 'D', path: { fr: '/', en: '/' }, locale: 'fr' });
+    expect(link('link[rel="canonical"]')).toBe('https://patternreader.com/fr');
+
+    seo.apply({ title: 'T', description: 'D', path: PATH, locale: 'fr' });
+    expect(link('link[rel="canonical"]')).toBe('https://patternreader.com/fr/glossaire');
+    expect(link('link[rel="alternate"][hreflang="en"]')).toBe('https://patternreader.com/glossary');
+  });
+});

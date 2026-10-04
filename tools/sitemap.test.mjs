@@ -1,7 +1,14 @@
 // Lancé par `npm run test:tools`.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { familiesFrom, isShallowRepository, lastmodFor, pairFor, sourcesFor } from './sitemap.mjs';
+import {
+  familiesFrom,
+  isShallowRepository,
+  lastmodFor,
+  linkProblems,
+  linksOf,
+  sourcesFor,
+} from './sitemap.mjs';
 
 const ROUTE_PATHS = {
   reader: { fr: '/', en: '/' },
@@ -15,13 +22,6 @@ const SOURCE_PATHS = {
   format: ['src/app/features/format'],
 };
 const GLOSSARY_TERM_SOURCES = ['src/app/features/reader/data/glossary.ts'];
-
-test('pairFor : une sous-page hérite du suffixe de sa famille', () => {
-  assert.deepEqual(pairFor(FAMILIES, '/glossary/sc'), ['/glossary/sc', '/fr/glossaire/sc']);
-  assert.deepEqual(pairFor(FAMILIES, '/fr/glossaire/sc'), ['/glossary/sc', '/fr/glossaire/sc']);
-  assert.deepEqual(pairFor(FAMILIES, '/'), ['/', '/fr']);
-  assert.equal(pairFor(FAMILIES, '/design-system'), null);
-});
 
 test('sourcesFor : une page-abréviation vient du moteur partagé, pas de la page de liste', () => {
   assert.deepEqual(
@@ -75,4 +75,42 @@ test('lastmodFor : jamais une date par défaut — null si git échoue, l’hist
     lastmodFor(null, () => '2026-09-12\n'),
     null,
   );
+});
+
+const HEAD = `<html><head><title>T</title>
+<link rel="canonical" href="https://patternreader.com/">
+<link rel="alternate" hreflang="en" href="https://patternreader.com/">
+<link rel="alternate" hreflang="fr" href="https://patternreader.com/fr">
+<link rel="alternate" hreflang="x-default" href="https://patternreader.com/">
+</head><body><link rel="alternate" hreflang="de" href="/hors-head"></body></html>`;
+
+test('linksOf : lit la canonique et les hreflang du seul <head>', () => {
+  const links = linksOf(HEAD);
+  assert.equal(links.canonical, 'https://patternreader.com/');
+  assert.deepEqual(
+    links.alternates.map((a) => a.hreflang),
+    ['en', 'fr', 'x-default'],
+  );
+});
+
+test('linkProblems : une page cohérente ne signale rien', () => {
+  assert.deepEqual(linkProblems('https://patternreader.com/', 'en', linksOf(HEAD)), []);
+});
+
+test('linkProblems : la racine sans barre dans la page diffère du <loc> avec barre', () => {
+  const html = HEAD.replaceAll(
+    'href="https://patternreader.com/"',
+    'href="https://patternreader.com"',
+  );
+  const problems = linkProblems('https://patternreader.com/', 'en', linksOf(html));
+  assert.equal(problems.length, 2);
+  assert.match(problems[0], /canonique/);
+  assert.match(problems[1], /hreflang en/);
+});
+
+test('linkProblems : x-default absent', () => {
+  const html = HEAD.replace(/<link rel="alternate" hreflang="x-default"[^>]*>/, '');
+  assert.deepEqual(linkProblems('https://patternreader.com/', 'en', linksOf(html)), [
+    'x-default absent',
+  ]);
 });

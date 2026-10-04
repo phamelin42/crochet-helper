@@ -3,6 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/fil-patterns/browser",
   "cleanUrls": true,
+  "trailingSlash": false,
   "headers": [
     {
       "source": "/(.*)",

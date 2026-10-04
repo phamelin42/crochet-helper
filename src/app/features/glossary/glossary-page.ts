@@ -3,7 +3,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../core/i18n/locale';
 import { SeoService } from '../../core/seo/seo.service';
+import { CRUMBS, breadcrumbList, glossaryCrumb, homeCrumb } from '../../core/seo/breadcrumbs';
 import { SITE_NAME, SITE_ORIGIN } from '../../core/seo/site';
+import { Breadcrumb } from '../../shared/ui/breadcrumb/breadcrumb';
 import { ROUTE_PATHS } from '../../core/i18n/route-paths';
 import { GLOSSARY, GlossaryEntry, pageEntryOf } from '../reader/data/glossary';
 import { AnalyticsService } from '../../core/analytics/analytics.service';
@@ -73,10 +75,11 @@ const COPY: Record<Locale, Record<string, string>> = {
  */
 @Component({
   selector: 'fil-glossary-page',
-  imports: [Button, InputField, RouterLink, Segmented],
+  imports: [Breadcrumb, Button, InputField, RouterLink, Segmented],
   host: { class: 'wrap' },
   template: `
     <section class="hero">
+      <fil-breadcrumb [items]="crumbs" [label]="crumbLabel" />
       <h1>{{ c['h1'] }}</h1>
       <p>{{ c['lead'] }}</p>
     </section>
@@ -241,6 +244,9 @@ export default class GlossaryPage {
     return `${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}/${slug}`;
   }
 
+  protected readonly crumbLabel = CRUMBS[this.locale].label;
+  protected readonly crumbs = [homeCrumb(this.locale), glossaryCrumb(this.locale)];
+
   constructor() {
     this.i18n.setLocale(this.locale);
     this.seo.apply({
@@ -250,16 +256,21 @@ export default class GlossaryPage {
       locale: this.locale,
       jsonLd: {
         '@context': 'https://schema.org',
-        '@type': 'DefinedTermSet',
-        '@id': `${this.origin}${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}`,
-        name: this.c['h1'],
-        inLanguage: this.locale,
-        hasDefinedTerm: GLOSSARY.map((entry) => ({
-          '@type': 'DefinedTerm',
-          name: entry.term,
-          description: this.locale === 'fr' ? entry.fr : entry.en,
-          url: `${this.origin}${this.hrefOf(entry)}`,
-        })),
+        '@graph': [
+          {
+            '@type': 'DefinedTermSet',
+            '@id': `${this.origin}${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}`,
+            name: this.c['h1'],
+            inLanguage: this.locale,
+            hasDefinedTerm: GLOSSARY.map((entry) => ({
+              '@type': 'DefinedTerm',
+              name: entry.term,
+              description: this.locale === 'fr' ? entry.fr : entry.en,
+              url: `${this.origin}${this.hrefOf(entry)}`,
+            })),
+          },
+          breadcrumbList(this.origin, this.crumbs),
+        ],
       },
     });
   }

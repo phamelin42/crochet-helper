@@ -5,9 +5,12 @@ import { AnalyticsService, roundToHundred } from '../../../core/analytics/analyt
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
+import { CRUMBS, breadcrumbList, homeCrumb } from '../../../core/seo/breadcrumbs';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
+import { Breadcrumb } from '../../../shared/ui/breadcrumb/breadcrumb';
 import { Button } from '../../../shared/ui/button/button';
+import { GUIDE_DATES, guideDatesLine } from '../data/guide-dates';
 import { InputField } from '../../../shared/ui/field/input';
 // `data/` est du domaine partagé : import autorisé d'une autre fonctionnalité.
 import { abbreviationTable } from '../../reader/data/abbreviation-table';
@@ -191,11 +194,13 @@ const COPY: Record<Locale, ForeignCopy> = {
  */
 @Component({
   selector: 'fil-foreign-pattern-page',
-  imports: [Button, InputField, RouterLink],
+  imports: [Breadcrumb, Button, InputField, RouterLink],
   host: { class: 'wrap' },
   template: `
     <section class="hero">
+      <fil-breadcrumb [items]="crumbs" [label]="crumbLabel" />
       <h1>{{ c.h1 }}</h1>
+      <p class="guide-dates">{{ dates }}</p>
       <p>{{ c.lead }}</p>
     </section>
 
@@ -303,6 +308,15 @@ export default class ForeignPatternPage {
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
+  protected readonly crumbLabel = CRUMBS[this.locale].label;
+  protected readonly crumbs = [
+    homeCrumb(this.locale),
+    {
+      label: this.c.h1,
+      href: `${localePrefix(this.locale)}${ROUTE_PATHS.readForeignPattern[this.locale]}`,
+    },
+  ];
+  protected readonly dates = guideDatesLine('readForeignPattern', this.locale);
   protected readonly rows = abbreviationTable(this.locale);
   protected readonly tooLongMessage = READER_COPY[this.locale]['ui.linkTooLong'];
 
@@ -339,12 +353,20 @@ export default class ForeignPatternPage {
       locale: this.locale,
       jsonLd: {
         '@context': 'https://schema.org',
-        '@type': 'Article',
-        '@id': url,
-        headline: this.c.h1,
-        description: this.c.seoDescription,
-        inLanguage: this.locale,
-        author: { '@type': 'Organization', name: SITE_NAME },
+        '@graph': [
+          {
+            '@type': 'Article',
+            '@id': url,
+            headline: this.c.h1,
+            description: this.c.seoDescription,
+            inLanguage: this.locale,
+            author: { '@type': 'Organization', name: SITE_NAME },
+            datePublished: GUIDE_DATES.readForeignPattern.published,
+            dateModified: GUIDE_DATES.readForeignPattern.modified,
+            image: `${this.origin}/og/pattern-reader-${this.locale}.png`,
+          },
+          breadcrumbList(this.origin, this.crumbs),
+        ],
       },
     });
 

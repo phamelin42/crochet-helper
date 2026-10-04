@@ -374,3 +374,27 @@
 .step-cards fil-icon {
   color: var(--color-sakura-ink);
 }
+
+/* — fil d'Ariane (shared/ui/breadcrumb) — */
+.breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-label);
+}
+.breadcrumb li + li::before {
+  content: '›';
+  margin-right: var(--space-2);
+  color: var(--color-text-label);
+}
+.breadcrumb a {
+  color: inherit;
+}
+.guide-dates {
+  font-size: var(--text-sm);
+  color: var(--color-text-label);
+}

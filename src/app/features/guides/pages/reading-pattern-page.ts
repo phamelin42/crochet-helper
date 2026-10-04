@@ -3,9 +3,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
+import { CRUMBS, breadcrumbList, homeCrumb } from '../../../core/seo/breadcrumbs';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
+import { Breadcrumb } from '../../../shared/ui/breadcrumb/breadcrumb';
 import { Button } from '../../../shared/ui/button/button';
+import { GUIDE_DATES, guideDatesLine } from '../data/guide-dates';
 
 const NBSP = ' ';
 
@@ -148,11 +151,13 @@ const COPY: Record<Locale, GuideCopy> = {
 
 @Component({
   selector: 'fil-reading-pattern-page',
-  imports: [Button, RouterLink],
+  imports: [Breadcrumb, Button, RouterLink],
   host: { class: 'wrap' },
   template: `
     <article class="prose">
+      <fil-breadcrumb [items]="crumbs" [label]="crumbLabel" />
       <h1>{{ c.h1 }}</h1>
+      <p class="guide-dates">{{ dates }}</p>
       <p class="lead">{{ c.lead }}</p>
 
       <h2>{{ c.h2Abbrev }}</h2>
@@ -212,6 +217,15 @@ export default class ReadingPatternPage {
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
+  protected readonly crumbLabel = CRUMBS[this.locale].label;
+  protected readonly crumbs = [
+    homeCrumb(this.locale),
+    {
+      label: this.c.h1,
+      href: `${localePrefix(this.locale)}${ROUTE_PATHS.guideReadingPattern[this.locale]}`,
+    },
+  ];
+  protected readonly dates = guideDatesLine('guideReadingPattern', this.locale);
 
   protected hrefOf(
     route: 'guideReadingChart' | 'guideCrochetOrKnitting' | 'readForeignPattern',
@@ -237,6 +251,9 @@ export default class ReadingPatternPage {
             description: this.c.seoDescription,
             inLanguage: this.locale,
             author: { '@type': 'Organization', name: SITE_NAME },
+            datePublished: GUIDE_DATES.guideReadingPattern.published,
+            dateModified: GUIDE_DATES.guideReadingPattern.modified,
+            image: `${this.origin}/og/pattern-reader-${this.locale}.png`,
           },
           {
             '@type': 'FAQPage',
@@ -246,6 +263,7 @@ export default class ReadingPatternPage {
               acceptedAnswer: { '@type': 'Answer', text: item.a },
             })),
           },
+          breadcrumbList(this.origin, this.crumbs),
         ],
       },
     });

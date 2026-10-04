@@ -319,16 +319,29 @@ const HOME_COPY: Record<Locale, HomeCopy> = {
   },
 };
 
-const SEO: Record<Locale, { title: string; description: string }> = {
+const SEO: Record<Locale, { title: string; description: string; features: string[] }> = {
   fr: {
     title: `Lecteur de patrons crochet et tricot — ${SITE_NAME}`,
     description:
       'Collez votre patron de crochet ou de tricot : découpage en étapes, une instruction à la fois, compteur de rangs et abréviations traduites. Gratuit, sans compte.',
+    features: [
+      'Découpage automatique en étapes',
+      'Compteur de rangs et de répétitions',
+      'Glossaire crochet et tricot FR/EN',
+      'Chronomètre de session',
+    ],
   },
   en: {
     title: `Crochet and knitting pattern reader — ${SITE_NAME}`,
     description:
       'Paste your crochet or knitting pattern: split into steps, one instruction at a time, with a row counter and abbreviations explained. Free, no account.',
+    // La page anglaise décrivait ses fonctions en français.
+    features: [
+      'Automatic split into steps',
+      'Row and repeat counter',
+      'French and English crochet and knitting glossary',
+      'Session timer',
+    ],
   },
 };
 
@@ -554,12 +567,7 @@ export default class ReaderPage {
             operatingSystem: 'Web',
             description: SEO[locale].description,
             offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
-            featureList: [
-              'Découpage automatique en étapes',
-              'Compteur de rangs et de répétitions',
-              'Glossaire crochet et tricot FR/EN',
-              'Chronomètre de session',
-            ],
+            featureList: SEO[locale].features,
           },
           {
             '@type': 'FAQPage',

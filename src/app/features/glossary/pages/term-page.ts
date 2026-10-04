@@ -6,8 +6,10 @@ import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
+import { CRUMBS, breadcrumbList, glossaryCrumb, homeCrumb } from '../../../core/seo/breadcrumbs';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
+import { Breadcrumb } from '../../../shared/ui/breadcrumb/breadcrumb';
 import { Button } from '../../../shared/ui/button/button';
 import { InputField } from '../../../shared/ui/field/input';
 import { TooltipService } from '../../../shared/ui/tooltip/tooltip.service';
@@ -210,10 +212,11 @@ export function regionNoteOf(
 
 @Component({
   selector: 'fil-glossary-term-page',
-  imports: [Button, InputField, RouterLink],
+  imports: [Breadcrumb, Button, InputField, RouterLink],
   host: { class: 'wrap' },
   template: `
     <section class="hero">
+      <fil-breadcrumb [items]="crumbs()" [label]="crumbLabel" />
       <p class="card-kicker">{{ c.notation[entry().lang] }} · {{ c.craft[entry().craft] }}</p>
       <h1>
         {{ question()[0] }}<code>{{ entry().term }}</code
@@ -429,6 +432,12 @@ export default class GlossaryTermPage {
     // La glose éventuelle suit la tête, séparée d'un tiret cadratin.
     return { head, rest: `${definition.slice(head.length)}.` };
   });
+  protected readonly crumbLabel = CRUMBS[this.locale].label;
+  protected readonly crumbs = computed(() => [
+    homeCrumb(this.locale),
+    glossaryCrumb(this.locale),
+    { label: this.entry().term, href: this.hrefOf(this.entry()) },
+  ]);
   protected readonly neighbors = computed(() => neighborsOf(this.entry(), this.locale));
 
   /** Variante régionale de ce terme, quand elle existe (voir `regionNoteOf`). */
@@ -498,6 +507,7 @@ export default class GlossaryTermPage {
       en: `${ROUTE_PATHS.glossary.en}/${slugs.en}`,
     };
     const url = `${this.origin}${localePrefix(this.locale)}${path[this.locale]}`;
+    const faq = this.article()?.faq;
     const glossaryUrl = `${this.origin}${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}`;
 
     this.seo.apply({
@@ -512,13 +522,35 @@ export default class GlossaryTermPage {
       noIndex: !this.article(),
       jsonLd: {
         '@context': 'https://schema.org',
-        '@type': 'DefinedTerm',
-        '@id': url,
-        url,
-        name: entry.term,
-        description: entry[this.locale],
-        inLanguage: this.locale,
-        inDefinedTermSet: glossaryUrl,
+        '@graph': [
+          {
+            '@type': 'DefinedTerm',
+            '@id': url,
+            url,
+            name: entry.term,
+            description: entry[this.locale],
+            inLanguage: this.locale,
+            inDefinedTermSet: {
+              '@type': 'DefinedTermSet',
+              '@id': glossaryUrl,
+              name: CRUMBS[this.locale].glossary,
+            },
+          },
+          breadcrumbList(this.origin, this.crumbs()),
+          // Seules les questions affichées sur la page (section FAQ de l'article).
+          ...(faq?.length
+            ? [
+                {
+                  '@type': 'FAQPage',
+                  mainEntity: faq.map((item) => ({
+                    '@type': 'Question',
+                    name: item.q,
+                    acceptedAnswer: { '@type': 'Answer', text: item.a },
+                  })),
+                },
+              ]
+            : []),
+        ],
       },
     });
   }

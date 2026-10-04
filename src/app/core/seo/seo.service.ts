@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Service, inject } from '@angular/core';
+import { Service, inject, signal } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { DEFAULT_LOCALE, LOCALES, Locale, localePrefix } from '../i18n/locale';
 import { LocalizedPath } from '../i18n/route-paths';
@@ -42,8 +42,15 @@ export class SeoService {
   private readonly title = inject(Title);
   private readonly meta = inject(Meta);
   private readonly origin = inject(SITE_ORIGIN);
+  private readonly paths = signal<Readonly<Partial<Record<Locale, string>>>>({});
+
+  /** Adresse relative de la page courante dans chaque langue : « /fr/glossaire » pour « /glossary ». */
+  readonly alternates = this.paths.asReadonly();
 
   apply(seo: PageSeo): void {
+    this.paths.set(
+      Object.fromEntries(LOCALES.map((locale) => [locale, this.relative(locale, seo.path)])),
+    );
     const canonical = this.absolute(seo.locale, seo.path);
 
     this.title.setTitle(seo.title);
@@ -93,8 +100,12 @@ export class SeoService {
 
   /** URL absolue d'une page dans une langue donnée. */
   private absolute(locale: Locale, path: LocalizedPath): string {
+    return this.origin + this.relative(locale, path).replace(/^\/$/, '');
+  }
+
+  private relative(locale: Locale, path: LocalizedPath): string {
     const segment = path[locale];
-    return `${this.origin}${localePrefix(locale)}${segment === '/' ? '' : segment}` || this.origin;
+    return `${localePrefix(locale)}${segment === '/' ? '' : segment}` || '/';
   }
 
   private setLink(rel: string, href: string, hreflang?: string): void {

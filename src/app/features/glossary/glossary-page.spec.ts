@@ -43,6 +43,16 @@ describe('GlossaryPage', () => {
     for (const head of heads) expect(head.id).toMatch(/^lettre-[a-z]$/);
   });
 
+  it('donne à chaque terme une ancre à son slug, pour arriver droit sur sa ligne', () => {
+    const host = render('fr').nativeElement as HTMLElement;
+    for (const entry of GLOSSARY) {
+      const row = host.querySelector(`tr[id="${entry.slug}"]`);
+      expect(row?.querySelector('code')?.textContent, entry.slug).toBe(entry.term);
+    }
+    const ids = [...host.querySelectorAll('[id]')].map((el) => el.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it('la recherche « ms » ne garde que les termes qui contiennent « ms »', async () => {
     const fixture = render('en');
     await search(fixture, 'ms');

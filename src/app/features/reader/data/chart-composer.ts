@@ -51,15 +51,19 @@ const ARITY: Readonly<Record<string, Arity>> = {
   sc2tog: { produced: 1, consumed: 2 },
   dc2tog: { produced: 1, consumed: 2 },
   dc3tog: { produced: 1, consumed: 3 },
+  sc3tog: { produced: 1, consumed: 3 },
+  // Bride, maille en l'air, bride dans une même maille.
+  'v-stitch': { produced: 3, consumed: 1 },
+  'crossed-dc': { produced: 2, consumed: 2 },
   // Une coquille est cinq brides dans une même maille (norme du Craft Yarn Council).
   shell: { produced: 5, consumed: 1 },
 };
 const PLAIN: Arity = { produced: 1, consumed: 1 };
 
 /** Symboles qui changent le compte : une variation du tour n'a alors rien d'anormal. */
-const CHANGES_COUNT = new Set(['sc-inc', 'dc-inc', 'sc2tog', 'dc2tog', 'dc3tog']);
+const CHANGES_COUNT = new Set(['sc-inc', 'dc-inc', 'sc2tog', 'dc2tog', 'dc3tog', 'sc3tog']);
 /** Symboles dont le nombre de mailles reprises n'est pas devinable : pas d'avertissement de répétition. */
-const AMBIGUOUS = new Set(['ch', 'ch-space', 'shell']);
+const AMBIGUOUS = new Set(['ch', 'ch-space', 'shell', 'v-stitch']);
 
 const BY_ID = new Map(CHART_SYMBOLS.map((symbol) => [symbol.id, symbol]));
 

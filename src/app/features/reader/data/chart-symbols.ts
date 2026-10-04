@@ -115,6 +115,14 @@ export const CHART_SYMBOLS: readonly ChartSymbol[] = [
     nameFr: 'diminution de trois brides',
     nameEn: 'double crochet 3 together',
   },
+  {
+    id: 'sc3tog',
+    us: 'sc3tog',
+    uk: 'dc3tog',
+    fr: 'dim 3 ms',
+    nameFr: 'diminution de trois mailles serrées',
+    nameEn: 'single crochet 3 together',
+  },
   { id: 'picot', us: 'picot', uk: 'picot', fr: 'picot', nameFr: 'picot', nameEn: 'picot' },
   {
     id: 'fpdc',
@@ -131,6 +139,22 @@ export const CHART_SYMBOLS: readonly ChartSymbol[] = [
     fr: 'br relief env.',
     nameFr: 'bride en relief envers',
     nameEn: 'back post double crochet',
+  },
+  {
+    id: 'fphdc',
+    us: 'fphdc',
+    uk: 'fphtr',
+    fr: 'db relief end.',
+    nameFr: 'demi-bride en relief avant',
+    nameEn: 'front post half double crochet',
+  },
+  {
+    id: 'bphdc',
+    us: 'bphdc',
+    uk: 'bphtr',
+    fr: 'db relief env.',
+    nameFr: 'demi-bride en relief arrière',
+    nameEn: 'back post half double crochet',
   },
   {
     id: 'blo',
@@ -156,6 +180,14 @@ export const CHART_SYMBOLS: readonly ChartSymbol[] = [
     nameFr: 'bouquet de brides',
     nameEn: 'cluster',
   },
+  {
+    id: 'hdc-cluster',
+    us: 'hdc cl',
+    uk: 'htr cl',
+    fr: 'bouquet db',
+    nameFr: 'trois demi-brides dans la même maille rabattues ensemble',
+    nameEn: '3 half double crochet cluster',
+  },
   { id: 'puff', us: 'puff', uk: 'puff', fr: 'puff', nameFr: 'point bulle', nameEn: 'puff stitch' },
   {
     id: 'popcorn',
@@ -166,6 +198,22 @@ export const CHART_SYMBOLS: readonly ChartSymbol[] = [
     nameEn: 'popcorn stitch',
   },
   { id: 'shell', us: 'shell', uk: 'shell', fr: 'coquille', nameFr: 'coquille', nameEn: 'shell' },
+  {
+    id: 'v-stitch',
+    us: 'v-st',
+    uk: 'v-st',
+    fr: 'point v',
+    nameFr: 'point V — bride, maille en l’air, bride dans la même maille',
+    nameEn: 'V-stitch — dc, ch 1, dc in the same stitch',
+  },
+  {
+    id: 'crossed-dc',
+    us: 'crossed dc',
+    uk: 'crossed tr',
+    fr: 'br croisées',
+    nameFr: 'deux brides croisées',
+    nameEn: '2 crossed double crochets',
+  },
 ];
 
 /** Adresse du dessin d'un symbole, servie telle quelle depuis `public/`. */

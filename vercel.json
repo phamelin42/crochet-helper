@@ -100,6 +100,76 @@
       "source": "/en/format-your-pattern",
       "destination": "/format-your-pattern",
       "permanent": true
+    },
+    {
+      "source": "/glossary/slst",
+      "destination": "/glossary/sl-st",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossary/rnds",
+      "destination": "/glossary/rnd",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossary/sts",
+      "destination": "/glossary/st",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossary/crab-st",
+      "destination": "/glossary/rsc",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossary/mr",
+      "destination": "/glossary/magic-ring",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossary/magic-loop",
+      "destination": "/glossary/magic-ring",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossary/cercle-magique",
+      "destination": "/glossary/magic-ring",
+      "statusCode": 301
+    },
+    {
+      "source": "/fr/glossaire/slst",
+      "destination": "/fr/glossaire/sl-st",
+      "statusCode": 301
+    },
+    {
+      "source": "/fr/glossaire/rnds",
+      "destination": "/fr/glossaire/rnd",
+      "statusCode": 301
+    },
+    {
+      "source": "/fr/glossaire/sts",
+      "destination": "/fr/glossaire/st",
+      "statusCode": 301
+    },
+    {
+      "source": "/fr/glossaire/crab-st",
+      "destination": "/fr/glossaire/rsc",
+      "statusCode": 301
+    },
+    {
+      "source": "/fr/glossaire/mr",
+      "destination": "/fr/glossaire/cercle-magique",
+      "statusCode": 301
+    },
+    {
+      "source": "/fr/glossaire/magic-loop",
+      "destination": "/fr/glossaire/cercle-magique",
+      "statusCode": 301
+    },
+    {
+      "source": "/fr/glossaire/magic-ring",
+      "destination": "/fr/glossaire/cercle-magique",
+      "statusCode": 301
     }
   ]
 }

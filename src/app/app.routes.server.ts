@@ -1,7 +1,7 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 import { LOCALES, localePrefix } from './core/i18n/locale';
 import { ROUTE_PATHS } from './core/i18n/route-paths';
-import { GLOSSARY } from './features/reader/data/glossary';
+import { GLOSSARY, pageEntryOf } from './features/reader/data/glossary';
 
 /**
  * Tout est pré-rendu. Les pages d'abréviation sont une route paramétrée
@@ -14,7 +14,11 @@ export const serverRoutes: ServerRoute[] = [
   ...LOCALES.map((locale): ServerRoute => ({
     path: `${localePrefix(locale)}${ROUTE_PATHS.glossary[locale]}/:slug`.replace(/^\//, ''),
     renderMode: RenderMode.Prerender,
-    getPrerenderParams: async () => GLOSSARY.map((entry) => ({ slug: entry.slug })),
+    // Une entrée qui redirige vers une autre (`slst` → `sl-st`) n'a pas de page.
+    getPrerenderParams: async () =>
+      GLOSSARY.filter((entry) => pageEntryOf(entry, locale) === entry).map((entry) => ({
+        slug: entry.slug,
+      })),
   })),
   {
     path: '**',

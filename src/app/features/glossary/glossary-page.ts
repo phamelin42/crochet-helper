@@ -5,7 +5,7 @@ import { DEFAULT_LOCALE, Locale, localePrefix } from '../../core/i18n/locale';
 import { SeoService } from '../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../core/seo/site';
 import { ROUTE_PATHS } from '../../core/i18n/route-paths';
-import { GLOSSARY, GlossaryEntry } from '../reader/data/glossary';
+import { GLOSSARY, GlossaryEntry, pageEntryOf } from '../reader/data/glossary';
 import { AnalyticsService } from '../../core/analytics/analytics.service';
 import { Button } from '../../shared/ui/button/button';
 import { InputField } from '../../shared/ui/field/input';
@@ -232,9 +232,13 @@ export default class GlossaryPage {
     return letterAnchor(letter);
   }
 
-  /** Chaque abréviation a sa page : le tableau est aussi leur porte d'entrée. */
+  /**
+   * Chaque abréviation mène à sa page : le tableau est aussi leur porte
+   * d'entrée. Une graphie sans page propre (`slst`) mène à celle qui la sert.
+   */
   protected hrefOf(entry: GlossaryEntry): string {
-    return `${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}/${entry.slug}`;
+    const slug = pageEntryOf(entry, this.locale).slug;
+    return `${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}/${slug}`;
   }
 
   constructor() {

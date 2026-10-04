@@ -1,6 +1,6 @@
 import { Component, computed, inject, linkedSignal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
@@ -12,7 +12,13 @@ import { Button } from '../../../shared/ui/button/button';
 import { InputField } from '../../../shared/ui/field/input';
 import { TooltipService } from '../../../shared/ui/tooltip/tooltip.service';
 import { regionCrossReferenceOf } from '../../converter/data/convert-terms';
-import { GLOSSARY, GlossaryEntry, annotate } from '../../reader/data/glossary';
+import {
+  GLOSSARY,
+  GlossaryEntry,
+  annotate,
+  pageEntryOf,
+  pageSlugsOf,
+} from '../../reader/data/glossary';
 import { articleOf } from '../data/term-articles';
 import { headOf, neighborsOf } from '../data/term-neighbors';
 
@@ -308,10 +314,15 @@ export function regionNoteOf(
       </p>
     </section>
 
-    @if (neighbors().synonyms.length) {
+    @if (neighbors().synonyms.length || neighbors().variants.length) {
       <section class="term-section">
         <h2 class="card-title">{{ c.synonymsTitle }}</h2>
         <ul class="term-links">
+          @for (other of neighbors().variants; track other.slug) {
+            <li>
+              <code>{{ other.term }}</code> — {{ c.notation[other.lang] }}
+            </li>
+          }
           @for (other of neighbors().synonyms; track other.slug) {
             <li>
               <a [routerLink]="hrefOf(other)"
@@ -349,6 +360,7 @@ export default class GlossaryTermPage {
   private readonly analytics = inject(AnalyticsService);
   private readonly origin = inject(SITE_ORIGIN);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly otherLocale: Locale = this.locale === 'fr' ? 'en' : 'fr';
@@ -359,7 +371,16 @@ export default class GlossaryTermPage {
   private readonly slug = toSignal(this.route.paramMap.pipe(map((params) => params.get('slug'))), {
     requireSync: true,
   });
-  protected readonly entry = computed(() => GLOSSARY.find((e) => e.slug === this.slug())!);
+  /**
+   * L'entrée que sert la page. Une graphie sans page propre (`slst`) affiche
+   * celle qui la sert (`sl st`), le temps que l'URL soit remplacée.
+   */
+  protected readonly entry = computed(() =>
+    pageEntryOf(
+      GLOSSARY.find((e) => e.slug === this.slug())!,
+      this.locale,
+    ),
+  );
 
   protected readonly question = computed(() => this.c.question[this.entry().craft]);
   protected readonly meaning = computed(() => {
@@ -368,7 +389,7 @@ export default class GlossaryTermPage {
     // La glose éventuelle suit la tête, séparée d'un tiret cadratin.
     return { head, rest: `${definition.slice(head.length)}.` };
   });
-  protected readonly neighbors = computed(() => neighborsOf(this.entry()));
+  protected readonly neighbors = computed(() => neighborsOf(this.entry(), this.locale));
 
   /** Variante régionale de ce terme, quand elle existe (voir `regionNoteOf`). */
   protected readonly regionRef = computed(() => regionNoteOf(this.entry(), this.locale));
@@ -386,11 +407,20 @@ export default class GlossaryTermPage {
   constructor() {
     this.i18n.setLocale(this.locale);
     // Émet de façon synchrone à la construction, donc aussi au pré-rendu.
-    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe(() => this.applySeo());
+    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe(() => {
+      // Navigation dans l'application vers une graphie qui redirige : même
+      // destination que la 301 de l'hébergeur, sans garder l'ancienne URL.
+      if (this.slug() !== this.entry().slug) {
+        void this.router.navigateByUrl(this.hrefOf(this.entry()), { replaceUrl: true });
+      }
+      this.applySeo();
+    });
   }
 
+  /** Lien vers la page qui sert `entry` dans cette langue, jamais vers une redirection. */
   protected hrefOf(entry: GlossaryEntry): string {
-    return `${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}/${entry.slug}`;
+    const slug = pageEntryOf(entry, this.locale).slug;
+    return `${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}/${slug}`;
   }
 
   protected edit(value: string): void {
@@ -409,9 +439,12 @@ export default class GlossaryTermPage {
 
   private applySeo(): void {
     const entry = this.entry();
+    // `magic ring` et `cercle magique` : une page par langue, chacune la
+    // traduction de l'autre, sous deux slugs.
+    const slugs = pageSlugsOf(entry);
     const path = {
-      fr: `${ROUTE_PATHS.glossary.fr}/${entry.slug}`,
-      en: `${ROUTE_PATHS.glossary.en}/${entry.slug}`,
+      fr: `${ROUTE_PATHS.glossary.fr}/${slugs.fr}`,
+      en: `${ROUTE_PATHS.glossary.en}/${slugs.en}`,
     };
     const url = `${this.origin}${localePrefix(this.locale)}${path[this.locale]}`;
     const glossaryUrl = `${this.origin}${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}`;

@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { Locale } from '../../../core/i18n/locale';
-import { GLOSSARY } from '../../reader/data/glossary';
+import { GLOSSARY, pageEntryOf } from '../../reader/data/glossary';
 import { TERM_ARTICLES, TermArticle } from './term-articles';
 
-/** Les sept entrées françaises du glossaire, puis les treize anglaises les plus cherchées. */
+/**
+ * Les sept entrées françaises du glossaire, puis les treize anglaises les plus
+ * cherchées. Le cercle magique a une page par langue sous deux slugs
+ * (`cercle-magique`, `magic-ring`) : un article chacun, dans sa langue.
+ */
 const SLUGS = [
   'ms',
   'db',
@@ -12,6 +16,7 @@ const SLUGS = [
   'aug',
   'dim',
   'cercle-magique',
+  'magic-ring',
   'sc',
   'dc',
   'hdc',
@@ -27,6 +32,11 @@ const SLUGS = [
   'blo',
 ];
 const LOCALES: readonly Locale[] = ['fr', 'en'];
+/** Langues où un slug a sa page, donc son article. */
+const localesOf = (slug: string): readonly Locale[] => {
+  const entry = GLOSSARY.find((e) => e.slug === slug);
+  return LOCALES.filter((locale) => entry && pageEntryOf(entry, locale) === entry);
+};
 
 const wordsOf = (article: TermArticle): number =>
   [...article.how, article.inPattern, article.usUk, ...article.mistakes, article.tip]
@@ -43,7 +53,7 @@ describe('TERM_ARTICLES', () => {
   });
 
   for (const slug of SLUGS) {
-    for (const locale of LOCALES) {
+    for (const locale of localesOf(slug)) {
       describe(`${slug} (${locale})`, () => {
         const article = TERM_ARTICLES[slug]?.[locale];
 
@@ -72,7 +82,13 @@ describe('TERM_ARTICLES', () => {
     for (const slug of Object.keys(TERM_ARTICLES)) expect(known.has(slug), slug).toBe(true);
   });
 
-  it('ne contient que les vingt slugs prévus', () => {
+  it('ne contient que les slugs prévus', () => {
     expect(Object.keys(TERM_ARTICLES).sort()).toEqual([...SLUGS].sort());
+  });
+
+  it('n’écrit aucun article pour une langue où le slug redirige', () => {
+    for (const [slug, byLocale] of Object.entries(TERM_ARTICLES)) {
+      expect(Object.keys(byLocale).sort(), slug).toEqual([...localesOf(slug)].sort());
+    }
   });
 });

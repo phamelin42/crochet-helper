@@ -1,10 +1,11 @@
+import { DOCUMENT } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Locale } from '../../../core/i18n/locale';
 import { GLOSSARY, GlossaryEntry } from '../../reader/data/glossary';
-import { TERM_ARTICLES } from '../data/term-articles';
+import { TERM_ARTICLES, TermArticle } from '../data/term-articles';
 import GlossaryTermPage, { regionNoteOf, titleOf } from './term-page';
 
 function render(slug: string, locale: Locale): HTMLElement {
@@ -108,16 +109,64 @@ describe('GlossaryTermPage — article', () => {
   });
 
   it('rend chaque article dans sa langue, rang souligné compris', () => {
-    for (const slug of Object.keys(TERM_ARTICLES)) {
-      for (const locale of ['fr', 'en'] as const) {
+    for (const [slug, byLocale] of Object.entries(TERM_ARTICLES)) {
+      for (const [locale, article] of Object.entries(byLocale) as [Locale, TermArticle][]) {
         TestBed.resetTestingModule();
         const host = render(slug, locale);
-        const article = TERM_ARTICLES[slug][locale];
 
         expect(host.textContent, `${slug} ${locale}`).toContain(article.tip);
         expect(host.querySelectorAll('h2').length, `${slug} ${locale}`).toBeGreaterThanOrEqual(7);
         expect(host.querySelectorAll('.abbr').length, `${slug} ${locale}`).toBeGreaterThan(0);
       }
+    }
+  });
+});
+
+describe('GlossaryTermPage — une page par concept', () => {
+  const links = () => {
+    const head = TestBed.inject(DOCUMENT).head;
+    const href = (selector: string) => head.querySelector(selector)?.getAttribute('href');
+    return {
+      canonical: href('link[rel="canonical"]'),
+      en: href('link[rel="alternate"][hreflang="en"]'),
+      fr: href('link[rel="alternate"][hreflang="fr"]'),
+    };
+  };
+
+  it('relie la page anglaise du cercle magique à sa page française, sous deux slugs', () => {
+    render('magic-ring', 'en');
+    expect(links()).toEqual({
+      canonical: 'https://patternreader.com/glossary/magic-ring',
+      en: 'https://patternreader.com/glossary/magic-ring',
+      fr: 'https://patternreader.com/fr/glossaire/cercle-magique',
+    });
+
+    TestBed.resetTestingModule();
+    render('cercle-magique', 'fr');
+    expect(links()).toEqual({
+      canonical: 'https://patternreader.com/fr/glossaire/cercle-magique',
+      en: 'https://patternreader.com/glossary/magic-ring',
+      fr: 'https://patternreader.com/fr/glossaire/cercle-magique',
+    });
+  });
+
+  it('une graphie sans page affiche la page qui la sert, et y mène', () => {
+    const navigate = vi.spyOn(Router.prototype, 'navigateByUrl').mockResolvedValue(true);
+    const host = render('slst', 'en');
+    expect(host.querySelector('h1')?.textContent).toContain('sl st');
+    expect(links().canonical).toBe('https://patternreader.com/glossary/sl-st');
+    expect(navigate).toHaveBeenCalledWith('/glossary/sl-st', { replaceUrl: true });
+    navigate.mockRestore();
+    // La graphie est nommée sans lien, l'autre notation (mc, ss) a le sien.
+    const items = [...host.querySelectorAll('.term-links li')].map((li) => ({
+      text: li.textContent?.trim(),
+      linked: !!li.querySelector('a'),
+    }));
+    expect(items).toContainEqual({ text: 'slst — English abbreviation', linked: false });
+    for (const a of host.querySelectorAll<HTMLAnchorElement>('.term-links a')) {
+      expect(a.getAttribute('href')).not.toMatch(
+        /\/(slst|rnds|sts|crab-st|mr|magic-loop|cercle-magique)$/,
+      );
     }
   });
 });

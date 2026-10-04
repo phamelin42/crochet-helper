@@ -88,6 +88,80 @@
   to = "/format-your-pattern"
   status = 301
 
+# Glossaire : une graphie de plus (`slst`, `rnds`) ou un autre nom du même
+# point (`mr`, `magic loop`) n'a pas de page à lui ; son URL mène à celle du
+# concept. `magic-ring` et `cercle-magique` sont une seule page traduite.
+# Tenu identique à `vercel.json` (tools/check-redirects.mjs).
+[[redirects]]
+  from = "/glossary/slst"
+  to = "/glossary/sl-st"
+  status = 301
+
+[[redirects]]
+  from = "/glossary/rnds"
+  to = "/glossary/rnd"
+  status = 301
+
+[[redirects]]
+  from = "/glossary/sts"
+  to = "/glossary/st"
+  status = 301
+
+[[redirects]]
+  from = "/glossary/crab-st"
+  to = "/glossary/rsc"
+  status = 301
+
+[[redirects]]
+  from = "/glossary/mr"
+  to = "/glossary/magic-ring"
+  status = 301
+
+[[redirects]]
+  from = "/glossary/magic-loop"
+  to = "/glossary/magic-ring"
+  status = 301
+
+[[redirects]]
+  from = "/glossary/cercle-magique"
+  to = "/glossary/magic-ring"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/slst"
+  to = "/fr/glossaire/sl-st"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/rnds"
+  to = "/fr/glossaire/rnd"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/sts"
+  to = "/fr/glossaire/st"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/crab-st"
+  to = "/fr/glossaire/rsc"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/mr"
+  to = "/fr/glossaire/cercle-magique"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/magic-loop"
+  to = "/fr/glossaire/cercle-magique"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/magic-ring"
+  to = "/fr/glossaire/cercle-magique"
+  status = 301
+
 # En dernier : Netlify applique la première règle qui correspond, et ce repli
 # correspond à toutes les URL. Placé plus haut, il masquerait les 301 ci-dessus.
 # Les pages pré-rendues existent en tant que fichiers ; il ne sert qu'aux URL

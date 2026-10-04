@@ -14,4 +14,8 @@ export interface TermArticle {
   readonly tip: string;
 }
 
-export type TermArticles = Readonly<Record<string, Readonly<Record<Locale, TermArticle>>>>;
+/**
+ * Par slug puis par langue. Une langue manque quand le slug n'y a pas de page :
+ * le cercle magique s'écrit `cercle-magique` en français, `magic-ring` en anglais.
+ */
+export type TermArticles = Readonly<Record<string, Readonly<Partial<Record<Locale, TermArticle>>>>>;

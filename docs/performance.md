@@ -218,3 +218,13 @@ code de sortie) : un dépassement de `maximumError` fait échouer `ng build`
 avec un code de sortie non nul, donc l'étape, donc le job. Rien à ajouter —
 vérifié en relisant le fichier, pas modifié (`.github/` est hors périmètre de
 cette fiche de toute façon).
+
+## Marge rétablie le 04/10/2026
+
+`main` était arrivé à 344,99 kB pour une erreur à 345 kB : la marge de la PR #80
+s'était consumée fiche après fiche, et l'avertissement à 335 kB sonnait déjà sur
+chaque build. Le bandeau de langue (proposer `/fr` à un navigateur francophone)
+est paresseux, composant et feuille `language.css` compris ; reste dans la
+coquille son montage après le premier affichage et les alternates exposés par
+`SeoService`, soit 0,4 kB. Seuils remis à la même distance qu'en #80 au-dessus
+de la taille réelle (345,35 kB) : avertissement à 355 kB, erreur à 365 kB.

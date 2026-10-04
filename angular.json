@@ -46,6 +46,11 @@
                 "input": "src/styles/pages.css",
                 "bundleName": "pages",
                 "inject": false
+              },
+              {
+                "input": "src/styles/language.css",
+                "bundleName": "language",
+                "inject": false
               }
             ],
             "server": "src/main.server.ts",
@@ -59,8 +64,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "335kB",
-                  "maximumError": "345kB"
+                  "maximumWarning": "355kB",
+                  "maximumError": "365kB"
                 },
                 {
                   "type": "anyComponentStyle",

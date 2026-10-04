@@ -35,10 +35,11 @@ const wordsOf = (article: TermArticle): number =>
     .filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
 
 describe('TERM_ARTICLES', () => {
-  it('couvre les sept entrées françaises du glossaire', () => {
+  // Les abréviations françaises ajoutées depuis (br, dbr, tbr) ont leur page,
+  // sans article : seules les sept premières, les plus cherchées, en portent un.
+  it('couvre les sept premières entrées françaises du glossaire', () => {
     const french = GLOSSARY.filter((e) => e.lang === 'fr').map((e) => e.slug);
-    expect(french).toHaveLength(7);
-    for (const slug of french) expect(SLUGS, slug).toContain(slug);
+    for (const slug of SLUGS.slice(0, 7)) expect(french, slug).toContain(slug);
   });
 
   for (const slug of SLUGS) {

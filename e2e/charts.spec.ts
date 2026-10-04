@@ -130,7 +130,7 @@ test('diagramme : plein écran, et la légende des symboles', async ({ page }) =
 
   await page.getByRole('button', { name: 'Key', exact: true }).click();
   const legend = page.getByRole('dialog', { name: 'Symbol key' });
-  await expect(legend.locator('li')).toHaveCount(23);
+  await expect(legend.locator('li')).toHaveCount(29);
   await expect(legend.getByText('sl st', { exact: true })).toBeVisible();
 });
 

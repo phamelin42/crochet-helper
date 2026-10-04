@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CHART_SYMBOLS, symbolAbbreviation, symbolName, symbolUrl } from './chart-symbols';
 
-/** Les identifiants de la fiche 35 : ni plus, ni moins. */
+/** Les identifiants de la fiche 35, puis ceux des planches de symboles de Phil : ni plus, ni moins. */
 const EXPECTED_IDS = [
   'ch',
   'sl-st',
@@ -17,19 +17,25 @@ const EXPECTED_IDS = [
   'sc2tog',
   'dc2tog',
   'dc3tog',
+  'sc3tog',
   'picot',
   'fpdc',
   'bpdc',
+  'fphdc',
+  'bphdc',
   'blo',
   'flo',
   'cluster',
+  'hdc-cluster',
   'puff',
   'popcorn',
   'shell',
+  'v-stitch',
+  'crossed-dc',
 ];
 
 describe('chart-symbols', () => {
-  it('porte exactement les 23 symboles de la norme retenue', () => {
+  it('porte exactement les 29 symboles retenus', () => {
     expect(CHART_SYMBOLS.map((s) => s.id)).toEqual(EXPECTED_IDS);
   });
 

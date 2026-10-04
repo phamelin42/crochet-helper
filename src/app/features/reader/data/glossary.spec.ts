@@ -57,6 +57,21 @@ describe('glossaire', () => {
     ['m1', 'm1'],
     ['co', 'co'],
     ['bo', 'bo'],
+    ['magic loop', 'magic-loop'],
+    ['br', 'br'],
+    ['dbr', 'dbr'],
+    ['tbr', 'tbr'],
+    ['sc2tog', 'sc2tog'],
+    ['sc3tog', 'sc3tog'],
+    ['dc2tog', 'dc2tog'],
+    ['dc3tog', 'dc3tog'],
+    ['cl', 'cl'],
+    ['pc', 'pc'],
+    ['picot', 'picot'],
+    ['shell', 'shell'],
+    ['ch-sp', 'ch-sp'],
+    ['fphdc', 'fphdc'],
+    ['bphdc', 'bphdc'],
   ];
 
   it.each(PUBLISHED_SLUGS)('garde le slug publié de « %s » : %s', (term, slug) => {

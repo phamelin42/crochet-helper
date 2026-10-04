@@ -1,17 +1,17 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { CHART_SYMBOLS, symbolAbbreviation, symbolName, symbolUrl } from '../data/chart-symbols';
 
 /**
  * Légende des symboles standard : le dessin, l'abréviation dans la convention
  * de la page (française sur une page française, américaine sur une page
- * anglaise) et le nom.
+ * anglaise) et le nom. `only` la réduit aux symboles d'un dessin.
  */
 @Component({
   selector: 'fil-chart-legend',
   template: `
     <ul class="chart-legend">
-      @for (symbol of symbols; track symbol.id) {
+      @for (symbol of symbols(); track symbol.id) {
         <li>
           <img class="symbol-img" [src]="url(symbol.id)" alt="" width="32" height="32" />
           <span
@@ -25,7 +25,13 @@ import { CHART_SYMBOLS, symbolAbbreviation, symbolName, symbolUrl } from '../dat
 export class ChartLegend {
   private readonly i18n = inject(I18nService);
 
-  protected readonly symbols = CHART_SYMBOLS;
+  /** Identifiants à montrer ; tous les symboles sinon. */
+  readonly only = input<readonly string[] | null>(null);
+
+  protected readonly symbols = computed(() => {
+    const only = this.only();
+    return only ? CHART_SYMBOLS.filter((symbol) => only.includes(symbol.id)) : CHART_SYMBOLS;
+  });
   protected readonly url = symbolUrl;
 
   protected abbreviation = (symbol: (typeof CHART_SYMBOLS)[number]) =>

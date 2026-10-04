@@ -97,7 +97,7 @@ const COPY = {
   fr: {
     seoTitle: 'Bien formater un patron de crochet pour le lire pas à pas',
     seoDescription:
-      'Patron mal découpé ? La consigne à copier dans ChatGPT, Claude ou Perplexity pour le remettre en forme, et le format attendu si vous préférez corriger à la main.',
+      'Patron mal découpé ? La consigne à copier dans ChatGPT, Claude ou Perplexity pour le remettre en forme, et le format attendu pour le corriger à la main.',
     title: 'Votre patron n’est pas bien découpé ?',
     lead: 'Les tutoriels publiés en ligne ne suivent aucune norme : numérotation absente, rangs coupés en trois, tailles mêlées aux instructions. Faites-le remettre en forme par l’assistant que vous utilisez déjà, puis collez le résultat dans le lecteur.',
     step1: '1. Copiez la consigne',
@@ -127,7 +127,7 @@ const COPY = {
       'Un assistant peut sauter un rang, et un rang manquant ruine un ouvrage. Comparez le nombre de rangs avant et après, et gardez le texte d’origine sous la main.',
   },
   en: {
-    seoTitle: 'Format a crochet pattern for step-by-step reading',
+    seoTitle: 'How to format a crochet pattern for step-by-step reading',
     seoDescription:
       'Pattern not splitting? The prompt to copy into ChatGPT, Claude or Perplexity to tidy it up, plus the expected format if you would rather fix it by hand.',
     title: 'Pattern not splitting properly?',

@@ -46,7 +46,7 @@ interface GuideCopy {
 
 const COPY: Record<Locale, GuideCopy> = {
   fr: {
-    seoTitle: `Comment lire un patron de crochet ou de tricot — ${SITE_NAME}`,
+    seoTitle: `Comment lire un patron de crochet ou de tricot, pas à pas`,
     seoDescription:
       'Abréviations, rangs, nombre de mailles entre parenthèses, notation US ou UK : la méthode pour décoder un patron de crochet ou de tricot ligne par ligne.',
     h1: 'Comment lire un patron de crochet ou de tricot, pas à pas',
@@ -97,7 +97,7 @@ const COPY: Record<Locale, GuideCopy> = {
   en: {
     seoTitle: `How to read a crochet or knitting pattern — ${SITE_NAME}`,
     seoDescription:
-      'Abbreviations, rows, the stitch count in parentheses, US or UK notation: the method for decoding a crochet or knitting pattern line by line.',
+      'Abbreviations, rows, the stitch count in parentheses, US or UK notation: the method for decoding a crochet or knitting pattern line by line, with examples.',
     h1: 'How to read a crochet or knitting pattern, step by step',
     lead: `A pattern doesn't read like ordinary text: every line packs a precise instruction, with its own abbreviations and its own punctuation. Once the logic clicks, any pattern becomes readable — even one written by a different designer, in a different language.`,
     h2Abbrev: 'What does each abbreviation mean?',

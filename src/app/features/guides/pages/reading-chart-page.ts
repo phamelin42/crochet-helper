@@ -48,7 +48,7 @@ interface GuideCopy {
 
 const COPY: Record<Locale, GuideCopy> = {
   fr: {
-    seoTitle: `Comment lire un diagramme de crochet ou une grille de tricot — ${SITE_NAME}`,
+    seoTitle: `Lire un diagramme de crochet ou une grille de tricot`,
     seoDescription:
       'Symboles, sens de lecture, diagramme en rang ou en rond, grille de jacquard : la méthode pour lire un diagramme de crochet ou de tricot sans se perdre.',
     h1: 'Comment lire un diagramme de crochet, ou une grille de tricot',
@@ -81,7 +81,7 @@ const COPY: Record<Locale, GuideCopy> = {
     backToGlossary: 'Toutes les abréviations',
   },
   en: {
-    seoTitle: `How to read a crochet chart or a knitting grid — ${SITE_NAME}`,
+    seoTitle: `How to read a crochet chart or knitting grid, step by step`,
     seoDescription:
       'Symbols, reading direction, flat versus in-the-round charts, colourwork grids: the method for reading a crochet or knitting chart without getting lost.',
     h1: 'How to read a crochet chart, or a knitting grid',

@@ -21,7 +21,7 @@ const COPY: Record<Locale, Record<string, string>> = {
   fr: {
     title: `Abréviations de crochet et de tricot — ${SITE_NAME}`,
     description:
-      'ms, sc, aug, dim, k2tog, cercle magique… la traduction en clair des abréviations de patrons de crochet et de tricot, en français et en anglais.',
+      'ms, sc, aug, dim, k2tog, cercle magique… la traduction en clair des abréviations de patrons de crochet et de tricot, en français et en anglais, US et UK.',
     h1: 'Abréviations de crochet et de tricot',
     lead: 'Les patrons abrègent tout. Voici ce que chaque sigle veut dire, en français et en anglais. Dans le lecteur, ces termes sont soulignés et leur définition apparaît au survol.',
     search: 'Filtrer les abréviations',
@@ -45,7 +45,7 @@ const COPY: Record<Locale, Record<string, string>> = {
   en: {
     title: `Crochet and knitting abbreviations — ${SITE_NAME}`,
     description:
-      'sc, dc, inc, dec, k2tog, magic ring… what every crochet and knitting pattern abbreviation means, in English and French.',
+      'sc, dc, inc, dec, k2tog, magic ring… what every crochet and knitting pattern abbreviation means, in English and French, with US and UK notation side by side.',
     h1: 'Crochet and knitting abbreviations',
     lead: 'Patterns abbreviate everything. Here is what each one means, in English and French. In the reader these terms are underlined and their definition appears on hover.',
     search: 'Filter abbreviations',

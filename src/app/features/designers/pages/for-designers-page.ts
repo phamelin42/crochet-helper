@@ -36,7 +36,7 @@ const COPY: Record<Locale, DesignersCopy> = {
   fr: {
     seoTitle: `Un kit pour les créatrices de patrons — ${SITE_NAME}`,
     seoDescription:
-      'Offrez « Ouvrir dans Pattern Reader » à vos clientes : un lien qui contient tout le patron, un badge prêt à copier et un visuel à épingler.',
+      'Offrez « Ouvrir dans Pattern Reader » à vos clientes : un lien qui contient tout le patron, un badge prêt à copier et un visuel prêt à épingler sur Pinterest.',
     h1: 'Offrez « Ouvrir dans Pattern Reader » à vos clientes',
     lead: `Rien à installer, rien à héberger${NBSP}: un lien qui contient tout votre patron, prêt à coller dans votre boutique, votre bio ou votre PDF.`,
     h2Client: 'Ce que voit votre cliente',
@@ -59,9 +59,9 @@ const COPY: Record<Locale, DesignersCopy> = {
     bodyLimit: `Un patron très long ne tient pas dans un lien${NBSP}: au-delà de 8${NBSP}000 caractères, Pattern Reader refuse de créer le lien plutôt que d’en livrer un tronqué. Pour un patron de cette taille, mieux vaut renvoyer vers son texte complet et laisser votre cliente le coller elle-même dans le lecteur.`,
   },
   en: {
-    seoTitle: `A kit for pattern designers — ${SITE_NAME}`,
+    seoTitle: `A kit for crochet pattern designers — ${SITE_NAME}`,
     seoDescription:
-      'Offer "Open in Pattern Reader" to your customers: a link that carries the whole pattern, a badge ready to copy, and a pinnable image.',
+      'Offer "Open in Pattern Reader" to your customers: a link that carries the whole pattern, a badge ready to copy, and and an image ready to pin on Pinterest.',
     h1: 'Offer "Open in Pattern Reader" to your customers',
     lead: 'Nothing to install, nothing to host: a link that carries your whole pattern, ready to paste into your shop, your bio or a PDF.',
     h2Client: 'What your customer sees',

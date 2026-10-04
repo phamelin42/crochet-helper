@@ -30,9 +30,9 @@ interface HookSizesCopy {
 
 const COPY: Record<Locale, HookSizesCopy> = {
   fr: {
-    seoTitle: `Tailles de crochet : tableau mm ↔ US et chercheur — ${SITE_NAME}`,
+    seoTitle: `Tailles de crochet${NBSP}: tableau de correspondance mm ↔ US`,
     seoDescription:
-      'Le tableau des tailles de crochet en millimètres et en notation américaine (G-6, H-8…), un chercheur pour passer de l’une à l’autre, et comment choisir sa taille.',
+      'Le tableau des tailles de crochet en millimètres et en notation américaine (G-6, H-8…), un chercheur pour passer de l’une à l’autre et comment bien la choisir.',
     h1: 'Tailles de crochet : le tableau mm ↔ US',
     lead: `Un patron américain écrit «${NBSP}G-6${NBSP}», votre boîte de crochets indique «${NBSP}4${NBSP}mm${NBSP}»${NBSP}: tapez l’une ou l’autre pour trouver l’équivalent, ou parcourez le tableau complet.`,
     finderLabel: 'Une taille : 4 mm ou G-6',
@@ -81,9 +81,9 @@ const COPY: Record<Locale, HookSizesCopy> = {
     toReader: 'Le lecteur de patron',
   },
   en: {
-    seoTitle: `Crochet hook sizes: mm ↔ US chart and finder — ${SITE_NAME}`,
+    seoTitle: `Crochet hook size chart, mm ↔ US sizes — ${SITE_NAME}`,
     seoDescription:
-      'The crochet hook size chart in millimetres and US notation (G-6, H-8…), a finder to go from one to the other, and how to choose your hook size.',
+      'The crochet hook size chart in millimetres and US notation (G-6, H-8…), a finder to go from one to the other, and how to choose the right hook for your yarn.',
     h1: 'Crochet hook sizes: the mm ↔ US chart',
     lead: 'A US pattern says "G-6", the box your hooks came in says "4 mm": type either one to find its equivalent, or browse the full chart.',
     finderLabel: 'A size: 4 mm or G-6',

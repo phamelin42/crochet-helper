@@ -64,7 +64,12 @@ interface TermCopy {
   readonly backToGlossary: string;
   /** Guillemets de la langue, posés autour de l'abréviation dans le titre. */
   readonly quotes: readonly [string, string];
-  description(entry: GlossaryEntry): string;
+  /**
+   * Descriptions possibles, de la plus complète à la plus courte : la page
+   * garde la plus longue qui tient en 160 caractères. `rich` : la page a un
+   * article (gestes, rang expliqué, US/UK, erreurs).
+   */
+  descriptions(entry: GlossaryEntry, rich: boolean): readonly string[];
 }
 
 const NBSP = ' ';
@@ -111,8 +116,21 @@ const COPY: Record<Locale, TermCopy> = {
     backToReader: 'Lire tout un patron pas à pas',
     backToGlossary: 'Toutes les abréviations',
     quotes: [`«${NBSP}`, `${NBSP}»`],
-    description: (e) =>
-      `«${NBSP}${e.term}${NBSP}» veut dire ${headOf(e.fr)} (${headOf(e.en)} en anglais). Collez un rang de votre patron${NBSP}: chaque abréviation y est traduite en clair.`,
+    descriptions: (e, rich) => {
+      const means = `«${NBSP}${e.term}${NBSP}» veut dire ${headOf(e.fr)}`;
+      const both = `${means} (${headOf(e.en)} en anglais)`;
+      return rich
+        ? [
+            `${both}. Le geste, un rang de patron expliqué, les notations US et UK, les erreurs fréquentes et un conseil.`,
+            `${both}. Le geste, un rang de patron expliqué, les notations US et UK et les erreurs fréquentes.`,
+            `${both}${NBSP}: le geste, un rang de patron expliqué, les notations US et UK.`,
+            `${means}${NBSP}: le geste, un rang de patron expliqué, les notations US et UK.`,
+          ]
+        : [
+            `${both}. Collez un rang de votre patron${NBSP}: chaque abréviation y est traduite en clair.`,
+            `${means}. Collez un rang de votre patron${NBSP}: chaque abréviation y est traduite.`,
+          ];
+    },
   },
   en: {
     question: {
@@ -152,8 +170,21 @@ const COPY: Record<Locale, TermCopy> = {
     backToReader: 'Read a whole pattern step by step',
     backToGlossary: 'All abbreviations',
     quotes: ['“', '”'],
-    description: (e) =>
-      `“${e.term}” means ${headOf(e.en)} (${headOf(e.fr)} in French). Paste a row from your pattern and every abbreviation in it is spelled out.`,
+    descriptions: (e, rich) => {
+      const means = `“${e.term}” means ${headOf(e.en)}`;
+      const both = `${means} (${headOf(e.fr)} in French)`;
+      return rich
+        ? [
+            `${both}. How it works, a pattern row explained, US and UK notation, common mistakes and a tip.`,
+            `${both}. How it works, a pattern row explained, US and UK notation and common mistakes.`,
+            `${both}: how it works, a pattern row explained, US and UK notation.`,
+            `${means}: how it works, a pattern row explained, US and UK notation.`,
+          ]
+        : [
+            `${both}. Paste a row from your pattern and every abbreviation in it is spelled out.`,
+            `${means}. Paste a row from your pattern and every abbreviation is spelled out.`,
+          ];
+    },
   },
 };
 
@@ -164,13 +195,39 @@ const COPY: Record<Locale, TermCopy> = {
  * source des deux : un terme commun aux deux métiers annonçait « in crochet »
  * dans le titre et « in crochet and knitting » dans la page, soit une promesse
  * différente de la réponse sur les trente pages concernées.
+ *
+ * 60 caractères au plus : la définition, puis le nom du site, cèdent la
+ * place quand la question est longue (« sk » au crochet et au tricot).
  */
 export function titleOf(entry: GlossaryEntry, locale: Locale): string {
   const c = COPY[locale];
   const [before, after] = c.question[entry.craft];
   const [open, close] = c.quotes;
+  const question = `${before}${open}${entry.term}${close}${after}`;
   const meaning = capitalize(headOf(entry[locale]));
-  return `${before}${open}${entry.term}${close}${after} ${meaning} — ${SITE_NAME}`;
+  return fit(
+    [
+      `${question} ${meaning} — ${SITE_NAME}`,
+      `${question} ${meaning}`,
+      `${question} — ${SITE_NAME}`,
+      question,
+    ],
+    TITLE_MAX,
+  );
+}
+
+/** Au-delà, les résultats de recherche coupent le titre. */
+const TITLE_MAX = 60;
+const DESCRIPTION_MAX = 160;
+
+/** La première des formulations qui tient dans `max` caractères, sinon la plus courte. */
+function fit(candidates: readonly string[], max: number): string {
+  return candidates.find((text) => text.length <= max) ?? candidates[candidates.length - 1];
+}
+
+/** Description de la page : la plus complète qui tienne en 160 caractères. */
+export function descriptionOf(entry: GlossaryEntry, locale: Locale, rich: boolean): string {
+  return fit(COPY[locale].descriptions(entry, rich), DESCRIPTION_MAX);
 }
 
 /**
@@ -512,7 +569,7 @@ export default class GlossaryTermPage {
 
     this.seo.apply({
       title: titleOf(entry, this.locale),
-      description: this.c.description(entry),
+      description: descriptionOf(entry, this.locale, !!this.article()),
       path,
       locale: this.locale,
       // Une page sans article n'est que le gabarit (définition, rang

@@ -3,7 +3,7 @@
  * `structured-data.test.mjs` sans build.
  */
 
-const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: '\u00a0' };
 
 /** Texte visible du `<body>` : sans scripts, styles ni balises, espaces normalisés. */
 export function visibleText(html) {
@@ -15,18 +15,25 @@ export function visibleText(html) {
         ' ',
       )
       .replace(/<[^>]+>/g, ' ')
-      .replace(/&(#x?[0-9a-f]+|\w+);/gi, (m, code) => {
-        if (code[0] !== '#') return ENTITIES[code.toLowerCase()] ?? m;
-        const n =
-          code[1] === 'x' || code[1] === 'X' ? parseInt(code.slice(2), 16) : Number(code.slice(1));
-        return String.fromCodePoint(n);
-      }),
+      .replace(/&(#x?[0-9a-f]+|\w+);/gi, decodeEntity),
   );
+}
+
+function decodeEntity(match, code) {
+  if (code[0] !== '#') return ENTITIES[code.toLowerCase()] ?? match;
+  const n =
+    code[1] === 'x' || code[1] === 'X' ? parseInt(code.slice(2), 16) : Number(code.slice(1));
+  return String.fromCodePoint(n);
+}
+
+/** Entités HTML décodées, espaces laissées telles quelles (insécables comprises). */
+export function decodeEntities(text) {
+  return text.replace(/&(#x?[0-9a-f]+|\w+);/gi, decodeEntity);
 }
 
 /** Espaces (insécables comprises) ramenées à une seule espace ordinaire. */
 export function normalize(text) {
-  return text.replace(/[\s  ]+/g, ' ').trim();
+  return text.replace(/[\s\u00a0\u202f]+/g, ' ').trim();
 }
 
 /** Blocs JSON-LD d'une page ; un bloc illisible est signalé par `null`. */

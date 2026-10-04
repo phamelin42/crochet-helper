@@ -52,9 +52,9 @@ interface ForeignCopy {
 
 const COPY: Record<Locale, ForeignCopy> = {
   fr: {
-    seoTitle: `Lire un patron de crochet anglais en français — ${SITE_NAME}`,
+    seoTitle: `Lire un patron de crochet anglais, traduit en français`,
     seoDescription:
-      'Traduire les abréviations d’un patron de crochet anglais (sc, dc, inc, sl st…) : collez un rang, lisez-le en clair, ouvrez-le en grand dans le lecteur. Sans inscription.',
+      'Traduire les abréviations d’un patron de crochet anglais (sc, dc, inc, sl st…) : collez un rang, lisez-le en clair, suivez-le dans le lecteur. Gratuit.',
     h1: 'Lire un patron de crochet anglais en français',
     lead: `Collez un rang ou un patron anglais${NBSP}: chaque abréviation reconnue s’écrit en toutes lettres, en français, avec le sigle d’origine entre parenthèses. Rien n’est envoyé nulle part, tout se passe dans votre navigateur.`,
     example: 'Row 1: 6 sc in magic ring, inc in each st around (12)',
@@ -121,7 +121,7 @@ const COPY: Record<Locale, ForeignCopy> = {
   en: {
     seoTitle: `Reading a French crochet pattern in English — ${SITE_NAME}`,
     seoDescription:
-      'Translate the abbreviations of a French crochet pattern (ms, db, ml, aug, dim…): paste a row, read it in plain English, open it in large type in the reader. No sign-up.',
+      'Translate the abbreviations of a French crochet pattern (ms, db, ml, aug, dim…): paste a row, read it in plain English, then follow it in the reader. Free.',
     h1: 'Reading a French crochet pattern in English',
     lead: 'Paste a row or a whole French pattern: every abbreviation we recognise is written out in English, with the original abbreviation in brackets. Nothing is sent anywhere, it all happens in your browser.',
     example: 'Tour 1 : 6 ms dans un cercle magique, 2 aug dans chaque maille',

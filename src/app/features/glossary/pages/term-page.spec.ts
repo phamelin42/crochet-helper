@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Locale } from '../../../core/i18n/locale';
 import { GLOSSARY, GlossaryEntry } from '../../reader/data/glossary';
 import { TERM_ARTICLES, TermArticle } from '../data/term-articles';
-import GlossaryTermPage, { regionNoteOf, titleOf } from './term-page';
+import GlossaryTermPage, { descriptionOf, regionNoteOf, titleOf } from './term-page';
 
 function render(slug: string, locale: Locale): HTMLElement {
   TestBed.configureTestingModule({
@@ -35,23 +35,50 @@ const entry = (term: string): GlossaryEntry => GLOSSARY.find((e) => e.term === t
 describe('titleOf', () => {
   it('annonce le même métier que la question de la page', () => {
     expect(titleOf(entry('sc'), 'en')).toBe(
-      'What does \u201Csc\u201D mean in crochet? Single crochet \u2014 Pattern Reader',
+      'What does \u201Csc\u201D mean in crochet? Single crochet',
     );
     expect(titleOf(entry('k2tog'), 'en')).toBe(
-      'What does \u201Ck2tog\u201D mean in knitting? Knit 2 together \u2014 Pattern Reader',
+      'What does \u201Ck2tog\u201D mean in knitting? Knit 2 together',
     );
     // Le piège : un terme des deux métiers ne doit pas se dire « crochet » seul.
     expect(titleOf(entry('inc'), 'en')).toBe(
-      'What does \u201Cinc\u201D mean in crochet and knitting? Increase \u2014 Pattern Reader',
+      'What does \u201Cinc\u201D mean in crochet and knitting? Increase',
     );
     expect(titleOf(entry('inc'), 'fr')).toBe(
-      'Que veut dire \u00AB\u00A0inc\u00A0\u00BB au crochet et au tricot\u00A0? Augmentation \u2014 Pattern Reader',
+      'Que veut dire \u00AB\u00A0inc\u00A0\u00BB au crochet et au tricot\u00A0? Augmentation',
+    );
+  });
+
+  it('garde le nom du site quand il tient', () => {
+    expect(titleOf(entry('sp'), 'en')).toBe(
+      'What does \u201Csp\u201D mean in crochet? Space \u2014 Pattern Reader',
     );
   });
 
   it('ne garde que la tête de la définition, glose exclue', () => {
-    expect(titleOf(entry('dim'), 'fr')).toContain('Diminution \u2014 Pattern Reader');
+    expect(titleOf(entry('dim'), 'fr')).toContain('Diminution');
+    expect(titleOf(entry('dim'), 'fr')).not.toContain('2 mailles');
   });
+
+  for (const locale of ['en', 'fr'] as const) {
+    it(`tient en 60 caractères et commence par la question du titre (${locale})`, () => {
+      for (const e of GLOSSARY) {
+        const title = titleOf(e, locale);
+        expect(title.length, title).toBeLessThanOrEqual(60);
+        expect(title, e.term).toMatch(/^(What does|Que veut dire)/);
+      }
+    });
+
+    it(`décrit chaque page en 160 caractères au plus (${locale})`, () => {
+      for (const e of GLOSSARY) {
+        for (const rich of [true, false]) {
+          const description = descriptionOf(e, locale, rich);
+          expect(description.length, description).toBeLessThanOrEqual(160);
+          expect(description, e.term).toContain(e.term);
+        }
+      }
+    });
+  }
 });
 
 describe('regionNoteOf', () => {

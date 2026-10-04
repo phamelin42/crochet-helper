@@ -40,9 +40,9 @@ interface GuideCopy {
 
 const COPY: Record<Locale, GuideCopy> = {
   fr: {
-    seoTitle: `Crochet ou tricot : quelle différence, et par lequel commencer — ${SITE_NAME}`,
+    seoTitle: `Crochet ou tricot${NBSP}: la différence, et par lequel commencer`,
     seoDescription:
-      'Un crochet ou deux aiguilles, quelle technique est la plus facile pour débuter, quels projets chacune permet : les différences entre crochet et tricot expliquées simplement.',
+      'Un crochet ou deux aiguilles, quelle technique est la plus facile pour débuter, quels projets chacune permet : crochet et tricot comparés tout simplement.',
     h1: 'Crochet ou tricot : quelle différence, et par lequel commencer ?',
     lead: `Les deux produisent du tissu à partir d'un seul fil, mais avec des outils et une logique différents. Ni l'un ni l'autre n'est strictement supérieur${NBSP}: le choix dépend surtout de ce qu'on a envie de fabriquer, et du temps qu'on a envie d'y passer.`,
     h2Diff: `Quelle est la différence entre crochet et tricot${NBSP}?`,
@@ -66,7 +66,7 @@ const COPY: Record<Locale, GuideCopy> = {
     backToGlossary: 'Toutes les abréviations',
   },
   en: {
-    seoTitle: `Crochet or knitting: what is the difference, and which to start with — ${SITE_NAME}`,
+    seoTitle: `Crochet or knitting: the difference, and where to start`,
     seoDescription:
       'One hook or two needles, which is easier for a beginner, which projects suit which craft: the differences between crochet and knitting, explained simply.',
     h1: 'Crochet or knitting: what is the difference, and which should you start with?',

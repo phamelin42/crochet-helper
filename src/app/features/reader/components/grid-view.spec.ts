@@ -134,4 +134,45 @@ describe('GridView', () => {
     );
     expect(items).toEqual(['A · 15 stitches', 'B · 9 stitches']);
   });
+
+  /** Un cadre de 140 × 40 px, la grille (280 × 160 à l'échelle 1) débordant en hauteur. */
+  function frameOf(host: HTMLElement) {
+    const frame = host.querySelector<HTMLElement>('.chart-frame')!;
+    for (const [key, value] of [
+      ['clientWidth', 140],
+      ['clientHeight', 40],
+      ['scrollHeight', 160],
+    ] as const) {
+      Object.defineProperty(frame, key, { configurable: true, value });
+    }
+  }
+  const button = (host: HTMLElement, label: string) =>
+    Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(
+      (b) => b.textContent?.trim() === label,
+    )!;
+  const svgWidth = (host: HTMLElement) =>
+    Number(host.querySelector('svg.grid-svg')!.getAttribute('width'));
+
+  it('« Whole grid » fait tenir la grille entière dans le cadre, même sous 50 %', async () => {
+    const { fixture, host } = await setup();
+    frameOf(host);
+
+    button(host, 'Whole grid').click();
+    fixture.detectChanges();
+
+    // 40 / 160 = 25 % : la hauteur est la contrainte, et tout le dessin est visible.
+    expect(svgWidth(host)).toBe(280 * 0.25);
+    expect(button(host, 'Zoom out').disabled).toBe(true);
+  });
+
+  it('« Zoom out » descend sous 50 % jusqu’à la grille entière, pas au-delà', async () => {
+    const { fixture, host } = await setup();
+    frameOf(host);
+    for (let i = 0; i < 5; i++) {
+      button(host, 'Zoom out').click();
+      fixture.detectChanges();
+    }
+    expect(svgWidth(host)).toBe(280 * 0.25);
+    expect(button(host, 'Zoom out').disabled).toBe(true);
+  });
 });

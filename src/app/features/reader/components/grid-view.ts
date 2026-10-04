@@ -25,6 +25,8 @@ const TOP = 28;
 const MIN_LETTER_PX = 24;
 /** Au-delà, une lettre par maille ferait des milliers de nœuds : seul le rang courant en porte. */
 const MAX_LETTERED_CELLS = 2500;
+/** « Voir tout » ne réduit pas sous 5 % : une grille de 150 mailles y tient déjà sur un téléphone. */
+const MIN_WHOLE = 0.05;
 
 /**
  * La grille de couleurs d'un projet, dans le cadre de l'affichage diagramme.
@@ -41,7 +43,7 @@ const MAX_LETTERED_CELLS = 2500;
         <button
           type="button"
           filButton="secondary"
-          [disabled]="zoom() <= MIN_ZOOM"
+          [disabled]="zoom() <= floor()"
           (click)="zoomBy(-ZOOM_STEP)"
         >
           {{ t('zoomOut') }}
@@ -57,9 +59,13 @@ const MAX_LETTERED_CELLS = 2500;
         <button type="button" filButton="secondary" (click)="zoom.set(1)">
           {{ t('fit') }}
         </button>
+        <button type="button" filButton="secondary" (click)="showWhole()">
+          {{ t('whole') }}
+        </button>
       </div>
       @if (grid(); as g) {
         <div
+          #frame
           class="chart-frame"
           role="region"
           tabindex="0"
@@ -222,6 +228,7 @@ export class GridView {
   private readonly i18n = inject(I18nService);
   private readonly svgRef = viewChild<ElementRef<SVGSVGElement>>('svg');
   private readonly markerRef = viewChild<ElementRef<SVGRectElement>>('marker');
+  private readonly frameRef = viewChild<ElementRef<HTMLElement>>('frame');
 
   protected readonly SIDE = SIDE;
   protected readonly GUTTER = GUTTER;
@@ -231,6 +238,11 @@ export class GridView {
   protected readonly ZOOM_STEP = ZOOM_STEP;
 
   protected readonly zoom = signal(1);
+  /**
+   * Plus petite échelle permise : 50 %, ou moins si c'est ce qu'il faut pour
+   * voir la grille entière dans son cadre. Mesurée au moment où l'on réduit.
+   */
+  protected readonly floor = signal(MIN_ZOOM);
 
   protected t = (key: GridViewKey) => GRID_VIEW_COPY[this.i18n.locale()][key];
 
@@ -401,7 +413,29 @@ export class GridView {
   }
 
   protected zoomBy(delta: number): void {
-    this.zoom.update((zoom) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom + delta)));
+    const floor = Math.min(MIN_ZOOM, this.wholeScale());
+    this.floor.set(floor);
+    this.zoom.update((zoom) => Math.min(MAX_ZOOM, Math.max(floor, zoom + delta)));
+  }
+
+  /** Toute la grille d'un coup d'œil : l'échelle qui la fait tenir dans le cadre. */
+  protected showWhole(): void {
+    const scale = this.wholeScale();
+    this.floor.set(Math.min(MIN_ZOOM, scale));
+    this.zoom.set(scale);
+  }
+
+  /** Échelle à laquelle la grille tient entière dans le cadre, sans dépasser la taille réelle. */
+  private wholeScale(): number {
+    const frame = this.frameRef()?.nativeElement;
+    if (!frame?.clientWidth || !frame.clientHeight) return MIN_ZOOM;
+    // Une grille qui ne déborde pas en hauteur tient déjà verticalement : on ne
+    // l'agrandit pas, puisque la hauteur libre du cadre n'est pas mesurable.
+    const tall = frame.scrollHeight > frame.clientHeight;
+    const fitWidth = frame.clientWidth / this.width();
+    const fitHeight = tall ? frame.clientHeight / this.height() : this.zoom();
+    const scale = Math.floor(Math.min(fitWidth, fitHeight, 1) * 100) / 100;
+    return Math.max(MIN_WHOLE, scale);
   }
 
   protected previous(): void {

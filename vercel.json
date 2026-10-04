@@ -64,42 +64,112 @@
         }
       ],
       "destination": "https://patternreader.com/$1",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/lecteur",
       "destination": "/fr",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/en/reader",
       "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/en",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/glossaire",
-      "destination": "/fr/glossaire",
-      "permanent": true
-    },
-    {
-      "source": "/en/glossary",
-      "destination": "/glossary",
-      "permanent": true
+      "statusCode": 301
     },
     {
       "source": "/bien-formater-son-patron",
       "destination": "/fr/bien-formater-son-patron",
-      "permanent": true
+      "statusCode": 301
     },
     {
-      "source": "/en/format-your-pattern",
-      "destination": "/format-your-pattern",
-      "permanent": true
+      "source": "/en/glossary/slst",
+      "destination": "/glossary/sl-st",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/glossary/rnds",
+      "destination": "/glossary/rnd",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/glossary/sts",
+      "destination": "/glossary/st",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/glossary/crab-st",
+      "destination": "/glossary/rsc",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/glossary/mr",
+      "destination": "/glossary/magic-ring",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/glossary/magic-loop",
+      "destination": "/glossary/magic-ring",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/glossary/cercle-magique",
+      "destination": "/glossary/magic-ring",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossaire/slst",
+      "destination": "/fr/glossaire/sl-st",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossaire/rnds",
+      "destination": "/fr/glossaire/rnd",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossaire/sts",
+      "destination": "/fr/glossaire/st",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossaire/crab-st",
+      "destination": "/fr/glossaire/rsc",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossaire/mr",
+      "destination": "/fr/glossaire/cercle-magique",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossaire/magic-loop",
+      "destination": "/fr/glossaire/cercle-magique",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossaire/magic-ring",
+      "destination": "/fr/glossaire/cercle-magique",
+      "statusCode": 301
+    },
+    {
+      "source": "/en",
+      "destination": "/",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/:path*",
+      "destination": "/:path*",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossaire",
+      "destination": "/fr/glossaire",
+      "statusCode": 301
+    },
+    {
+      "source": "/glossaire/:path*",
+      "destination": "/fr/glossaire/:path*",
+      "statusCode": 301
     },
     {
       "source": "/glossary/slst",

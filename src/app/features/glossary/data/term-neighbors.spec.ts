@@ -8,7 +8,11 @@ const terms = (entries: readonly GlossaryEntry[]) => entries.map((e) => e.term);
 describe('neighborsOf', () => {
   it('propose l’autre notation du même point', () => {
     expect(terms(neighborsOf(entry('ms')).synonyms)).toEqual(['sc']);
-    expect(terms(neighborsOf(entry('mr')).synonyms)).toEqual(['magic ring', 'cercle magique']);
+    expect(terms(neighborsOf(entry('mr')).synonyms)).toEqual([
+      'magic ring',
+      'cercle magique',
+      'magic loop',
+    ]);
   });
 
   it('ne se propose jamais lui-même, ni deux fois le même terme', () => {

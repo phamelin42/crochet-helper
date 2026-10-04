@@ -342,3 +342,48 @@
   stroke-width: 3;
   pointer-events: none;
 }
+
+/* Diagramme de la pièce entière : numéros des tours ou des rangs, place en
+ * pointillé des étapes que le texte ne permet pas de dessiner, consigne de
+ * l'étape en cours au-dessus du dessin. */
+.chart-number {
+  fill: var(--print-ink);
+  font-size: var(--text-sm);
+  pointer-events: none;
+}
+.chart-number.is-current {
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+.chart-gap {
+  fill: none;
+  stroke: var(--print-ink);
+  stroke-width: 2;
+  stroke-dasharray: 4 6;
+  opacity: 0.45;
+}
+.chart-gap.is-current {
+  stroke: var(--color-primary);
+  stroke-width: 3;
+  opacity: 1;
+}
+.chart-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  font-size: var(--text-base);
+}
+.chart-step em {
+  flex-basis: 100%;
+  color: var(--color-yamabuki-ink);
+}
+.chart-legend-title {
+  margin: 0;
+  font-size: var(--text-base);
+}
+.chart-view .chart-legend {
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  max-height: none;
+}

@@ -7,6 +7,11 @@ import { Locale } from '../../../core/i18n/locale';
 const FR = {
   round: 'Tour',
   row: 'Rang',
+  rounds: 'Tours',
+  rows: 'Rangs',
+  to: 'à',
+  legend: 'Légende des symboles',
+  notDrawnHint: 'Cette étape ne se dessine pas : suivez la consigne écrite.',
   stitch: 'maille',
   of: 'sur',
   notDrawn: 'cette étape ne se dessine pas',
@@ -22,6 +27,11 @@ const FR = {
 const EN: typeof FR = {
   round: 'Round',
   row: 'Row',
+  rounds: 'Rounds',
+  rows: 'Rows',
+  to: 'to',
+  legend: 'Symbol key',
+  notDrawnHint: 'This step cannot be drawn: follow the written instruction.',
   stitch: 'stitch',
   of: 'of',
   notDrawn: 'this step is not drawn',

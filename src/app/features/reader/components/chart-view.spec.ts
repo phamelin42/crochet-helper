@@ -29,10 +29,10 @@ describe('ChartView', () => {
     localStorage.clear();
   });
 
-  async function setup() {
+  async function setup(pattern = PATTERN) {
     const store = TestBed.inject(ReaderStore);
     await store.initialize();
-    store.load(PATTERN);
+    store.load(pattern);
     await vi.waitFor(() => expect(store.pieceChart()).not.toBeNull());
     const fixture = TestBed.createComponent(ChartView);
     fixture.detectChanges();
@@ -127,5 +127,64 @@ describe('ChartView', () => {
     cells()[1].dispatchEvent(new PointerEvent('pointerenter', { pointerType: 'touch' }));
 
     expect(tooltips.state()).toBeNull();
+  });
+
+  it('écrit la consigne de l’étape en cours au-dessus du dessin, et la suit', async () => {
+    const { store, fixture, host } = await setup();
+    const step = () => host.querySelector('.chart-step')?.textContent ?? '';
+
+    expect(step()).toContain('Round 1');
+    expect(step()).toContain('6 sc (6)');
+
+    store.move(1);
+    fixture.detectChanges();
+    expect(step()).toContain('Round 2');
+    expect(step()).toContain('12 sc (12)');
+  });
+
+  it('numérote chaque tour et garde en pointillé la place d’une étape non dessinable', async () => {
+    const { store, fixture, host } = await setup(
+      ['Patron', 'Round 1: 6 sc (6)', 'Round 2: stuff firmly', 'Round 3: 6 sc (6)'].join('\n'),
+    );
+    const numbers = () =>
+      Array.from(host.querySelectorAll('.chart-number'), (n) => n.textContent?.trim());
+
+    expect(numbers()).toEqual(['1', '2', '3']);
+    expect(host.querySelectorAll('.chart-gap')).toHaveLength(1);
+    expect(host.querySelector('.chart-step em')).toBeNull();
+
+    store.move(1);
+    fixture.detectChanges();
+    expect(host.querySelector('.chart-gap')?.classList).toContain('is-current');
+    expect(host.querySelector('.chart-number.is-current')?.textContent?.trim()).toBe('2');
+    expect(host.querySelector('.chart-step em')?.textContent).toContain('cannot be drawn');
+  });
+
+  it('dessine chacun des tours d’une étape « Rounds 3-4 » et dit lequel est en cours', async () => {
+    const { store, fixture, cells, label, host } = await setup(
+      [
+        'Patron',
+        'Round 1: 6 sc in a magic ring (6)',
+        'Round 2: inc in each st around (12)',
+        'Rounds 3-4: sc around (12)',
+      ].join('\n'),
+    );
+    expect(cells()).toHaveLength(6 + 6 + 24);
+    expect(store.stitchTotal()).toBe(6);
+
+    store.markStitch(2, 13);
+    fixture.detectChanges();
+    expect(label()).toBe('Round 4 of 4, stitch 2 of 12');
+    expect(host.querySelector('.chart-step strong')?.textContent).toBe('Rounds 3 to 4 (round 4)');
+  });
+
+  it('légende : les seuls symboles du dessin', async () => {
+    const { host } = await setup(
+      ['Patron', 'Round 1: 6 sc in a magic ring (6)', 'Round 2: [sc, inc] x 3 (9)'].join('\n'),
+    );
+    const items = Array.from(host.querySelectorAll('.chart-legend li'), (li) =>
+      li.querySelector('code')?.textContent?.trim(),
+    );
+    expect(items).toEqual(['sc', 'sc inc']);
   });
 });

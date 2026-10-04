@@ -8,21 +8,36 @@ import { CELL, ChartCell, layoutPiece } from '../data/chart-layout';
 import { CHART_VIEW_COPY, ChartViewKey } from '../data/chart-view-copy';
 import { symbolAbbreviation, symbolName, symbolUrl } from '../data/chart-symbols';
 import { ReaderStore } from '../state/reader-store';
+import { ChartLegend } from './chart-legend';
 import { MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from './chart-viewer';
+import { GlossaryText } from './glossary-text';
 
 /** Pas de comparaison d'une maille : assez large pour qu'aucun tour n'en déborde. */
 const ORDER = 100_000;
 
 /**
- * La pièce en cours dessinée en symboles. Toucher une maille dit « j'en suis
- * là » : la progression est celle du lecteur, partagée avec l'affichage texte.
+ * La pièce en cours dessinée en symboles, toutes ses étapes à la fois, comme
+ * un diagramme imprimé : numéros des tours ou des rangs, sens de lecture,
+ * place en pointillé des étapes que le texte ne permet pas de dessiner. La
+ * consigne de l'étape en cours reste écrite au-dessus, et la légende des
+ * symboles employés dessous. Toucher une maille dit « j'en suis là » : la
+ * progression est celle du lecteur, partagée avec l'affichage texte.
  * Chargé à la demande depuis `StepView`, comme sa feuille `chart.css`.
  */
 @Component({
   selector: 'fil-chart-view',
-  imports: [Button],
+  imports: [Button, ChartLegend, GlossaryText],
   template: `
     <div class="chart-viewer chart-view">
+      @if (store.step(); as step) {
+        <p class="chart-step">
+          <strong>{{ stepTitle() }}</strong>
+          <span><fil-glossary-text [text]="step.body" /></span>
+          @if (!store.stitchTotal()) {
+            <em>{{ t('notDrawnHint') }}</em>
+          }
+        </p>
+      }
       <div class="chart-toolbar" role="group" [attr.aria-label]="t('controls')">
         <button
           type="button"
@@ -60,6 +75,38 @@ const ORDER = 100_000;
           [attr.width]="layout().width * zoom()"
           [attr.height]="layout().height * zoom()"
         >
+          @for (gap of layout().gaps; track $index) {
+            @if (gap.kind === 'ring') {
+              <circle
+                class="chart-gap"
+                [class.is-current]="gap.step === store.stepIndex()"
+                [attr.cx]="layout().width / 2"
+                [attr.cy]="layout().height / 2"
+                [attr.r]="gap.r"
+              />
+            } @else {
+              <line
+                class="chart-gap"
+                [class.is-current]="gap.step === store.stepIndex()"
+                [attr.x1]="CELL"
+                [attr.x2]="layout().width - CELL"
+                [attr.y1]="gap.y"
+                [attr.y2]="gap.y"
+              />
+            }
+          }
+          @for (label of layout().labels; track $index) {
+            <text
+              class="chart-number"
+              [class.is-current]="label.step === store.stepIndex()"
+              text-anchor="middle"
+              dominant-baseline="central"
+              [attr.x]="label.x"
+              [attr.y]="label.y"
+            >
+              {{ label.text }}
+            </text>
+          }
           @for (cell of cells(); track cell.key) {
             <g
               class="chart-cell"
@@ -118,6 +165,10 @@ const ORDER = 100_000;
         </button>
       </div>
       <p class="visually-hidden" aria-live="polite">{{ summary() }}</p>
+      @if (used().length) {
+        <h3 class="chart-legend-title">{{ t('legend') }}</h3>
+        <fil-chart-legend [only]="used()" />
+      }
     </div>
   `,
 })
@@ -138,7 +189,7 @@ export class ChartView {
 
   protected readonly layout = computed(() => {
     const chart = this.store.pieceChart();
-    return chart ? layoutPiece(chart) : { width: 0, height: 0, cells: [] };
+    return chart ? layoutPiece(chart) : { width: 0, height: 0, cells: [], labels: [], gaps: [] };
   });
 
   /** Place de la maille courante dans l'ordre de lecture ; ce que `go` compare. */
@@ -179,13 +230,41 @@ export class ChartView {
     return this.layout().cells.find((cell) => cell.round * ORDER + cell.stitch > position) ?? null;
   });
 
+  /** Symboles du dessin, dans l'ordre de la légende complète. */
+  protected readonly used = computed(() => [
+    ...new Set(this.layout().cells.map((cell) => cell.symbol)),
+  ]);
+
+  /** Tours couverts par l'étape courante, et mailles de chacun. */
+  private readonly ring = computed(() => {
+    const chart = this.store.pieceChart();
+    const step = this.store.stepIndex();
+    const span = chart?.spans[step] ?? 1;
+    const first = chart?.numbers[step] ?? step + 1;
+    const total = this.store.stitchTotal();
+    const size = total / span;
+    const stitch = Math.min(this.store.stitchIndex(), Math.max(0, total - 1));
+    const repeat = size ? Math.floor(stitch / size) : 0;
+    const last = chart
+      ? (chart.numbers.at(-1) ?? 0) + (chart.spans.at(-1) ?? 1) - 1
+      : this.store.stepCount();
+    return { first, span, number: first + repeat, size, stitch: size ? stitch % size : 0, last };
+  });
+
+  /** « Tour 3 », « Tours 5 à 8 (tour 6) » : le numéro du patron, pas l'indice de l'étape. */
+  protected readonly stepTitle = computed(() => {
+    const kind = this.store.pieceChart()?.kind ?? 'round';
+    const { first, span, number } = this.ring();
+    if (span === 1) return `${this.t(kind)} ${first}`;
+    return `${this.t(kind === 'round' ? 'rounds' : 'rows')} ${first} ${this.t('to')} ${first + span - 1} (${this.t(kind).toLowerCase()} ${number})`;
+  });
+
   protected readonly summary = computed(() => {
     const kind = this.store.pieceChart()?.kind ?? 'round';
-    const head = `${this.t(kind)} ${this.store.stepIndex() + 1} ${this.t('of')} ${this.store.stepCount()}`;
-    const total = this.store.stitchTotal();
-    if (!total) return `${head}, ${this.t('notDrawn')}`;
-    const stitch = Math.min(this.store.stitchIndex(), total - 1) + 1;
-    return `${head}, ${this.t('stitch')} ${stitch} ${this.t('of')} ${total}`;
+    const { number, size, stitch, last } = this.ring();
+    const head = `${this.t(kind)} ${number} ${this.t('of')} ${last}`;
+    if (!size) return `${head}, ${this.t('notDrawn')}`;
+    return `${head}, ${this.t('stitch')} ${stitch + 1} ${this.t('of')} ${size}`;
   });
 
   constructor() {
@@ -222,10 +301,13 @@ export class ChartView {
     const symbol = findSymbol(cell.symbol);
     if (!symbol) return;
     const locale = this.i18n.locale();
-    const kind = this.store.pieceChart()?.kind ?? 'round';
+    const chart = this.store.pieceChart();
+    const kind = chart?.kind ?? 'round';
+    const size = (chart?.stitches[cell.round] ?? 0) / (chart?.spans[cell.round] ?? 1) || 1;
+    const number = (chart?.numbers[cell.round] ?? cell.round + 1) + Math.floor(cell.stitch / size);
     this.tooltips.showFor(
       event.currentTarget as unknown as HTMLElement,
-      `${this.t(kind)} ${cell.round + 1} · ${this.t('stitch')} ${cell.stitch + 1}`,
+      `${this.t(kind)} ${number} · ${this.t('stitch')} ${(cell.stitch % size) + 1}`,
       `${symbolAbbreviation(symbol, locale)}, ${symbolName(symbol, locale)}`,
     );
   }

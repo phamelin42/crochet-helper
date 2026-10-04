@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { Locale } from '../../../core/i18n/locale';
 import { GLOSSARY, GlossaryEntry } from '../../reader/data/glossary';
 import { TERM_ARTICLES } from '../data/term-articles';
+import { headOf } from '../data/term-neighbors';
 import GlossaryTermPage, { regionNoteOf, titleOf } from './term-page';
 
 function render(slug: string, locale: Locale): HTMLElement {
@@ -43,8 +44,22 @@ describe('titleOf', () => {
       'What does \u201Cinc\u201D mean in crochet and knitting? Increase \u2014 Pattern Reader',
     );
     expect(titleOf(entry('inc'), 'fr')).toBe(
-      'Que veut dire \u00AB\u00A0inc\u00A0\u00BB au crochet et au tricot\u00A0? Augmentation \u2014 Pattern Reader',
+      'Que veut dire \u00AB\u00A0inc\u00A0\u00BB au crochet et au tricot\u00A0? Traduction\u00A0: augmentation \u2014 Pattern Reader',
     );
+  });
+
+  it('dit « Traduction » quand l’abréviation vient de l’autre langue', () => {
+    // La requête type : « blo crochet traduction ».
+    expect(titleOf(entry('blo'), 'fr')).toBe(
+      'Que veut dire \u00AB\u00A0blo\u00A0\u00BB au crochet\u00A0? Traduction\u00A0: dans le brin arri\u00E8re uniquement \u2014 Pattern Reader',
+    );
+    for (const e of GLOSSARY) {
+      for (const locale of ['fr', 'en'] as const) {
+        const label = locale === 'fr' ? 'Traduction\u00A0:' : 'Translation:';
+        if (e.lang === locale) expect(titleOf(e, locale)).not.toContain(label);
+        else expect(titleOf(e, locale)).toContain(`${label} ${headOf(e[locale])}`);
+      }
+    }
   });
 
   it('ne garde que la tête de la définition, glose exclue', () => {
@@ -79,6 +94,16 @@ describe('regionNoteOf', () => {
 
   it('ne dit rien d’un terme hors du décalage US/UK', () => {
     expect(regionNoteOf(entry('ch'), 'en')).toBeUndefined();
+  });
+});
+
+describe('GlossaryTermPage — retour au glossaire', () => {
+  it('ramène sur la ligne du terme, pas en haut de la liste', () => {
+    const host = render('blo', 'fr');
+    const back = [...host.querySelectorAll('a')].find((a) =>
+      a.textContent?.includes('Toutes les abréviations'),
+    );
+    expect(back?.getAttribute('href')).toBe('/fr/glossaire#blo');
   });
 });
 

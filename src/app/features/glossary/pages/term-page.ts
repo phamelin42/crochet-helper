@@ -52,6 +52,11 @@ interface TermCopy {
   readonly backToGlossary: string;
   /** Guillemets de la langue, posés autour de l'abréviation dans le titre. */
   readonly quotes: readonly [string, string];
+  /**
+   * Libellé posé devant le sens quand l'abréviation vient de l'autre langue :
+   * on cherche « blo crochet traduction », pas « blo signification ».
+   */
+  readonly translation: string;
   description(entry: GlossaryEntry): string;
 }
 
@@ -93,8 +98,13 @@ const COPY: Record<Locale, TermCopy> = {
     backToReader: 'Lire tout un patron pas à pas',
     backToGlossary: 'Toutes les abréviations',
     quotes: [`«${NBSP}`, `${NBSP}»`],
+    translation: `Traduction${NBSP}:`,
     description: (e) =>
-      `«${NBSP}${e.term}${NBSP}» veut dire ${headOf(e.fr)} (${headOf(e.en)} en anglais). Collez un rang de votre patron${NBSP}: chaque abréviation y est traduite en clair.`,
+      `${
+        e.lang === 'fr'
+          ? `«${NBSP}${e.term}${NBSP}» veut dire ${headOf(e.fr)}`
+          : `Traduction de «${NBSP}${e.term}${NBSP}» en français${NBSP}: ${headOf(e.fr)}`
+      } (${headOf(e.en)} en anglais). Collez un rang de votre patron${NBSP}: chaque abréviation y est traduite en clair.`,
   },
   en: {
     question: {
@@ -128,8 +138,13 @@ const COPY: Record<Locale, TermCopy> = {
     backToReader: 'Read a whole pattern step by step',
     backToGlossary: 'All abbreviations',
     quotes: ['“', '”'],
+    translation: 'Translation:',
     description: (e) =>
-      `“${e.term}” means ${headOf(e.en)} (${headOf(e.fr)} in French). Paste a row from your pattern and every abbreviation in it is spelled out.`,
+      `${
+        e.lang === 'en'
+          ? `“${e.term}” means ${headOf(e.en)}`
+          : `“${e.term}” in English: ${headOf(e.en)}`
+      } (${headOf(e.fr)} in French). Paste a row from your pattern and every abbreviation in it is spelled out.`,
   },
 };
 
@@ -145,7 +160,8 @@ export function titleOf(entry: GlossaryEntry, locale: Locale): string {
   const c = COPY[locale];
   const [before, after] = c.question[entry.craft];
   const [open, close] = c.quotes;
-  const meaning = capitalize(headOf(entry[locale]));
+  const head = headOf(entry[locale]);
+  const meaning = entry.lang === locale ? capitalize(head) : `${c.translation} ${head}`;
   return `${before}${open}${entry.term}${close}${after} ${meaning} — ${SITE_NAME}`;
 }
 
@@ -338,7 +354,9 @@ export function regionNoteOf(
 
     <div class="navrow">
       <a filButton="primary" [routerLink]="i18n.link('reader')">{{ c.backToReader }}</a>
-      <a filButton="ghost" [routerLink]="i18n.link('glossary')">{{ c.backToGlossary }}</a>
+      <a filButton="ghost" [routerLink]="i18n.link('glossary')" [fragment]="entry().slug">{{
+        c.backToGlossary
+      }}</a>
     </div>
   `,
 })

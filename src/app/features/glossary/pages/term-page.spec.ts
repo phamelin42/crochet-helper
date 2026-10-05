@@ -1,12 +1,14 @@
+import { DOCUMENT } from '@angular/common';
+import { Meta } from '@angular/platform-browser';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Locale } from '../../../core/i18n/locale';
 import { GLOSSARY, GlossaryEntry } from '../../reader/data/glossary';
-import { TERM_ARTICLES } from '../data/term-articles';
+import { TERM_ARTICLES, TermArticle } from '../data/term-articles';
 import { headOf } from '../data/term-neighbors';
-import GlossaryTermPage, { regionNoteOf, titleOf } from './term-page';
+import GlossaryTermPage, { descriptionOf, regionNoteOf, titleOf } from './term-page';
 
 function render(slug: string, locale: Locale): HTMLElement {
   TestBed.configureTestingModule({
@@ -34,37 +36,67 @@ const entry = (term: string): GlossaryEntry => GLOSSARY.find((e) => e.term === t
 describe('titleOf', () => {
   it('annonce le même métier que la question de la page', () => {
     expect(titleOf(entry('sc'), 'en')).toBe(
-      'What does \u201Csc\u201D mean in crochet? Single crochet \u2014 Pattern Reader',
+      'What does \u201Csc\u201D mean in crochet? Single crochet',
     );
     expect(titleOf(entry('k2tog'), 'en')).toBe(
-      'What does \u201Ck2tog\u201D mean in knitting? Knit 2 together \u2014 Pattern Reader',
+      'What does \u201Ck2tog\u201D mean in knitting? Knit 2 together',
     );
     // Le piège : un terme des deux métiers ne doit pas se dire « crochet » seul.
     expect(titleOf(entry('inc'), 'en')).toBe(
-      'What does \u201Cinc\u201D mean in crochet and knitting? Increase \u2014 Pattern Reader',
+      'What does \u201Cinc\u201D mean in crochet and knitting? Increase',
     );
+    // Abréviation anglaise lue en français : la traduction passe avant la tournure.
     expect(titleOf(entry('inc'), 'fr')).toBe(
-      'Que veut dire \u00AB\u00A0inc\u00A0\u00BB au crochet et au tricot\u00A0? Traduction\u00A0: augmentation \u2014 Pattern Reader',
+      '\u00AB\u00A0inc\u00A0\u00BB crochet et tricot \u2014 Traduction\u00A0: augmentation',
+    );
+  });
+
+  it('garde le nom du site quand il tient', () => {
+    expect(titleOf(entry('sp'), 'en')).toBe(
+      'What does \u201Csp\u201D mean in crochet? Space \u2014 Pattern Reader',
     );
   });
 
   it('dit « Traduction » quand l’abréviation vient de l’autre langue', () => {
     // La requête type : « blo crochet traduction ».
     expect(titleOf(entry('blo'), 'fr')).toBe(
-      'Que veut dire \u00AB\u00A0blo\u00A0\u00BB au crochet\u00A0? Traduction\u00A0: dans le brin arri\u00E8re uniquement \u2014 Pattern Reader',
+      '\u00AB\u00A0blo\u00A0\u00BB \u2014 Traduction\u00A0: dans le brin arri\u00E8re uniquement',
     );
     for (const e of GLOSSARY) {
       for (const locale of ['fr', 'en'] as const) {
         const label = locale === 'fr' ? 'Traduction\u00A0:' : 'Translation:';
+        const translation = `${label} ${headOf(e[locale])}`;
         if (e.lang === locale) expect(titleOf(e, locale)).not.toContain(label);
-        else expect(titleOf(e, locale)).toContain(`${label} ${headOf(e[locale])}`);
+        // Seule une traduction trop longue pour 60 caractères cède la place.
+        else if (translation.length <= 45) expect(titleOf(e, locale)).toContain(translation);
       }
     }
   });
 
   it('ne garde que la tête de la définition, glose exclue', () => {
-    expect(titleOf(entry('dim'), 'fr')).toContain('Diminution \u2014 Pattern Reader');
+    expect(titleOf(entry('dim'), 'fr')).toContain('Diminution');
+    expect(titleOf(entry('dim'), 'fr')).not.toContain('2 mailles');
   });
+
+  for (const locale of ['en', 'fr'] as const) {
+    it(`tient en 60 caractères et nomme l’abréviation (${locale})`, () => {
+      for (const e of GLOSSARY) {
+        const title = titleOf(e, locale);
+        expect(title.length, title).toBeLessThanOrEqual(60);
+        expect(title, e.term).toContain(e.term);
+      }
+    });
+
+    it(`décrit chaque page en 160 caractères au plus (${locale})`, () => {
+      for (const e of GLOSSARY) {
+        for (const rich of [true, false]) {
+          const description = descriptionOf(e, locale, rich);
+          expect(description.length, description).toBeLessThanOrEqual(160);
+          expect(description, e.term).toContain(e.term);
+        }
+      }
+    });
+  }
 });
 
 describe('regionNoteOf', () => {
@@ -133,16 +165,88 @@ describe('GlossaryTermPage — article', () => {
   });
 
   it('rend chaque article dans sa langue, rang souligné compris', () => {
-    for (const slug of Object.keys(TERM_ARTICLES)) {
-      for (const locale of ['fr', 'en'] as const) {
+    for (const [slug, byLocale] of Object.entries(TERM_ARTICLES)) {
+      for (const [locale, article] of Object.entries(byLocale) as [Locale, TermArticle][]) {
         TestBed.resetTestingModule();
         const host = render(slug, locale);
-        const article = TERM_ARTICLES[slug][locale];
 
         expect(host.textContent, `${slug} ${locale}`).toContain(article.tip);
         expect(host.querySelectorAll('h2').length, `${slug} ${locale}`).toBeGreaterThanOrEqual(7);
         expect(host.querySelectorAll('.abbr').length, `${slug} ${locale}`).toBeGreaterThan(0);
       }
     }
+  });
+});
+
+describe('GlossaryTermPage — une page par concept', () => {
+  const links = () => {
+    const head = TestBed.inject(DOCUMENT).head;
+    const href = (selector: string) => head.querySelector(selector)?.getAttribute('href');
+    return {
+      canonical: href('link[rel="canonical"]'),
+      en: href('link[rel="alternate"][hreflang="en"]'),
+      fr: href('link[rel="alternate"][hreflang="fr"]'),
+    };
+  };
+
+  it('relie la page anglaise du cercle magique à sa page française, sous deux slugs', () => {
+    render('magic-ring', 'en');
+    expect(links()).toEqual({
+      canonical: 'https://patternreader.com/glossary/magic-ring',
+      en: 'https://patternreader.com/glossary/magic-ring',
+      fr: 'https://patternreader.com/fr/glossaire/cercle-magique',
+    });
+
+    TestBed.resetTestingModule();
+    render('cercle-magique', 'fr');
+    expect(links()).toEqual({
+      canonical: 'https://patternreader.com/fr/glossaire/cercle-magique',
+      en: 'https://patternreader.com/glossary/magic-ring',
+      fr: 'https://patternreader.com/fr/glossaire/cercle-magique',
+    });
+  });
+
+  it('une graphie sans page affiche la page qui la sert, et y mène', () => {
+    const navigate = vi.spyOn(Router.prototype, 'navigateByUrl').mockResolvedValue(true);
+    const host = render('slst', 'en');
+    expect(host.querySelector('h1')?.textContent).toContain('sl st');
+    expect(links().canonical).toBe('https://patternreader.com/glossary/sl-st');
+    expect(navigate).toHaveBeenCalledWith('/glossary/sl-st', { replaceUrl: true });
+    navigate.mockRestore();
+    // La graphie est nommée sans lien, l'autre notation (mc, ss) a le sien.
+    const items = [...host.querySelectorAll('.term-links li')].map((li) => ({
+      text: li.textContent?.trim(),
+      linked: !!li.querySelector('a'),
+    }));
+    expect(items).toContainEqual({ text: 'slst — English abbreviation', linked: false });
+    for (const a of host.querySelectorAll<HTMLAnchorElement>('.term-links a')) {
+      expect(a.getAttribute('href')).not.toMatch(
+        /\/(slst|rnds|sts|crab-st|mr|magic-loop|cercle-magique)$/,
+      );
+    }
+  });
+});
+
+describe('GlossaryTermPage — indexation', () => {
+  const robots = () => TestBed.inject(Meta).getTag('name="robots"')?.content;
+
+  it('une page à article est indexée, une page de gabarit ne l’est pas mais reste suivie', () => {
+    render('sc', 'en');
+    expect(robots()).toBe('index, follow, max-image-preview:large');
+
+    TestBed.resetTestingModule();
+    render('flo', 'en');
+    expect(robots()).toBe('noindex, follow');
+  });
+
+  it('affiche la FAQ d’une abréviation ambiguë, et le guide qui convient', () => {
+    const host = render('mc', 'en');
+    expect(headings(host)).toContain('Frequently asked questions');
+    expect(host.textContent).toContain('What does MC mean in an English pattern?');
+    // `mc` est française : lue en anglais, elle mène au guide du patron étranger.
+    const guide = [...host.querySelectorAll<HTMLAnchorElement>('.term-links a')].find((a) =>
+      a.textContent?.startsWith('Guide'),
+    );
+    expect(guide?.getAttribute('href')).toBe('/read-a-french-pattern');
   });
 });

@@ -48,6 +48,10 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Toutes les redirections sont des 301, une seule étape jusqu'à une page
+# réelle : chaque règle ci-dessous est tenue identique, et dans le même ordre,
+# à `vercel.json` ; `tools/check-redirects.mjs` le vérifie au build.
+#
 # Le lecteur a rejoint la racine ; on redirige les anciennes URL en 301 pour
 # ne pas perdre les liens partagés ni le référencement acquis.
 [[redirects]]
@@ -60,12 +64,93 @@
   to = "/"
   status = 301
 
+[[redirects]]
+  from = "/bien-formater-son-patron"
+  to = "/fr/bien-formater-son-patron"
+  status = 301
+
+# Anciennes URL d'abréviations sans page aujourd'hui : directement vers la
+# page du concept, sans passer par la règle générique (pas de chaîne).
+[[redirects]]
+  from = "/en/glossary/slst"
+  to = "/glossary/sl-st"
+  status = 301
+
+[[redirects]]
+  from = "/en/glossary/rnds"
+  to = "/glossary/rnd"
+  status = 301
+
+[[redirects]]
+  from = "/en/glossary/sts"
+  to = "/glossary/st"
+  status = 301
+
+[[redirects]]
+  from = "/en/glossary/crab-st"
+  to = "/glossary/rsc"
+  status = 301
+
+[[redirects]]
+  from = "/en/glossary/mr"
+  to = "/glossary/magic-ring"
+  status = 301
+
+[[redirects]]
+  from = "/en/glossary/magic-loop"
+  to = "/glossary/magic-ring"
+  status = 301
+
+[[redirects]]
+  from = "/en/glossary/cercle-magique"
+  to = "/glossary/magic-ring"
+  status = 301
+
+[[redirects]]
+  from = "/glossaire/slst"
+  to = "/fr/glossaire/sl-st"
+  status = 301
+
+[[redirects]]
+  from = "/glossaire/rnds"
+  to = "/fr/glossaire/rnd"
+  status = 301
+
+[[redirects]]
+  from = "/glossaire/sts"
+  to = "/fr/glossaire/st"
+  status = 301
+
+[[redirects]]
+  from = "/glossaire/crab-st"
+  to = "/fr/glossaire/rsc"
+  status = 301
+
+[[redirects]]
+  from = "/glossaire/mr"
+  to = "/fr/glossaire/cercle-magique"
+  status = 301
+
+[[redirects]]
+  from = "/glossaire/magic-loop"
+  to = "/fr/glossaire/cercle-magique"
+  status = 301
+
+[[redirects]]
+  from = "/glossaire/magic-ring"
+  to = "/fr/glossaire/cercle-magique"
+  status = 301
+
 # L'anglais est passé langue par défaut : l'ancien arbre anglais sous /en se
-# redirige vers la racine, l'ancien arbre français à la racine se redirige
-# sous /fr.
+# redirige vers la racine, l'ancien glossaire français à la racine sous /fr.
 [[redirects]]
   from = "/en"
   to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/en/*"
+  to = "/:splat"
   status = 301
 
 [[redirects]]
@@ -74,18 +159,81 @@
   status = 301
 
 [[redirects]]
-  from = "/en/glossary"
-  to = "/glossary"
+  from = "/glossaire/*"
+  to = "/fr/glossaire/:splat"
+  status = 301
+
+# Glossaire : une graphie de plus (`slst`, `rnds`) ou un autre nom du même
+# point (`mr`, `magic loop`) n'a pas de page à lui ; son URL mène à celle du
+# concept. `magic-ring` et `cercle-magique` sont une seule page traduite.
+[[redirects]]
+  from = "/glossary/slst"
+  to = "/glossary/sl-st"
   status = 301
 
 [[redirects]]
-  from = "/bien-formater-son-patron"
-  to = "/fr/bien-formater-son-patron"
+  from = "/glossary/rnds"
+  to = "/glossary/rnd"
   status = 301
 
 [[redirects]]
-  from = "/en/format-your-pattern"
-  to = "/format-your-pattern"
+  from = "/glossary/sts"
+  to = "/glossary/st"
+  status = 301
+
+[[redirects]]
+  from = "/glossary/crab-st"
+  to = "/glossary/rsc"
+  status = 301
+
+[[redirects]]
+  from = "/glossary/mr"
+  to = "/glossary/magic-ring"
+  status = 301
+
+[[redirects]]
+  from = "/glossary/magic-loop"
+  to = "/glossary/magic-ring"
+  status = 301
+
+[[redirects]]
+  from = "/glossary/cercle-magique"
+  to = "/glossary/magic-ring"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/slst"
+  to = "/fr/glossaire/sl-st"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/rnds"
+  to = "/fr/glossaire/rnd"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/sts"
+  to = "/fr/glossaire/st"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/crab-st"
+  to = "/fr/glossaire/rsc"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/mr"
+  to = "/fr/glossaire/cercle-magique"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/magic-loop"
+  to = "/fr/glossaire/cercle-magique"
+  status = 301
+
+[[redirects]]
+  from = "/fr/glossaire/magic-ring"
+  to = "/fr/glossaire/cercle-magique"
   status = 301
 
 # En dernier : Netlify applique la première règle qui correspond, et ce repli

@@ -3,9 +3,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
+import { CRUMBS, breadcrumbList, homeCrumb } from '../../../core/seo/breadcrumbs';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
+import { Breadcrumb } from '../../../shared/ui/breadcrumb/breadcrumb';
 import { Button } from '../../../shared/ui/button/button';
+import { GUIDE_DATES, guideDatesLine } from '../data/guide-dates';
 import { CHART_SYMBOLS, ChartSymbol, symbolName, symbolUrl } from '../../reader/data/chart-symbols';
 
 const NBSP = ' ';
@@ -45,7 +48,7 @@ interface GuideCopy {
 
 const COPY: Record<Locale, GuideCopy> = {
   fr: {
-    seoTitle: `Comment lire un diagramme de crochet ou une grille de tricot — ${SITE_NAME}`,
+    seoTitle: `Lire un diagramme de crochet ou une grille de tricot`,
     seoDescription:
       'Symboles, sens de lecture, diagramme en rang ou en rond, grille de jacquard : la méthode pour lire un diagramme de crochet ou de tricot sans se perdre.',
     h1: 'Comment lire un diagramme de crochet, ou une grille de tricot',
@@ -78,7 +81,7 @@ const COPY: Record<Locale, GuideCopy> = {
     backToGlossary: 'Toutes les abréviations',
   },
   en: {
-    seoTitle: `How to read a crochet chart or a knitting grid — ${SITE_NAME}`,
+    seoTitle: `How to read a crochet chart or knitting grid, step by step`,
     seoDescription:
       'Symbols, reading direction, flat versus in-the-round charts, colourwork grids: the method for reading a crochet or knitting chart without getting lost.',
     h1: 'How to read a crochet chart, or a knitting grid',
@@ -120,11 +123,13 @@ const COPY: Record<Locale, GuideCopy> = {
 
 @Component({
   selector: 'fil-reading-chart-page',
-  imports: [Button, RouterLink],
+  imports: [Breadcrumb, Button, RouterLink],
   host: { class: 'wrap' },
   template: `
     <article class="prose">
+      <fil-breadcrumb [items]="crumbs" [label]="crumbLabel" />
       <h1>{{ c.h1 }}</h1>
+      <p class="guide-dates">{{ dates }}</p>
       <p class="lead">{{ c.lead }}</p>
 
       <h2>{{ c.h2Symbols }}</h2>
@@ -216,6 +221,15 @@ export default class ReadingChartPage {
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
+  protected readonly crumbLabel = CRUMBS[this.locale].label;
+  protected readonly crumbs = [
+    homeCrumb(this.locale),
+    {
+      label: this.c.h1,
+      href: `${localePrefix(this.locale)}${ROUTE_PATHS.guideReadingChart[this.locale]}`,
+    },
+  ];
+  protected readonly dates = guideDatesLine('guideReadingChart', this.locale);
   protected readonly symbols = CHART_SYMBOLS;
   protected readonly urlOf = symbolUrl;
   protected nameOf = (symbol: ChartSymbol) => symbolName(symbol, this.locale);
@@ -234,12 +248,20 @@ export default class ReadingChartPage {
       locale: this.locale,
       jsonLd: {
         '@context': 'https://schema.org',
-        '@type': 'Article',
-        '@id': url,
-        headline: this.c.h1,
-        description: this.c.seoDescription,
-        inLanguage: this.locale,
-        author: { '@type': 'Organization', name: SITE_NAME },
+        '@graph': [
+          {
+            '@type': 'Article',
+            '@id': url,
+            headline: this.c.h1,
+            description: this.c.seoDescription,
+            inLanguage: this.locale,
+            author: { '@type': 'Organization', name: SITE_NAME },
+            datePublished: GUIDE_DATES.guideReadingChart.published,
+            dateModified: GUIDE_DATES.guideReadingChart.modified,
+            image: `${this.origin}/og/pattern-reader-${this.locale}.png`,
+          },
+          breadcrumbList(this.origin, this.crumbs),
+        ],
       },
     });
   }

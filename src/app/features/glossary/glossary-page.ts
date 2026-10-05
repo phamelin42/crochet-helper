@@ -3,9 +3,11 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../core/i18n/locale';
 import { SeoService } from '../../core/seo/seo.service';
+import { CRUMBS, breadcrumbList, glossaryCrumb, homeCrumb } from '../../core/seo/breadcrumbs';
 import { SITE_NAME, SITE_ORIGIN } from '../../core/seo/site';
+import { Breadcrumb } from '../../shared/ui/breadcrumb/breadcrumb';
 import { ROUTE_PATHS } from '../../core/i18n/route-paths';
-import { GLOSSARY, GlossaryEntry } from '../reader/data/glossary';
+import { GLOSSARY, GlossaryEntry, pageEntryOf } from '../reader/data/glossary';
 import { AnalyticsService } from '../../core/analytics/analytics.service';
 import { Button } from '../../shared/ui/button/button';
 import { InputField } from '../../shared/ui/field/input';
@@ -19,7 +21,7 @@ const COPY: Record<Locale, Record<string, string>> = {
   fr: {
     title: `Abréviations de crochet et de tricot — ${SITE_NAME}`,
     description:
-      'ms, sc, aug, dim, k2tog, cercle magique… la traduction en clair des abréviations de patrons de crochet et de tricot, en français et en anglais.',
+      'ms, sc, aug, dim, k2tog, cercle magique… la traduction en clair des abréviations de patrons de crochet et de tricot, en français et en anglais, US et UK.',
     h1: 'Abréviations de crochet et de tricot',
     lead: 'Les patrons abrègent tout. Voici ce que chaque sigle veut dire, en français et en anglais. Dans le lecteur, ces termes sont soulignés et leur définition apparaît au survol.',
     search: 'Filtrer les abréviations',
@@ -39,11 +41,16 @@ const COPY: Record<Locale, Record<string, string>> = {
     letters: 'Aller à la lettre',
     empty: 'Aucun terme ne correspond.',
     clear: 'Effacer les filtres',
+    further: 'Pour aller plus loin',
+    guideReading: 'Comment lire un patron de crochet ou de tricot',
+    guideForeign: 'Lire un patron anglais en français',
+    converter: 'Convertir un patron US ↔ UK',
+    reader: 'Lire tout un patron pas à pas',
   },
   en: {
     title: `Crochet and knitting abbreviations — ${SITE_NAME}`,
     description:
-      'sc, dc, inc, dec, k2tog, magic ring… what every crochet and knitting pattern abbreviation means, in English and French.',
+      'sc, dc, inc, dec, k2tog, magic ring… what every crochet and knitting pattern abbreviation means, in English and French, with US and UK notation side by side.',
     h1: 'Crochet and knitting abbreviations',
     lead: 'Patterns abbreviate everything. Here is what each one means, in English and French. In the reader these terms are underlined and their definition appears on hover.',
     search: 'Filter abbreviations',
@@ -63,6 +70,11 @@ const COPY: Record<Locale, Record<string, string>> = {
     letters: 'Jump to letter',
     empty: 'No term matches.',
     clear: 'Clear filters',
+    further: 'Go further',
+    guideReading: 'How to read a crochet or knitting pattern',
+    guideForeign: 'Reading a French pattern in English',
+    converter: 'Convert a pattern US ↔ UK',
+    reader: 'Read a whole pattern step by step',
   },
 };
 
@@ -73,10 +85,11 @@ const COPY: Record<Locale, Record<string, string>> = {
  */
 @Component({
   selector: 'fil-glossary-page',
-  imports: [Button, InputField, RouterLink, Segmented],
+  imports: [Breadcrumb, Button, InputField, RouterLink, Segmented],
   host: { class: 'wrap' },
   template: `
     <section class="hero">
+      <fil-breadcrumb [items]="crumbs" [label]="crumbLabel" />
       <h1>{{ c['h1'] }}</h1>
       <p>{{ c['lead'] }}</p>
     </section>
@@ -176,10 +189,28 @@ const COPY: Record<Locale, Record<string, string>> = {
         <button filButton="ghost" type="button" (click)="clearFilters()">{{ c['clear'] }}</button>
       </p>
     }
+
+    <section class="term-section">
+      <h2 class="card-title">{{ c['further'] }}</h2>
+      <ul class="term-links">
+        <li>
+          <a [routerLink]="i18n.link('guideReadingPattern')">{{ c['guideReading'] }}</a>
+        </li>
+        <li>
+          <a [routerLink]="i18n.link('readForeignPattern')">{{ c['guideForeign'] }}</a>
+        </li>
+        <li>
+          <a [routerLink]="i18n.link('converter')">{{ c['converter'] }}</a>
+        </li>
+        <li>
+          <a [routerLink]="i18n.link('reader')">{{ c['reader'] }}</a>
+        </li>
+      </ul>
+    </section>
   `,
 })
 export default class GlossaryPage {
-  private readonly i18n = inject(I18nService);
+  protected readonly i18n = inject(I18nService);
   private readonly seo = inject(SeoService);
   private readonly origin = inject(SITE_ORIGIN);
   private readonly route = inject(ActivatedRoute);
@@ -234,10 +265,17 @@ export default class GlossaryPage {
     return letterAnchor(letter);
   }
 
-  /** Chaque abréviation a sa page : le tableau est aussi leur porte d'entrée. */
+  /**
+   * Chaque abréviation mène à sa page : le tableau est aussi leur porte
+   * d'entrée. Une graphie sans page propre (`slst`) mène à celle qui la sert.
+   */
   protected hrefOf(entry: GlossaryEntry): string {
-    return `${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}/${entry.slug}`;
+    const slug = pageEntryOf(entry, this.locale).slug;
+    return `${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}/${slug}`;
   }
+
+  protected readonly crumbLabel = CRUMBS[this.locale].label;
+  protected readonly crumbs = [homeCrumb(this.locale), glossaryCrumb(this.locale)];
 
   constructor() {
     this.i18n.setLocale(this.locale);
@@ -248,16 +286,21 @@ export default class GlossaryPage {
       locale: this.locale,
       jsonLd: {
         '@context': 'https://schema.org',
-        '@type': 'DefinedTermSet',
-        '@id': `${this.origin}${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}`,
-        name: this.c['h1'],
-        inLanguage: this.locale,
-        hasDefinedTerm: GLOSSARY.map((entry) => ({
-          '@type': 'DefinedTerm',
-          name: entry.term,
-          description: this.locale === 'fr' ? entry.fr : entry.en,
-          url: `${this.origin}${this.hrefOf(entry)}`,
-        })),
+        '@graph': [
+          {
+            '@type': 'DefinedTermSet',
+            '@id': `${this.origin}${localePrefix(this.locale)}${ROUTE_PATHS.glossary[this.locale]}`,
+            name: this.c['h1'],
+            inLanguage: this.locale,
+            hasDefinedTerm: GLOSSARY.map((entry) => ({
+              '@type': 'DefinedTerm',
+              name: entry.term,
+              description: this.locale === 'fr' ? entry.fr : entry.en,
+              url: `${this.origin}${this.hrefOf(entry)}`,
+            })),
+          },
+          breadcrumbList(this.origin, this.crumbs),
+        ],
       },
     });
   }

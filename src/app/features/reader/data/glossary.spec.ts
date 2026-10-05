@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { GLOSSARY, annotate, definitionOf } from './glossary';
+import vercel from '../../../../../vercel.json';
+import { LOCALES, Locale } from '../../../core/i18n/locale';
+import { GLOSSARY, annotate, definitionOf, pageEntryOf, pageSlugsOf } from './glossary';
 
 describe('glossaire', () => {
   // Slugs publiés, donc indexés : on peut en ajouter, jamais en modifier un.
@@ -117,5 +119,41 @@ describe('glossaire', () => {
         .map((s) => s.text)
         .join(''),
     ).toBe(source);
+  });
+});
+
+describe('glossaire — pages et redirections', () => {
+  const PREFIX: Record<Locale, string> = { en: '/glossary', fr: '/fr/glossaire' };
+  const redirects = new Map(
+    (vercel.redirects as { source: string; destination: string; statusCode?: number }[]).map(
+      (r) => [r.source, r],
+    ),
+  );
+
+  for (const locale of LOCALES) {
+    it(`une entrée sans page redirige en 301, sans chaîne, vers une vraie page (${locale})`, () => {
+      for (const entry of GLOSSARY) {
+        const page = pageEntryOf(entry, locale);
+        const source = `${PREFIX[locale]}/${entry.slug}`;
+        if (page === entry) {
+          expect(redirects.has(source), source).toBe(false);
+          continue;
+        }
+        // La cible a sa propre page : jamais une redirection vers une redirection.
+        expect(pageEntryOf(page, locale), entry.term).toBe(page);
+        expect(redirects.get(source), source).toEqual({
+          source,
+          destination: `${PREFIX[locale]}/${page.slug}`,
+          statusCode: 301,
+        });
+      }
+    });
+  }
+
+  it('le cercle magique a une page par langue, chacune la traduction de l’autre', () => {
+    const ring = GLOSSARY.find((e) => e.term === 'magic ring')!;
+    const cercle = GLOSSARY.find((e) => e.term === 'cercle magique')!;
+    expect(pageSlugsOf(ring)).toEqual({ en: 'magic-ring', fr: 'cercle-magique' });
+    expect(pageSlugsOf(cercle)).toEqual({ en: 'magic-ring', fr: 'cercle-magique' });
   });
 });

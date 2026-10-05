@@ -50,7 +50,7 @@ Le design d'origine bascule FR/EN avec un bouton et retient le choix. C'est
 juste pour l'utilisateur, et invisible pour un moteur de recherche : une seule
 URL, un seul contenu indexé.
 
-Ici, `/lecteur` et `/en/reader` sont deux pages distinctes, pré-rendues, avec
+Ici, `/` (anglais) et `/fr` (français) sont deux pages distinctes, pré-rendues, avec
 leur `canonical` et leurs `hreflang`. Les segments sont traduits
 (`route-paths.ts`) parce qu'une URL dans la langue de la page se partage mieux
 et pèse au classement. Le bouton de langue reste, mais c'est un lien.

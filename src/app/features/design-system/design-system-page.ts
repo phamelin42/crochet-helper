@@ -17,6 +17,7 @@ import { SeoService } from '../../core/seo/seo.service';
 import { Button } from '../../shared/ui/button/button';
 import { Checkbox } from '../../shared/ui/checkbox/checkbox';
 import { Dialog } from '../../shared/ui/dialog/dialog';
+import { Breadcrumb } from '../../shared/ui/breadcrumb/breadcrumb';
 import { Disclosure } from '../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../shared/ui/field/input';
 import { ICONS, Icon, IconName } from '../../shared/ui/icon/icon';
@@ -72,7 +73,18 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
  */
 @Component({
   selector: 'fil-design-system-page',
-  imports: [Button, Checkbox, Dialog, Disclosure, Icon, InputField, Segmented, TabBar, Tile],
+  imports: [
+    Breadcrumb,
+    Button,
+    Checkbox,
+    Dialog,
+    Disclosure,
+    Icon,
+    InputField,
+    Segmented,
+    TabBar,
+    Tile,
+  ],
   host: { class: 'wrap' },
   template: `
     <section class="hero">
@@ -340,6 +352,13 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
       </p>
       <fil-tab-bar label="Exemple" [tabs]="tabs" current="projects" />
 
+      <h3>Breadcrumb</h3>
+      <p class="ds-caption">
+        Fil d’Ariane au-dessus du titre des pages de contenu (glossaire, guides). Les mêmes niveaux
+        produisent la BreadcrumbList des données structurées.
+      </p>
+      <fil-breadcrumb [items]="crumbs" label="Fil d’Ariane" />
+
       <h3>Disclosure</h3>
       <div class="grid-cards">
         <div class="card">
@@ -518,6 +537,11 @@ export default class DesignSystemPage {
 
   protected readonly computedValues = signal<Record<string, string>>({});
 
+  protected readonly crumbs = [
+    { label: 'Accueil', href: '/fr' },
+    { label: 'Glossaire', href: '/fr/glossaire' },
+    { label: 'ms', href: '/fr/glossaire/ms' },
+  ];
   protected readonly tabs: TabItem[] = [
     { id: 'read', label: 'Lire', icon: 'book', href: '/design-system' },
     { id: 'projects', label: 'Mes projets', icon: 'folder', href: '/design-system' },

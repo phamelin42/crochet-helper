@@ -1,6 +1,6 @@
 import { TermArticles } from './types';
 
-/** Les formes des patrons français : `aug`, `dim`, `cercle-magique`. */
+/** Les formes des patrons français : `aug`, `dim`, et le cercle magique (`cercle-magique` en français, `magic-ring` en anglais). */
 export const FRENCH_SHAPING: TermArticles = {
   aug: {
     fr: {
@@ -92,6 +92,10 @@ export const FRENCH_SHAPING: TermArticles = {
       ],
       tip: 'Le cercle magique se défait si on le lâche. Après avoir tiré la queue, faites un point de nœud ou une maille coulée pour la fixer, et posez un marqueur dans la première maille du tour suivant. Vérifiez le compte avant de fermer : six mailles, ni plus ni moins.',
     },
+  },
+  // La page anglaise du cercle magique est `magic-ring` : `/glossary/cercle-magique`
+  // y redirige, comme `/fr/glossaire/magic-ring` vers `cercle-magique`.
+  'magic-ring': {
     en: {
       how: [
         'The magic ring, written “cercle magique” in a French pattern and “mr” or “magic ring” in an English one, is a starting ring whose centre can be pulled tight. It avoids the small hole that a closed chain leaves in the middle of a disc, which matters for toys and hats.',
@@ -100,7 +104,7 @@ export const FRENCH_SHAPING: TermArticles = {
         'When all the stitches are made, pull the yarn tail to tighten the ring. One of the two strands slides and closes the centre, the other stays in place. Pull until the hole disappears, and then secure the tail.',
       ],
       inPattern:
-        'Take the French round “Tour 1 : 6 ms dans un cercle magique (6)”. “Tour 1” means the first round. “6 ms” means six single crochets. “dans un cercle magique” means you work them into the starting ring, and not into stitches of a previous round, since there are none yet. The number in brackets says 6: the six single crochets, which will be the base of the next round. Once these six are made, you pull the yarn tail to tighten the circle.',
+        'Take the round “Rnd 1: 6 sc in a magic ring (6)”. “Rnd 1” means the first round. “6 sc” means six single crochets. “in a magic ring” means you work them into the starting ring, and not into stitches of a previous round, since there are none yet. The number in brackets says 6: the six single crochets, which will be the base of the next round. Once these six are made, you pull the yarn tail to tighten the ring. A French pattern writes the same round “Tour 1 : 6 ms dans un cercle magique (6)”.',
       usUk: 'The gesture is identical, only the name changes. French patterns write “cercle magique”; American patterns write “magic ring”, or shorten it to “mr”, and British patterns often say “magic circle”. All three mean the same adjustable ring. The stitches worked into it do change name between conventions: a single crochet is “sc” in an American pattern and “dc” in a British one.',
       mistakes: [
         'Pulling the wrong strand to close the ring. If nothing moves, you are pulling the hanging tail instead of the strand that slides. Pull each strand in turn: the one that tightens the centre is the right one.',

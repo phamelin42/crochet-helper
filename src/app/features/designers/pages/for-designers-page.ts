@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
-import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
+import { ROUTE_PATHS, RouteName } from '../../../core/i18n/route-paths';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
 import { Button } from '../../../shared/ui/button/button';
@@ -36,7 +36,7 @@ const COPY: Record<Locale, DesignersCopy> = {
   fr: {
     seoTitle: `Un kit pour les créatrices de patrons — ${SITE_NAME}`,
     seoDescription:
-      'Offrez « Ouvrir dans Pattern Reader » à vos clientes : un lien qui contient tout le patron, un badge prêt à copier et un visuel à épingler.',
+      'Offrez « Ouvrir dans Pattern Reader » à vos clientes : un lien qui contient tout le patron, un badge prêt à copier et un visuel prêt à épingler sur Pinterest.',
     h1: 'Offrez « Ouvrir dans Pattern Reader » à vos clientes',
     lead: `Rien à installer, rien à héberger${NBSP}: un lien qui contient tout votre patron, prêt à coller dans votre boutique, votre bio ou votre PDF.`,
     h2Client: 'Ce que voit votre cliente',
@@ -59,9 +59,9 @@ const COPY: Record<Locale, DesignersCopy> = {
     bodyLimit: `Un patron très long ne tient pas dans un lien${NBSP}: au-delà de 8${NBSP}000 caractères, Pattern Reader refuse de créer le lien plutôt que d’en livrer un tronqué. Pour un patron de cette taille, mieux vaut renvoyer vers son texte complet et laisser votre cliente le coller elle-même dans le lecteur.`,
   },
   en: {
-    seoTitle: `A kit for pattern designers — ${SITE_NAME}`,
+    seoTitle: `A kit for crochet pattern designers — ${SITE_NAME}`,
     seoDescription:
-      'Offer "Open in Pattern Reader" to your customers: a link that carries the whole pattern, a badge ready to copy, and a pinnable image.',
+      'Offer "Open in Pattern Reader" to your customers: a link that carries the whole pattern, a badge ready to copy, and and an image ready to pin on Pinterest.',
     h1: 'Offer "Open in Pattern Reader" to your customers',
     lead: 'Nothing to install, nothing to host: a link that carries your whole pattern, ready to paste into your shop, your bio or a PDF.',
     h2Client: 'What your customer sees',
@@ -92,6 +92,29 @@ const COPY: Record<Locale, DesignersCopy> = {
  * Kit pour les créatrices de patrons (fiche 23) : le canal le mieux noté du
  * plan d'acquisition n'avait ni page, ni badge, ni visuel à offrir.
  */
+/** Pour les créatrices : préparer un patron, et ce que lisent leurs clientes. */
+const FURTHER: Record<
+  Locale,
+  { title: string; links: readonly { route: RouteName; label: string }[] }
+> = {
+  fr: {
+    title: 'Pour aller plus loin',
+    links: [
+      { route: 'format', label: 'Bien formater son patron pour le lecteur' },
+      { route: 'glossary', label: 'Les abréviations de crochet et de tricot' },
+      { route: 'guideReadingPattern', label: 'Comment vos clientes lisent un patron' },
+    ],
+  },
+  en: {
+    title: 'Go further',
+    links: [
+      { route: 'format', label: 'Format your pattern for the reader' },
+      { route: 'glossary', label: 'Crochet and knitting abbreviations' },
+      { route: 'guideReadingPattern', label: 'How your customers read a pattern' },
+    ],
+  },
+};
+
 @Component({
   selector: 'fil-for-designers-page',
   imports: [Button, RouterLink],
@@ -134,6 +157,15 @@ const COPY: Record<Locale, DesignersCopy> = {
 
       <h2>{{ c.h2Limit }}</h2>
       <p>{{ c.bodyLimit }}</p>
+
+      <h2>{{ further.title }}</h2>
+      <ul class="term-links">
+        @for (link of further.links; track link.route) {
+          <li>
+            <a [routerLink]="i18n.link(link.route)">{{ link.label }}</a>
+          </li>
+        }
+      </ul>
     </article>
   `,
 })
@@ -145,6 +177,7 @@ export default class ForDesignersPage {
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
+  protected readonly further = FURTHER[this.locale];
   protected readonly codeCopied = signal(false);
 
   protected readonly badgeSrc =

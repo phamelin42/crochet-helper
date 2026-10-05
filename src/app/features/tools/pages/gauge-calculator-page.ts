@@ -5,7 +5,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
 import { SeoService } from '../../../core/seo/seo.service';
-import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
+import { SITE_ORIGIN } from '../../../core/seo/site';
 import { Button } from '../../../shared/ui/button/button';
 import { InputField } from '../../../shared/ui/field/input';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
@@ -53,7 +53,7 @@ interface GaugeCopy {
 
 const COPY: Record<Locale, GaugeCopy> = {
   fr: {
-    seoTitle: `Calculateur d’échantillon de crochet : mailles et centimètres — ${SITE_NAME}`,
+    seoTitle: `Calculateur d’échantillon crochet${NBSP}: mailles et centimètres`,
     seoDescription:
       'Comparez l’échantillon du patron et le vôtre : le calculateur dit s’il faut un crochet plus gros ou plus fin, et convertit mailles et centimètres (ou pouces).',
     h1: 'Calculateur d’échantillon de crochet',
@@ -131,9 +131,9 @@ const COPY: Record<Locale, GaugeCopy> = {
     toReader: 'Le lecteur de patron',
   },
   en: {
-    seoTitle: `Crochet gauge calculator: stitches and centimetres — ${SITE_NAME}`,
+    seoTitle: `Crochet gauge calculator: stitches and centimetres`,
     seoDescription:
-      'Compare the pattern’s gauge with yours: the calculator tells you whether to go up or down a hook size, and converts stitches to centimetres (or inches) and back.',
+      'Compare the pattern’s gauge with yours: the calculator tells you whether to go up or down a hook size, and converts stitches to centimetres or inches and back.',
     h1: 'Crochet gauge calculator',
     lead: 'Enter the pattern’s gauge and your own: the page tells you what to change, then converts stitches to inches or centimetres, or the other way round, using your own tension.',
     unitLabel: 'Unit of measure',

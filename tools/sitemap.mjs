@@ -1,79 +1,54 @@
 /**
  * Fonctions pures de `generate-sitemap.mjs`, isolées pour être testées sans
- * dépendre d'un vrai dépôt Git ni d'un build (`tools/sitemap.test.mjs`).
+ * dépendre d'un build (`tools/sitemap.test.mjs`).
  */
-import { execFileSync } from 'node:child_process';
 
-/** Une famille par clé de `route-paths.json`, chemin français déjà préfixé de `/fr`. */
-export function familiesFrom(routePaths) {
-  return Object.entries(routePaths).map(([key, { en, fr }]) => ({
-    key,
-    en,
-    fr: fr === '/' ? '/fr' : `/fr${fr}`,
-  }));
-}
-
-/** Famille d'une route, sous-page (`/glossary/sc`) ou page de la famille elle-même. */
-export function familyFor(families, route) {
-  for (const family of families) {
-    if (route === family.en || route === family.fr) return { ...family, sub: false };
-    if (family.en === '/') continue;
-    if (route.startsWith(`${family.en}/`) || route.startsWith(`${family.fr}/`)) {
-      return { ...family, sub: true };
+/**
+ * Canonique et hreflang tels que la page les déclare dans son `<head>`. Le
+ * sitemap les recopie au lieu de les recalculer : il ne peut plus annoncer une
+ * autre chaîne que la page (c'est arrivé : `https://patternreader.com/` dans
+ * `<loc>`, `https://patternreader.com` dans les hreflang).
+ */
+export function linksOf(html) {
+  const head = html.slice(0, html.indexOf('</head>') + 1 || undefined);
+  const attr = (tag, name) => tag.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1];
+  let canonical = null;
+  const alternates = [];
+  for (const [tag] of head.matchAll(/<link\s[^>]*>/g)) {
+    const rel = attr(tag, 'rel');
+    if (rel === 'canonical') canonical = attr(tag, 'href') ?? null;
+    if (rel === 'alternate' && attr(tag, 'hreflang')) {
+      alternates.push({ hreflang: attr(tag, 'hreflang'), href: attr(tag, 'href') });
     }
   }
-  return null;
-}
-
-/** Paire anglais / français d'une route, suffixe identique dans les deux langues. */
-export function pairFor(families, route) {
-  const family = familyFor(families, route);
-  if (!family) return null;
-  if (!family.sub) return [family.en, family.fr];
-  if (route.startsWith(`${family.en}/`)) {
-    return [route, `${family.fr}${route.slice(family.en.length)}`];
-  }
-  return [`${family.en}${route.slice(family.fr.length)}`, route];
+  return { canonical, alternates };
 }
 
 /**
- * Chemins source dont dépend le `lastmod` d'une route. Les pages-abréviation
- * du glossaire viennent du moteur partagé (`glossaryTermSources`), pas de la
- * page de liste : ce sont deux familles de sources distinctes pour une seule
- * clé `route-paths.json`.
+ * Ce qui empêche une page d'entrer au sitemap telle quelle : canonique absente
+ * ou différente de son `<loc>`, hreflang qui ne se cite pas lui-même avec la
+ * même chaîne, x-default manquant. Liste vide : la page est cohérente.
  */
-export function sourcesFor(families, sourcePaths, glossaryTermSources, route) {
-  const family = familyFor(families, route);
-  if (!family) return null;
-  if (family.key === 'glossary' && family.sub) return glossaryTermSources;
-  return sourcePaths[family.key] ?? null;
+export function linkProblems(loc, locale, { canonical, alternates }) {
+  const problems = [];
+  if (canonical !== loc) problems.push(`canonique ${canonical ?? 'absente'} ≠ ${loc}`);
+  const self = alternates.find((a) => a.hreflang === locale);
+  if (self?.href !== loc) problems.push(`hreflang ${locale} ${self?.href ?? 'absent'} ≠ ${loc}`);
+  if (!alternates.some((a) => a.hreflang === 'x-default')) problems.push('x-default absent');
+  return problems;
 }
 
-/** `run` s'injecte en test pour ne pas dépendre du vrai dépôt. */
-export function isShallowRepository(run = execFileSync) {
-  try {
-    return (
-      run('git', ['rev-parse', '--is-shallow-repository'], { encoding: 'utf8' }).trim() === 'true'
-    );
-  } catch {
-    return true;
-  }
+/** `<loc>` d'un sitemap, dans l'ordre. */
+export function locsOf(xml) {
+  return [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)].map((m) => m[1]);
 }
 
-/**
- * Date du dernier commit sur `sources`, ou `null` si elle est inconnaissable
- * (pas de source pour la route, historique superficiel, `git` absent) — jamais
- * la date du jour : un `lastmod` toujours égal à aujourd'hui n'est pas un
- * signal, Google l'ignore.
- */
-export function lastmodFor(sources, run = execFileSync) {
-  if (!sources) return null;
-  try {
-    const date = run('git', ['log', '-1', '--format=%cs', '--', ...sources], {
-      encoding: 'utf8',
-    }).trim();
-    return date || null;
-  } catch {
-    return null;
-  }
+/** URL présentes dans un sitemap et pas dans l'autre, triées. */
+export function diffLocs(published, generated) {
+  const a = new Set(published);
+  const b = new Set(generated);
+  return {
+    onlyPublished: [...a].filter((u) => !b.has(u)).sort(),
+    onlyGenerated: [...b].filter((u) => !a.has(u)).sort(),
+  };
 }

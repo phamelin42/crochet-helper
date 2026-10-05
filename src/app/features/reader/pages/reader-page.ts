@@ -43,9 +43,10 @@ interface GuideLink {
 }
 
 /**
- * Maille l'accueil vers les trois guides éditoriaux (fiche 04) : c'est la
- * seule page à fort trafic qui peut leur faire gagner du poids de lien
- * interne.
+ * Maille l'accueil vers les guides éditoriaux (fiche 04), le glossaire, le
+ * convertisseur et les outils : c'est la seule page à fort trafic qui peut
+ * leur faire gagner du poids de lien interne, et toute page importante doit
+ * s'y trouver à un clic.
  */
 const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[] }> = {
   fr: {
@@ -91,6 +92,16 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         title: 'Lire un patron anglais',
         lead: 'Collez un rang anglais : chaque abréviation s’écrit en français.',
       },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.glossary.fr}`,
+        title: 'Glossaire des abréviations',
+        lead: 'ms, ml, aug, sc, k2tog… chaque abréviation de crochet et de tricot, expliquée.',
+      },
+      {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.converter.fr}`,
+        title: 'Convertisseur US ↔ UK',
+        lead: 'Un patron américain ou britannique réécrit dans l’autre notation, maille par maille.',
+      },
     ],
   },
   en: {
@@ -135,6 +146,16 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.readForeignPattern.en}`,
         title: 'Reading a French pattern',
         lead: 'Paste a French row: every abbreviation is written out in English.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.glossary.en}`,
+        title: 'Abbreviation glossary',
+        lead: 'sc, dc, inc, k2tog, ms… every crochet and knitting abbreviation, explained.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.converter.en}`,
+        title: 'US ↔ UK converter',
+        lead: 'An American or British pattern rewritten in the other notation, stitch by stitch.',
       },
     ],
   },
@@ -319,16 +340,29 @@ const HOME_COPY: Record<Locale, HomeCopy> = {
   },
 };
 
-const SEO: Record<Locale, { title: string; description: string }> = {
+const SEO: Record<Locale, { title: string; description: string; features: string[] }> = {
   fr: {
     title: `Lecteur de patrons crochet et tricot — ${SITE_NAME}`,
     description:
       'Collez votre patron de crochet ou de tricot : découpage en étapes, une instruction à la fois, compteur de rangs et abréviations traduites. Gratuit, sans compte.',
+    features: [
+      'Découpage automatique en étapes',
+      'Compteur de rangs et de répétitions',
+      'Glossaire crochet et tricot FR/EN',
+      'Chronomètre de session',
+    ],
   },
   en: {
     title: `Crochet and knitting pattern reader — ${SITE_NAME}`,
     description:
       'Paste your crochet or knitting pattern: split into steps, one instruction at a time, with a row counter and abbreviations explained. Free, no account.',
+    // La page anglaise décrivait ses fonctions en français.
+    features: [
+      'Automatic split into steps',
+      'Row and repeat counter',
+      'French and English crochet and knitting glossary',
+      'Session timer',
+    ],
   },
 };
 
@@ -554,12 +588,7 @@ export default class ReaderPage {
             operatingSystem: 'Web',
             description: SEO[locale].description,
             offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
-            featureList: [
-              'Découpage automatique en étapes',
-              'Compteur de rangs et de répétitions',
-              'Glossaire crochet et tricot FR/EN',
-              'Chronomètre de session',
-            ],
+            featureList: SEO[locale].features,
           },
           {
             '@type': 'FAQPage',

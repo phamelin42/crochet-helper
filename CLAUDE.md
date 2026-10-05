@@ -284,6 +284,12 @@ une fois, en connaissance de cause : `git push --no-verify`. Côté pilote, le j
 `construire` de `lot-suivant.yml` la constate aussi après l'agent ; si elle est
 rouge, la PR s'ouvre en brouillon au lieu de partir en fusion automatique.
 
+**Session Claude Code sur le web** : `.claude/hooks/session-start.sh` installe
+le Node de `.nvmrc` (l'image n'a qu'un 22.22.0, refusé par la CLI Angular), lance
+`npm install` et désigne le Chromium préinstallé par `PW_CHROMIUM`. Rien à
+bricoler ni à signaler : si `node -v` n'est pas celui de `.nvmrc`, c'est le
+hook qu'on corrige.
+
 Corollaire de fins de ligne : `.gitattributes` impose `* text=auto eol=lf`. Sans
 cela, `core.autocrlf=true` donne des CRLF dans la copie de travail d'un poste
 Windows, alors que Prettier attend des LF — `format:check` signalait alors la

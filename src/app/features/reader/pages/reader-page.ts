@@ -735,7 +735,7 @@ export default class ReaderPage {
   }
 
   /** Un PDF déposé n'importe où sur la page suit le même chemin que le bouton
-   *  et le collage ; une image demande s'il s'agit d'une couverture ou d'un diagramme. */
+   *  et le collage ; une image devient la photo de couverture. */
   protected onDrop(event: DragEvent): void {
     const file = event.dataTransfer?.files?.[0];
     if (file?.type.startsWith('image/')) {

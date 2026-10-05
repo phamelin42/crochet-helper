@@ -17,7 +17,6 @@ import { Icon } from '../../../shared/ui/icon/icon';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ReaderStore } from '../state/reader-store';
-import { ChartPanel } from './chart-panel';
 import { GlossaryText } from './glossary-text';
 import { ImageGallery } from './image-gallery';
 import { ShareActions } from './share-actions';
@@ -35,7 +34,7 @@ const LONGEST_STEP = 90;
 @Component({
   selector: 'fil-step-view',
   host: { '(document:keydown.escape)': 'leaveFocus($event)' },
-  imports: [Button, ChartPanel, GlossaryText, Icon, ImageGallery, Segmented, ShareActions],
+  imports: [Button, GlossaryText, Icon, ImageGallery, Segmented, ShareActions],
   template: `
     <!-- Réglages sur une ligne : pièces à gauche (défilent si nombreuses),
          taille du texte à droite. -->
@@ -182,9 +181,6 @@ const LONGEST_STEP = 90;
     }
     @if (store.step()?.images; as images) {
       <fil-image-gallery [numbers]="images" [label]="t('ui.stepPhotos')" />
-    }
-    @if (store.chartCount()) {
-      <fil-chart-panel />
     }
 
     @if (store.step()) {

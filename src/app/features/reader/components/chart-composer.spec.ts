@@ -92,76 +92,7 @@ describe('ChartComposer', () => {
     expect(host.querySelector('[data-testid="current-count"]')?.textContent).toContain('18');
   });
 
-  it('« Ajouter au patron » écrit une nouvelle pièce à la fin, sans bouger la lecture', async () => {
-    const { store, symbol, button, click, written } = await setup();
-    store.selectPiece(0);
-    const before = store.source();
-
-    click(symbol('sc'));
-    click(symbol('sc'));
-    click(button('Finish'));
-    expect(written()).toEqual(['Rnd 1: 2 sc (2)']);
-    click(button('Add to the pattern'));
-
-    expect(store.source().startsWith(before)).toBe(true);
-    expect(store.source().endsWith('Chart 1\nRnd 1: 2 sc (2)')).toBe(true);
-    expect(store.pieces().map((piece) => piece.name)).toEqual(['Tree', 'Chart 1']);
-    expect(store.pieceIndex()).toBe(0);
-    expect(track).toHaveBeenCalledWith('chart_transcribed', {
-      rounds: 1,
-      convention: 'US',
-      origine: 'composeur',
-    });
-  });
-
-  it('garde le nom donné à la pièce', async () => {
-    const { fixture, host, store, symbol, button, click } = await setup();
-    const name = host.querySelector<HTMLInputElement>('input[type="text"]')!;
-    name.value = 'Feuille';
-    name.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    click(symbol('sc'));
-    click(button('Add to the pattern'));
-
-    expect(store.pieces().map((piece) => piece.name)).toEqual(['Tree', 'Feuille']);
-  });
-
-  it('relit le brouillon après un rechargement, et l’efface une fois ajouté', async () => {
-    const first = await setup();
-    first.click(first.symbol('dc'));
-    first.click(first.button('Finish'));
-    first.fixture.detectChanges();
-    await vi.waitFor(() => expect(localStorage.getItem('fil.chartDraft')).toContain('"dc"'));
-    first.fixture.destroy();
-
-    const second = TestBed.createComponent(ChartComposer);
-    second.componentRef.setInput('open', true);
-    second.detectChanges();
-    const rows = Array.from(
-      (second.nativeElement as HTMLElement).querySelectorAll('[data-testid="written-round"]'),
-    ).map((e) => e.textContent?.trim());
-    expect(rows).toEqual(['Rnd 1: dc (1)']);
-
-    const add = Array.from(
-      (second.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('button'),
-    ).find((b) => b.textContent?.trim() === 'Add to the pattern')!;
-    add.click();
-    second.detectChanges();
-    await vi.waitFor(() => expect(localStorage.getItem('fil.chartDraft')).toBeNull());
-  });
-
-  it('ignore un brouillon altéré au lieu de planter', async () => {
-    localStorage.setItem(
-      'fil.chartDraft',
-      JSON.stringify({ rounds: 'x', groups: [{ tokens: 3 }] }),
-    );
-    const { host } = await setup();
-
-    expect(host.querySelectorAll('[data-testid="written-round"]')).toHaveLength(0);
-  });
-
-  describe('relecture d’un diagramme lu (mode open)', () => {
+  describe('relecture d’un diagramme lu', () => {
     const SEED = {
       rounds: [
         {
@@ -189,7 +120,6 @@ describe('ChartComposer', () => {
     async function open() {
       const result = await setup();
       const { fixture } = result;
-      fixture.componentRef.setInput('mode', 'open');
       fixture.componentRef.setInput('seed', SEED);
       fixture.detectChanges();
       const emitted: string[] = [];
@@ -229,17 +159,6 @@ describe('ChartComposer', () => {
         convention: 'US',
         origine: 'lecture',
       });
-    });
-
-    it('ne remplace pas le brouillon d’une transcription en cours', async () => {
-      const draft = { rounds: [], groups: [], pending: [{ symbol: 'dc', count: 3 }] };
-      localStorage.setItem('fil.chartDraft', JSON.stringify(draft));
-      const { fixture } = await open();
-      fixture.detectChanges();
-
-      const kept = JSON.parse(localStorage.getItem('fil.chartDraft')!);
-      expect(kept.pending).toEqual(draft.pending);
-      expect(kept.rounds).toEqual([]);
     });
   });
 });

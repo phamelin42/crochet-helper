@@ -214,6 +214,22 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   navigateur s'installe désormais en tête de `ci.yml`. Toute étape ajoutée à
   la préparation du pilote (`lot-suivant.yml`) l'est aussi, au même rang, dans
   `ci.yml`.
+- **Session cloud (claude.ai/code) : l'environnement se prépare seul.** Le
+  Node fourni (22.22.0) est sous le minimum d'Angular CLI, et les navigateurs
+  de `/opt/pw-browsers` ne sont pas ceux qu'attend Playwright
+  (`playwright install` est interdit). Le hook `SessionStart`
+  (`.claude/hooks/session-start.sh`) installe le Node de `.nvmrc`, lance
+  `npm install` et exporte `PW_CHROMIUM` vers le Chromium préinstallé. Rien à
+  bricoler ni à signaler : si `node -v` n'est pas celui de `.nvmrc`, c'est le
+  hook qu'on corrige. Le hook `pre-push` lance `verify:ci` avec cet
+  environnement : pousser sans `--no-verify`.
+- **Un morceau paresseux demandé à la première visite attend le service
+  worker**, qui télécharge tout le site juste après le premier affichage : une
+  version de la fiche 48 (PR #107) mesurait 1,1 s pour trois petits `import()`,
+  contre 5 ms sans service worker. Une action qui ouvre un sélecteur de
+  fichiers lance son `import()` au clic, pas au choix du fichier ; une mesure
+  e2e de temps de réponse imite ce geste plutôt que d'envoyer l'événement
+  `change` à vide.
 - **`npx playwright test` sert le dernier build, pas le code du moment**
   (`e2e/static-server.mjs` sur `dist/`, plus `reuseExistingServer`). Debugger un
   échec e2e sans `ng build` préalable fait chercher un bug de test là où il n'y
@@ -283,12 +299,6 @@ push est annulé si elle est rouge. Compter cinq à six minutes. Pour passer out
 une fois, en connaissance de cause : `git push --no-verify`. Côté pilote, le job
 `construire` de `lot-suivant.yml` la constate aussi après l'agent ; si elle est
 rouge, la PR s'ouvre en brouillon au lieu de partir en fusion automatique.
-
-**Session Claude Code sur le web** : `.claude/hooks/session-start.sh` installe
-le Node de `.nvmrc` (l'image n'a qu'un 22.22.0, refusé par la CLI Angular), lance
-`npm install` et désigne le Chromium préinstallé par `PW_CHROMIUM`. Rien à
-bricoler ni à signaler : si `node -v` n'est pas celui de `.nvmrc`, c'est le
-hook qu'on corrige.
 
 Corollaire de fins de ligne : `.gitattributes` impose `* text=auto eol=lf`. Sans
 cela, `core.autocrlf=true` donne des CRLF dans la copie de travail d'un poste

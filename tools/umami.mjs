@@ -59,8 +59,6 @@ export const EVENEMENTS = [
   'print_opened',
   'row_counted',
   'image_opened',
-  'chart_added',
-  'chart_viewed',
   'chart_transcribed',
   'chart_recognized',
   'gauge_calculated',

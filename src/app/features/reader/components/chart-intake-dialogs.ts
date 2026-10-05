@@ -8,7 +8,7 @@ import { Checkbox } from '../../../shared/ui/checkbox/checkbox';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ChartIntake, MAX_PDF_CHART_PAGES, MAX_RENDERED_PAGES } from '../state/chart-intake';
-import { ReaderStore, ShownPhoto } from '../state/reader-store';
+import type { ShownPhoto } from '../state/reader-store';
 import { ChartComposer } from './chart-composer';
 
 interface PageThumb {
@@ -17,9 +17,8 @@ interface PageThumb {
 }
 
 /**
- * Les questions du chargement d'un diagramme : « couverture ou
- * diagramme ? » pour une image collée ou déposée, le choix des pages d'un
- * PDF, et la relecture d'un diagramme ouvert comme patron. Montées hors du panneau d'import, replié une fois le patron chargé :
+ * Les questions de « Ouvrir un diagramme » : le choix des pages d'un PDF, et
+ * la relecture du diagramme lu avant qu'il ne devienne un patron. Montées hors du panneau d'import, replié une fois le patron chargé :
  * une boîte de dialogue dans un panneau fermé ne s'afficherait pas.
  */
 @Component({
@@ -28,27 +27,6 @@ interface PageThumb {
   template: `
     @if (message(); as message) {
       <p class="hint" role="alert">{{ message }}</p>
-    }
-
-    @if (intake.question()) {
-      <fil-dialog
-        [open]="true"
-        (openChange)="!$event && intake.cancelQuestion()"
-        [label]="t('ui.chartAskTitle')"
-      >
-        <h2 class="dialog-title">{{ t('ui.chartAskTitle') }}</h2>
-        <div class="dialog-actions">
-          <button type="button" filButton="ghost" (click)="intake.cancelQuestion()">
-            {{ t('ui.chartCancel') }}
-          </button>
-          <button type="button" filButton="secondary" (click)="intake.answerCover()">
-            {{ t('ui.chartAskCover') }}
-          </button>
-          <button type="button" filButton="primary" (click)="intake.answerChart()">
-            {{ t('ui.chartAskChart') }}
-          </button>
-        </div>
-      </fil-dialog>
     }
 
     @if (intake.pages()) {
@@ -93,7 +71,6 @@ interface PageThumb {
 
     @if (intake.opening(); as opening) {
       <fil-chart-composer
-        mode="open"
         [open]="true"
         (openChange)="!$event && intake.cancelOpening()"
         [seed]="opening.recognition"
@@ -106,7 +83,6 @@ interface PageThumb {
 })
 export class ChartIntakeDialogs {
   protected readonly intake = inject(ChartIntake);
-  private readonly store = inject(ReaderStore);
   private readonly i18n = inject(I18nService);
   private readonly objectUrls = inject(ObjectUrlService);
 
@@ -123,9 +99,6 @@ export class ChartIntakeDialogs {
     if (error === 'illisible') return this.t('ui.chartErrorUnreadable');
     if (error === 'pdf') return this.t('ui.chartErrorPdf');
     if (error === 'non-enregistre') return this.t('ui.gridNotSaved');
-    const stored = this.store.chartError();
-    if (stored === 'non-enregistre') return this.t('ui.chartNotSaved');
-    if (stored === 'plafond') return this.t('ui.chartLimit');
     return '';
   });
 

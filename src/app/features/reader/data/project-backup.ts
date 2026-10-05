@@ -1,12 +1,5 @@
 import { encodeGrid, validGrid } from './color-grid';
-import {
-  MAX_CHARTS,
-  Project,
-  ProjectImage,
-  chartId,
-  imageId,
-  sanitizeCharts,
-} from './project.model';
+import { MAX_CHARTS, Project, ProjectImage, chartId, imageId } from './project.model';
 
 /**
  * Format du fichier de sauvegarde (écran « Mes projets »). Chargé par
@@ -23,7 +16,10 @@ export const BACKUP_SCHEMA_VERSION = 2;
 export const MAX_BACKUP_BYTES = 60 * 1024 * 1024;
 /** Taille maximale d'une photo d'une sauvegarde, une fois décodée. */
 export const MAX_BACKUP_IMAGE_BYTES = 2 * 1024 * 1024;
-/** Un diagramme est plus défini qu'une photo : 6 Mo décodés au plus. */
+/**
+ * Diagrammes joints, retirés depuis : une ancienne sauvegarde qui en contient
+ * reste valide, ses diagrammes (6 Mo décodés au plus) sont écartés à l'import.
+ */
 export const MAX_BACKUP_CHART_BYTES = 6 * 1024 * 1024;
 
 /** Une photo dans un fichier de sauvegarde : `ProjectImage` avec son contenu en base64. */
@@ -65,18 +61,12 @@ export function parseBackup(data: unknown): ProjectBackup | null {
     version,
     projects: projects.map((project) => {
       const grid = validGrid(project.grid);
-      const normalized = {
-        ...project,
-        imageCount: project.imageCount ?? 0,
-        ...(grid ? { grid } : {}),
-      };
-      // Un projet sans diagramme reste tel qu'il est écrit ; les épingles d'un
-      // autre sont écartées quand elles visent un diagramme qui n'existe pas.
-      return project.charts === undefined
-        ? normalized
-        : { ...normalized, charts: sanitizeCharts(project.charts, project.chartCount ?? 0) };
+      // Les épingles des anciens diagrammes joints n'ont plus d'usage.
+      const { charts: _charts, ...rest } = project as Project & { charts?: unknown };
+      void _charts;
+      return { ...rest, imageCount: project.imageCount ?? 0, ...(grid ? { grid } : {}) };
     }),
-    images,
+    images: images.filter((image) => image.kind === 'pdf'),
   };
 }
 

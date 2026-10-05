@@ -118,10 +118,6 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     fr: 'une photo d’un patron PDF est agrandie',
     en: 'a picture from a PDF pattern is enlarged',
   },
-  chart_added: {
-    fr: 'un diagramme est ajouté (image ou PDF)',
-    en: 'a chart is added (image or PDF)',
-  },
   view_changed: {
     fr: 'l’affichage du lecteur change (texte ou diagramme)',
     en: 'the reader view changes (text or chart)',
@@ -142,7 +138,6 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     fr: 'une grille est fabriquée depuis une image (largeur à la dizaine, nombre de couleurs, à plat ou en rond, depuis le lecteur ou la page dédiée, jamais l’image ni ses couleurs)',
     en: 'a grid is made from an image (width to the nearest ten, number of colours, flat or in the round, from the reader or the dedicated page, never the image or its colours)',
   },
-  chart_viewed: { fr: 'un diagramme est affiché', en: 'a chart is shown' },
   chart_transcribed: {
     fr: 'un diagramme est transcrit en texte (nombre de tours, convention, lu automatiquement ou à la main)',
     en: 'a chart is transcribed to text (number of rounds, convention, read automatically or by hand)',

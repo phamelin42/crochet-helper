@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Locale } from '../../../core/i18n/locale';
 import { GLOSSARY, GlossaryEntry } from '../../reader/data/glossary';
 import { TERM_ARTICLES, TermArticle } from '../data/term-articles';
+import { headOf } from '../data/term-neighbors';
 import GlossaryTermPage, { descriptionOf, regionNoteOf, titleOf } from './term-page';
 
 function render(slug: string, locale: Locale): HTMLElement {
@@ -44,8 +45,9 @@ describe('titleOf', () => {
     expect(titleOf(entry('inc'), 'en')).toBe(
       'What does \u201Cinc\u201D mean in crochet and knitting? Increase',
     );
+    // Abréviation anglaise lue en français : la traduction passe avant la tournure.
     expect(titleOf(entry('inc'), 'fr')).toBe(
-      'Que veut dire \u00AB\u00A0inc\u00A0\u00BB au crochet et au tricot\u00A0? Augmentation',
+      '\u00AB\u00A0inc\u00A0\u00BB crochet et tricot \u2014 Traduction\u00A0: augmentation',
     );
   });
 
@@ -55,17 +57,33 @@ describe('titleOf', () => {
     );
   });
 
+  it('dit « Traduction » quand l’abréviation vient de l’autre langue', () => {
+    // La requête type : « blo crochet traduction ».
+    expect(titleOf(entry('blo'), 'fr')).toBe(
+      '\u00AB\u00A0blo\u00A0\u00BB \u2014 Traduction\u00A0: dans le brin arri\u00E8re uniquement',
+    );
+    for (const e of GLOSSARY) {
+      for (const locale of ['fr', 'en'] as const) {
+        const label = locale === 'fr' ? 'Traduction\u00A0:' : 'Translation:';
+        const translation = `${label} ${headOf(e[locale])}`;
+        if (e.lang === locale) expect(titleOf(e, locale)).not.toContain(label);
+        // Seule une traduction trop longue pour 60 caractères cède la place.
+        else if (translation.length <= 45) expect(titleOf(e, locale)).toContain(translation);
+      }
+    }
+  });
+
   it('ne garde que la tête de la définition, glose exclue', () => {
     expect(titleOf(entry('dim'), 'fr')).toContain('Diminution');
     expect(titleOf(entry('dim'), 'fr')).not.toContain('2 mailles');
   });
 
   for (const locale of ['en', 'fr'] as const) {
-    it(`tient en 60 caractères et commence par la question du titre (${locale})`, () => {
+    it(`tient en 60 caractères et nomme l’abréviation (${locale})`, () => {
       for (const e of GLOSSARY) {
         const title = titleOf(e, locale);
         expect(title.length, title).toBeLessThanOrEqual(60);
-        expect(title, e.term).toMatch(/^(What does|Que veut dire)/);
+        expect(title, e.term).toContain(e.term);
       }
     });
 
@@ -108,6 +126,16 @@ describe('regionNoteOf', () => {
 
   it('ne dit rien d’un terme hors du décalage US/UK', () => {
     expect(regionNoteOf(entry('ch'), 'en')).toBeUndefined();
+  });
+});
+
+describe('GlossaryTermPage — retour au glossaire', () => {
+  it('ramène sur la ligne du terme, pas en haut de la liste', () => {
+    const host = render('blo', 'fr');
+    const back = [...host.querySelectorAll('a')].find((a) =>
+      a.textContent?.includes('Toutes les abréviations'),
+    );
+    expect(back?.getAttribute('href')).toBe('/fr/glossaire#blo');
   });
 });
 

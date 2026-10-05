@@ -65,6 +65,11 @@ interface TermCopy {
   /** Guillemets de la langue, posés autour de l'abréviation dans le titre. */
   readonly quotes: readonly [string, string];
   /**
+   * Libellé posé devant le sens quand l'abréviation vient de l'autre langue :
+   * on cherche « blo crochet traduction », pas « blo signification ».
+   */
+  readonly translation: string;
+  /**
    * Descriptions possibles, de la plus complète à la plus courte : la page
    * garde la plus longue qui tient en 160 caractères. `rich` : la page a un
    * article (gestes, rang expliqué, US/UK, erreurs).
@@ -116,8 +121,13 @@ const COPY: Record<Locale, TermCopy> = {
     backToReader: 'Lire tout un patron pas à pas',
     backToGlossary: 'Toutes les abréviations',
     quotes: [`«${NBSP}`, `${NBSP}»`],
+    translation: `Traduction${NBSP}:`,
     descriptions: (e, rich) => {
-      const means = `«${NBSP}${e.term}${NBSP}» veut dire ${headOf(e.fr)}`;
+      // Abréviation anglaise lue en français : la page traduit.
+      const means =
+        e.lang === 'fr'
+          ? `«${NBSP}${e.term}${NBSP}» veut dire ${headOf(e.fr)}`
+          : `Traduction de «${NBSP}${e.term}${NBSP}» en français${NBSP}: ${headOf(e.fr)}`;
       const both = `${means} (${headOf(e.en)} en anglais)`;
       return rich
         ? [
@@ -170,8 +180,12 @@ const COPY: Record<Locale, TermCopy> = {
     backToReader: 'Read a whole pattern step by step',
     backToGlossary: 'All abbreviations',
     quotes: ['“', '”'],
+    translation: 'Translation:',
     descriptions: (e, rich) => {
-      const means = `“${e.term}” means ${headOf(e.en)}`;
+      const means =
+        e.lang === 'en'
+          ? `“${e.term}” means ${headOf(e.en)}`
+          : `“${e.term}” in English: ${headOf(e.en)}`;
       const both = `${means} (${headOf(e.fr)} in French)`;
       return rich
         ? [
@@ -196,19 +210,27 @@ const COPY: Record<Locale, TermCopy> = {
  * dans le titre et « in crochet and knitting » dans la page, soit une promesse
  * différente de la réponse sur les trente pages concernées.
  *
- * 60 caractères au plus : la définition, puis le nom du site, cèdent la
- * place quand la question est longue (« sk » au crochet et au tricot).
+ * 60 caractères au plus : le nom du site cède la place d'abord, puis la
+ * tournure de la question (« « sk » crochet et tricot — Sauter une maille »),
+ * pour garder le sens, ou la traduction d'une abréviation de l'autre langue.
  */
 export function titleOf(entry: GlossaryEntry, locale: Locale): string {
   const c = COPY[locale];
   const [before, after] = c.question[entry.craft];
   const [open, close] = c.quotes;
   const question = `${before}${open}${entry.term}${close}${after}`;
-  const meaning = capitalize(headOf(entry[locale]));
+  const head = headOf(entry[locale]);
+  const meaning = entry.lang === locale ? capitalize(head) : `${c.translation} ${head}`;
+  // Forme courte quand la question ne laisse pas la place au sens : le terme,
+  // le métier et le sens (ou la traduction) passent avant la tournure.
+  const term = `${open}${entry.term}${close}`;
+  const craft = c.craft[entry.craft].toLowerCase();
   return fit(
     [
       `${question} ${meaning} — ${SITE_NAME}`,
       `${question} ${meaning}`,
+      `${term} ${craft} — ${meaning}`,
+      `${term} — ${meaning}`,
       `${question} — ${SITE_NAME}`,
       question,
     ],
@@ -449,7 +471,9 @@ export function regionNoteOf(
 
     <div class="navrow">
       <a filButton="primary" [routerLink]="i18n.link('reader')">{{ c.backToReader }}</a>
-      <a filButton="ghost" [routerLink]="i18n.link('glossary')">{{ c.backToGlossary }}</a>
+      <a filButton="ghost" [routerLink]="i18n.link('glossary')" [fragment]="entry().slug">{{
+        c.backToGlossary
+      }}</a>
     </div>
   `,
 })

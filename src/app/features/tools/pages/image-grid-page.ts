@@ -47,9 +47,9 @@ interface ImageGridCopy {
 // Les textes vivent dans la page, pas dans `translations.ts` : ils n'ont rien à faire dans le bundle initial.
 const COPY: Record<Locale, ImageGridCopy> = {
   fr: {
-    seoTitle: 'Transformer une image en grille de crochet, gratuit et sans compte — Fil',
+    seoTitle: 'Transformer une image en grille de crochet, gratuit',
     seoDescription:
-      'Choisissez une photo ou un dessin : Fil le transforme en grille de mailles serrées colorées, à suivre maille par maille. Gratuit, sans compte, rien n’est envoyé.',
+      'Choisissez une photo ou un dessin : il devient une grille de mailles serrées colorées, à suivre maille par maille. Gratuit, sans compte, rien n’est envoyé.',
     h1: 'Transformer une image en grille de crochet',
     lead: `Choisissez une photo ou un dessin${NBSP}: Fil le découpe en mailles serrées colorées, que vous suivez ensuite maille par maille. Gratuit, sans compte, et l’image ne quitte jamais votre appareil.`,
     choose: 'Choisir une image',
@@ -95,9 +95,9 @@ const COPY: Record<Locale, ImageGridCopy> = {
     toChartGuide: 'Comment lire un diagramme de crochet',
   },
   en: {
-    seoTitle: 'Turn an image into a crochet chart, free and no account — Fil',
+    seoTitle: 'Turn an image into a crochet chart — Pattern Reader',
     seoDescription:
-      'Pick a photo or a drawing and Fil turns it into a grid of coloured single crochet stitches you can follow stitch by stitch. Free, no account, nothing is uploaded.',
+      'Pick a photo or a drawing and turn it into a grid of coloured single crochet stitches to follow stitch by stitch. Free, no account, nothing is uploaded.',
     h1: 'Turn an image into a crochet chart',
     lead: 'Pick a photo or a drawing: Fil breaks it into coloured single crochet stitches, then lets you follow them stitch by stitch. Free, no account, and the image never leaves your device.',
     choose: 'Choose an image',

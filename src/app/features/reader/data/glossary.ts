@@ -32,6 +32,14 @@ export interface GlossaryEntry {
    * sans qu'un test casse.
    */
   readonly slug: string;
+  /**
+   * Langues où l'entrée n'a pas de page propre : son URL y redirige en 301
+   * (`vercel.json`, `netlify.toml`) vers la page de l'entrée nommée, qui porte
+   * le même concept. Une graphie de plus (`slst`, `rnds`) ou un autre nom du
+   * même point (`mr`, `magic loop`) ne méritent pas une page quasi identique,
+   * mais l'abréviation reste reconnue et expliquée par le lecteur.
+   */
+  readonly pageOf?: Partial<Record<Locale, string>>;
 }
 
 /** Dérive un identifiant d'URL d'un terme : minuscules, ASCII, tirets. */
@@ -45,6 +53,9 @@ function slugify(term: string): string {
 }
 
 type RawGlossaryEntry = Omit<GlossaryEntry, 'slug'>;
+
+/** Les deux langues redirigent vers la même entrée. */
+const both = (term: string) => ({ en: term, fr: term });
 
 /**
  * Glossaire crochet / tricot, français et anglais.
@@ -61,6 +72,7 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     craft: 'crochet',
     lang: 'en',
     example: 'Rnd 12: ch 1, crab st in each st around, sl st to first st. Fasten off.',
+    pageOf: both('rsc'),
   },
   {
     term: 'rsc',
@@ -93,6 +105,7 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     craft: 'crochet',
     lang: 'en',
     example: 'Rnd 1: 6 sc in magic ring, slst to first sc to join (6)',
+    pageOf: both('sl st'),
   },
   {
     term: 'rnd',
@@ -109,6 +122,7 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     craft: 'crochet',
     lang: 'en',
     example: 'Rnds 5-8: sc in each st around (24)',
+    pageOf: both('rnd'),
   },
   {
     term: 'puff',
@@ -326,6 +340,7 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     craft: 'commun',
     lang: 'en',
     example: 'Row 1: sc in next 10 sts, turn (10 sts)',
+    pageOf: both('st'),
   },
   {
     term: 'st',
@@ -342,6 +357,7 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     craft: 'crochet',
     lang: 'en',
     example: 'Rnd 1: 6 sc in a magic ring (6)',
+    pageOf: { fr: 'cercle magique' },
   },
   {
     term: 'cercle magique',
@@ -350,6 +366,7 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     craft: 'crochet',
     lang: 'fr',
     example: 'Tour 1 : 6 ms dans un cercle magique (6)',
+    pageOf: { en: 'magic ring' },
   },
   {
     term: 'mr',
@@ -358,6 +375,7 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     craft: 'crochet',
     lang: 'en',
     example: 'Rnd 1: 6 sc in mr (6)',
+    pageOf: { en: 'magic ring', fr: 'cercle magique' },
   },
   {
     term: 'magic loop',
@@ -366,6 +384,7 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     craft: 'crochet',
     lang: 'en',
     example: 'Rnd 1: 6 sc in a magic loop, pull tight (6)',
+    pageOf: { en: 'magic ring', fr: 'cercle magique' },
   },
   {
     term: 'br',
@@ -610,6 +629,21 @@ export const GLOSSARY: readonly GlossaryEntry[] = RAW_GLOSSARY.map((entry) => ({
 const DEFINITIONS = new Map<string, GlossaryEntry>(
   GLOSSARY.map((entry) => [entry.term.toLowerCase(), entry]),
 );
+
+/**
+ * L'entrée dont la page sert `entry` dans `locale` : elle-même, ou celle vers
+ * laquelle son URL redirige. Tout lien interne passe par elle, pour ne jamais
+ * pointer vers une redirection.
+ */
+export function pageEntryOf(entry: GlossaryEntry, locale: Locale): GlossaryEntry {
+  const target = entry.pageOf?.[locale];
+  return (target && DEFINITIONS.get(target)) || entry;
+}
+
+/** Slug de la page qui sert `entry`, dans chaque langue (paire hreflang). */
+export function pageSlugsOf(entry: GlossaryEntry): Record<Locale, string> {
+  return { en: pageEntryOf(entry, 'en').slug, fr: pageEntryOf(entry, 'fr').slug };
+}
 
 /** Termes triés du plus long au plus court, pour que « sl st » gagne sur « st ». */
 const PATTERN = new RegExp(

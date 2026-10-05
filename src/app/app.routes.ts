@@ -6,8 +6,11 @@ import { StylesheetService } from './core/platform/stylesheet.service';
 
 /**
  * N'accepte que les abréviations du glossaire ; une autre valeur retombe sur
- * la route `**`. Le glossaire est chargé à la demande : l'importer ici le
- * ferait entrer dans le bundle initial de chaque page du site.
+ * la route `**`. Une entrée sans page propre (`slst`) passe aussi : la page
+ * d'abréviation la remplace par celle qui la sert, comme la 301 de
+ * l'hébergeur — rien de plus ici, qui est dans le bundle initial. Le glossaire
+ * est chargé à la demande : l'importer ici le ferait entrer dans le bundle
+ * initial de chaque page du site.
  */
 const isGlossaryTerm: CanMatchFn = async (_route, segments) => {
   const { GLOSSARY } = await import('./features/reader/data/glossary');

@@ -57,7 +57,12 @@ programme.
 ## Référencement
 
 - Pré-rendu de toutes les routes : le contenu est dans le HTML servi.
-- URL traduites : `/lecteur` ↔ `/en/reader`, `/glossaire` ↔ `/en/glossary`.
+- Anglais à la racine, français sous `/fr`, URL traduites : `/` ↔ `/fr`,
+  `/glossary` ↔ `/fr/glossaire`. La racine s'écrit `https://patternreader.com/`
+  (avec sa barre) partout ; aucune autre URL n'en prend.
+- Anciennes URL (`/en/…`, `/glossaire`, `/lecteur`, graphies du glossaire sans
+  page) : 301 en une étape vers la page actuelle, déclarées à l'identique dans
+  `vercel.json` et `netlify.toml` et vérifiées au build (`tools/check-redirects.mjs`).
 - `canonical`, `hreflang` (dont `x-default`), Open Graph, JSON-LD par page.
 - `sitemap.xml` généré à partir des pages réellement pré-rendues, `robots.txt`.
 - La page **glossaire** est la principale porte d'entrée organique : son contenu

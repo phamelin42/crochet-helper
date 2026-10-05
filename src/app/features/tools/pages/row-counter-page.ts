@@ -6,7 +6,7 @@ import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale'
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
 import { WakeLockService } from '../../../core/platform/wake-lock.service';
 import { SeoService } from '../../../core/seo/seo.service';
-import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
+import { SITE_ORIGIN } from '../../../core/seo/site';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Checkbox } from '../../../shared/ui/checkbox/checkbox';
@@ -58,9 +58,9 @@ interface RowCounterCopy {
 
 const COPY: Record<Locale, RowCounterCopy> = {
   fr: {
-    seoTitle: `Compteur de rangs crochet et tricot en ligne, gratuit — ${SITE_NAME}`,
+    seoTitle: `Compteur de rangs crochet et tricot en ligne, gratuit`,
     seoDescription:
-      'Comptez vos rangs de crochet ou de tricot d’une main, avec un objectif optionnel et sa barre de progression. Gratuit, sans compte, la valeur se retient toute seule.',
+      'Comptez vos rangs de crochet ou de tricot d’une main, avec un objectif optionnel et sa barre de progression. Gratuit, sans compte, le compte se retient.',
     h1: 'Compteur de rangs crochet et tricot en ligne',
     lead: `Un chiffre en très grand, deux boutons très larges${NBSP}: comptez vos rangs sans lâcher votre ouvrage. La valeur se retient toute seule, même après avoir fermé l’onglet.`,
     minus: '−1',
@@ -94,9 +94,9 @@ const COPY: Record<Locale, RowCounterCopy> = {
     toImageGrid: 'Une image en grille de crochet',
   },
   en: {
-    seoTitle: `Free online row counter for crochet and knitting — ${SITE_NAME}`,
+    seoTitle: `Free online row counter for crochet and knitting projects`,
     seoDescription:
-      'Count your crochet or knitting rows one-handed, with an optional target and progress bar. Free, no account, the value remembers itself.',
+      'Count your crochet or knitting rows one-handed, with an optional target and a progress bar. Free, no account, and the count is still there when you come back.',
     h1: 'Online row counter for crochet and knitting',
     lead: 'One big number, two very large buttons: count your rows without putting your work down. The value remembers itself, even after closing the tab.',
     minus: '−1',

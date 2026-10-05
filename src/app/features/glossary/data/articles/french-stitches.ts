@@ -19,6 +19,16 @@ export const FRENCH_STITCHES: TermArticles = {
         'Ne faire qu’une maille serrée là où le patron en demande deux. « 2 ms dans chaque maille » double le tour. Si le nombre entre parenthèses n’y est pas à la fin, comptez de nouveau.',
       ],
       tip: 'La maille serrée est petite et difficile à compter à distance. En tour, posez un marqueur dans la première maille et déplacez-le à chaque tour. Tous les vingt points, comptez à voix haute. Si le nombre entre parenthèses ne correspond pas, corrigez le tour avant de continuer.',
+      faq: [
+        {
+          q: 'ms, c’est la même chose que sc ?',
+          a: 'Oui : ms (français), sc (américain) et dc (britannique) désignent la même maille serrée.',
+        },
+        {
+          q: 'Quelle différence entre ms et mc ?',
+          a: 'ms est la maille serrée, une maille de travail. mc est la maille coulée, qui n’ajoute presque pas de hauteur.',
+        },
+      ],
     },
     en: {
       how: [
@@ -36,6 +46,16 @@ export const FRENCH_STITCHES: TermArticles = {
         'Making only one single crochet where the pattern asks for two. “2 ms dans chaque maille” doubles the round. If the number in brackets is not reached at the end, count again.',
       ],
       tip: 'Single crochet is small and hard to count from a distance. In rounds, put a marker in the first stitch and move it up at every round. After every twenty stitches, count aloud. If the number in brackets does not match, fix the round before you go on.',
+      faq: [
+        {
+          q: 'Is ms the same as sc?',
+          a: 'Yes: ms (French), sc (American) and dc (British) are the same stitch.',
+        },
+        {
+          q: 'What is the difference between ms and mc?',
+          a: 'ms is the maille serrée, the single crochet, a working stitch. mc is the maille coulée, the slip stitch, which adds almost no height.',
+        },
+      ],
     },
   },
   db: {
@@ -91,6 +111,16 @@ export const FRENCH_STITCHES: TermArticles = {
         'Fermer au mauvais endroit. Le patron nomme la maille, ici la première maille serrée du tour. Si vous fermez dans la suivante, la couture se décale un peu plus autour de la pièce à chaque tour.',
       ],
       tip: 'La fermeture se voit mal, car la maille coulée est plate. Juste après l’avoir faite, posez un marqueur dans la première maille du tour suivant et remontez-le à chaque tour. Vous saurez toujours où le tour commence, même à bout de bras.',
+      faq: [
+        {
+          q: 'Que veut dire MC dans un patron anglais ?',
+          a: 'Main colour, la couleur principale : le fil employé pour l’essentiel de l’ouvrage, par opposition à CC, la couleur contrastante. Dans un patron français, mc est la maille coulée. La liste du matériel aide : un MC à côté d’un CC est une couleur.',
+        },
+        {
+          q: 'mc, c’est la même chose que sl st ?',
+          a: 'Oui : mc (français), sl st (américain) et ss (britannique) désignent la même maille coulée.',
+        },
+      ],
     },
     en: {
       how: [
@@ -108,6 +138,16 @@ export const FRENCH_STITCHES: TermArticles = {
         'Joining in the wrong place. The pattern names the stitch, here the first single crochet of the round. If you join into the next one, the seam moves round the piece a little more at every round.',
       ],
       tip: 'The join is hard to see, because the slip stitch is flat. Right after you make it, place a marker in the first stitch of the next round, and move it up at each round. You will always know where the round begins, even when the piece is at arm’s length.',
+      faq: [
+        {
+          q: 'What does MC mean in an English pattern?',
+          a: 'Main colour: the yarn used for most of the piece, as opposed to CC, the contrast colour. In a French pattern, mc is the maille coulée, the slip stitch. The materials list helps: an MC next to a CC is a colour.',
+        },
+        {
+          q: 'Is mc the same as sl st?',
+          a: 'Yes: mc (French), sl st (American) and ss (British) are the same slip stitch.',
+        },
+      ],
     },
   },
   ml: {
@@ -127,6 +167,16 @@ export const FRENCH_STITCHES: TermArticles = {
         'Tordre la chaînette en la retournant pour piquer dedans. Posez-la à plat et vérifiez que tous les « V » sont tournés vers vous avant de commencer le premier rang.',
       ],
       tip: 'Une longue chaînette de départ se compte mal. Toutes les dix mailles, glissez un marqueur dans la maille et notez le total sur papier, puis recomptez en arrivant au bout. Recompter une chaînette prend une minute, défaire une couverture terminée prend une soirée.',
+      faq: [
+        {
+          q: 'Que veut dire ML en tricot ?',
+          a: 'Dans un patron de tricot anglais, ML ou M1L veut dire make one left, une augmentation inclinée à gauche. Dans un patron de crochet français, ml est la maille en l’air. La technique et la langue du patron tranchent.',
+        },
+        {
+          q: 'ml, c’est la même chose que ch ?',
+          a: 'Oui : ml est le nom français de la maille en l’air, écrite ch dans les patrons américains et britanniques.',
+        },
+      ],
     },
     en: {
       how: [
@@ -144,6 +194,16 @@ export const FRENCH_STITCHES: TermArticles = {
         'Twisting the chain when you turn to work into it. Lay the chain flat and make sure that all the “V” shapes face you before you start the first row.',
       ],
       tip: 'A long foundation is easy to miscount. Every ten chains, slip a marker into the chain and note the total on paper, then count again when you reach the end. Recounting a foundation takes a minute, while ripping out a finished blanket takes an evening.',
+      faq: [
+        {
+          q: 'What does ML mean in knitting?',
+          a: 'In an English knitting pattern, ML or M1L means make one left, a left-leaning increase. In a French crochet pattern, ml is the maille en l’air, the chain. The craft and the language of the pattern settle it.',
+        },
+        {
+          q: 'Is ml the same as ch?',
+          a: 'Yes: ml is the French name of the chain, written ch in American and British patterns.',
+        },
+      ],
     },
   },
 };

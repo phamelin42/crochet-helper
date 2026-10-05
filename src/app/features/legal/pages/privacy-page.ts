@@ -39,9 +39,9 @@ interface PrivacyCopy {
 
 const COPY: Record<Locale, PrivacyCopy> = {
   fr: {
-    seoTitle: `Confidentialité — ${SITE_NAME}`,
+    seoTitle: `Confidentialité${NBSP}: vos patrons restent sur votre appareil`,
     seoDescription:
-      'Vos patrons restent sur votre appareil, sans compte. Ce que l’outil garde, ce que la mesure d’audience envoie, et comment tout effacer.',
+      'Vos patrons restent sur votre appareil, sans compte. Ce que l’outil garde, ce que la mesure d’audience envoie ou ne voit jamais, et comment tout effacer.',
     h1: 'Confidentialité',
     updated: `Mise à jour le 30${NBSP}septembre 2026.`,
     lead: `Vos patrons restent sur votre appareil${NBSP}: ${SITE_NAME} n’a ni compte, ni serveur qui les reçoive.`,
@@ -69,9 +69,9 @@ const COPY: Record<Locale, PrivacyCopy> = {
     projects: 'Mes projets',
   },
   en: {
-    seoTitle: `Privacy — ${SITE_NAME}`,
+    seoTitle: `Privacy: your patterns stay on your device — ${SITE_NAME}`,
     seoDescription:
-      'Your patterns stay on your device, with no account. What the tool keeps, what audience measurement sends, and how to erase everything.',
+      'Your patterns stay on your device, with no account. What the tool keeps, what audience measurement sends and what it never sees, and how to erase everything.',
     h1: 'Privacy',
     updated: 'Last updated September 30, 2026.',
     lead: `Your patterns stay on your device: ${SITE_NAME} has no account and no server that receives them.`,

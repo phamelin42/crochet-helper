@@ -12,6 +12,20 @@ export interface TermArticle {
   readonly mistakes: readonly string[];
   /** Un conseil pour lire à distance : compter, marqueur, repère. */
   readonly tip: string;
+  /**
+   * Questions fréquentes, surtout quand l'abréviation est ambiguë (`tr`,
+   * `mc`, `bo`). Affichées sur la page et reprises mot pour mot en `FAQPage`.
+   */
+  readonly faq?: readonly TermQuestion[];
 }
 
-export type TermArticles = Readonly<Record<string, Readonly<Record<Locale, TermArticle>>>>;
+export interface TermQuestion {
+  readonly q: string;
+  readonly a: string;
+}
+
+/**
+ * Par slug puis par langue. Une langue manque quand le slug n'y a pas de page :
+ * le cercle magique s'écrit `cercle-magique` en français, `magic-ring` en anglais.
+ */
+export type TermArticles = Readonly<Record<string, Readonly<Partial<Record<Locale, TermArticle>>>>>;

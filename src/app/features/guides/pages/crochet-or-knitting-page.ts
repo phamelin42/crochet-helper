@@ -3,9 +3,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
+import { CRUMBS, breadcrumbList, homeCrumb } from '../../../core/seo/breadcrumbs';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
+import { Breadcrumb } from '../../../shared/ui/breadcrumb/breadcrumb';
 import { Button } from '../../../shared/ui/button/button';
+import { GUIDE_DATES, guideDatesLine } from '../data/guide-dates';
 
 const NBSP = ' ';
 
@@ -37,9 +40,9 @@ interface GuideCopy {
 
 const COPY: Record<Locale, GuideCopy> = {
   fr: {
-    seoTitle: `Crochet ou tricot : quelle différence, et par lequel commencer — ${SITE_NAME}`,
+    seoTitle: `Crochet ou tricot${NBSP}: la différence, et par lequel commencer`,
     seoDescription:
-      'Un crochet ou deux aiguilles, quelle technique est la plus facile pour débuter, quels projets chacune permet : les différences entre crochet et tricot expliquées simplement.',
+      'Un crochet ou deux aiguilles, quelle technique est la plus facile pour débuter, quels projets chacune permet : crochet et tricot comparés tout simplement.',
     h1: 'Crochet ou tricot : quelle différence, et par lequel commencer ?',
     lead: `Les deux produisent du tissu à partir d'un seul fil, mais avec des outils et une logique différents. Ni l'un ni l'autre n'est strictement supérieur${NBSP}: le choix dépend surtout de ce qu'on a envie de fabriquer, et du temps qu'on a envie d'y passer.`,
     h2Diff: `Quelle est la différence entre crochet et tricot${NBSP}?`,
@@ -63,7 +66,7 @@ const COPY: Record<Locale, GuideCopy> = {
     backToGlossary: 'Toutes les abréviations',
   },
   en: {
-    seoTitle: `Crochet or knitting: what is the difference, and which to start with — ${SITE_NAME}`,
+    seoTitle: `Crochet or knitting: the difference, and where to start`,
     seoDescription:
       'One hook or two needles, which is easier for a beginner, which projects suit which craft: the differences between crochet and knitting, explained simply.',
     h1: 'Crochet or knitting: what is the difference, and which should you start with?',
@@ -98,11 +101,13 @@ const COPY: Record<Locale, GuideCopy> = {
 
 @Component({
   selector: 'fil-crochet-or-knitting-page',
-  imports: [Button, RouterLink],
+  imports: [Breadcrumb, Button, RouterLink],
   host: { class: 'wrap' },
   template: `
     <article class="prose">
+      <fil-breadcrumb [items]="crumbs" [label]="crumbLabel" />
       <h1>{{ c.h1 }}</h1>
+      <p class="guide-dates">{{ dates }}</p>
       <p class="lead">{{ c.lead }}</p>
 
       <h2>{{ c.h2Diff }}</h2>
@@ -151,6 +156,15 @@ export default class CrochetOrKnittingPage {
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
+  protected readonly crumbLabel = CRUMBS[this.locale].label;
+  protected readonly crumbs = [
+    homeCrumb(this.locale),
+    {
+      label: this.c.h1,
+      href: `${localePrefix(this.locale)}${ROUTE_PATHS.guideCrochetOrKnitting[this.locale]}`,
+    },
+  ];
+  protected readonly dates = guideDatesLine('guideCrochetOrKnitting', this.locale);
 
   protected hrefOf(route: 'guideReadingPattern' | 'guideReadingChart'): string {
     return `${localePrefix(this.locale)}${ROUTE_PATHS[route][this.locale]}`;
@@ -166,12 +180,20 @@ export default class CrochetOrKnittingPage {
       locale: this.locale,
       jsonLd: {
         '@context': 'https://schema.org',
-        '@type': 'Article',
-        '@id': url,
-        headline: this.c.h1,
-        description: this.c.seoDescription,
-        inLanguage: this.locale,
-        author: { '@type': 'Organization', name: SITE_NAME },
+        '@graph': [
+          {
+            '@type': 'Article',
+            '@id': url,
+            headline: this.c.h1,
+            description: this.c.seoDescription,
+            inLanguage: this.locale,
+            author: { '@type': 'Organization', name: SITE_NAME },
+            datePublished: GUIDE_DATES.guideCrochetOrKnitting.published,
+            dateModified: GUIDE_DATES.guideCrochetOrKnitting.modified,
+            image: `${this.origin}/og/pattern-reader-${this.locale}.png`,
+          },
+          breadcrumbList(this.origin, this.crumbs),
+        ],
       },
     });
   }

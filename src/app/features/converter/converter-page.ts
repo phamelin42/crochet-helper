@@ -45,7 +45,7 @@ const COPY: Record<Locale, ConverterCopy> = {
   fr: {
     title: `Convertisseur US ↔ UK et tailles de crochet — ${SITE_NAME}`,
     description:
-      'Convertissez un patron de crochet entier de la notation américaine à la britannique, ou inversement. sc, dc, hdc, tr, dtr, htr : les mêmes lettres désignent des mailles différentes selon la convention. Avec le tableau des tailles de crochet mm ↔ US.',
+      'Convertissez un patron de crochet entre notation américaine et britannique : sc, dc, tr, htr n’y désignent pas les mêmes mailles. Avec les tailles de crochet.',
     h1: 'Convertisseur d’abréviations US ↔ UK',
     lead: '« dc » désigne une bride aux États-Unis et une maille serrée au Royaume-Uni : se tromper de convention ruine un ouvrage. Collez un patron entier, choisissez le sens, et vérifiez chaque remplacement avant de crocheter.',
     directionLabel: 'Sens de la conversion',
@@ -72,7 +72,7 @@ const COPY: Record<Locale, ConverterCopy> = {
   en: {
     title: `US ↔ UK crochet converter and hook sizes — ${SITE_NAME}`,
     description:
-      'Convert a whole crochet pattern from US to UK notation, or the other way round. sc, dc, hdc, tr, dtr, htr: the same letters mean different stitches depending on the convention. With the mm ↔ US crochet hook size chart.',
+      'Convert a crochet pattern between US and UK notation: sc, dc, hdc, tr, dtr, htr mean different stitches in each. With the mm ↔ US crochet hook size chart.',
     h1: 'US ↔ UK abbreviation converter',
     lead: '"dc" means double crochet in the US and single crochet in the UK: mixing up the convention ruins a piece. Paste a whole pattern, pick the direction, and check every replacement before you hook.',
     directionLabel: 'Conversion direction',

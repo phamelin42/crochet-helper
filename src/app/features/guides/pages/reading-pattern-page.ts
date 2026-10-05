@@ -3,9 +3,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
+import { CRUMBS, breadcrumbList, homeCrumb } from '../../../core/seo/breadcrumbs';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME, SITE_ORIGIN } from '../../../core/seo/site';
+import { Breadcrumb } from '../../../shared/ui/breadcrumb/breadcrumb';
 import { Button } from '../../../shared/ui/button/button';
+import { GUIDE_DATES, guideDatesLine } from '../data/guide-dates';
 
 const NBSP = ' ';
 
@@ -37,13 +40,14 @@ interface GuideCopy {
   readonly linkChart: string;
   readonly linkCraft: string;
   readonly linkForeign: string;
+  readonly linkConverter: string;
   readonly backToReader: string;
   readonly backToGlossary: string;
 }
 
 const COPY: Record<Locale, GuideCopy> = {
   fr: {
-    seoTitle: `Comment lire un patron de crochet ou de tricot — ${SITE_NAME}`,
+    seoTitle: `Comment lire un patron de crochet ou de tricot, pas à pas`,
     seoDescription:
       'Abréviations, rangs, nombre de mailles entre parenthèses, notation US ou UK : la méthode pour décoder un patron de crochet ou de tricot ligne par ligne.',
     h1: 'Comment lire un patron de crochet ou de tricot, pas à pas',
@@ -88,13 +92,14 @@ const COPY: Record<Locale, GuideCopy> = {
     linkChart: 'Comment lire un diagramme de crochet',
     linkCraft: 'Crochet ou tricot : par lequel commencer',
     linkForeign: 'Lire un patron de crochet anglais en français',
+    linkConverter: 'Convertir un patron US ↔ UK',
     backToReader: 'Essayer avec votre propre patron',
     backToGlossary: 'Toutes les abréviations',
   },
   en: {
     seoTitle: `How to read a crochet or knitting pattern — ${SITE_NAME}`,
     seoDescription:
-      'Abbreviations, rows, the stitch count in parentheses, US or UK notation: the method for decoding a crochet or knitting pattern line by line.',
+      'Abbreviations, rows, the stitch count in parentheses, US or UK notation: the method for decoding a crochet or knitting pattern line by line, with examples.',
     h1: 'How to read a crochet or knitting pattern, step by step',
     lead: `A pattern doesn't read like ordinary text: every line packs a precise instruction, with its own abbreviations and its own punctuation. Once the logic clicks, any pattern becomes readable — even one written by a different designer, in a different language.`,
     h2Abbrev: 'What does each abbreviation mean?',
@@ -141,6 +146,7 @@ const COPY: Record<Locale, GuideCopy> = {
     linkChart: 'How to read a crochet chart',
     linkCraft: 'Crochet or knitting: which to start with',
     linkForeign: 'Reading a French crochet pattern in English',
+    linkConverter: 'Convert a pattern US ↔ UK',
     backToReader: 'Try it with your own pattern',
     backToGlossary: 'All abbreviations',
   },
@@ -148,11 +154,13 @@ const COPY: Record<Locale, GuideCopy> = {
 
 @Component({
   selector: 'fil-reading-pattern-page',
-  imports: [Button, RouterLink],
+  imports: [Breadcrumb, Button, RouterLink],
   host: { class: 'wrap' },
   template: `
     <article class="prose">
+      <fil-breadcrumb [items]="crumbs" [label]="crumbLabel" />
       <h1>{{ c.h1 }}</h1>
+      <p class="guide-dates">{{ dates }}</p>
       <p class="lead">{{ c.lead }}</p>
 
       <h2>{{ c.h2Abbrev }}</h2>
@@ -195,6 +203,9 @@ const COPY: Record<Locale, GuideCopy> = {
         <li>
           <a [routerLink]="hrefOf('readForeignPattern')">{{ c.linkForeign }}</a>
         </li>
+        <li>
+          <a [routerLink]="hrefOf('converter')">{{ c.linkConverter }}</a>
+        </li>
       </ul>
 
       <div class="navrow">
@@ -212,9 +223,18 @@ export default class ReadingPatternPage {
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = COPY[this.locale];
+  protected readonly crumbLabel = CRUMBS[this.locale].label;
+  protected readonly crumbs = [
+    homeCrumb(this.locale),
+    {
+      label: this.c.h1,
+      href: `${localePrefix(this.locale)}${ROUTE_PATHS.guideReadingPattern[this.locale]}`,
+    },
+  ];
+  protected readonly dates = guideDatesLine('guideReadingPattern', this.locale);
 
   protected hrefOf(
-    route: 'guideReadingChart' | 'guideCrochetOrKnitting' | 'readForeignPattern',
+    route: 'guideReadingChart' | 'guideCrochetOrKnitting' | 'readForeignPattern' | 'converter',
   ): string {
     return `${localePrefix(this.locale)}${ROUTE_PATHS[route][this.locale]}`;
   }
@@ -237,6 +257,9 @@ export default class ReadingPatternPage {
             description: this.c.seoDescription,
             inLanguage: this.locale,
             author: { '@type': 'Organization', name: SITE_NAME },
+            datePublished: GUIDE_DATES.guideReadingPattern.published,
+            dateModified: GUIDE_DATES.guideReadingPattern.modified,
+            image: `${this.origin}/og/pattern-reader-${this.locale}.png`,
           },
           {
             '@type': 'FAQPage',
@@ -246,6 +269,7 @@ export default class ReadingPatternPage {
               acceptedAnswer: { '@type': 'Answer', text: item.a },
             })),
           },
+          breadcrumbList(this.origin, this.crumbs),
         ],
       },
     });

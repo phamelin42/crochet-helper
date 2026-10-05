@@ -210,16 +210,13 @@ interface HomeCopy {
   readonly ctaPaste: string;
   readonly howItWorksTitle: string;
   readonly steps: readonly HomeStep[];
-  readonly storyboardTitle: string;
-  readonly storyboardCaption: string;
-  readonly storyboardAlt: string;
   readonly faqTitle: string;
   readonly faq: readonly FaqItem[];
 }
 
 /**
  * Contenu propre à l'accueil quand aucun patron n'est chargé (fiche 26) :
- * « Comment ça marche », le storyboard et la FAQ. Reste dans la page
+ * « Comment ça marche » et la FAQ. Reste dans la page
  * paresseuse plutôt que dans `reader-copy.ts`, partagé par des composants qui
  * chargent avec le lecteur lui-même.
  */
@@ -242,11 +239,6 @@ const HOME_COPY: Record<Locale, HomeCopy> = {
         lead: 'Une touche, un clic ou un geste sur tablette passe à la suite ; le compteur de répétitions et le chronomètre de session suivent tout seuls.',
       },
     ],
-    storyboardTitle: 'À quoi ça ressemble',
-    storyboardCaption:
-      'Trois vignettes : coller le patron, le découper en étapes, puis lire une étape en grand.',
-    storyboardAlt:
-      'Storyboard en trois vignettes : un texte de patron collé dans une zone de saisie, le même texte découpé en rangs numérotés, puis un seul rang affiché en très grand.',
     faqTitle: 'Questions fréquentes',
     faq: [
       {
@@ -299,11 +291,6 @@ const HOME_COPY: Record<Locale, HomeCopy> = {
         lead: 'A tap, a click, or a swipe on tablet moves to the next step; the repeat counter and the session timer keep track on their own.',
       },
     ],
-    storyboardTitle: 'What it looks like',
-    storyboardCaption:
-      'Three panels: paste the pattern, split it into steps, then read one step in large print.',
-    storyboardAlt:
-      'A three-panel storyboard: a pattern text pasted into an input area, the same text split into numbered rows, then a single row shown alone, in very large print.',
     faqTitle: 'Frequently asked questions',
     faq: [
       {
@@ -479,21 +466,6 @@ const SEO: Record<Locale, { title: string; description: string; features: string
 
     @if (!store.step()) {
       <hr class="hr" />
-
-      <section class="storyboard-section">
-        <figure class="storyboard">
-          <img
-            src="/illustrations/demo-storyboard.svg"
-            width="720"
-            height="240"
-            [alt]="homeCopy.storyboardAlt"
-          />
-          <figcaption>
-            <strong>{{ homeCopy.storyboardTitle }}</strong>
-            <span>{{ homeCopy.storyboardCaption }}</span>
-          </figcaption>
-        </figure>
-      </section>
 
       <section class="faq">
         <h2>{{ homeCopy.faqTitle }}</h2>

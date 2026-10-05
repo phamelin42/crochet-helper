@@ -56,7 +56,7 @@ const MAX_NAME = 60;
   template: `
     <fil-dialog [(open)]="open" [label]="title()" [wide]="true">
       @if (open()) {
-        <h2 class="dialog-title">{{ title() }}</h2>
+        <h2 class="dialog-title compose-title">{{ title() }}</h2>
         <p class="dialog-body">{{ t('ui.composeOpenIntro') }}</p>
         @if (readingNote(); as note) {
           <p class="hint" role="status">{{ note }}</p>

@@ -857,29 +857,6 @@ fil-install-slot {
   max-width: 42ch;
 }
 
-/* Storyboard statique « à quoi ça ressemble » (fiche 26) : pas de vidéo. */
-.storyboard {
-  max-width: 720px;
-  margin: 0 auto;
-  text-align: center;
-}
-.storyboard img {
-  width: 100%;
-  height: auto;
-  border-radius: var(--radius-md);
-}
-.storyboard figcaption {
-  margin-top: var(--space-3);
-}
-.storyboard figcaption strong {
-  display: block;
-  font-family: var(--font-display);
-  font-weight: var(--font-display-weight);
-  font-size: 1.25rem;
-  color: var(--color-text-strong);
-  margin-bottom: var(--space-1);
-}
-
 /* FAQ de l'accueil : les cartes repliables du panneau d'import, réutilisées
    telles quelles plutôt que de redéfinir un habillage. */
 .faq-list {
@@ -894,6 +871,7 @@ fil-install-slot {
 .faq-answer {
   max-width: 70ch;
   margin: 0;
+  padding: 0 var(--space-5) var(--space-5);
 }
 
 @media (max-width: 820px) {

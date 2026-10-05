@@ -132,6 +132,10 @@
   border-radius: var(--radius-sm);
 }
 
+/* Le titre se centre au-dessus du diagramme, lui-même centré dans son cadre. */
+.compose-title {
+  text-align: center;
+}
 /* Composeur de transcription (fiche 36) : le diagramme réduit au-dessus, la
  * palette, puis le tour en cours. Le défilement est celui de la boîte. */
 .compose {

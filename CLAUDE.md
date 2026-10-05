@@ -214,17 +214,15 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   navigateur s'installe désormais en tête de `ci.yml`. Toute étape ajoutée à
   la préparation du pilote (`lot-suivant.yml`) l'est aussi, au même rang, dans
   `ci.yml`.
-- **Session cloud (claude.ai/code) : deux corrections d'environnement avant
-  toute commande.** Le Node fourni (22.22.0) est sous le minimum d'Angular CLI
-  (`^22.22.3 || ^24.15.0`) : `ng` refuse de démarrer. Installer Node 24 dans le
-  scratchpad (`curl -sS https://nodejs.org/dist/v24.15.0/node-v24.15.0-linux-x64.tar.xz | tar xJ`)
-  et le mettre en tête du `PATH`. Les navigateurs de `/opt/pw-browsers` ne sont
-  pas ceux qu'attend la version de Playwright du dépôt, et `playwright install`
-  est interdit : exporter `PW_CHROMIUM=/opt/pw-browsers/chromium`, que
-  `playwright.config.ts` et les scripts de `tools/` lisent déjà. Sans lui,
-  `test:tools` et toute la suite e2e échouent sur « Executable doesn't exist ».
-  Le hook `pre-push` lance `verify:ci` avec l'environnement du shell : pousser
-  avec ces deux variables exportées, pas avec `--no-verify` (refusé).
+- **Session cloud (claude.ai/code) : l'environnement se prépare seul.** Le
+  Node fourni (22.22.0) est sous le minimum d'Angular CLI, et les navigateurs
+  de `/opt/pw-browsers` ne sont pas ceux qu'attend Playwright
+  (`playwright install` est interdit). Le hook `SessionStart`
+  (`.claude/hooks/session-start.sh`) installe le Node de `.nvmrc`, lance
+  `npm install` et exporte `PW_CHROMIUM` vers le Chromium préinstallé. Rien à
+  bricoler ni à signaler : si `node -v` n'est pas celui de `.nvmrc`, c'est le
+  hook qu'on corrige. Le hook `pre-push` lance `verify:ci` avec cet
+  environnement : pousser sans `--no-verify`.
 - **Un morceau paresseux demandé à la première visite attend le service
   worker**, qui télécharge tout le site juste après le premier affichage : une
   version de la fiche 48 (PR #107) mesurait 1,1 s pour trois petits `import()`,

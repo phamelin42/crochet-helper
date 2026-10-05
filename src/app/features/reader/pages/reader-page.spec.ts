@@ -90,21 +90,20 @@ describe('ReaderPage', () => {
     expect(findButton(host, 'Suivante').disabled).toBe(true);
   });
 
-  it('sans patron, le bandeau d’accueil, « Comment ça marche », le storyboard, la FAQ et les guides sont affichés, pas les compteurs', () => {
+  it('sans patron, le bandeau d’accueil, « Comment ça marche », la FAQ et les guides sont affichés, pas les compteurs', () => {
     const { fixture, host } = setup();
 
     fixture.detectChanges();
 
     expect(host.querySelector('.home-hero')).toBeTruthy();
     expect(host.querySelector('.how-it-works')).toBeTruthy();
-    expect(host.querySelector('.storyboard-section')).toBeTruthy();
     expect(host.querySelector('.faq')).toBeTruthy();
     expect(host.querySelector('.grid-cards')).toBeTruthy();
     expect(host.querySelector('fil-reader-counters')).toBeNull();
     expect(host.querySelector('fil-waitlist-banner')).toBeNull();
   });
 
-  it('patron chargé, le bandeau, « Comment ça marche », le storyboard, la FAQ et les guides disparaissent, et le panneau d’import passe après les compteurs', () => {
+  it('patron chargé, le bandeau, « Comment ça marche », la FAQ et les guides disparaissent, et le panneau d’import passe après les compteurs', () => {
     const { fixture, store, host } = setup();
 
     store.load(PATTERN);
@@ -112,7 +111,6 @@ describe('ReaderPage', () => {
 
     expect(host.querySelector('.home-hero')).toBeNull();
     expect(host.querySelector('.how-it-works')).toBeNull();
-    expect(host.querySelector('.storyboard-section')).toBeNull();
     expect(host.querySelector('.faq')).toBeNull();
     expect(host.querySelector('.grid-cards')).toBeNull();
 

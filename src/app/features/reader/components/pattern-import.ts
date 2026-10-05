@@ -65,16 +65,6 @@ import { ReaderStore } from '../state/reader-store';
             >
               {{ t('ui.gridOpen') }}
             </button>
-            @if (store.currentId()) {
-              <button
-                type="button"
-                filButton="secondary"
-                [disabled]="intake.busy()"
-                (click)="chartInput().nativeElement.click()"
-              >
-                {{ t('ui.chartAdd') }}
-              </button>
-            }
             <button type="button" filButton="secondary" (click)="demo()">{{ t('ui.demo') }}</button>
             <button type="button" filButton="ghost" (click)="clear()">{{ t('ui.clear') }}</button>
           </div>
@@ -107,16 +97,6 @@ import { ReaderStore } from '../state/reader-store';
             aria-hidden="true"
             (change)="onGridChange($event)"
           />
-          <input
-            #chartFile
-            data-testid="chart-add-file"
-            type="file"
-            accept="image/png,image/jpeg,image/webp,application/pdf,.pdf"
-            class="visually-hidden"
-            tabindex="-1"
-            aria-hidden="true"
-            (change)="onChartChange($event)"
-          />
           @if (pdfErrorMessage(); as message) {
             <p class="hint" role="alert">{{ message }}</p>
           } @else if (noRows()) {
@@ -134,7 +114,6 @@ export class PatternImport {
   readonly open = model(true);
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
   protected readonly pdfInput = viewChild.required<ElementRef<HTMLInputElement>>('pdfFile');
-  protected readonly chartInput = viewChild.required<ElementRef<HTMLInputElement>>('chartFile');
   protected readonly gridInput = viewChild.required<ElementRef<HTMLInputElement>>('gridFile');
   protected readonly openInput = viewChild.required<ElementRef<HTMLInputElement>>('openFile');
   protected readonly intake = inject(ChartIntake);
@@ -209,13 +188,6 @@ export class PatternImport {
     const file = input.files?.[0];
     input.value = '';
     if (file) this.intake.chooseGridImage(file);
-  }
-
-  protected async onChartChange(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (file) await this.intake.submit(file);
   }
 
   protected demo(): void {

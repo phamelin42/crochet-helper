@@ -106,13 +106,9 @@ export class ChartIntake {
   private readonly recognize = inject(CHART_RECOGNIZER);
   private readonly analytics = inject(AnalyticsService);
 
-  /** Image collée ou déposée, en attente de la réponse « couverture ou diagramme ? ». */
-  readonly question = signal<File | null>(null);
   /** Pages du PDF à cocher ; `null` tant qu'aucun PDF n'est ouvert. */
   readonly pages = signal<readonly RenderedPage[] | null>(null);
   readonly pdfTotal = signal(0);
-  /** `open` : les pages cochées ouvriront un nouveau patron ; `add` : elles rejoignent le projet actif. */
-  readonly pagesFor = signal<'add' | 'open'>('add');
   /** Diagramme lu, montré dans le composeur pour relecture ; `null` hors de ce moment. */
   readonly opening = signal<ChartOpening | null>(null);
   /** Image choisie pour devenir une grille, en attente des réglages ; `null` hors de ce moment. */
@@ -125,23 +121,6 @@ export class ChartIntake {
   readonly error = signal<ChartIntakeError | null>(null);
 
   /**
-   * Un fichier choisi ou déposé. `ask` : l'image arrive par collage ou dépôt,
-   * où la lectrice n'a rien dit de son intention — on le lui demande plutôt
-   * que de remplacer la couverture en silence.
-   */
-  async submit(file: File, ask = false): Promise<void> {
-    this.error.set(null);
-    if (file.type === 'application/pdf') {
-      await this.openPdf(file, 'add');
-      return;
-    }
-    if (!IMAGE_TYPES.has(file.type)) return this.fail('format');
-    if (file.size > MAX_CHART_FILE_BYTES) return this.fail('lourd');
-    if (ask) this.question.set(file);
-    else await this.addImage(file);
-  }
-
-  /**
    * « Ouvrir un diagramme » : un patron donné seulement en diagramme. L'image
    * est lue, et le résultat ouvert dans le composeur pour que la lectrice le
    * corrige ; rien n'est enregistré avant qu'elle ne valide (`confirmOpening`).
@@ -150,7 +129,7 @@ export class ChartIntake {
   async open(file: File): Promise<void> {
     this.error.set(null);
     if (file.type === 'application/pdf') {
-      await this.openPdf(file, 'open');
+      await this.openPdf(file);
       return;
     }
     if (!IMAGE_TYPES.has(file.type)) return this.fail('format');
@@ -180,12 +159,12 @@ export class ChartIntake {
     });
   }
 
-  /** La lectrice a relu le brouillon : son texte devient un nouveau projet, avec le diagramme. */
+  /** La lectrice a relu le brouillon : son texte devient un nouveau projet. */
   async confirmOpening(text: string): Promise<void> {
     const opening = this.opening();
     this.opening.set(null);
     if (!opening || !text) return;
-    await this.store.openFromChart(text, opening.charts);
+    this.store.openFromChart(text);
     this.opened.update((n) => n + 1);
   }
 
@@ -224,28 +203,9 @@ export class ChartIntake {
     else this.fail('non-enregistre');
   }
 
-  /**
-   * Image collée ou déposée sur la page. Avec un projet ouvert, la lectrice
-   * dit ce que c'est ; sans projet, un diagramme n'a nulle part où aller et
-   * l'image reste la couverture, comme avant la fiche 35.
-   */
+  /** Image collée ou déposée sur la page : elle devient la photo de couverture. */
   async receive(file: File): Promise<void> {
-    if (this.store.currentId()) await this.submit(file, true);
-    else await this.setCover(file);
-  }
-
-  /** La réponse « Diagramme » : l'image entre dans le projet. */
-  async answerChart(): Promise<void> {
-    const file = this.question();
-    this.question.set(null);
-    if (file) await this.addImage(file);
-  }
-
-  /** La réponse « Photo de couverture » : le comportement d'avant la fiche 35. */
-  async answerCover(): Promise<void> {
-    const file = this.question();
-    this.question.set(null);
-    if (file) await this.setCover(file);
+    await this.setCover(file);
   }
 
   private async setCover(file: File): Promise<void> {
@@ -256,19 +216,14 @@ export class ChartIntake {
     }
   }
 
-  cancelQuestion(): void {
-    this.question.set(null);
-  }
-
-  /** Enregistre les pages cochées, dans l'ordre du PDF. */
+  /** Lit les pages cochées, dans l'ordre du PDF : elles ouvrent un nouveau patron. */
   async addPages(numbers: readonly number[]): Promise<void> {
     const pages = (this.pages() ?? []).filter((page) => numbers.includes(page.number));
     this.closePages();
     if (!pages.length) return;
     this.busy.set(true);
     try {
-      if (this.pagesFor() === 'open') await this.read(pages, pages[0].blob);
-      else await this.store.addCharts(pages, 'pdf');
+      await this.read(pages, pages[0].blob);
     } finally {
       this.busy.set(false);
     }
@@ -278,20 +233,8 @@ export class ChartIntake {
     this.pages.set(null);
   }
 
-  private async addImage(file: File): Promise<void> {
-    this.busy.set(true);
-    try {
-      const resized = await this.resize(file);
-      if (!resized) return this.fail('illisible');
-      await this.store.addCharts([resized], 'image');
-    } finally {
-      this.busy.set(false);
-    }
-  }
-
-  private async openPdf(file: File, mode: 'add' | 'open'): Promise<void> {
+  private async openPdf(file: File): Promise<void> {
     if (file.size > MAX_CHART_PDF_BYTES) return this.fail('lourd');
-    this.pagesFor.set(mode);
     this.busy.set(true);
     try {
       const { pages, total } = await this.renderPages(file);

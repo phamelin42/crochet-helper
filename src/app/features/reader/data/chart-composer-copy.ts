@@ -5,8 +5,6 @@ import { Locale } from '../../../core/i18n/locale';
  * dictionnaire global embarque dans le bundle initial.
  */
 const FR = {
-  'ui.composeOpen': 'Transcrire ce diagramme',
-  'ui.composeTitle': 'Transcrire le diagramme en texte',
   'ui.composePalette': 'Symboles',
   'ui.composeConvention': 'Convention',
   'ui.composeKind': 'Type de ligne',
@@ -27,7 +25,6 @@ const FR = {
   'ui.composeRemoveRound': 'Retirer le tour',
   'ui.composeStitches': 'mailles',
   'ui.composeName': 'Nom de la pièce',
-  'ui.composeAdd': 'Ajouter au patron',
   'ui.composeDefaultName': 'Diagramme',
   'ui.composeWarnEmpty': 'Le tour {n} est vide.',
   'ui.composeWarnJump':
@@ -50,8 +47,6 @@ const FR = {
 export type ComposerKey = keyof typeof FR;
 
 const EN: Record<ComposerKey, string> = {
-  'ui.composeOpen': 'Transcribe this chart',
-  'ui.composeTitle': 'Transcribe the chart into text',
   'ui.composePalette': 'Symbols',
   'ui.composeConvention': 'Convention',
   'ui.composeKind': 'Line type',
@@ -72,7 +67,6 @@ const EN: Record<ComposerKey, string> = {
   'ui.composeRemoveRound': 'Remove the round',
   'ui.composeStitches': 'stitches',
   'ui.composeName': 'Piece name',
-  'ui.composeAdd': 'Add to the pattern',
   'ui.composeDefaultName': 'Chart',
   'ui.composeWarnEmpty': 'Round {n} is empty.',
   'ui.composeWarnJump': 'Round {n} has less than half or more than double the previous stitches.',

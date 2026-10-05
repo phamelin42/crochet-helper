@@ -135,28 +135,32 @@ const LONGEST_STEP = 90;
       }
     </div>
 
-    <div class="navrow">
-      <button
-        type="button"
-        filButton="secondary"
-        [step]="true"
-        [disabled]="!store.hasPrevious()"
-        (click)="store.move(-1)"
-      >
-        <fil-icon name="left" /><span>{{ t('ui.prev') }}</span>
-      </button>
-      <button
-        type="button"
-        filButton="primary"
-        [step]="true"
-        class="next"
-        [disabled]="!store.step()"
-        (click)="store.advance()"
-      >
-        <span>{{ t('ui.next') }}</span
-        ><fil-icon name="right" />
-      </button>
-    </div>
+    <!-- Une grille de couleurs a sa propre barre (point précédent, point
+         suivant, rang suivant) : « Précédent » et « Suivant » la doubleraient. -->
+    @if (!gridMode()) {
+      <div class="navrow">
+        <button
+          type="button"
+          filButton="secondary"
+          [step]="true"
+          [disabled]="!store.hasPrevious()"
+          (click)="store.move(-1)"
+        >
+          <fil-icon name="left" /><span>{{ t('ui.prev') }}</span>
+        </button>
+        <button
+          type="button"
+          filButton="primary"
+          [step]="true"
+          class="next"
+          [disabled]="!store.step()"
+          (click)="store.advance()"
+        >
+          <span>{{ t('ui.next') }}</span
+          ><fil-icon name="right" />
+        </button>
+      </div>
+    }
 
     @if (store.step() && store.pieceChart() && !chartAvailable()) {
       <p class="hint" role="status">{{ t('ui.viewChartOff') }}</p>
@@ -216,6 +220,8 @@ export class StepView {
   protected readonly chartMode = computed(
     () => this.store.view() === 'chart' && this.chartAvailable(),
   );
+  /** Grille de couleurs affichée : elle porte sa propre navigation. */
+  protected readonly gridMode = computed(() => this.chartMode() && this.store.grid() !== null);
   protected readonly viewOptions = computed<SegmentedOption[]>(() => [
     { value: 0, label: this.t('ui.viewText') },
     { value: 1, label: this.t('ui.viewChart'), disabled: !this.chartAvailable() },

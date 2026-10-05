@@ -1035,8 +1035,7 @@ fil-install-slot {
   }
   html[data-focus] .note,
   html[data-focus] .step-tip,
-  html[data-focus] fil-image-gallery,
-  html[data-focus] fil-chart-panel {
+  html[data-focus] fil-image-gallery {
     order: 3;
   }
   html[data-focus] .meter {

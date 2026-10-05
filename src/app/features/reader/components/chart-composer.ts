@@ -135,7 +135,7 @@ function readDraft(raw: unknown): Draft {
   template: `
     <fil-dialog [(open)]="open" [label]="title()" [wide]="true">
       @if (open()) {
-        <h2 class="dialog-title">{{ title() }}</h2>
+        <h2 class="dialog-title compose-title">{{ title() }}</h2>
         @if (mode() === 'open') {
           <p class="dialog-body">{{ t('ui.composeOpenIntro') }}</p>
           @if (readingNote(); as note) {

@@ -74,6 +74,7 @@ function routesFor(locale: Locale): Routes {
         page('projects', () => import('./features/reader/pages/projects-page')),
         page('hookSizes', () => import('./features/tools/pages/hook-sizes-page')),
         page('needleSizes', () => import('./features/tools/pages/needle-sizes-page')),
+        page('yarnWeights', () => import('./features/tools/pages/yarn-weights-page')),
         page('gaugeCalculator', () => import('./features/tools/pages/gauge-calculator-page')),
         page('readForeignPattern', () => import('./features/guides/pages/foreign-pattern-page')),
         page('imageGrid', () => import('./features/tools/pages/image-grid-page')),

@@ -63,7 +63,7 @@ branche.
 | 48 — Image en grille de crochet         | Terminée | —   | 2026-10-03 |
 | 49 — Page-outil image en grille         | Terminée | —   | 2026-10-04 |
 | 50 — Tailles d'aiguilles à tricoter     | Terminée | —   | 2026-10-08 |
-| 51 — Poids de fil                       | À faire  | —   | —          |
+| 51 — Poids de fil                       | Terminée | —   | 2026-10-08 |
 
 ## États possibles
 

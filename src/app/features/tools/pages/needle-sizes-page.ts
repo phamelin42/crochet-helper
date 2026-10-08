@@ -33,7 +33,7 @@ const COPY: Record<Locale, NeedleSizesCopy> = {
   fr: {
     seoTitle: `Tailles d’aiguilles à tricoter${NBSP}: tableau mm ↔ US`,
     seoDescription:
-      'Le tableau des tailles d’aiguilles à tricoter en millimètres et en numéros américains (US 8, US 10½…), un chercheur pour passer de l’un à l’autre et comment bien choisir.',
+      'Le tableau des tailles d’aiguilles à tricoter en millimètres et en numéros américains (US 8…), un chercheur pour passer de l’un à l’autre et comment choisir.',
     h1: `Tailles d’aiguilles à tricoter${NBSP}: le tableau mm ↔ US`,
     lead: `Un patron américain écrit «${NBSP}US 8${NBSP}», vos aiguilles indiquent «${NBSP}5${NBSP}mm${NBSP}»${NBSP}: tapez l’un ou l’autre pour trouver l’équivalent, ou parcourez le tableau complet.`,
     finderLabel: `Une taille${NBSP}: 5${NBSP}mm ou US 8`,

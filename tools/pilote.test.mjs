@@ -84,6 +84,19 @@ test('lot : la première fiche de l’ordre, à faire et sans branche', () => {
   assert.equal(rien.fiche, undefined);
 });
 
+test('lot : une fiche de l’ordre sans ligne d’avancement est à faire, sauf bloquée ou terminée', () => {
+  // Le point hebdomadaire n'écrit que dans prompts/ : sa fiche n'a pas de ligne.
+  const readme = README.replace(
+    '| 17  | Tailles | … |',
+    '| 17  | Tailles | … |\n| 52  | Nouvelle | … |',
+  );
+  const toutFait = AVANCEMENT.replaceAll('À faire', 'Terminée');
+  assert.equal(gardeLot(readme, toutFait, '').fiche, '52');
+  assert.equal(gardeLot(readme, toutFait, 'origin/52-nouvelle').agir, false);
+  // La ligne « Bloquée » de la 20 continue de l'emporter.
+  assert.equal(gardeLot(README, toutFait, '').agir, false);
+});
+
 test('lot : les tables réelles du dépôt sont cohérentes, avancement compris', () => {
   const readme = readFileSync(new URL('../prompts/README.md', import.meta.url), 'utf8');
   const avancement = readFileSync(new URL('../automation/avancement.md', import.meta.url), 'utf8');

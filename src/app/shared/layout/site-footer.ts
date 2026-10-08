@@ -13,6 +13,7 @@ const LEARN = [
 const PROJECT = [
   'rowCounter',
   'hookSizes',
+  'needleSizes',
   'imageGrid',
   'gaugeCalculator',
   'forDesigners',

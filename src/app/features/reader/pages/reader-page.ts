@@ -83,6 +83,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         lead: 'Le tableau complet, et un chercheur pour passer de « G-6 » à « 4 mm ».',
       },
       {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.needleSizes.fr}`,
+        title: 'Tailles d’aiguilles à tricoter',
+        lead: 'Le tableau mm ↔ US, et un chercheur pour passer de « US 8 » à « 5 mm ».',
+      },
+      {
         href: `${localePrefix('fr')}${ROUTE_PATHS.gaugeCalculator.fr}`,
         title: 'Calculateur d’échantillon',
         lead: 'Comparez votre échantillon à celui du patron : crochet plus gros ou plus fin, mailles à monter.',
@@ -136,6 +141,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.hookSizes.en}`,
         title: 'Crochet hook sizes: mm ↔ US',
         lead: 'The full chart, and a finder to go from "G-6" to "4 mm".',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.needleSizes.en}`,
+        title: 'Knitting needle sizes: mm ↔ US',
+        lead: 'The full chart, and a finder to go from "US 8" to "5 mm".',
       },
       {
         href: `${localePrefix('en')}${ROUTE_PATHS.gaugeCalculator.en}`,

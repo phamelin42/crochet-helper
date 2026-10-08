@@ -85,6 +85,8 @@ URL avant d'accumuler du référencement.
 | 47  | Grille de couleurs (tapisserie)    | rétention : un ouvrage en couleurs se suit sur des semaines    |
 | 48  | Image en grille de crochet         | activation : une photo devient un ouvrage suivable             |
 | 49  | Page-outil image en grille         | acquisition : requête fréquente, outils concurrents payants    |
+| 50  | Tailles d'aiguilles à tricoter     | acquisition : la requête jumelle des crochets, sans page       |
+| 51  | Poids de fil                       | acquisition : « worsted ou aran », le doute avant d'acheter    |
 
 Les fiches 38 à 41 répondent à la demande de Phil du 30 septembre (mode page
 pleine comme l'application Filo, hors ligne mis en avant, Play Store ; pas

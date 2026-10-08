@@ -93,9 +93,18 @@ export function ordreDesFiches(readme) {
   return [...section.matchAll(/^\|\s*(\d{2})\s*\|/gm)].map((m) => m[1]);
 }
 
-/** Lot suivant : la première fiche de l'ordre, « À faire », sans branche ouverte. */
+/**
+ * Lot suivant : la première fiche de l'ordre, « À faire », sans branche ouverte.
+ * Une fiche de la table d'ordre sans ligne d'avancement est à faire : le point
+ * hebdomadaire ne peut écrire que dans `prompts/` (PR #115, fiches 50 et 51
+ * restées invisibles au pilote).
+ */
 export function gardeLot(readme, avancement, branches) {
-  const aFaire = new Set(fichesAFaire(avancement));
+  const connues = new Set([...avancement.matchAll(/^\|\s*(\d{2}) — /gm)].map((m) => m[1]));
+  const aFaire = new Set([
+    ...fichesAFaire(avancement),
+    ...ordreDesFiches(readme).filter((n) => !connues.has(n)),
+  ]);
   const ouvertes = new Set(
     branches
       .split(/\s+/)

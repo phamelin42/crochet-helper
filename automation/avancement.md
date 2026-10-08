@@ -62,6 +62,8 @@ branche.
 | 47 — Grille de couleurs (tapisserie)    | Terminée | —   | 2026-10-03 |
 | 48 — Image en grille de crochet         | Terminée | —   | 2026-10-03 |
 | 49 — Page-outil image en grille         | Terminée | —   | 2026-10-04 |
+| 50 — Tailles d'aiguilles à tricoter     | À faire  | —   | —          |
+| 51 — Poids de fil                       | À faire  | —   | —          |
 
 ## États possibles
 

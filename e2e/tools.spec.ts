@@ -65,6 +65,34 @@ test.describe('tailles de crochet (fiche 29)', () => {
   });
 });
 
+test.describe("tailles d'aiguilles (fiche 50)", () => {
+  for (const path of ['/knitting-needle-sizes', '/fr/tailles-d-aiguilles']) {
+    test(`le HTML brut de « ${path} » contient le tableau de 19 lignes`, async ({ request }) => {
+      const html = await (await request.get(path)).text();
+      const body = html.slice(html.indexOf('<tbody'), html.indexOf('</tbody>'));
+      expect(body.match(/<tr/g)).toHaveLength(19);
+      expect(body).toContain('US 8');
+    });
+  }
+
+  test('chercher « us8 » affiche « 5 mm »', async ({ page }) => {
+    await page.goto('/knitting-needle-sizes');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await page.getByLabel('A size: 5 mm or US 8').fill('us8');
+    await expect(page.locator('.needle-result')).toContainText('5 mm');
+  });
+
+  test('320 px de large : aucun débordement horizontal', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.goto('/fr/tailles-d-aiguilles');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    const overflows = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+    expect(overflows).toBe(false);
+  });
+});
+
 test('320 px de large : aucun débordement horizontal', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto('/row-counter');

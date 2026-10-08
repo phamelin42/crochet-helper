@@ -34,6 +34,7 @@ interface GuideCopy {
   readonly seeAlso: string;
   readonly linkPattern: string;
   readonly linkChart: string;
+  readonly linkNeedles: string;
   readonly backToReader: string;
   readonly backToGlossary: string;
 }
@@ -62,6 +63,7 @@ const COPY: Record<Locale, GuideCopy> = {
     seeAlso: 'À lire aussi',
     linkPattern: 'Comment lire un patron de crochet',
     linkChart: 'Comment lire un diagramme de crochet',
+    linkNeedles: 'Tailles d’aiguilles à tricoter : le tableau mm ↔ US',
     backToReader: 'Essayer le lecteur de patrons',
     backToGlossary: 'Toutes les abréviations',
   },
@@ -94,6 +96,7 @@ const COPY: Record<Locale, GuideCopy> = {
     seeAlso: 'Read next',
     linkPattern: 'How to read a crochet pattern',
     linkChart: 'How to read a crochet chart',
+    linkNeedles: 'Knitting needle sizes: the mm ↔ US chart',
     backToReader: 'Try the pattern reader',
     backToGlossary: 'All abbreviations',
   },
@@ -139,6 +142,9 @@ const COPY: Record<Locale, GuideCopy> = {
         <li>
           <a [routerLink]="hrefOf('guideReadingChart')">{{ c.linkChart }}</a>
         </li>
+        <li>
+          <a [routerLink]="hrefOf('needleSizes')">{{ c.linkNeedles }}</a>
+        </li>
       </ul>
 
       <div class="navrow">
@@ -166,7 +172,7 @@ export default class CrochetOrKnittingPage {
   ];
   protected readonly dates = guideDatesLine('guideCrochetOrKnitting', this.locale);
 
-  protected hrefOf(route: 'guideReadingPattern' | 'guideReadingChart'): string {
+  protected hrefOf(route: 'guideReadingPattern' | 'guideReadingChart' | 'needleSizes'): string {
     return `${localePrefix(this.locale)}${ROUTE_PATHS[route][this.locale]}`;
   }
 

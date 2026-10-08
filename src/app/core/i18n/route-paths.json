@@ -13,6 +13,7 @@
   "forDesigners": { "fr": "/pour-les-creatrices", "en": "/for-designers" },
   "rowCounter": { "fr": "/compteur-de-rangs", "en": "/row-counter" },
   "hookSizes": { "fr": "/tailles-de-crochet", "en": "/crochet-hook-sizes" },
+  "needleSizes": { "fr": "/tailles-d-aiguilles", "en": "/knitting-needle-sizes" },
   "gaugeCalculator": { "fr": "/calculateur-d-echantillon", "en": "/gauge-calculator" },
   "imageGrid": { "fr": "/image-en-grille-crochet", "en": "/image-to-crochet-chart" },
   "readForeignPattern": { "fr": "/lire-un-patron-anglais", "en": "/read-a-french-pattern" },

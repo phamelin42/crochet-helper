@@ -40,9 +40,9 @@ interface YarnWeightsCopy {
 
 const COPY: Record<Locale, YarnWeightsCopy> = {
   fr: {
-    seoTitle: `Poids de fil${NBSP}: worsted, aran, DK, le tableau des catégories 0 à 7`,
+    seoTitle: `Poids de fil${NBSP}: worsted, aran, DK, le tableau`,
     seoDescription:
-      'Worsted, aran, DK, chunky : le tableau des catégories de poids de fil du Craft Yarn Council, avec le crochet et les aiguilles usuels, et comment remplacer un fil.',
+      'Worsted, aran, DK, chunky : le tableau des poids de fil du Craft Yarn Council, avec le crochet et les aiguilles usuels, et comment remplacer un fil.',
     h1: `Poids de fil${NBSP}: worsted, aran, DK… le tableau`,
     lead: `Un patron américain demande du «${NBSP}worsted${NBSP}», un patron britannique de l’«${NBSP}aran${NBSP}», un patron français de la laine «${NBSP}n°${NBSP}4${NBSP}»${NBSP}: voici les huit catégories, avec le crochet et les aiguilles qui vont avec.`,
     tableCaption: `Catégories de poids de fil 0 à 7${NBSP}: noms américains et britanniques, crochet et aiguilles recommandés`,
@@ -103,7 +103,7 @@ const COPY: Record<Locale, YarnWeightsCopy> = {
     toNeedles: 'Les tailles d’aiguilles',
   },
   en: {
-    seoTitle: `Yarn weight chart: worsted, aran, DK, categories 0 to 7 — ${SITE_NAME}`,
+    seoTitle: `Yarn weight chart: worsted, aran, DK —${SITE_NAME}`,
     seoDescription:
       'Worsted, aran, DK, chunky: the Craft Yarn Council yarn weight categories with the usual crochet hook and knitting needle sizes, and how to substitute a yarn.',
     h1: 'Yarn weights: worsted, aran, DK… the chart',

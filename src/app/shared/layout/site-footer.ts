@@ -14,6 +14,7 @@ const PROJECT = [
   'rowCounter',
   'hookSizes',
   'needleSizes',
+  'yarnWeights',
   'imageGrid',
   'gaugeCalculator',
   'forDesigners',

@@ -93,6 +93,29 @@ test.describe("tailles d'aiguilles (fiche 50)", () => {
   });
 });
 
+test.describe('poids de fil (fiche 51)', () => {
+  for (const path of ['/yarn-weight-chart', '/fr/poids-de-fil']) {
+    test(`le HTML brut de « ${path} » contient le tableau des 8 catégories`, async ({
+      request,
+    }) => {
+      const html = await (await request.get(path)).text();
+      const body = html.slice(html.indexOf('<tbody'), html.indexOf('</tbody>'));
+      expect(body.match(/<tr/g)).toHaveLength(8);
+      expect(body).toContain('Worsted');
+    });
+  }
+
+  test('320 px de large : aucun débordement horizontal', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.goto('/fr/poids-de-fil');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    const overflows = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+    expect(overflows).toBe(false);
+  });
+});
+
 test('320 px de large : aucun débordement horizontal', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto('/row-counter');

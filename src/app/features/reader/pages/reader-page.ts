@@ -88,6 +88,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         lead: 'Le tableau mm ↔ US, et un chercheur pour passer de « US 8 » à « 5 mm ».',
       },
       {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.yarnWeights.fr}`,
+        title: 'Poids de fil : worsted, aran, DK',
+        lead: 'Les catégories 0 à 7, avec le crochet et les aiguilles qui vont avec.',
+      },
+      {
         href: `${localePrefix('fr')}${ROUTE_PATHS.gaugeCalculator.fr}`,
         title: 'Calculateur d’échantillon',
         lead: 'Comparez votre échantillon à celui du patron : crochet plus gros ou plus fin, mailles à monter.',
@@ -146,6 +151,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.needleSizes.en}`,
         title: 'Knitting needle sizes: mm ↔ US',
         lead: 'The full chart, and a finder to go from "US 8" to "5 mm".',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.yarnWeights.en}`,
+        title: 'Yarn weights: worsted, aran, DK',
+        lead: 'Categories 0 to 7, with the hook and needles that go with them.',
       },
       {
         href: `${localePrefix('en')}${ROUTE_PATHS.gaugeCalculator.en}`,

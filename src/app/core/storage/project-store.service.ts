@@ -81,6 +81,21 @@ export class ProjectStoreService {
     });
   }
 
+  /** Relit un élément ; `undefined` s'il n'existe pas (ou si le stockage est indisponible). */
+  async get<T>(id: string): Promise<T | undefined> {
+    const db = await this.db();
+    if (!db) return undefined;
+    return new Promise((resolve) => {
+      try {
+        const request = db.transaction(STORE, 'readonly').objectStore(STORE).get(id);
+        request.onsuccess = () => resolve(request.result as T | undefined);
+        request.onerror = () => resolve(undefined);
+      } catch {
+        resolve(undefined);
+      }
+    });
+  }
+
   /**
    * Écrit un élément. Renvoie `true` seulement quand la transaction est
    * **validée** : un quota dépassé se manifeste par un `abort`, pas par un

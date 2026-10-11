@@ -135,6 +135,70 @@ describe('ReaderStore', () => {
     });
   });
 
+  describe('addRepeat — objectif de l’étape', () => {
+    const THREE_ROUNDS = ['Patron', 'Round 1: 6 sc (6)', 'Rounds 2-4: 6 sc (6)'].join('\n');
+
+    it('s’arrête à l’objectif annoncé par l’étape et le signale', () => {
+      store.load(THREE_ROUNDS);
+      store.move(1);
+      expect(store.step()?.reps).toBe(3);
+
+      for (let i = 0; i < 6; i++) store.addRepeat(1);
+
+      expect(store.currentReps()).toBe(3);
+      expect(store.repsComplete()).toBe(true);
+    });
+
+    it('reprend la main dès qu’on retire une répétition', () => {
+      store.load(THREE_ROUNDS);
+      store.move(1);
+      store.addRepeat(3);
+
+      store.addRepeat(-1);
+
+      expect(store.currentReps()).toBe(2);
+      expect(store.repsComplete()).toBe(false);
+    });
+
+    it('ne borne pas un compteur sans objectif', () => {
+      store.load(THREE_ROUNDS);
+
+      for (let i = 0; i < 12; i++) store.addRepeat(1);
+
+      expect(store.step()?.reps).toBe(0);
+      expect(store.currentReps()).toBe(12);
+      expect(store.repsComplete()).toBe(false);
+    });
+  });
+
+  describe('fin du patron', () => {
+    it('terminer la dernière étape le dit et arrête le chronomètre', () => {
+      store.load(TWO_PIECES);
+      store.advance();
+      store.advance();
+      expect(store.running()).toBe(true);
+      expect(store.finished()).toBe(false);
+
+      store.advance();
+
+      expect(store.isDone()).toBe(true);
+      expect(store.finished()).toBe(true);
+      expect(store.running()).toBe(false);
+    });
+
+    it('reculer d’une étape ou décocher la dernière lève l’état « terminé »', () => {
+      store.load(TWO_PIECES);
+      store.advance();
+      store.advance();
+      store.advance();
+      expect(store.finished()).toBe(true);
+
+      store.setDone(false);
+
+      expect(store.finished()).toBe(false);
+    });
+  });
+
   describe('setDone', () => {
     it('avance d’une étape s’il en reste une', () => {
       store.load(TWO_PIECES);

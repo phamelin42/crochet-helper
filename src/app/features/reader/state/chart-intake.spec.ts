@@ -172,7 +172,7 @@ describe('ChartIntake', () => {
       expect(await TestBed.inject(ProjectStoreService).list()).toEqual([]);
     });
 
-    it('n’écrase pas non plus le projet actif quand le texte relu est le même', async () => {
+    it('rouvrir le même texte ne crée pas de doublon et garde la progression', async () => {
       const { store, intake } = await fresh();
       store.load(TEXT);
       store.move(1);
@@ -185,12 +185,31 @@ describe('ChartIntake', () => {
       await intake.confirmOpening(TEXT);
       TestBed.tick();
 
-      expect(store.currentId()).not.toBe(before);
-      await vi.waitFor(async () => {
-        const projects = await db.list<Project>();
-        expect(projects).toHaveLength(2);
-        expect(projects.find((p) => p.id === before)?.stepIndex).toBe(1);
-      });
+      expect(store.currentId()).toBe(before);
+      expect(store.stepIndex()).toBe(1);
+      expect(await db.list<Project>()).toHaveLength(1);
+    });
+
+    it('rouvrir le texte d’un autre projet enregistré reprend ce projet, sans doublon', async () => {
+      const { store, intake } = await fresh();
+      store.load(TEXT);
+      store.move(1);
+      const first = store.currentId();
+      TestBed.tick();
+      const db = TestBed.inject(ProjectStoreService);
+      await vi.waitFor(async () => expect((await db.list<Project>())[0]?.stepIndex).toBe(1));
+      store.clear();
+      store.load('Rang 1 : 8 ms');
+      TestBed.tick();
+      await vi.waitFor(async () => expect(await db.list<Project>()).toHaveLength(2));
+
+      await intake.open(file('image/png'));
+      await intake.confirmOpening(TEXT);
+      TestBed.tick();
+
+      expect(store.currentId()).toBe(first);
+      expect(store.stepIndex()).toBe(1);
+      expect(await db.list<Project>()).toHaveLength(2);
     });
 
     it('dit qu’un PDF illisible l’est', async () => {

@@ -553,4 +553,50 @@ describe('ReaderStore — projets', () => {
       expect(revoke.mock.calls.map(([url]) => url)).toEqual(['blob:1', 'blob:2']);
     });
   });
+  describe('pas de doublon', () => {
+    it('ouvrir l’exemple une deuxième fois reprend le projet existant, progression comprise', async () => {
+      const store = TestBed.inject(ReaderStore);
+      await store.initialize();
+      store.loadDemo();
+      const first = store.currentId();
+      store.move(1);
+      store.move(1);
+      TestBed.tick();
+      await vi.waitFor(() => expect(store.projects().length).toBe(1));
+      store.clear();
+      expect(store.currentId()).toBeNull();
+
+      store.loadDemo();
+      TestBed.tick();
+
+      expect(store.currentId()).toBe(first);
+      expect(store.stepIndex()).toBe(2);
+      expect(store.projects()).toHaveLength(1);
+    });
+
+    it('un autre patron, lui, ouvre bien un nouveau projet', async () => {
+      const store = TestBed.inject(ReaderStore);
+      await store.initialize();
+      store.loadDemo();
+      TestBed.tick();
+      await vi.waitFor(() => expect(store.projects().length).toBe(1));
+      store.clear();
+
+      store.load('Rang 1 : 6 ms');
+      TestBed.tick();
+
+      await vi.waitFor(() => expect(store.projects().length).toBe(2));
+    });
+  });
+
+  describe('nom d’un projet', () => {
+    it('est borné en longueur au renommage', async () => {
+      const store = TestBed.inject(ReaderStore);
+      store.projects.set([projectFixture({ id: 'a' })]);
+
+      await store.renameProject('a', 'x'.repeat(500));
+
+      expect(store.projects()[0].name).toHaveLength(80);
+    });
+  });
 });

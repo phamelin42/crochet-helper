@@ -18,6 +18,7 @@ import {
   increment,
   parseSaved,
   reset,
+  targetReached,
 } from '../data/row-counter';
 
 const NBSP = ' ';
@@ -40,6 +41,7 @@ interface RowCounterCopy {
   readonly wakeLabel: string;
   readonly targetLabel: string;
   readonly targetPlaceholder: string;
+  readonly targetDone: string;
   readonly h2Purpose: string;
   readonly bodyPurpose: string;
   readonly h2Lose: string;
@@ -73,6 +75,7 @@ const COPY: Record<Locale, RowCounterCopy> = {
     wakeLabel: "Garder l'écran allumé",
     targetLabel: 'Jusqu’au rang',
     targetPlaceholder: 'Optionnel',
+    targetDone: 'Objectif atteint, bravo !',
     h2Purpose: 'À quoi sert un compteur de rangs',
     bodyPurpose:
       'Un patron de crochet ou de tricot avance rang après rang, et il suffit d’une interruption — le téléphone qui sonne, une gorgée de thé, une question posée par quelqu’un dans la pièce — pour perdre le fil. Un compteur de rangs garde ce nombre affiché en grand pendant qu’on a les mains prises par le crochet ou les aiguilles : un coup d’œil suffit pour savoir où on en est, sans reposer l’ouvrage ni recompter les mailles une par une sur le tissu déjà fait. Contrairement à un carnet ou une application à installer, celui-ci se retient tout seul : la valeur reste affichée au rechargement de la page, sur tablette comme sur téléphone.',
@@ -109,6 +112,7 @@ const COPY: Record<Locale, RowCounterCopy> = {
     wakeLabel: 'Keep screen awake',
     targetLabel: 'Up to row',
     targetPlaceholder: 'Optional',
+    targetDone: 'Target reached, well done!',
     h2Purpose: 'What a row counter is for',
     bodyPurpose:
       'A crochet or knitting pattern moves forward one row at a time, and it only takes one interruption — a phone ringing, a sip of tea, someone asking a question across the room — to lose count. A row counter keeps that number in large print while your hands are full of hook or needles: one glance is enough to know where you are, without putting the work down or recounting stitches on the fabric itself. Unlike a notebook or an app to install, this one remembers on its own: the value is still there after reloading the page, on a tablet or a phone.',
@@ -191,12 +195,16 @@ const COPY: Record<Locale, RowCounterCopy> = {
           filButton="primary"
           [step]="true"
           class="next"
+          [disabled]="reached()"
           (click)="onIncrement(1)"
         >
           {{ c.plus }}
         </button>
       </div>
 
+      @if (reached()) {
+        <p class="hint" role="status">{{ c.targetDone }}</p>
+      }
       <div class="navrow">
         <button type="button" filButton="ghost" (click)="onResetClick()">
           {{ c.resetAction }}
@@ -286,6 +294,7 @@ export default class RowCounterPage {
   /** Plus haut palier de dix déjà mesuré : n'émet jamais deux fois le même. */
   private highestMilestone = 0;
 
+  protected readonly reached = computed(() => targetReached(this.state()));
   protected readonly progressPercent = computed(() => {
     const { count, target } = this.state();
     if (!target) return 0;

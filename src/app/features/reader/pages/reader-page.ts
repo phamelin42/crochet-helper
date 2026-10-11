@@ -636,11 +636,11 @@ export default class ReaderPage {
     document.querySelector('.reader')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  /** Bouton secondaire du bandeau : amène directement le focus dans la zone
-   *  de texte du panneau d'import, déjà ouvert par défaut sans patron chargé. */
+  /** Bouton secondaire du bandeau : rouvre le panneau d'import s'il s'est
+   *  replié (« Découper » sur un champ vide) et y amène le focus. */
   protected focusPaste(): void {
     this.analytics.track('home_cta', { cta: 'paste' });
-    document.getElementById('pattern-source')?.focus();
+    this.changePattern();
   }
 
   /** Lit `#p=…` ou `#j=…` au démarrage : un permalien de patron ou de projet

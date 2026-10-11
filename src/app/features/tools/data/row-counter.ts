@@ -13,8 +13,16 @@ function clampCount(value: number): number {
   return Math.min(MAX, Math.max(MIN, value));
 }
 
+/** Objectif fixé et atteint (ou dépassé, si on l'a abaissé sous le compte). */
+export function targetReached(state: CounterState): boolean {
+  return state.target !== null && state.count >= state.target;
+}
+
+/** Ajoute `delta` au compte, sans jamais dépasser l'objectif quand il y en a un. */
 export function increment(state: CounterState, delta: number): CounterState {
-  return { ...state, count: clampCount(state.count + delta) };
+  if (delta > 0 && targetReached(state)) return state;
+  const count = clampCount(state.count + delta);
+  return { ...state, count: state.target === null ? count : Math.min(count, state.target) };
 }
 
 export function reset(state: CounterState): CounterState {

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { CounterState, INITIAL_COUNTER_STATE, increment, parseSaved, reset } from './row-counter';
+import {
+  CounterState,
+  INITIAL_COUNTER_STATE,
+  increment,
+  parseSaved,
+  reset,
+  targetReached,
+} from './row-counter';
 
 describe('increment', () => {
   it('ajoute ou retire des rangs', () => {
@@ -21,6 +28,35 @@ describe('increment', () => {
   it('conserve l’objectif inchangé', () => {
     const state: CounterState = { count: 3, target: 40 };
     expect(increment(state, 1).target).toBe(40);
+  });
+});
+
+describe('objectif atteint', () => {
+  it('le compteur s’arrête à l’objectif, +1 ne le dépasse pas', () => {
+    let state: CounterState = { count: 8, target: 10 };
+    for (let i = 0; i < 5; i++) state = increment(state, 1);
+
+    expect(state.count).toBe(10);
+    expect(targetReached(state)).toBe(true);
+  });
+
+  it('on peut toujours reculer, puis avancer de nouveau', () => {
+    const state = increment({ count: 10, target: 10 }, -1);
+    expect(state.count).toBe(9);
+    expect(targetReached(state)).toBe(false);
+    expect(increment(state, 1).count).toBe(10);
+  });
+
+  it('sans objectif, rien n’est atteint et rien ne bloque', () => {
+    expect(targetReached({ count: 500, target: null })).toBe(false);
+    expect(increment({ count: 500, target: null }, 1).count).toBe(501);
+  });
+
+  it('un objectif abaissé sous le compte bloque +1 sans effacer le compte', () => {
+    const state: CounterState = { count: 12, target: 10 };
+    expect(targetReached(state)).toBe(true);
+    expect(increment(state, 1).count).toBe(12);
+    expect(increment(state, -1).count).toBe(10);
   });
 });
 

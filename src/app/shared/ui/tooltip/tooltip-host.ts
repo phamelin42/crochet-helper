@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, inject, viewChild } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, inject, signal, viewChild } from '@angular/core';
 import { TooltipService } from './tooltip.service';
 
 /**
@@ -15,8 +15,8 @@ import { TooltipService } from './tooltip.service';
       [class.on]="!!state()"
       role="status"
       aria-live="polite"
-      [style.left.px]="left()"
-      [style.top.px]="top()"
+      [style.left.px]="position().left"
+      [style.top.px]="position().top"
     >
       @if (state(); as tip) {
         <b>{{ tip.term }}</b> — {{ tip.definition }}
@@ -30,17 +30,20 @@ export class TooltipHost {
 
   protected readonly state = this.tooltips.state;
 
-  protected readonly left = computed(() => {
-    const tip = this.state();
-    if (!tip) return 0;
-    const width = this.box()?.nativeElement.offsetWidth ?? 0;
-    return Math.max(8, Math.min(window.innerWidth - width - 8, tip.x - width / 2));
-  });
+  protected readonly position = signal({ left: 0, top: 0 });
 
-  protected readonly top = computed(() => {
-    const tip = this.state();
-    if (!tip) return 0;
-    const height = this.box()?.nativeElement.offsetHeight ?? 0;
-    return tip.above ? tip.y - height - 8 : tip.y + 28;
-  });
+  constructor() {
+    // Après le rendu : la taille de l'infobulle dépend du terme qu'elle vient
+    // d'afficher. La mesurer avant la décalait du mot, du côté de l'ancienne.
+    afterRenderEffect(() => {
+      const tip = this.state();
+      const box = this.box()?.nativeElement;
+      if (!tip || !box) return;
+      const { offsetWidth: width, offsetHeight: height } = box;
+      this.position.set({
+        left: Math.max(8, Math.min(window.innerWidth - width - 8, tip.x - width / 2)),
+        top: tip.above ? tip.y - height - 8 : tip.y + 28,
+      });
+    });
+  }
 }

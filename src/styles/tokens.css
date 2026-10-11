@@ -100,6 +100,8 @@
   /* — spécifiques lecteur — */
   --reader-step: clamp(1.75rem, calc(4.4vw * var(--text-scale)), 3rem);
   --reader-step-sm: clamp(1.25rem, calc(2.4vw * var(--text-scale)), 1.625rem);
+  /* Note, astuce et matériel : suivent le réglage A / A+ / A++ avec l'étape. */
+  --reader-aside: var(--text-base);
 
   /* Impression : encre noire sur papier blanc, quel que soit le thème. */
   --print-ink: #000;
@@ -124,10 +126,12 @@
 [data-text-size='lg'] {
   --reader-step: clamp(2.125rem, calc(5.6vw * var(--text-scale)), 3.75rem);
   --reader-step-sm: clamp(1.5rem, calc(3vw * var(--text-scale)), 2rem);
+  --reader-aside: 1.3125rem;
 }
 [data-text-size='xl'] {
   --reader-step: clamp(2.5rem, calc(7vw * var(--text-scale)), 4.5rem);
   --reader-step-sm: clamp(1.75rem, calc(3.6vw * var(--text-scale)), 2.375rem);
+  --reader-aside: 1.625rem;
 }
 
 /* Sombre (Rosé Pine Moon) : lecture prolongée, faible luminosité ambiante.

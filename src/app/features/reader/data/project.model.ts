@@ -1,6 +1,7 @@
 import type { ColorGrid } from './color-grid';
 
-const MAX_NAME_LENGTH = 80;
+/** Longueur maximale du nom d'un projet, en caractères. */
+export const MAX_NAME_LENGTH = 80;
 
 /** Un projet : un patron, sa progression, ses compteurs et son chronomètre. */
 export interface Project {

@@ -43,6 +43,15 @@ describe('parsePattern', () => {
     expect(pattern.pieces[0].steps[0].reps).toBe(6);
   });
 
+  it('compte les répétitions de l’ensemble quand des crochets sont imbriqués', () => {
+    const repsOf = (line: string) => parsePattern(line).pieces[0].steps[0].reps;
+    expect(repsOf('Round 4: [[sc, inc] x 2, dec] x 3 (24)')).toBe(3);
+    expect(repsOf('Round 4: ([sc, inc] × 2, dec) × 3 (24)')).toBe(3);
+    expect(repsOf('Round 4: [sc x 2, [inc] x 5] x 4 (24)')).toBe(4);
+    // Sans imbrication, le premier multiplicateur reste celui du rang.
+    expect(repsOf('Round 4: [sc] x 2, [inc] x 5 (24)')).toBe(2);
+  });
+
   it('isole la section matériel sans la compter comme des étapes', () => {
     const pattern = parsePattern(
       ['You will need:', '  4 mm hook', '  green yarn', 'Instructions:', 'Round 1: 6 sc (6)'].join(

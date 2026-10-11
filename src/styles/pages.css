@@ -186,6 +186,13 @@
   margin: 0;
   list-style: none;
 }
+.projects-list .card > div:first-child {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+.projects-list .card-title {
+  overflow-wrap: anywhere;
+}
 .projects-list .card {
   flex-direction: row;
   flex-wrap: wrap;

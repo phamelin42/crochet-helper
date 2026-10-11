@@ -107,7 +107,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    loadComponent: reader,
+    loadComponent: styled(() => import('./features/not-found/not-found-page')),
     data: { locale: DEFAULT_LOCALE },
   },
 ];

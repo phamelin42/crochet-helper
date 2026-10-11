@@ -220,9 +220,7 @@ describe('GlossaryTermPage — une page par concept', () => {
     }));
     expect(items).toContainEqual({ text: 'slst — English abbreviation', linked: false });
     for (const a of host.querySelectorAll<HTMLAnchorElement>('.term-links a')) {
-      expect(a.getAttribute('href')).not.toMatch(
-        /\/(slst|rnds|sts|crab-st|mr|magic-loop|cercle-magique)$/,
-      );
+      expect(a.getAttribute('href')).not.toMatch(/\/(slst|rnds|sts|crab-st|mr|cercle-magique)$/);
     }
   });
 });

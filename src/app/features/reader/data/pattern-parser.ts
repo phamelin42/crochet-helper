@@ -314,14 +314,35 @@ const REPEAT_COUNT = new RegExp(
 );
 
 /**
+ * Le « x N » le moins imbriqué du corps : dans `[[sc, inc] x 2, dec] x 3`, la
+ * lectrice répète 3 fois l'ensemble, pas 2. À profondeur égale, le premier gagne.
+ */
+function outermostMultiplier(body: string): number {
+  let best: { depth: number; count: number } | null = null;
+  let depth = 0;
+  for (let i = 0; i < body.length; i++) {
+    const char = body[i];
+    if (char === '[' || char === '(') depth++;
+    else if (char === ']' || char === ')') depth = Math.max(0, depth - 1);
+    else if (char === 'x' || char === '×') {
+      const match = /^[x×]\s*(\d{1,2})\b/i.exec(body.slice(i));
+      if (match && (!best || depth < best.depth)) {
+        best = { depth, count: Number.parseInt(match[1], 10) };
+      }
+    }
+  }
+  return best?.count ?? 0;
+}
+
+/**
  * Nombre de répétitions d'une étape : d'abord l'étendue du libellé
  * (« Rangs 3-6 » → 4), sinon un « x6 », un « 6 times » ou un « quatre fois »
  * dans le corps.
  */
 function repeatTarget(range: number, body: string): number {
   if (range) return range;
-  const direct = body.match(/[x×]\s*(\d{1,2})\b/i);
-  if (direct) return Number.parseInt(direct[1], 10);
+  const direct = outermostMultiplier(body);
+  if (direct) return direct;
   const worded = REPEAT_COUNT.exec(body);
   if (!worded) return 0;
   const raw = worded[1].toLowerCase();

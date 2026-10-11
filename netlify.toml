@@ -97,11 +97,6 @@
   status = 301
 
 [[redirects]]
-  from = "/en/glossary/magic-loop"
-  to = "/glossary/magic-ring"
-  status = 301
-
-[[redirects]]
   from = "/en/glossary/cercle-magique"
   to = "/glossary/magic-ring"
   status = 301
@@ -128,11 +123,6 @@
 
 [[redirects]]
   from = "/glossaire/mr"
-  to = "/fr/glossaire/cercle-magique"
-  status = 301
-
-[[redirects]]
-  from = "/glossaire/magic-loop"
   to = "/fr/glossaire/cercle-magique"
   status = 301
 
@@ -164,7 +154,7 @@
   status = 301
 
 # Glossaire : une graphie de plus (`slst`, `rnds`) ou un autre nom du même
-# point (`mr`, `magic loop`) n'a pas de page à lui ; son URL mène à celle du
+# point (`mr`) n'a pas de page à lui ; son URL mène à celle du
 # concept. `magic-ring` et `cercle-magique` sont une seule page traduite.
 [[redirects]]
   from = "/glossary/slst"
@@ -188,11 +178,6 @@
 
 [[redirects]]
   from = "/glossary/mr"
-  to = "/glossary/magic-ring"
-  status = 301
-
-[[redirects]]
-  from = "/glossary/magic-loop"
   to = "/glossary/magic-ring"
   status = 301
 
@@ -223,11 +208,6 @@
 
 [[redirects]]
   from = "/fr/glossaire/mr"
-  to = "/fr/glossaire/cercle-magique"
-  status = 301
-
-[[redirects]]
-  from = "/fr/glossaire/magic-loop"
   to = "/fr/glossaire/cercle-magique"
   status = 301
 

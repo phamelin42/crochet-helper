@@ -14,6 +14,7 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { DisplayPrefsService } from '../../../core/platform/display-prefs.service';
 import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
+import { TabSyncService } from '../../../core/platform/tab-sync.service';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import type { PieceChart } from '../data/text-to-chart';
 import { DEMO_PATTERN } from '../data/demo-pattern';
@@ -23,6 +24,7 @@ import type { ExtractedImage, ExtractedPdf } from '../data/pdf-extract';
 import { EMPTY_PATTERN, PatternPiece, PatternStep } from '../data/pattern.model';
 import {
   LegacyReaderState,
+  MAX_NAME_LENGTH,
   Project,
   ProjectImage,
   deriveProjectName,
@@ -70,6 +72,9 @@ const CURRENT_ID_KEY = 'fil.currentProjectId';
 /** Paliers de profondeur de lecture, en position absolue dans le patron. */
 const DEPTH_THRESHOLDS = [5, 20, 50] as const;
 
+/** Délai de regroupement des annonces des autres onglets avant de relire un projet. */
+const TAB_REFRESH_DELAY_MS = 200;
+
 /**
  * État du lecteur : le patron courant, la position dans les étapes, les
  * compteurs de répétition, l'avancement et le chronomètre de session — ainsi
@@ -88,6 +93,7 @@ export class ReaderStore {
   private readonly storage = inject(LocalStorageService);
   private readonly prefs = inject(DisplayPrefsService);
   private readonly projectStore = inject(ProjectStoreService);
+  private readonly sync = inject(TabSyncService);
   private readonly analytics = inject(AnalyticsService);
   private readonly i18n = inject(I18nService);
   private readonly objectUrls = inject(ObjectUrlService);
@@ -151,6 +157,11 @@ export class ReaderStore {
   private holdPersist = false;
   /** Numéro de la dernière lecture de photos : une lecture dépassée est ignorée. */
   private imageLoad = 0;
+  /** Le projet tel qu'il est enregistré (écrit ici, ou repris d'un autre onglet) : inutile de le réécrire. */
+  private lastSaved: { readonly id: string; readonly signature: string } | null = null;
+  /** Projets que d'autres onglets ont changés, relus ensemble après un court délai. */
+  private readonly changedElsewhere = new Map<string, boolean>();
+  private refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** Projet actif, `null` avant tout patron chargé. */
   readonly currentId = signal<string | null>(null);
@@ -193,6 +204,13 @@ export class ReaderStore {
   readonly positionKey = computed(() => `${this.pieceIndex()}:${this.stepIndex()}`);
   readonly currentReps = computed(() => this.reps()[this.positionKey()] ?? 0);
   readonly isDone = computed(() => this.done()[this.positionKey()] === true);
+  /** L'étape annonce un nombre de répétitions et il est atteint : le compteur s'arrête là. */
+  readonly repsComplete = computed(() => {
+    const target = this.step()?.reps ?? 0;
+    return target > 0 && this.currentReps() >= target;
+  });
+  /** Dernière étape du patron terminée : il n'y a plus rien à avancer. */
+  readonly finished = computed(() => this.total() > 0 && !this.hasNext() && this.isDone());
   readonly doneCount = computed(() => Object.values(this.done()).filter(Boolean).length);
   readonly progress = computed(() =>
     this.stepCount() ? ((this.stepIndex() + 1) / this.stepCount()) * 100 : 0,
@@ -270,7 +288,11 @@ export class ReaderStore {
       else this.storage.remove(CURRENT_ID_KEY);
     });
 
+    const stopListening = this.sync.listen((id, removed) => this.scheduleRefresh(id, removed));
+
     this.destroyRef.onDestroy(() => {
+      stopListening();
+      if (this.refreshTimer) clearTimeout(this.refreshTimer);
       this.stopTimer();
       this.imageLoad++;
       this.releasePhotos();
@@ -324,8 +346,51 @@ export class ReaderStore {
     const id = this.currentId();
     if (!id) return;
     const project = this.snapshot(id);
-    await this.projectStore.put(project);
+    const signature = JSON.stringify(project);
+    if (this.lastSaved?.id === id && this.lastSaved.signature === signature) return;
+    if (await this.projectStore.put(project)) {
+      this.lastSaved = { id, signature };
+      this.sync.announce(id);
+    }
     this.projects.update((list) => [...list.filter((p) => p.id !== id), project]);
+  }
+
+  /**
+   * Un autre onglet a changé (ou supprimé) un projet. Les annonces arrivent à
+   * chaque tic de son chronomètre : on les regroupe avant de relire.
+   */
+  private scheduleRefresh(id: string, removed: boolean): void {
+    this.changedElsewhere.set(id, removed);
+    this.refreshTimer ??= setTimeout(() => {
+      this.refreshTimer = null;
+      const changes = [...this.changedElsewhere];
+      this.changedElsewhere.clear();
+      changes.forEach(([changed, gone]) => void this.refreshFromDisk(changed, gone));
+    }, TAB_REFRESH_DELAY_MS);
+  }
+
+  /**
+   * Reprend l'état enregistré par un autre onglet. C'est lui qui a le dernier
+   * mot : sans cela, chaque onglet réécrirait sa propre copie, périmée, à
+   * chaque tic de son chronomètre, et la progression ou la remise à zéro faite
+   * dans l'onglet qu'on utilise serait écrasée. Le chronomètre de cet onglet
+   * s'arrête alors : un seul onglet à la fois fait avancer le temps.
+   */
+  private async refreshFromDisk(id: string, removed: boolean): Promise<void> {
+    if (removed) {
+      this.projects.update((list) => list.filter((p) => p.id !== id));
+      if (id === this.currentId()) this.clear();
+      return;
+    }
+    const stored = await this.projectStore.get<Project>(id);
+    if (!stored) return;
+    this.projects.update((list) => [...list.filter((p) => p.id !== id), stored]);
+    if (id !== this.currentId()) return;
+    const signature = JSON.stringify(stored);
+    if (JSON.stringify(this.snapshot(id)) === signature) return;
+    this.stopTimer();
+    this.lastSaved = { id, signature };
+    this.hydrate(stored);
   }
 
   /** Le projet actif tel qu'il doit être enregistré. */
@@ -386,22 +451,26 @@ export class ReaderStore {
 
   /**
    * Ouvre un patron écrit à partir d'un diagramme relu par la lectrice :
-   * **toujours un nouveau projet**, même si le texte est celui du projet
-   * actif, qui reste intact dans la liste.
+   * un nouveau projet, le projet actif restant intact dans la liste — sauf si
+   * ce texte est déjà celui d'un projet enregistré, que l'on reprend plutôt
+   * que d'en faire un doublon.
    */
   openFromChart(text: string): void {
     if (!text) return;
+    if (this.reopenSaved(text)) return;
     if (this.currentId()) this.detach();
     this.load(text, 'diagramme');
   }
 
   /**
-   * Ouvre une grille de couleurs : **toujours un nouveau projet**, dont le
-   * texte est l'écriture de la grille, écrits dans une seule transaction. Le
+   * Ouvre une grille de couleurs : un nouveau projet, dont le texte est
+   * l'écriture de la grille, écrits dans une seule transaction (une grille
+   * identique à celle d'un projet enregistré reprend ce projet). Le
    * diagramme s'affiche d'emblée : un ouvrage en couleurs se lit en grille.
    */
   async openGrid(grid: ColorGrid, text: string, name?: string): Promise<boolean> {
     if (!text) return false;
+    if (this.reopenSaved(text, grid)) return true;
     if (this.currentId()) this.detach();
     this.holdPersist = true;
     let saved: boolean;
@@ -440,6 +509,21 @@ export class ReaderStore {
     return saved;
   }
 
+  /**
+   * Reprend le projet enregistré qui a déjà ce texte (et cette grille, s'il y
+   * en a une) : ouvrir deux fois le même exemple ou la même image ne crée pas
+   * de doublon dans « Mes projets ». Le projet déjà ouvert reste tel quel.
+   */
+  private reopenSaved(text: string, grid?: ColorGrid): boolean {
+    const wanted = grid ? JSON.stringify(grid) : null;
+    const saved = this.projects().find(
+      (p) => p.source === text && (wanted === null || JSON.stringify(p.grid) === wanted),
+    );
+    if (!saved) return false;
+    if (saved.id !== this.currentId()) this.resumeProject(saved.id);
+    return true;
+  }
+
   private hydrate(project: Project, touch = false): void {
     this.currentId.set(project.id);
     this.nameOverride.set(project.name || null);
@@ -476,12 +560,12 @@ export class ReaderStore {
   }
 
   async renameProject(id: string, name: string): Promise<void> {
-    const trimmed = name.trim();
+    const trimmed = name.trim().slice(0, MAX_NAME_LENGTH);
     const project = this.projects().find((p) => p.id === id);
     if (!project) return;
     const updated: Project = { ...project, name: trimmed };
     if (id === this.currentId()) this.nameOverride.set(trimmed || null);
-    await this.projectStore.put(updated);
+    if (await this.projectStore.put(updated)) this.sync.announce(id);
     this.projects.update((list) => list.map((p) => (p.id === id ? updated : p)));
   }
 
@@ -492,7 +576,9 @@ export class ReaderStore {
     const project = this.projects().find((p) => p.id === id);
     if (id === this.currentId()) this.clear();
     this.projects.update((list) => list.filter((p) => p.id !== id));
-    await this.projectStore.remove(id, project ? fileIds(project) : []);
+    if (await this.projectStore.remove(id, project ? fileIds(project) : [])) {
+      this.sync.announce(id, true);
+    }
   }
 
   /** Fichier `.json` téléchargeable, tous les projets et leurs photos, avec le numéro de schéma. */
@@ -533,6 +619,7 @@ export class ReaderStore {
     // Une seule transaction : si le quota lâche, rien n'est importé.
     if (!(await this.projectStore.putAll(merged, files))) return false;
     this.projects.set(merged);
+    imported.forEach((id) => this.sync.announce(id));
 
     // Si la sauvegarde apporte une version plus récente du projet ouvert, le
     // lecteur doit l'afficher : sinon le prochain `persist()` réécrirait
@@ -633,6 +720,7 @@ export class ReaderStore {
   }
 
   loadDemo(): void {
+    if (this.reopenSaved(DEMO_PATTERN)) return;
     this.load(DEMO_PATTERN, 'exemple');
   }
 
@@ -830,9 +918,14 @@ export class ReaderStore {
     for (const t of franchis) this.analytics.track(`reading_depth_${t}`);
   }
 
+  /** Le compteur reste entre 0 et l'objectif de l'étape, quand elle en annonce un. */
   addRepeat(delta: number): void {
     const key = this.positionKey();
-    this.reps.update((reps) => ({ ...reps, [key]: Math.max(0, (reps[key] ?? 0) + delta) }));
+    const target = this.step()?.reps ?? 0;
+    this.reps.update((reps) => {
+      const next = Math.max(0, (reps[key] ?? 0) + delta);
+      return { ...reps, [key]: target > 0 ? Math.min(next, target) : next };
+    });
   }
 
   resetRepeat(): void {
@@ -852,12 +945,15 @@ export class ReaderStore {
     const key = this.positionKey();
     this.done.update((done) => ({ ...done, [key]: true }));
     if (this.hasNext()) this.move(1);
+    else this.stopTimer();
   }
 
   setDone(value: boolean): void {
     const key = this.positionKey();
     this.done.update((done) => ({ ...done, [key]: value }));
-    if (value && this.hasNext()) this.move(1);
+    if (!value) return;
+    if (this.hasNext()) this.move(1);
+    else this.stopTimer();
   }
 
   setImage(dataUrl: string): void {

@@ -10,7 +10,7 @@ import { InstallSlot } from '../components/install-slot';
 import { Button } from '../../../shared/ui/button/button';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { InputField } from '../../../shared/ui/field/input';
-import { Project } from '../data/project.model';
+import { MAX_NAME_LENGTH, Project } from '../data/project.model';
 import { ReaderStore } from '../state/reader-store';
 
 const SEO: Record<Locale, { title: string; description: string }> = {
@@ -38,6 +38,8 @@ const COPY = {
       'Le patron, la progression et le chronomètre de ce projet seront définitivement supprimés.',
     'ui.deleteConfirmTitle': 'Supprimer ce projet ?',
     'ui.exportBackup': 'Exporter une sauvegarde',
+    'ui.exportDone':
+      'Sauvegarde téléchargée : retrouvez le fichier « pattern-reader-….json » dans vos téléchargements.',
     'ui.importBackup': 'Importer une sauvegarde',
     'ui.importInvalid':
       "Ce fichier n'est pas une sauvegarde valide pour cette version de l'application.",
@@ -62,6 +64,8 @@ const COPY = {
       "This project's pattern, progress and timer will be permanently deleted.",
     'ui.deleteConfirmTitle': 'Delete this project?',
     'ui.exportBackup': 'Export a backup',
+    'ui.exportDone':
+      'Backup downloaded: look for the “pattern-reader-….json” file in your downloads.',
     'ui.importBackup': 'Import a backup',
     'ui.importInvalid': "This file isn't a valid backup for this version of the app.",
     'ui.importOk': 'Backup imported: the projects were merged with the ones already here.',
@@ -111,10 +115,15 @@ type LocalKey = keyof typeof COPY.fr;
         type="file"
         accept="application/json,.json"
         class="visually-hidden"
-        [attr.aria-label]="t('ui.importBackup')"
+        tabindex="-1"
+        aria-hidden="true"
         (change)="onImport($event)"
       />
     </div>
+
+    @if (exportDone()) {
+      <p class="hint" role="status">{{ t('ui.exportDone') }}</p>
+    }
 
     @if (importMessage(); as message) {
       <p class="hint" role="alert">
@@ -160,6 +169,7 @@ type LocalKey = keyof typeof COPY.fr;
         <input
           filInput
           id="rename-input"
+          [attr.maxlength]="maxNameLength"
           #renameField
           [value]="renameTarget()?.name ?? ''"
           (keydown.enter)="saveRename(renameField.value)"
@@ -205,6 +215,8 @@ export default class ProjectsPage {
   protected readonly deleteOpen = signal(false);
   protected readonly deleteTarget = signal<Project | null>(null);
   protected readonly importMessage = signal<'ok' | 'invalid' | null>(null);
+  protected readonly exportDone = signal(false);
+  protected readonly maxNameLength = MAX_NAME_LENGTH;
   protected readonly importFileInput =
     viewChild.required<ElementRef<HTMLInputElement>>('importFile');
 
@@ -268,6 +280,8 @@ export default class ProjectsPage {
     link.click();
     // Révoquer dans la même tâche peut annuler le téléchargement (Safari, Firefox).
     setTimeout(() => URL.revokeObjectURL(url));
+    this.importMessage.set(null);
+    this.exportDone.set(true);
   }
 
   protected async onImport(event: Event): Promise<void> {
@@ -276,6 +290,7 @@ export default class ProjectsPage {
     input.value = '';
     if (!file) return;
     const ok = await this.store.importBackup(file);
+    this.exportDone.set(false);
     this.importMessage.set(ok ? 'ok' : 'invalid');
   }
 }

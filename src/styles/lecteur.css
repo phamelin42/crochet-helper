@@ -340,12 +340,19 @@ textarea.src-input {
   );
   overflow: hidden;
 }
+.hero {
+  --hero-ball: 220px;
+}
+/* Le texte s'arrête avant la pelote au lieu de passer dessous. */
+.hero:not(.home-hero) {
+  padding-right: calc(var(--hero-ball) + var(--space-6));
+}
 .hero::before {
   content: '';
   position: absolute;
   right: var(--space-3);
   bottom: var(--space-2);
-  width: 220px;
+  width: var(--hero-ball);
   height: 184px;
   background: url(/illustrations/pelote.svg) no-repeat right bottom / contain;
   pointer-events: none;
@@ -408,7 +415,7 @@ textarea.src-input {
 .note {
   display: flex;
   gap: var(--space-2);
-  font-size: var(--text-base);
+  font-size: var(--reader-aside);
   line-height: 1.55;
   border-left: 4px solid var(--color-asagi);
   background: color-mix(in srgb, var(--color-asagi-pale) 70%, transparent);
@@ -683,7 +690,7 @@ fil-install-slot {
   padding-left: var(--space-6);
   columns: 2;
   column-gap: var(--space-8);
-  font-size: var(--text-base);
+  font-size: var(--reader-aside);
   line-height: 1.6;
   max-width: 70ch;
 }
@@ -698,6 +705,8 @@ fil-install-slot {
 .tip {
   position: fixed;
   z-index: 60;
+  /* Sa largeur ne dépend pas de `left` : un bloc fixe se resserrerait près du bord. */
+  width: max-content;
   max-width: min(300px, 80vw);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
@@ -875,8 +884,10 @@ fil-install-slot {
 }
 
 @media (max-width: 820px) {
+  .hero {
+    --hero-ball: 130px;
+  }
   .hero::before {
-    width: 130px;
     opacity: 0.8;
   }
   /* L'illustration passe en vignette dans le coin, le titre s'écarte. */
@@ -915,6 +926,9 @@ fil-install-slot {
   .hero::before {
     content: none;
   }
+  .hero:not(.home-hero) {
+    padding-right: var(--space-4);
+  }
   .btn-step {
     min-height: 68px;
   }
@@ -929,7 +943,7 @@ fil-install-slot {
   border-left: 4px solid var(--color-yamabuki);
   background: color-mix(in srgb, var(--color-yamabuki-pale) 75%, transparent);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  font-size: var(--text-base);
+  font-size: var(--reader-aside);
   line-height: 1.5;
   max-width: 60ch;
 }

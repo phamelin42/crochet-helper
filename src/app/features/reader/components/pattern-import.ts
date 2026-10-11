@@ -1,6 +1,7 @@
 import { Component, ElementRef, effect, inject, model, signal, viewChild } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { Button } from '../../../shared/ui/button/button';
+import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../../shared/ui/field/input';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
@@ -14,7 +15,7 @@ import { ReaderStore } from '../state/reader-store';
  */
 @Component({
   selector: 'fil-pattern-import',
-  imports: [Button, Disclosure, InputField],
+  imports: [Button, Dialog, Disclosure, InputField],
   template: `
     <fil-disclosure
       [label]="t('ui.import')"
@@ -101,10 +102,27 @@ import { ReaderStore } from '../state/reader-store';
             <p class="hint" role="alert">{{ message }}</p>
           } @else if (noRows()) {
             <p class="hint" role="alert">{{ t('ui.noRows') }}</p>
+          } @else if (emptyText()) {
+            <p class="hint" role="alert">{{ t('ui.emptyText') }}</p>
           }
         </div>
       </div>
     </fil-disclosure>
+
+    @if (clearOpen()) {
+      <fil-dialog [(open)]="clearOpen" [label]="t('ui.clearConfirmTitle')">
+        <h2 class="dialog-title">{{ t('ui.clearConfirmTitle') }}</h2>
+        <p class="dialog-body">{{ t('ui.clearConfirmBody') }}</p>
+        <div class="dialog-actions">
+          <button type="button" filButton="secondary" (click)="clearOpen.set(false)">
+            {{ t('ui.cancel') }}
+          </button>
+          <button type="button" filButton="primary" (click)="confirmClear()">
+            {{ t('ui.clearConfirmAction') }}
+          </button>
+        </div>
+      </fil-dialog>
+    }
   `,
 })
 export class PatternImport {
@@ -125,6 +143,9 @@ export class PatternImport {
    * steps » ne faisait rien de visible et la lectrice ne savait pas pourquoi.
    */
   protected readonly noRows = signal(false);
+  /** « Découper » sur un champ vide : le panneau reste ouvert et le dit. */
+  protected readonly emptyText = signal(false);
+  protected readonly clearOpen = signal(false);
 
   constructor() {
     // Rouvre le panneau dès qu'une erreur de PDF survient, y compris quand le
@@ -151,6 +172,10 @@ export class PatternImport {
   }
 
   protected load(text: string): void {
+    // Un champ vide ne touche pas au projet actif : `load('')` remettrait son
+    // texte et sa progression à zéro.
+    this.emptyText.set(!text.trim());
+    if (this.emptyText()) return;
     this.store.load(text);
     if (this.reportNoRows()) return;
     this.open.set(false);
@@ -198,9 +223,21 @@ export class PatternImport {
     this.open.set(false);
   }
 
+  /** Effacer un patron chargé demande confirmation, comme supprimer un projet. */
   protected clear(): void {
+    if (this.store.currentId()) this.clearOpen.set(true);
+    else this.resetField();
+  }
+
+  protected confirmClear(): void {
+    this.clearOpen.set(false);
     this.store.clear();
+    this.resetField();
+  }
+
+  private resetField(): void {
     this.noRows.set(false);
+    this.emptyText.set(false);
     const field = this.source();
     if (field) field.nativeElement.value = '';
   }

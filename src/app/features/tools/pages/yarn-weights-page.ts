@@ -103,7 +103,7 @@ const COPY: Record<Locale, YarnWeightsCopy> = {
     toNeedles: 'Les tailles d’aiguilles',
   },
   en: {
-    seoTitle: `Yarn weight chart: worsted, aran, DK —${SITE_NAME}`,
+    seoTitle: `Yarn weight chart: worsted, aran, DK — ${SITE_NAME}`,
     seoDescription:
       'Worsted, aran, DK, chunky: the Craft Yarn Council yarn weight categories with the usual crochet hook and knitting needle sizes, and how to substitute a yarn.',
     h1: 'Yarn weights: worsted, aran, DK… the chart',

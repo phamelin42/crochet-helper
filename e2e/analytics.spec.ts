@@ -137,7 +137,7 @@ test('quitter puis reprendre la page pleine émet focus_mode_toggled, off puis o
   await expect(page.locator('html[data-focus]')).toBeAttached();
   await emis(page); // vide les événements du chargement
 
-  await page.getByRole('button', { name: 'Tools', exact: true }).click();
+  await page.getByRole('button', { name: 'Exit full page', exact: true }).click();
   // Émis dans le gestionnaire du clic, pas depuis un effect : disponible aussitôt.
   const sortie = await emis(page);
   expect(noms(sortie)).toEqual(['focus_mode_toggled']);

@@ -110,7 +110,7 @@ const clamp = (value: number, min: number, max: number): number =>
                 [min]="MIN_WIDTH"
                 [max]="MAX_WIDTH"
                 [value]="width()"
-                (change)="setWidth(+$any($event.target).value)"
+                (change)="setWidth(+$any($event.target).value, $any($event.target))"
               />
               <button
                 type="button"
@@ -143,7 +143,7 @@ const clamp = (value: number, min: number, max: number): number =>
                 [min]="MIN_COLORS"
                 [max]="MAX_COLORS"
                 [value]="colors()"
-                (change)="setColors(+$any($event.target).value)"
+                (change)="setColors(+$any($event.target).value, $any($event.target))"
               />
               <button
                 type="button"
@@ -233,11 +233,7 @@ export class ImageGridDialog {
     });
     effect((onCleanup) => {
       const pixels = this.pixels();
-      const options = {
-        width: this.width(),
-        colors: this.colors(),
-        worked: this.worked() === 1 ? ('round' as const) : ('flat' as const),
-      };
+      const options = this.options();
       if (!pixels) return;
       this.pending.set(true);
       const timer = setTimeout(() => {
@@ -253,19 +249,37 @@ export class ImageGridDialog {
     });
   }
 
-  protected setWidth(value: number): void {
-    if (Number.isFinite(value))
-      this.width.set(clamp(value, MIN_IMAGE_GRID_WIDTH, MAX_IMAGE_GRID_WIDTH));
+  private options() {
+    return {
+      width: this.width(),
+      colors: this.colors(),
+      worked: this.worked() === 1 ? ('round' as const) : ('flat' as const),
+    };
   }
 
-  protected setColors(value: number): void {
+  /**
+   * Valeur saisie, ramenée dans les bornes. Le champ est réécrit avec la valeur
+   * retenue : si elle ne change pas (0 ou -5 → 10 alors que 10 est déjà la
+   * valeur), le signal ne bouge pas et le champ garderait la saisie invalide.
+   */
+  protected setWidth(value: number, field?: HTMLInputElement): void {
+    if (Number.isFinite(value))
+      this.width.set(clamp(value, MIN_IMAGE_GRID_WIDTH, MAX_IMAGE_GRID_WIDTH));
+    if (field) field.value = String(this.width());
+  }
+
+  protected setColors(value: number, field?: HTMLInputElement): void {
     if (Number.isFinite(value)) this.colors.set(clamp(value, MIN_COLORS, MAX_COLORS));
+    if (field) field.value = String(this.colors());
   }
 
   protected create(): void {
-    const grid = this.grid();
+    const pixels = this.pixels();
     const file = this.intake.gridFile();
-    if (!grid || !file) return;
+    if (!pixels || !file) return;
+    // Recalculée depuis les réglages du moment : un clic juste après une saisie
+    // arrive avant la fin du délai de l'aperçu, qui montrerait l'ancienne largeur.
+    const grid = imageToGrid(pixels, this.options());
     const name = file.name.replace(/\.[^.]*$/, '').slice(0, MAX_NAME);
     void this.intake.createGrid(grid, name);
   }

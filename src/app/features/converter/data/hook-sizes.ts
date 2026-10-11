@@ -130,17 +130,45 @@ function normalizeSearchToken(raw: string): string {
   return raw
     .toUpperCase()
     .replace('½', '.5')
+    .replace(',', '.')
     .replace(/[-/\s]/g, '');
 }
 
-const SEARCH_TOKEN_MAP = new Map(HOOK_SIZES.map((size) => [normalizeSearchToken(size.us), size]));
+/**
+ * Les écritures d'une taille, chacune menant à une seule ligne : la notation
+ * complète (« G6 », « MN13 »), une lettre avec le numéro (« M13 », « N13 »),
+ * ou une lettre seule (« G », « M »). Une écriture qui désignerait deux
+ * lignes — la lettre « N », commune à M/N-13 et à N/P-15 — vaut `null` :
+ * mieux ne rien proposer que la mauvaise taille.
+ */
+const SEARCH_ALIASES = new Map<string, HookSize | null>();
+for (const size of HOOK_SIZES) {
+  const { letter, letter2, number } = parseUs(size.us);
+  const digits = number.replace('½', '.5');
+  const aliases = new Set([normalizeSearchToken(size.us)]);
+  for (const l of [letter, letter2]) {
+    if (!l) continue;
+    aliases.add(l);
+    aliases.add(`${l}${digits}`);
+  }
+  for (const alias of aliases) {
+    const known = SEARCH_ALIASES.get(alias);
+    SEARCH_ALIASES.set(alias, known === undefined || known === size ? size : null);
+  }
+}
+
+/** Le numéro seul d'une notation américaine (« 10.5 », « 13 »), pour une saisie qui n'est pas des millimètres. */
+const SEARCH_NUMBERS = new Map(
+  HOOK_SIZES.map((size) => [parseUs(size.us).number.replace('½', '.5'), size]),
+);
 
 /**
  * Retrouve une taille à partir de ce que la lectrice tape : des millimètres
  * (« 4 », « 4 mm », « 4,0 ») ou une notation américaine (« G », « G-6 »,
- * « g6 », « 7 »). Un nombre seul se lit d'abord en millimètres ; « 7 »
- * n'existe qu'en US, la seule taille sans lettre. Une saisie avec « mm » ne
- * retombe jamais sur le système américain. Inconnu ou vide : `null`.
+ * « g6 », « 7 », « M », « N-15 », « 10.5 »). Un nombre seul se lit d'abord en
+ * millimètres, puis comme le numéro américain d'une taille. Une saisie avec
+ * « mm » ne retombe jamais sur le système américain. Inconnu, ambigu ou
+ * vide : `null`.
  */
 export function findHookSize(input: string): HookSize | null {
   const text = input.trim();
@@ -154,5 +182,5 @@ export function findHookSize(input: string): HookSize | null {
   }
 
   const token = normalizeSearchToken(text);
-  return SEARCH_TOKEN_MAP.get(token) ?? LETTER_ONLY_MAP.get(token) ?? null;
+  return SEARCH_ALIASES.get(token) ?? SEARCH_NUMBERS.get(token) ?? null;
 }

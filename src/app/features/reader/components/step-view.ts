@@ -81,8 +81,8 @@ const LONGEST_STEP = 90;
           [selected]="store.view() === 'chart' ? 1 : 0"
           (selectedChange)="store.setView($event === 1 ? 'chart' : 'text')"
         />
-        <!-- Même emplacement dans les deux modes : « Outils » quitte la page
-             pleine, « Page pleine » y revient. -->
+        <!-- Même emplacement dans les deux modes : « Quitter la page pleine »
+             rend la page complète, « Page pleine » y revient. -->
         <button
           #focusToggle
           type="button"
@@ -90,7 +90,7 @@ const LONGEST_STEP = 90;
           class="focus-toggle"
           aria-keyshortcuts="Escape"
           [attr.aria-pressed]="prefs.focus()"
-          [attr.aria-label]="prefs.focus() ? t('ui.focusTools') : t('ui.focusOn')"
+          [attr.aria-label]="prefs.focus() ? t('ui.focusOff') : t('ui.focusOn')"
           (click)="toggleFocus()"
         >
           @if (prefs.focus()) {
@@ -152,7 +152,7 @@ const LONGEST_STEP = 90;
           filButton="primary"
           [step]="true"
           class="next"
-          [disabled]="!store.step()"
+          [disabled]="!store.step() || store.finished()"
           (click)="store.advance()"
         >
           <span>{{ t('ui.next') }}</span
@@ -166,6 +166,9 @@ const LONGEST_STEP = 90;
     }
     @if (store.viewFallback()) {
       <p class="hint" role="status">{{ t('ui.viewFallback') }}</p>
+    }
+    @if (store.finished()) {
+      <p class="hint" role="status">{{ t('ui.finished') }}</p>
     }
 
     <!--

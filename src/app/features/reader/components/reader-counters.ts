@@ -25,6 +25,9 @@ import { ReaderStore } from '../state/reader-store';
         @if (store.step()?.reps; as reps) {
           <span class="sub"> / {{ reps }}</span>
         }
+        @if (store.repsComplete()) {
+          <fil-icon name="check" /><span class="visually-hidden">{{ t('ui.repsDone') }}</span>
+        }
       </div>
       <div class="row tight">
         <button
@@ -42,7 +45,7 @@ import { ReaderStore } from '../state/reader-store';
           filButton="primary"
           [iconOnly]="true"
           aria-label="+"
-          [disabled]="!store.step()"
+          [disabled]="!store.step() || store.repsComplete()"
           (click)="store.addRepeat(1)"
         >
           <fil-icon name="plus" />

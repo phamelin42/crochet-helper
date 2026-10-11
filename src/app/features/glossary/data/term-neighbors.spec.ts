@@ -16,12 +16,10 @@ describe('neighborsOf', () => {
     expect(terms(neighborsOf(entry('magic ring'), 'en').variants)).toEqual([
       'cercle magique',
       'mr',
-      'magic loop',
     ]);
     expect(terms(neighborsOf(entry('cercle magique'), 'fr').variants)).toEqual([
       'magic ring',
       'mr',
-      'magic loop',
     ]);
     expect(terms(neighborsOf(entry('sl st'), 'fr').variants)).toEqual(['slst']);
     expect(neighborsOf(entry('magic ring'), 'en').synonyms).toEqual([]);

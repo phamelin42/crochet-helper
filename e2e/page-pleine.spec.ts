@@ -54,7 +54,7 @@ for (const viewport of VIEWPORTS) {
         page.locator('.timer-tile'),
         page.getByRole('button', { name: 'Previous', exact: true }),
         page.getByRole('button', { name: 'Next', exact: true }),
-        page.getByRole('button', { name: 'Tools', exact: true }),
+        page.getByRole('button', { name: 'Exit full page', exact: true }),
       ];
       for (const element of visibles) {
         await expect(element).toBeVisible();
@@ -66,9 +66,9 @@ for (const viewport of VIEWPORTS) {
       expect(defile, 'la page tient dans l’écran').toBe(false);
     });
 
-    test('« Tools » rend la page complète, « Full page » y revient', async ({ page }) => {
+    test('« Exit full page » rend la page complète, « Full page » y revient', async ({ page }) => {
       await ouvrirExemple(page);
-      const outils = page.getByRole('button', { name: 'Tools', exact: true });
+      const outils = page.getByRole('button', { name: 'Exit full page', exact: true });
       await expect(outils).toHaveAttribute('aria-pressed', 'true');
       await expect(outils).toHaveAttribute('aria-keyshortcuts', 'Escape');
       await outils.click();
@@ -82,7 +82,7 @@ for (const viewport of VIEWPORTS) {
 
       await retour.click();
       await expect(page.locator('html[data-focus]')).toBeAttached();
-      await expect(page.getByRole('button', { name: 'Tools', exact: true })).toBeFocused();
+      await expect(page.getByRole('button', { name: 'Exit full page', exact: true })).toBeFocused();
     });
 
     test('Échap quitte la page pleine, et le choix survit à un rechargement', async ({ page }) => {
@@ -102,7 +102,7 @@ for (const viewport of VIEWPORTS) {
       await ouvrirExemple(page);
       await page.getByRole('button', { name: '+', exact: true }).click();
       await expect(page.locator('.reps-tile .big')).toContainText('1');
-      await page.getByRole('button', { name: 'Tools', exact: true }).click();
+      await page.getByRole('button', { name: 'Exit full page', exact: true }).click();
       await expect(page.locator('.reps-tile .big')).toContainText('1');
     });
   });

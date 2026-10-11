@@ -106,7 +106,7 @@ for (const theme of THEMES) {
 /**
  * Mode page pleine (fiche 38), état par défaut d'un patron chargé : l'audit
  * porte sur ce que la lectrice voit vraiment — étape, répétitions, boutons,
- * « Outils » — sur téléphone comme sur tablette.
+ * « Quitter la page pleine » — sur téléphone comme sur tablette.
  */
 for (const theme of THEMES) {
   test(`lecteur en page pleine — thème ${theme.name} — aucune violation axe sérieuse`, async ({
@@ -116,7 +116,7 @@ for (const theme of THEMES) {
     await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
     await page.getByRole('button', { name: 'Example', exact: true }).click();
     await expect(page.locator('html[data-focus]')).toBeAttached();
-    await expect(page.getByRole('button', { name: 'Tools', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Exit full page', exact: true })).toBeVisible();
     await applyTheme(page, theme.dim);
 
     expect(await seriousViolations(page)).toEqual([]);

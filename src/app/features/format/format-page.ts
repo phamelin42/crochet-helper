@@ -63,8 +63,10 @@ const FURTHER: Record<
         <h2>{{ c.step2 }}</h2>
         <p>{{ c.step2Body }}</p>
         <ul>
-          @for (tool of c.tools; track tool) {
-            <li>{{ tool }}</li>
+          @for (tool of c.tools; track tool.name) {
+            <li>
+              <a [href]="tool.url" target="_blank" rel="noopener noreferrer">{{ tool.name }}</a>
+            </li>
           }
         </ul>
 
@@ -126,6 +128,15 @@ export default class FormatPage {
   }
 }
 
+/** Les assistants cités : un lien vers chacun, pour ne pas avoir à le chercher. */
+const ASSISTANTS = [
+  { name: 'ChatGPT', url: 'https://chatgpt.com' },
+  { name: 'Claude', url: 'https://claude.ai' },
+  { name: 'Perplexity', url: 'https://www.perplexity.ai' },
+  { name: 'Gemini', url: 'https://gemini.google.com' },
+  { name: 'Le Chat (Mistral)', url: 'https://chat.mistral.ai' },
+] as const;
+
 const COPY = {
   fr: {
     seoTitle: 'Bien formater un patron de crochet pour le lire pas à pas',
@@ -141,7 +152,7 @@ const COPY = {
     step2: '2. Collez-la dans votre assistant, suivie de votre patron',
     step2Body:
       'N’importe lequel fait l’affaire, y compris en version gratuite. Collez la consigne, passez une ligne, puis collez le texte de votre patron.',
-    tools: ['ChatGPT', 'Claude', 'Perplexity', 'Gemini', 'Le Chat (Mistral)'],
+    tools: ASSISTANTS,
     step3: '3. Recopiez la réponse dans le lecteur',
     step3Body:
       'Ouvrez le lecteur, collez le texte remis en forme dans le champ d’import, et découpez-le en étapes.',
@@ -172,7 +183,7 @@ const COPY = {
     step2: '2. Paste them into your assistant, followed by your pattern',
     step2Body:
       'Any of them will do, free tiers included. Paste the instructions, leave a blank line, then paste your pattern.',
-    tools: ['ChatGPT', 'Claude', 'Perplexity', 'Gemini', 'Le Chat (Mistral)'],
+    tools: ASSISTANTS,
     step3: '3. Copy the answer back into the reader',
     step3Body:
       'Open the reader, paste the tidied text into the import field, and split it into steps.',

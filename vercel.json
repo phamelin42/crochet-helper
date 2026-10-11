@@ -107,11 +107,6 @@
       "statusCode": 301
     },
     {
-      "source": "/en/glossary/magic-loop",
-      "destination": "/glossary/magic-ring",
-      "statusCode": 301
-    },
-    {
       "source": "/en/glossary/cercle-magique",
       "destination": "/glossary/magic-ring",
       "statusCode": 301
@@ -138,11 +133,6 @@
     },
     {
       "source": "/glossaire/mr",
-      "destination": "/fr/glossaire/cercle-magique",
-      "statusCode": 301
-    },
-    {
-      "source": "/glossaire/magic-loop",
       "destination": "/fr/glossaire/cercle-magique",
       "statusCode": 301
     },
@@ -197,11 +187,6 @@
       "statusCode": 301
     },
     {
-      "source": "/glossary/magic-loop",
-      "destination": "/glossary/magic-ring",
-      "statusCode": 301
-    },
-    {
       "source": "/glossary/cercle-magique",
       "destination": "/glossary/magic-ring",
       "statusCode": 301
@@ -228,11 +213,6 @@
     },
     {
       "source": "/fr/glossaire/mr",
-      "destination": "/fr/glossaire/cercle-magique",
-      "statusCode": 301
-    },
-    {
-      "source": "/fr/glossaire/magic-loop",
       "destination": "/fr/glossaire/cercle-magique",
       "statusCode": 301
     },

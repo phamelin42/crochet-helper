@@ -6,7 +6,7 @@ export const DEMO_PATTERN = `Tiny Tree
 You will need:
 
   medium weight yarn in green, brown, and yellow
-  G Crochet Hook (4.25 mm)
+  G-6 Crochet Hook (4 mm)
   2 - 6mm safety eyes
   fiberfill
   yarn needle

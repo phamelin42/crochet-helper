@@ -36,7 +36,7 @@ export interface GlossaryEntry {
    * Langues où l'entrée n'a pas de page propre : son URL y redirige en 301
    * (`vercel.json`, `netlify.toml`) vers la page de l'entrée nommée, qui porte
    * le même concept. Une graphie de plus (`slst`, `rnds`) ou un autre nom du
-   * même point (`mr`, `magic loop`) ne méritent pas une page quasi identique,
+   * même point (`mr`) ne méritent pas une page quasi identique,
    * mais l'abréviation reste reconnue et expliquée par le lecteur.
    */
   readonly pageOf?: Partial<Record<Locale, string>>;
@@ -378,13 +378,14 @@ const RAW_GLOSSARY: readonly RawGlossaryEntry[] = [
     pageOf: { en: 'magic ring', fr: 'cercle magique' },
   },
   {
+    // Une technique de tricot (en rond sur une longue aiguille circulaire), pas
+    // le cercle magique du crochet : elle a sa propre page.
     term: 'magic loop',
-    fr: 'cercle magique',
-    en: 'magic ring',
-    craft: 'crochet',
+    fr: 'tricot en rond sur longue aiguille circulaire',
+    en: 'knitting in the round on one long circular needle',
+    craft: 'tricot',
     lang: 'en',
-    example: 'Rnd 1: 6 sc in a magic loop, pull tight (6)',
-    pageOf: { en: 'magic ring', fr: 'cercle magique' },
+    example: 'Rnd 1: with the magic loop method, k all sts (24)',
   },
   {
     term: 'br',

@@ -85,6 +85,11 @@ function writings(size: (typeof HOOK_SIZES)[number]): string[] {
   if (us.includes('½')) list.push(us.replace('½', '.5'));
   const single = /^([A-Z])-\d+½?$/.exec(us);
   if (single) list.push(single[1], single[1].toLowerCase());
+  const double = /^([A-Z])\/([A-Z])-(\d+)$/.exec(us);
+  if (double) {
+    const [, first, second, number] = double;
+    list.push(`${first}${number}`, `${second}-${number}`, `${first}/${second}${number}`);
+  }
   return list;
 }
 
@@ -103,8 +108,23 @@ describe('findHookSize', () => {
     expect(findHookSize('g6')?.mm).toBe(4);
   });
 
+  it('retrouve les tailles à deux lettres par l’une ou l’autre lettre, et le numéro seul', () => {
+    expect(findHookSize('M')?.us).toBe('M/N-13');
+    expect(findHookSize('P')?.us).toBe('N/P-15');
+    expect(findHookSize('N-15')?.us).toBe('N/P-15');
+    expect(findHookSize('N-13')?.us).toBe('M/N-13');
+    expect(findHookSize('10.5')?.us).toBe('K-10½');
+    expect(findHookSize('10,5')?.us).toBe('K-10½');
+    expect(findHookSize('K-10.5')?.us).toBe('K-10½');
+    expect(findHookSize('13')?.us).toBe('M/N-13');
+  });
+
+  it('ne devine pas entre deux tailles : « N » seul désigne M/N-13 et N/P-15', () => {
+    expect(findHookSize('N')).toBeNull();
+  });
+
   it('ne trouve rien pour une saisie vide, hors norme ou incompréhensible', () => {
-    for (const input of ['', '   ', '3 mm', '7 mm', 'Z', 'G-7', 'abc', '4 cm', 'M', '-']) {
+    for (const input of ['', '   ', '3 mm', '7 mm', 'Z', 'G-7', 'abc', '4 cm', '-', '12', 'Q']) {
       expect(findHookSize(input), `« ${input} »`).toBeNull();
     }
   });

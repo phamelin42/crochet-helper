@@ -59,6 +59,7 @@ src/app/features/<nom>/
      components/     composants de la fonctionnalité
      pages/          composants routés, portent le SEO de la page
 tools/               scripts de build (génération du sitemap)
+worker/              Worker Cloudflare `fil-ia` (proxy IA, ADR-003), hors bundle Angular ; tests : `npm run test:worker`
 prompts/             fiches de tâche autoportantes pour déléguer du travail
 ```
 

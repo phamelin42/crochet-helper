@@ -9,10 +9,10 @@ id = "6a3e304c983a484a80054240e83f92d2"
 # Réglages modifiables sans code. Les secrets ANTHROPIC_API_KEY et SEL_QUOTA
 # se posent dans le tableau de bord Cloudflare, jamais ici.
 [vars]
-MODELE = "claude-haiku-5-5"
+MODELE = "claude-sonnet-5-5"
 EFFORT = "low"
-PRIX_ENTREE_MTOK_USD = "0.10"
-PRIX_SORTIE_MTOK_USD = "0.50"
+PRIX_ENTREE_MTOK_USD = "2"
+PRIX_SORTIE_MTOK_USD = "10"
 BUDGET_MOIS_USD = "7"
 QUOTA_JOUR = "3"
 ORIGINES = "https://patternreader.com"

@@ -79,8 +79,20 @@ centimes est possible au plafond du Worker, jamais au-delà des crédits.
 Le Worker refuse une réponse (et la lectrice obtient le découpage habituel) si :
 la génération ne s'est pas terminée normalement (`stop_reason` autre que
 `end_turn`) ; la réponse contient un nombre absent du texte d'origine (maille
-ou rang inventé) ; elle fait moins de 40 % de la longueur d'origine (résumé ou
-coupure). L'app garde le texte d'origine avec le projet et permet d'y revenir.
+ou rang inventé) ; elle est trop courte. L'app garde le texte d'origine avec le
+projet et permet d'y revenir.
+
+**Trop courte** a changé le 16 octobre, après un PDF refusé à 25 % : c'était une
+notice qui répète le même patron en quatre langues (allemand, anglais, français,
+néerlandais), dont l'IA n'avait gardé qu'une, ce que la consigne demande
+désormais. La longueur seule ne distingue pas cela d'un résumé. Une réponse
+sous 40 % n'est donc refusée que si elle perd plus de 10 % des nombres
+distincts de l'original (chaque traduction les répète tous, un résumé en perd) ;
+sous 10 %, elle l'est toujours. Les numéros des libellés « Étape N » / « Step N »
+en début de ligne, que l'IA ajoute pour découper les paragraphes en étapes, ne
+comptent pas comme des nombres inventés ; un « Step 9 » au milieu d'une ligne,
+si. Limite assumée : une réponse courte qui garde presque tous les nombres
+passe. Vérifié sur les quatre versions de la notice et sur une vraie réponse.
 
 Un refus 422 porte un champ `detail` qui dit pourquoi, sans jamais citer le
 texte : `arret:<stop_reason>`, `vide`, `trop-court:<pourcentage conservé>` ou

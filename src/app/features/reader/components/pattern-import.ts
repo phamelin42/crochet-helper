@@ -1,4 +1,13 @@
-import { Component, ElementRef, computed, effect, inject, model, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  model,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AiRefusal } from '../../../core/ai/format-client.token';
 import { I18nService } from '../../../core/i18n/i18n.service';

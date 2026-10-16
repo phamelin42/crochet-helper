@@ -1,5 +1,12 @@
 import { encodeGrid, validGrid } from './color-grid';
-import { MAX_CHARTS, MAX_SOURCE_LENGTH, Project, ProjectImage, chartId, imageId } from './project.model';
+import {
+  MAX_CHARTS,
+  MAX_SOURCE_LENGTH,
+  Project,
+  ProjectImage,
+  chartId,
+  imageId,
+} from './project.model';
 
 /**
  * Format du fichier de sauvegarde (écran « Mes projets »). Chargé par

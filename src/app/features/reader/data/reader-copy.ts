@@ -180,10 +180,8 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.aiRevertTitle': 'Go back to the original text?',
   'ui.aiRevertBody':
     'The pattern goes back to its original text, split by the usual tool. Your progress starts over.',
-  'ui.aiDay':
-    'You’ve used your 3 AI tidy-ups for today; the pattern is split by the usual tool.',
-  'ui.aiMonth':
-    'This month’s AI tidy-ups are used up; the pattern is split by the usual tool.',
+  'ui.aiDay': 'You’ve used your 3 AI tidy-ups for today; the pattern is split by the usual tool.',
+  'ui.aiMonth': 'This month’s AI tidy-ups are used up; the pattern is split by the usual tool.',
   'ui.aiFailed': 'The AI tidy-up didn’t work out; the pattern is split by the usual tool.',
   'ui.aiSorry':
     'Unfortunately, using AI isn’t free, and for now I don’t want to spend more than €10 a month on this site. Sorry…',

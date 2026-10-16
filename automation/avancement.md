@@ -66,6 +66,7 @@ branche.
 | 51 — Poids de fil                       | Terminée | —   | 2026-10-08 |
 | 52 — Proxy de mise en forme par IA      | Terminée | —   | 2026-10-16 |
 | 53 — Case « remettre en forme par IA »  | Terminée | —   | 2026-10-16 |
+| 54 — Page métrage de fil                | À faire  | —   | —          |
 
 ## États possibles
 

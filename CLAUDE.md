@@ -26,8 +26,10 @@ aucune n'a pas sa place dans la table d'ordre.
    pointeur du projet actif), lecture d'image (`FileReader`). Le build produit
    des fichiers statiques (`outputMode: 'static'`). N'introduis ni serveur, ni
    appel réseau, ni clé d'API sans en discuter — ce serait un changement
-   d'architecture, pas une fonctionnalité. Seule exception, discutée et bornée :
-   la mesure d'audience (`docs/adr-001-mesure-audience.md`).
+   d'architecture, pas une fonctionnalité. Deux exceptions, discutées et
+   bornées : la mesure d'audience (`docs/adr-001-mesure-audience.md`) et la
+   mise en forme par IA, optionnelle, via le Worker de `worker/`
+   (`docs/adr-003-mise-en-forme-ia.md`).
 2. **Tout est pré-rendu.** Chaque route existe en HTML complet dans
    `dist/fil-patterns/browser`. Une page dont le contenu n'apparaît qu'après
    exécution du JavaScript est un bug de référencement. Le code qui touche au

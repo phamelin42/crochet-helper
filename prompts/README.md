@@ -88,6 +88,8 @@ URL avant d'accumuler du référencement.
 | 50  | Tailles d'aiguilles à tricoter     | acquisition : la requête jumelle des crochets, sans page       |
 | 51  | Poids de fil                       | acquisition : « worsted ou aran », le doute avant d'acheter    |
 | 52  | Métrage de fil                     | acquisition : « combien de pelotes ? », la question d'achat    |
+| 52  | Proxy de mise en forme par IA      | activation : un PDF mal extrait devient suivable (ADR-003)     |
+| 53  | Case « remettre en forme par IA »  | activation : l'option, sa limite dite franchement, sans perte  |
 
 Les fiches 38 à 41 répondent à la demande de Phil du 30 septembre (mode page
 pleine comme l'application Filo, hors ligne mis en avant, Play Store ; pas
@@ -105,6 +107,11 @@ Elles s'enchaînent : 44 → 45 → 46, puis 47 → 48 → 49 (la 47 dessine dan
 cadre de la 45). Le passage diagramme → texte est déjà fait (lecture
 automatique, branche `claude/diagram-image-recognition-g2b062`) : les 44 et 48
 supposent cette branche fusionnée.
+
+Les fiches 52 et 53 répondent à la demande de Phil du 16 octobre : une IA en
+option (case décochée), 3 fois par jour, jamais plus de 10 € par mois
+(`docs/adr-003-mise-en-forme-ia.md`). Elles s'enchaînent, et restent bloquées
+tant que Phil n'a pas fourni l'identifiant KV et l'URL du formulaire.
 
 La fiche `01` est absorbée par la `16` : ne pas l'exécuter séparément.
 

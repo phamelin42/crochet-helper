@@ -15,8 +15,9 @@ natif, Vitest, ESLint + Prettier. Pré-rendu statique de toutes les routes.
 
 1. **Aucun back-end.** Tout tourne dans le navigateur. N'ajoute ni serveur, ni
    appel réseau, ni clé d'API. Si une tâche semble en exiger un, arrête-toi et
-   dis-le au lieu d'improviser. Seule exception existante : la mesure
-   d'audience de `core/analytics/`, bornée par `docs/adr-001-mesure-audience.md`.
+   dis-le au lieu d'improviser. Deux exceptions existantes : la mesure
+   d'audience de `core/analytics/` (`docs/adr-001-mesure-audience.md`) et la
+   mise en forme par IA des fiches 52 et 53 (`docs/adr-003-mise-en-forme-ia.md`).
 2. **Tout est pré-rendu.** Le contenu doit exister dans le HTML avant exécution
    du JavaScript. Tout accès à `document`, `window`, `localStorage`,
    `navigator` ou `FileReader` doit être gardé par `isPlatformBrowser(...)` ou

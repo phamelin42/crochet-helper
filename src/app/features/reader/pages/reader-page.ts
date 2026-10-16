@@ -596,7 +596,14 @@ export default class ReaderPage {
 
     // Le mode page pleine n'existe qu'avec un patron chargé, et seulement sur
     // cette page : le pré-rendu et les autres routes gardent la page complète.
-    effect(() => this.prefs.applyFocus(!!this.store.step() && this.prefs.focus()));
+    // Un refus de l'IA (limite du jour ou du mois) s'affiche dans le panneau
+    // d'import, que la page pleine masque : on reste en page complète jusqu'à
+    // ce que la lectrice passe à une autre étape, c'est-à-dire l'ait lu.
+    effect(() =>
+      this.prefs.applyFocus(
+        !!this.store.step() && this.prefs.focus() && this.store.aiRefusal() === null,
+      ),
+    );
     inject(DestroyRef).onDestroy(() => this.prefs.applyFocus(false));
 
     // Attend la restauration du projet en cours avant de lire un éventuel

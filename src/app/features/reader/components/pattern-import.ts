@@ -1,9 +1,13 @@
-import { Component, ElementRef, effect, inject, model, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, model, signal, viewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { AiRefusal } from '../../../core/ai/format-client.token';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { Button } from '../../../shared/ui/button/button';
+import { Checkbox } from '../../../shared/ui/checkbox/checkbox';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../../shared/ui/field/input';
+import { AI_FORMAT_URL_TOKEN, AI_INTEREST_URL_TOKEN } from '../data/ai-format';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ChartIntake } from '../state/chart-intake';
 import { ReaderStore } from '../state/reader-store';
@@ -15,7 +19,7 @@ import { ReaderStore } from '../state/reader-store';
  */
 @Component({
   selector: 'fil-pattern-import',
-  imports: [Button, Dialog, Disclosure, InputField],
+  imports: [Button, Checkbox, Dialog, Disclosure, InputField, RouterLink],
   template: `
     <fil-disclosure
       [label]="t('ui.import')"
@@ -38,16 +42,25 @@ import { ReaderStore } from '../state/reader-store';
               [attr.placeholder]="t('ui.placeholder')"
             ></textarea>
           </div>
+          @if (aiUrl) {
+            <div class="field">
+              <fil-checkbox [(checked)]="aiChecked" [label]="t('ui.aiLabel')" />
+              <p class="hint">
+                {{ t('ui.aiHelp') }}
+                <a [routerLink]="i18n.link('privacy')">{{ t('ui.aiPrivacy') }}</a>
+              </p>
+            </div>
+          }
           <div class="import-actions">
-            <button type="button" filButton="primary" (click)="load(source.value)">
-              {{ t('ui.load') }}
-            </button>
             <button
               type="button"
-              filButton="secondary"
-              [disabled]="store.pdfImporting()"
-              (click)="pdfInput().nativeElement.click()"
+              filButton="primary"
+              [disabled]="busy()"
+              (click)="load(source.value)"
             >
+              {{ t('ui.load') }}
+            </button>
+            <button type="button" filButton="secondary" [disabled]="busy()" (click)="openPdf()">
               {{ store.pdfImporting() ? t('ui.pdfLoading') : t('ui.pdfOpen') }}
             </button>
             <button
@@ -98,6 +111,27 @@ import { ReaderStore } from '../state/reader-store';
             aria-hidden="true"
             (change)="onGridChange($event)"
           />
+          @if (aiUrl) {
+            <div aria-live="polite">
+              @if (store.aiBusy()) {
+                <p class="hint">{{ t('ui.aiBusy') }}</p>
+              } @else if (store.aiRefusal(); as raison) {
+                <p class="hint">{{ refusalText(raison) }}</p>
+                @if (raison === 'quota-jour' || raison === 'budget-mois') {
+                  <p class="hint">
+                    {{ t('ui.aiSorry') }}
+                    @if (interestUrl) {
+                      {{ t('ui.aiAsk') }}
+                      <a [href]="interestUrl" target="_blank" rel="noopener">{{
+                        t('ui.aiAskLink')
+                      }}</a
+                      >{{ t('ui.aiAskEnd') }}
+                    }
+                  </p>
+                }
+              }
+            </div>
+          }
           @if (pdfErrorMessage(); as message) {
             <p class="hint" role="alert">{{ message }}</p>
           } @else if (noRows()) {
@@ -108,6 +142,30 @@ import { ReaderStore } from '../state/reader-store';
         </div>
       </div>
     </fil-disclosure>
+
+    @if (store.sourceBeforeAi() !== null) {
+      <p class="hint">
+        {{ doneText() }}
+        <button type="button" filButton="ghost" (click)="revertOpen.set(true)">
+          {{ t('ui.aiRevert') }}
+        </button>
+      </p>
+    }
+
+    @if (revertOpen()) {
+      <fil-dialog [(open)]="revertOpen" [label]="t('ui.aiRevertTitle')">
+        <h2 class="dialog-title">{{ t('ui.aiRevertTitle') }}</h2>
+        <p class="dialog-body">{{ t('ui.aiRevertBody') }}</p>
+        <div class="dialog-actions">
+          <button type="button" filButton="secondary" (click)="revertOpen.set(false)">
+            {{ t('ui.cancel') }}
+          </button>
+          <button type="button" filButton="primary" (click)="confirmRevert()">
+            {{ t('ui.aiRevert') }}
+          </button>
+        </div>
+      </fil-dialog>
+    }
 
     @if (clearOpen()) {
       <fil-dialog [(open)]="clearOpen" [label]="t('ui.clearConfirmTitle')">
@@ -127,7 +185,9 @@ import { ReaderStore } from '../state/reader-store';
 })
 export class PatternImport {
   protected readonly store = inject(ReaderStore);
-  private readonly i18n = inject(I18nService);
+  protected readonly i18n = inject(I18nService);
+  protected readonly aiUrl = inject(AI_FORMAT_URL_TOKEN);
+  protected readonly interestUrl = inject(AI_INTEREST_URL_TOKEN);
 
   readonly open = model(true);
   private readonly source = viewChild<ElementRef<HTMLTextAreaElement>>('source');
@@ -146,6 +206,10 @@ export class PatternImport {
   /** « Découper » sur un champ vide : le panneau reste ouvert et le dit. */
   protected readonly emptyText = signal(false);
   protected readonly clearOpen = signal(false);
+  /** Jamais mémorisée : chaque ouverture du panneau repart décochée. */
+  protected readonly aiChecked = signal(false);
+  protected readonly revertOpen = signal(false);
+  protected readonly busy = computed(() => this.store.pdfImporting() || this.store.aiBusy());
 
   constructor() {
     // Rouvre le panneau dès qu'une erreur de PDF survient, y compris quand le
@@ -171,14 +235,53 @@ export class PatternImport {
     return null;
   }
 
-  protected load(text: string): void {
+  protected refusalText(raison: AiRefusal): string {
+    if (raison === 'quota-jour') return this.t('ui.aiDay');
+    if (raison === 'budget-mois') return this.t('ui.aiMonth');
+    return this.t('ui.aiFailed');
+  }
+
+  protected doneText(): string {
+    const left = this.store.aiRemaining();
+    return left === null
+      ? this.t('ui.aiDoneShort')
+      : this.t('ui.aiDone').replace('{n}', String(left));
+  }
+
+  /** Vrai si la mise en forme est demandée : case cochée et Worker renseigné. La case repart décochée. */
+  private wantsAi(): boolean {
+    const wanted = this.aiChecked() && !!this.aiUrl;
+    this.aiChecked.set(false);
+    return wanted;
+  }
+
+  /** Refus ou échec : le panneau reste ouvert, le message est dessous. */
+  private keepOpenForAiMessage(): boolean {
+    return this.store.aiRefusal() !== null;
+  }
+
+  protected async load(text: string): Promise<void> {
     // Un champ vide ne touche pas au projet actif : `load('')` remettrait son
     // texte et sa progression à zéro.
     this.emptyText.set(!text.trim());
     if (this.emptyText()) return;
-    this.store.load(text);
-    if (this.reportNoRows()) return;
+    if (this.wantsAi()) await this.store.loadText(text, true);
+    else this.store.load(text); // synchrone : pas d'attente sans IA
+    if (this.reportNoRows() || this.keepOpenForAiMessage()) return;
     this.open.set(false);
+  }
+
+  /** Le client se charge au clic, pas au choix du fichier : le service worker le ferait attendre. */
+  protected openPdf(): void {
+    if (this.aiChecked() && this.aiUrl) void import('../../../core/ai/format-client');
+    this.pdfInput().nativeElement.click();
+  }
+
+  protected confirmRevert(): void {
+    this.revertOpen.set(false);
+    this.store.restoreSourceBeforeAi();
+    const field = this.source();
+    if (field) field.nativeElement.value = this.store.source();
   }
 
   /** Vrai, et le panneau reste ouvert avec le message, si rien n'est découpé. */
@@ -193,11 +296,11 @@ export class PatternImport {
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
-    await this.store.importPdf(file);
+    await this.store.importPdf(file, this.wantsAi());
     if (this.store.pdfError()) return;
     const field = this.source();
     if (field) field.nativeElement.value = this.store.source();
-    if (this.reportNoRows()) return;
+    if (this.reportNoRows() || this.keepOpenForAiMessage()) return;
     this.open.set(false);
   }
 

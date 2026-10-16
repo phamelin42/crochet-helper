@@ -10,6 +10,7 @@ import {
   untracked,
 } from '@angular/core';
 import { AnalyticsService, roundToHundred } from '../../../core/analytics/analytics.service';
+import { AI_FORMAT_CLIENT, AiRefusal } from '../../../core/ai/format-client.token';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DisplayPrefsService } from '../../../core/platform/display-prefs.service';
 import { ObjectUrlService } from '../../../core/platform/object-url.service';
@@ -17,6 +18,7 @@ import { LocalStorageService } from '../../../core/storage/local-storage.service
 import { TabSyncService } from '../../../core/platform/tab-sync.service';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import type { PieceChart } from '../data/text-to-chart';
+import { AI_FORMAT_URL_TOKEN } from '../data/ai-format';
 import { DEMO_PATTERN } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
 import { SharedProgress } from '../data/project-link';
@@ -98,6 +100,8 @@ export class ReaderStore {
   private readonly i18n = inject(I18nService);
   private readonly objectUrls = inject(ObjectUrlService);
   private readonly extractPdf = inject(PDF_EXTRACTOR);
+  private readonly formatClient = inject(AI_FORMAT_CLIENT);
+  private readonly aiUrl = inject(AI_FORMAT_URL_TOKEN);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Devient vrai une fois la restauration initiale terminée — sert à `ReaderPage`
@@ -139,6 +143,14 @@ export class ReaderStore {
 
   readonly pdfImporting = signal(false);
   readonly pdfError = signal<'vide' | 'erreur' | null>(null);
+  /** Mise en forme par IA en cours (fiche 53) : les boutons d'import attendent. */
+  readonly aiBusy = signal(false);
+  /** Pourquoi la dernière mise en forme demandée n'a pas eu lieu ; `null` si elle a réussi ou n'a pas été demandée. */
+  readonly aiRefusal = signal<AiRefusal | null>(null);
+  /** Mises en forme qui restent aujourd'hui, d'après la dernière réponse du Worker. */
+  readonly aiRemaining = signal<number | null>(null);
+  /** Texte d'origine du projet actif quand il a été remis en forme par IA ; `null` sinon. */
+  readonly sourceBeforeAi = signal<string | null>(null);
   /** Photos d'un PDF laissées de côté : au-delà des plafonds, ou non enregistrées (quota). */
   readonly pdfImagesNote = signal<'tronque' | 'non-enregistrees' | null>(null);
 
@@ -415,6 +427,7 @@ export class ReaderStore {
       imageCount: this.imageCount(),
       ...(this.legacyChartCount ? { chartCount: this.legacyChartCount } : {}),
       ...(this.grid() ? { grid: this.grid()! } : {}),
+      ...(this.sourceBeforeAi() !== null ? { sourceBeforeAi: this.sourceBeforeAi()! } : {}),
     };
   }
 
@@ -543,6 +556,8 @@ export class ReaderStore {
     this.stitchIndex.set(Math.max(0, Math.floor(project.stitch ?? 0)));
     this.view.set(project.view === 'chart' ? 'chart' : 'text');
     this.grid.set(validGrid(project.grid));
+    this.sourceBeforeAi.set(project.sourceBeforeAi ?? null);
+    this.aiRefusal.set(null);
     this.depthsReached.set(new Set(DEPTH_THRESHOLDS.filter((t) => this.absoluteStep() >= t)));
     if (touch) {
       const touched: Project = { ...project, lastOpenedAt: Date.now() };
@@ -646,11 +661,14 @@ export class ReaderStore {
    */
   load(
     text: string,
-    origine: 'saisie' | 'pdf' | 'exemple' | 'lien' | 'diagramme' | 'grille' = 'saisie',
+    origine: 'saisie' | 'pdf' | 'exemple' | 'lien' | 'diagramme' | 'grille' | 'ia' = 'saisie',
+    avantIa: string | null = null,
   ): void {
     this.pdfError.set(null);
+    this.aiRefusal.set(null);
     if (text && this.currentId() && text !== this.source()) this.detach();
     this.source.set(text);
+    this.sourceBeforeAi.set(avantIa);
     this.pieceIndex.set(0);
     this.stepIndex.set(0);
     this.stitchIndex.set(0);
@@ -758,7 +776,7 @@ export class ReaderStore {
    * le même chemin que `load`. Chemin unique pour le bouton, le collage et le
    * glisser-déposer d'un PDF.
    */
-  async importPdf(file: File): Promise<void> {
+  async importPdf(file: File, withAi = false): Promise<void> {
     this.pdfImporting.set(true);
     this.pdfError.set(null);
     this.pdfImagesNote.set(null);
@@ -770,7 +788,15 @@ export class ReaderStore {
       const { pages, truncated } = await this.extractPdf(file);
       const text = normalizePdfPages(pages);
       const images = pages.flatMap((page) => page.images);
-      await this.loadWithImages(text, images);
+      const aiFormat = withAi ? await this.askAi(text, 'pdf') : null;
+      const refusal = this.aiRefusal();
+      await this.loadWithImages(
+        aiFormat?.texte ?? text,
+        images,
+        aiFormat ? 'ia' : 'pdf',
+        aiFormat ? text : null,
+      );
+      this.aiRefusal.set(refusal);
       if (truncated && !this.pdfImagesNote()) this.pdfImagesNote.set('tronque');
       this.analytics.track('pdf_imported', { pages: pages.length, images: images.length });
     } catch (error) {
@@ -783,17 +809,78 @@ export class ReaderStore {
   }
 
   /**
+   * Charge un texte collé, remis en forme par IA si la lectrice l'a demandé.
+   * Refus ou échec : le texte d'origine est chargé quand même, par le parseur
+   * habituel — elle a toujours son patron.
+   */
+  async loadText(text: string, withAi: boolean): Promise<void> {
+    const aiFormat = withAi ? await this.askAi(text, 'saisie') : null;
+    // `load` efface le message de refus ; ici on le garde, il suit le chargement.
+    const refusal = this.aiRefusal();
+    if (aiFormat) this.load(aiFormat.texte, 'ia', text);
+    else this.load(text);
+    this.aiRefusal.set(refusal);
+  }
+
+  /**
+   * Demande la mise en forme au Worker. Les événements partent d'ici, dans le
+   * gestionnaire du clic, jamais d'un `effect`. Rend `null` quand le texte
+   * d'origine doit être chargé tel quel ; `aiRefusal` dit alors pourquoi.
+   */
+  private async askAi(text: string, origine: 'saisie' | 'pdf'): Promise<{ texte: string } | null> {
+    this.aiRefusal.set(null);
+    if (!this.aiUrl) return null;
+    this.analytics.track('ai_format_requested', { origine });
+    this.aiBusy.set(true);
+    try {
+      const result = await this.formatClient(this.aiUrl, text, this.i18n.locale());
+      if (result.ok) {
+        this.aiRemaining.set(result.restant);
+        this.analytics.track('ai_format_succeeded');
+        return { texte: result.texte };
+      }
+      this.aiRefusal.set(result.raison);
+      this.analytics.track('ai_format_refused', { raison: result.raison });
+      return null;
+    } finally {
+      this.aiBusy.set(false);
+    }
+  }
+
+  /**
+   * Revient au texte d'origine du projet remis en forme par IA. Même projet,
+   * progression à zéro : les étapes ne sont plus les mêmes.
+   */
+  restoreSourceBeforeAi(): void {
+    const original = this.sourceBeforeAi();
+    if (original === null) return;
+    this.source.set(original);
+    this.sourceBeforeAi.set(null);
+    this.pieceIndex.set(0);
+    this.stepIndex.set(0);
+    this.stitchIndex.set(0);
+    this.done.set({});
+    this.reps.set({});
+    this.depthsReached.set(new Set());
+  }
+
+  /**
    * Charge le texte d'un PDF et enregistre ses photos avec le projet, dans une
    * **seule** transaction validée. Si elle avorte (quota), le projet s'ouvre
    * sans photos et `pdfImagesNote` le dit : le patron, lui, n'est jamais perdu.
    */
-  private async loadWithImages(text: string, images: readonly ExtractedImage[]): Promise<void> {
+  private async loadWithImages(
+    text: string,
+    images: readonly ExtractedImage[],
+    origine: 'pdf' | 'ia' = 'pdf',
+    avantIa: string | null = null,
+  ): Promise<void> {
     // L'effet de persistance attend : sinon il écrirait le projet seul, dans
     // une autre transaction, et un échec des photos laisserait un projet qui
     // en annonce sans les avoir.
     this.holdPersist = true;
     try {
-      this.load(text, 'pdf');
+      this.load(text, origine, avantIa);
       const id = this.currentId();
       if (id && images.length) {
         const project: Project = { ...this.snapshot(id), imageCount: images.length };
@@ -835,6 +922,7 @@ export class ReaderStore {
     this.imageCount.set(0);
     this.legacyChartCount = 0;
     this.grid.set(null);
+    this.sourceBeforeAi.set(null);
     this.pdfImagesNote.set(null);
     this.viewChoice.set(null);
     this.viewFallback.set(false);

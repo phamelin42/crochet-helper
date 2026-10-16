@@ -37,7 +37,15 @@ export interface Project {
    * l'affichage texte, le compteur et l'impression n'ont rien à savoir d'elle.
    */
   readonly grid?: ColorGrid;
+  /**
+   * Texte d'origine quand `source` a été remis en forme par IA (fiche 53) :
+   * « Revenir au texte d'origine » le remet en place. Absent sinon.
+   */
+  readonly sourceBeforeAi?: string;
 }
+
+/** Longueur maximale d'un texte de patron remis en forme, ou de son original (même borne que le Worker). */
+export const MAX_SOURCE_LENGTH = 200_000;
 
 export type ReaderView = 'text' | 'chart';
 

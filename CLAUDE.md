@@ -50,7 +50,7 @@ aucune n'a pas sa place dans la table d'ordre.
 
 ```
 src/styles/          tokens.css (jetons) · hanami.css (classes du DS) · lecteur.css (mise en page)
-src/app/core/        i18n · seo · storage · platform · analytics — services transverses, sans UI
+src/app/core/        i18n · seo · storage · platform · analytics · ai — services transverses, sans UI
 src/app/shared/ui/   composants et directives réutilisables, sans logique métier
 src/app/shared/layout, pipes, directives
 src/app/features/<nom>/

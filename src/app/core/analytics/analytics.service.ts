@@ -91,6 +91,12 @@ export type AnalyticsEvent =
   | 'app_tab_selected'
   /** Affichage du lecteur changé (propriété `view`, `text` ou `chart`). */
   | 'view_changed'
+  /** Mise en forme par IA demandée, case cochée (propriété `origine` : `saisie` ou `pdf`), jamais le texte. */
+  | 'ai_format_requested'
+  /** Mise en forme par IA réussie : le patron est découpé depuis le texte remis en forme. */
+  | 'ai_format_succeeded'
+  /** Mise en forme par IA refusée ou échouée (propriété `raison`) : le texte d'origine est chargé. */
+  | 'ai_format_refused'
   /** Réponse à « Comment suivre ce patron ? » (propriétés `view`, `remembered` : `yes` / `no`). */
   | 'view_chosen'
   /** Maille touchée dans le diagramme, une fois par tour et par session. */

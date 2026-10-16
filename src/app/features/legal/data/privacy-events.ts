@@ -118,6 +118,18 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     fr: 'une photo d’un patron PDF est agrandie',
     en: 'a picture from a PDF pattern is enlarged',
   },
+  ai_format_requested: {
+    fr: 'une mise en forme par IA est demandée (case cochée ; jamais le texte du patron)',
+    en: 'an AI tidy-up is requested (box ticked; never the pattern text)',
+  },
+  ai_format_succeeded: {
+    fr: 'une mise en forme par IA aboutit',
+    en: 'an AI tidy-up succeeds',
+  },
+  ai_format_refused: {
+    fr: 'une mise en forme par IA n’a pas lieu (la raison : limite du jour, budget du mois, échec)',
+    en: 'an AI tidy-up does not happen (the reason: daily limit, monthly budget, failure)',
+  },
   view_changed: {
     fr: 'l’affichage du lecteur change (texte ou diagramme)',
     en: 'the reader view changes (text or chart)',

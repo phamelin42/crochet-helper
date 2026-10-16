@@ -1,5 +1,5 @@
 import { encodeGrid, validGrid } from './color-grid';
-import { MAX_CHARTS, Project, ProjectImage, chartId, imageId } from './project.model';
+import { MAX_CHARTS, MAX_SOURCE_LENGTH, Project, ProjectImage, chartId, imageId } from './project.model';
 
 /**
  * Format du fichier de sauvegarde (écran « Mes projets »). Chargé par
@@ -117,6 +117,9 @@ function isProject(value: unknown): value is Project {
     typeof p['expandAbbreviations'] === 'boolean' &&
     typeof p['createdAt'] === 'number' &&
     typeof p['lastOpenedAt'] === 'number' &&
+    (p['sourceBeforeAi'] === undefined ||
+      (typeof p['sourceBeforeAi'] === 'string' &&
+        p['sourceBeforeAi'].length <= MAX_SOURCE_LENGTH)) &&
     (p['grid'] === undefined || validGrid(p['grid']) !== null) &&
     (p['imageCount'] === undefined ||
       (Number.isInteger(p['imageCount']) && (p['imageCount'] as number) >= 0)) &&

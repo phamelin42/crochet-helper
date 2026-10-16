@@ -27,6 +27,8 @@ interface PrivacyCopy {
   readonly bodyLinks: string;
   readonly h2Waitlist: string;
   readonly bodyWaitlist: string;
+  readonly h2Ai: string;
+  readonly bodyAi: string;
   readonly h2Delete: string;
   readonly bodyDelete: string;
   readonly h2Contact: string;
@@ -58,6 +60,8 @@ const COPY: Record<Locale, PrivacyCopy> = {
     bodyLinks: `Quand vous copiez le lien d’un patron ou d’un projet, le patron est contenu dans le lien lui-même, après le signe #. Cette partie d’une adresse n’est jamais transmise au serveur qui héberge le site${NBSP}: le lien ne passe par aucun serveur de ${SITE_NAME}.`,
     h2Waitlist: 'La liste d’attente',
     bodyWaitlist: `Si vous suivez le lien « En savoir plus » de la liste d’attente, vous arrivez sur un formulaire hébergé par Tally. Si vous y laissez votre adresse électronique, elle va chez Tally et sert uniquement à vous prévenir quand une version synchronisée entre appareils existera. Ne rien remplir, c’est ne rien envoyer.`,
+    h2Ai: 'La mise en forme par IA',
+    bodyAi: `Uniquement si vous cochez «${NBSP}Remettre en forme avec une IA${NBSP}», le texte du patron est envoyé à un petit service de ${SITE_NAME}, puis à Anthropic (Claude), qui le remet en forme avant qu’il soit découpé ici. Anthropic ne s’en sert pas pour entraîner ses modèles. Notre service ne garde aucun texte${NBSP}: seulement des compteurs, rattachés à une empreinte de votre adresse réseau qui change chaque jour. Case décochée, rien n’est envoyé.`,
     h2Delete: 'Effacer vos données',
     bodyDelete: `Dans «${NBSP}Mes projets${NBSP}», supprimez un projet pour l’effacer de l’appareil. Pour tout effacer d’un coup, supprimez les données du site dans les réglages de votre navigateur. Comme rien n’est gardé ailleurs, il n’y a rien d’autre à demander.`,
     h2Contact: 'Nous écrire',
@@ -91,6 +95,8 @@ const COPY: Record<Locale, PrivacyCopy> = {
     h2Waitlist: 'The waiting list',
     bodyWaitlist:
       'If you follow the “Tell me more” link of the waiting list, you land on a form hosted by Tally. If you leave your email address there, it goes to Tally and is only used to tell you when a version that syncs between devices exists. Filling in nothing sends nothing.',
+    h2Ai: 'AI tidy-up',
+    bodyAi: `Only if you tick “Tidy up with AI”, the pattern text is sent to a small ${SITE_NAME} service, then to Anthropic (Claude), which tidies it up before it is split into steps here. Anthropic does not train its models on it. Our service keeps no text: only counters, tied to a fingerprint of your network address that changes every day. With the box unticked, nothing is sent.`,
     h2Delete: 'Erasing your data',
     bodyDelete:
       'In “My projects”, delete a project to remove it from the device. To erase everything at once, clear the site’s data in your browser settings. Since nothing is kept anywhere else, there is nothing else to ask for.',
@@ -139,6 +145,9 @@ const COPY: Record<Locale, PrivacyCopy> = {
 
       <h2>{{ c.h2Waitlist }}</h2>
       <p>{{ c.bodyWaitlist }}</p>
+
+      <h2>{{ c.h2Ai }}</h2>
+      <p>{{ c.bodyAi }}</p>
 
       <h2>{{ c.h2Delete }}</h2>
       <p>

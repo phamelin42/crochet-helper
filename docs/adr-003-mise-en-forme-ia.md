@@ -42,7 +42,7 @@ navigateur ── POST texte ──▶ Worker Cloudflare (fil-ia) ──▶ API 
 ```
 
 - Le **Worker** (`worker/`, fiche 52) garde la clé, applique le quota et le
-  budget, appelle `claude-haiku-5-5` et vérifie la fidélité de la réponse.
+  budget, appelle `claude-sonnet-5-5` et vérifie la fidélité de la réponse.
 - L'**app** (fiche 53) envoie le texte seulement si la case est cochée, puis
   passe la réponse au parseur habituel : `parsePattern` reste l'unique
   découpeur, le format des projets ne change pas.
@@ -51,11 +51,14 @@ navigateur ── POST texte ──▶ Worker Cloudflare (fil-ia) ──▶ API 
 
 ## Modèle et coût
 
-`claude-haiku-5-5`, effort `low`, à 0,10 $ en entrée et 0,50 $ en sortie par
-million de tokens (grille du 6 octobre 2026). Un patron de 5 000 tokens remis
-en forme coûte environ 0,4 centime : 8 $ paient environ 2 000 mises en forme.
-Le modèle et ses prix sont des variables du Worker : en changer ne demande
-aucun code. Sonnet 5.5 (2 $ / 10 $) ne se justifie que si la mesure le montre.
+`claude-sonnet-5-5`, effort `low`, à 2 $ en entrée et 10 $ en sortie par
+million de tokens. Choix du 16 octobre 2026, après `worker/eval/evaluer.mjs` :
+Haiku 5.5 n'était pas fidèle sur 1 patron sur 5 (celui que l'outil habituel ne
+découpe pas), Sonnet l'était sur les 5. Une mise en forme coûte environ 1
+centime (0,5 à 2 centimes mesurés) : 7 $ paient environ 600 mises en forme par
+mois, et le plafond du jour (0,70 $) environ 60. Le modèle et ses prix sont des
+variables du Worker (`wrangler.toml`) : en changer ne demande aucun code, mais
+les prix doivent suivre le modèle, car ils servent au calcul de la dépense.
 
 ## Trois verrous de dépense
 

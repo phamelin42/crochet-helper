@@ -89,8 +89,17 @@ des données » du Play Store et la CSP (`connect-src`) le disent.
 ## Ce qui reste à faire hors du code
 
 Comptes, crédits, Worker, formulaire Tally : Phil, avec le prompt de
-navigateur donné le 16 octobre 2026. Les fiches 52 et 53 restent bloquées
-jusqu'à ce qu'il fournisse l'identifiant KV et l'URL du formulaire.
+navigateur donné le 16 octobre 2026.
+
+- **Fait le 16 octobre** (partie A) : espace « fil-ia » dans la console
+  Anthropic, limite de dépense mensuelle de 8 $ sur cet espace (remise à zéro
+  le 1er du mois), rechargement automatique coupé, clé « fil-ia-worker »
+  limitée à cet espace ; namespace KV `fil-ia-quotas` ; formulaire Tally
+  `https://tally.so/r/jeDWZ4`.
+- **Après la fiche 52** (partie B) : brancher le dépôt au Worker, poser les
+  secrets `ANTHROPIC_API_KEY` et `SEL_QUOTA`, relever l'URL du Worker.
+- **Après la fiche 53** (partie C) : déclaration « Sécurité des données » du
+  Play Store.
 
 ## Ce qui n'est pas décidé
 

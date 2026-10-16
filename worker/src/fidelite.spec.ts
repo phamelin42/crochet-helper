@@ -44,7 +44,8 @@ describe('controler : pourquoi une réponse est refusée', () => {
   });
 
   it('donne le pourcentage conservé quand la sortie est trop courte', () => {
-    expect(controler('a'.repeat(100), 'a'.repeat(30))).toBe('trop-court:30%');
+    expect(controler('a'.repeat(100), 'a'.repeat(30))).toBe('trop-court:30%,nombres-gardes:0%');
+    expect(controler('a'.repeat(100), 'a'.repeat(5))).toBe('trop-court:5%');
   });
 
   it('liste les nombres inventés, une fois chacun, cinq au plus', () => {
@@ -57,5 +58,52 @@ describe('controler : pourquoi une réponse est refusée', () => {
     const detail = controler('Rang 1 : 6 ms (6)', 'Rang 1 : sept mailles secrètes (7)') ?? '';
     expect(detail).toBe('nombres:7');
     expect(detail).not.toContain('secrètes');
+  });
+});
+
+/** Une notice qui répète le même patron en quatre langues : mêmes nombres, mots différents. */
+const LANGUES = [
+  'Taille : 33 x 43 cm. Matériel : 18 fleurs, 14 petites fleurs, crochet 3 mm, aiguille 2,5 mm, 136 mailles.',
+  'Size: 33 x 43 cm. Material: 18 flowers, 14 small flowers, hook 3 mm, needle 2.5 mm, 136 stitches.',
+  'Größe: 33 x 43 cm. Material: 18 Blüten, 14 kleine Blüten, Nadel 3 mm, Nadel 2,5 mm, 136 Maschen.',
+  'Maat: 33 x 43 cm. Materiaal: 18 bloemen, 14 kleine bloemen, haaknaald 3 mm, naald 2,5 mm, 136 steken.',
+];
+
+describe('controler : plusieurs langues, étapes numérotées', () => {
+  it('accepte une seule langue gardée sur quatre : réponse courte, tous les nombres présents', () => {
+    const notice = LANGUES.join('\n');
+    expect(LANGUES[0].length / notice.length).toBeLessThan(0.4);
+    for (const gardee of LANGUES) expect(controler(notice, gardee)).toBeNull();
+  });
+
+  it('refuse un résumé aussi court qui a perdu des nombres', () => {
+    const notice = LANGUES.join('\n');
+    expect(controler(notice, 'Taille : 33 x 43 cm. Matériel : 18 fleurs.')).toMatch(
+      /^trop-court:\d+%,nombres-gardes:\d+%$/,
+    );
+  });
+
+  it('refuse une réponse sous 10 % même si elle garde tous les nombres', () => {
+    const notice = `${LANGUES.join('\n')}\n${'x'.repeat(2000)}`;
+    expect(controler(notice, LANGUES[0])).toMatch(/^trop-court:\d+%$/);
+  });
+
+  it('ignore les numéros des libellés d’étape, en anglais et en français', () => {
+    const brut = 'Chain 30. Then work 5 rows of mesh.';
+    expect(controler(brut, 'Step 1: Chain 30.\nStep 2: Then work 5 rows of mesh.')).toBeNull();
+    expect(controler(brut, 'Étape 1 : Chain 30.\nÉtape 2 : Then work 5 rows of mesh.')).toBeNull();
+    expect(controler(brut, 'step 1) Chain 30.\nStep 2. Then work 5 rows of mesh.')).toBeNull();
+  });
+
+  it('refuse un nombre inventé même sous un libellé d’étape', () => {
+    expect(
+      controler('Chain 30. Then work 5 rows.', 'Step 1: Chain 31.\nStep 2: Then work 5 rows.'),
+    ).toBe('nombres:31');
+  });
+
+  it('un « Step 9 » au milieu d’une ligne n’est pas un libellé : son numéro est refusé', () => {
+    expect(controler('Chain 30. Then work 5 rows.', 'Chain 30. Go to Step 9: work 5 rows.')).toBe(
+      'nombres:9',
+    );
   });
 });

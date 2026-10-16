@@ -107,4 +107,31 @@ test.describe('Worker renseigné', () => {
     await page.getByRole('button', { name: 'Next' }).click();
     await expect(page.locator('html')).toHaveAttribute('data-focus', 'true');
   });
+
+  test('refus précis : « trop de texte supprimé », avec son code technique', async ({ page }) => {
+    await page.route(URL_WORKER!, (route) =>
+      route.fulfill({
+        status: 422,
+        contentType: 'application/json',
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ raison: 'echec', detail: 'trop-court:25%' }),
+      }),
+    );
+    await ouvrir(page);
+    await decouper(page, true);
+    await expect(page.locator('.step-body')).toContainText('6 ms');
+    await expect(page.getByText('The AI removed too much text')).toBeVisible();
+    await expect(page.getByText('Technical code: echec · trop-court:25%')).toBeVisible();
+    const rapport = await new AxeBuilder({ page }).include('.import-body').analyze();
+    expect(rapport.violations).toEqual([]);
+  });
+
+  test('Worker injoignable : le message le dit, code « reseau »', async ({ page }) => {
+    await page.route(URL_WORKER!, (route) => route.abort('failed'));
+    await ouvrir(page);
+    await decouper(page, true);
+    await expect(page.locator('.step-body')).toContainText('6 ms');
+    await expect(page.getByText('The AI service couldn’t be reached')).toBeVisible();
+    await expect(page.getByText('Technical code: reseau')).toBeVisible();
+  });
 });

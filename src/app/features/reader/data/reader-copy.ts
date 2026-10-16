@@ -55,6 +55,21 @@ const FR = {
     'Les mises en forme par IA de ce mois sont épuisées ; le patron est découpé par l’outil habituel.',
   'ui.aiFailed':
     'La mise en forme par IA n’a pas abouti ; le patron est découpé par l’outil habituel.',
+  'ui.aiTooLong':
+    'Ce patron est trop long pour la mise en forme par IA ; il est découpé par l’outil habituel.',
+  'ui.aiNetwork':
+    'Le service d’IA n’a pas pu être joint (connexion, bloqueur de publicités ou service arrêté) ; le patron est découpé par l’outil habituel.',
+  'ui.aiSlow':
+    'Le service d’IA a mis plus d’une minute à répondre ; le patron est découpé par l’outil habituel.',
+  'ui.aiShort':
+    'L’IA a supprimé trop de texte : sa version est écartée pour ne perdre aucun rang ; le patron est découpé par l’outil habituel.',
+  'ui.aiNumbers':
+    'L’IA a changé des nombres (mailles ou rangs) : sa version est écartée ; le patron est découpé par l’outil habituel.',
+  'ui.aiIncomplete':
+    'L’IA n’a pas rendu un texte complet ; le patron est découpé par l’outil habituel.',
+  'ui.aiDown':
+    'Le service d’IA est momentanément hors service ; le patron est découpé par l’outil habituel.',
+  'ui.aiCode': 'Code technique :',
   'ui.aiSorry':
     'Malheureusement, utiliser une IA n’est pas gratuit, et je ne souhaite pas dépenser plus de 10 € par mois pour ce site pour le moment. Désolé…',
   'ui.aiAsk':
@@ -183,6 +198,20 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.aiDay': 'You’ve used your 3 AI tidy-ups for today; the pattern is split by the usual tool.',
   'ui.aiMonth': 'This month’s AI tidy-ups are used up; the pattern is split by the usual tool.',
   'ui.aiFailed': 'The AI tidy-up didn’t work out; the pattern is split by the usual tool.',
+  'ui.aiTooLong': 'This pattern is too long for the AI tidy-up; it is split by the usual tool.',
+  'ui.aiNetwork':
+    'The AI service couldn’t be reached (connection, ad blocker or service down); the pattern is split by the usual tool.',
+  'ui.aiSlow':
+    'The AI service took more than a minute to answer; the pattern is split by the usual tool.',
+  'ui.aiShort':
+    'The AI removed too much text: its version is set aside so no row is lost; the pattern is split by the usual tool.',
+  'ui.aiNumbers':
+    'The AI changed some numbers (stitches or rows): its version is set aside; the pattern is split by the usual tool.',
+  'ui.aiIncomplete':
+    'The AI didn’t return a complete text; the pattern is split by the usual tool.',
+  'ui.aiDown':
+    'The AI service is temporarily out of order; the pattern is split by the usual tool.',
+  'ui.aiCode': 'Technical code:',
   'ui.aiSorry':
     'Unfortunately, using AI isn’t free, and for now I don’t want to spend more than €10 a month on this site. Sorry…',
   'ui.aiAsk': 'If you’d like more uses in the future and would be willing to pay part of it,',

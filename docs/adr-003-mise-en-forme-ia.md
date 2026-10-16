@@ -100,6 +100,22 @@ texte : `arret:<stop_reason>`, `vide`, `trop-court:<pourcentage conservé>` ou
 sans lui, deux PDF refusés se ressemblaient et rien ne disait lequel des trois
 contrôles avait joué.
 
+## Des messages qui disent la vraie cause
+
+Constaté le 16 octobre : trois causes très différentes (réponse refusée, service
+en panne, patron trop long) montraient la même phrase, et rien ne permettait à
+Phil de savoir pourquoi un PDF avait échoué. Chaque refus dit désormais sa cause
+en clair, et affiche un **code technique** (« échec · trop-court:25% ») que la
+lectrice peut recopier. Le Worker donne la raison et un détail court (`credits`,
+`cle`, `limite`, `surcharge`, `claude-<statut>`, `worker`, ou ceux de la garde de
+fidélité) ; le client ajoute `reseau` (le Worker n'a pas été joint : connexion,
+bloqueur de publicités, service arrêté), `delai` (plus d'une minute) et
+`http-<statut>` (réponse que le Worker n'a pas écrite, par exemple une page
+d'erreur de Cloudflare). Un détail n'est relayé que s'il a la forme d'un code
+(80 caractères, lettres, chiffres et `: , % . -`), jamais une phrase. Les limites
+d'usage gardent leur message, sans code. Une erreur imprévue du Worker porte les
+en-têtes CORS : sans eux, le navigateur la montrait comme une panne de réseau.
+
 ## Confidentialité
 
 C'est la première fois que le texte d'un patron quitte l'appareil : seulement

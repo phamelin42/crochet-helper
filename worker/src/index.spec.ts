@@ -75,6 +75,8 @@ describe('POST /mise-en-forme : chaque statut du contrat', () => {
     nom: string;
     statut: number;
     raison?: string;
+    /** Diagnostic d'un refus 422 : la nature du défaut, jamais le texte. */
+    detail?: string;
     preparer?: (m: ReturnType<typeof monter>) => void;
     reponse?: ReponseClaude | Error;
     corps: unknown;
@@ -110,6 +112,7 @@ describe('POST /mise-en-forme : chaque statut du contrat', () => {
       nom: 'fidélité : nombre inventé',
       statut: 422,
       raison: 'echec',
+      detail: 'nombres:13',
       corps: valide,
       reponse: { ...BONNE, texte: TEXTE.replace('(12)', '(13)') },
     },
@@ -117,6 +120,7 @@ describe('POST /mise-en-forme : chaque statut du contrat', () => {
       nom: 'génération tronquée (max_tokens)',
       statut: 422,
       raison: 'echec',
+      detail: 'arret:max_tokens',
       corps: valide,
       reponse: { ...BONNE, stopReason: 'max_tokens' },
     },
@@ -124,6 +128,7 @@ describe('POST /mise-en-forme : chaque statut du contrat', () => {
       nom: 'refus du modèle',
       statut: 422,
       raison: 'echec',
+      detail: 'arret:refusal',
       corps: valide,
       reponse: { ...BONNE, stopReason: 'refusal', texte: '' },
     },
@@ -143,8 +148,10 @@ describe('POST /mise-en-forme : chaque statut du contrat', () => {
       const reponse = await traiter(requete(c.corps), ENV, m.deps);
       expect(reponse.status).toBe(c.statut);
       const corps = (await reponse.json()) as Record<string, unknown>;
-      if (c.raison) expect(corps['raison']).toBe(c.raison);
-      else {
+      if (c.raison) {
+        expect(corps['raison']).toBe(c.raison);
+        if (c.detail) expect(corps['detail']).toBe(c.detail);
+      } else {
         expect(corps['texte']).toBe(TEXTE);
         expect(corps['restant']).toBe(2);
       }

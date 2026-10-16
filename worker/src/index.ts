@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { consigne, Langue } from './consigne';
-import { fidele } from './fidelite';
+import { controler } from './fidelite';
 import {
   budgetAtteint,
   cleDepense,
@@ -66,8 +66,8 @@ function json(corps: unknown, statut: number, entetes: Record<string, string>): 
   return Response.json(corps, { status: statut, headers: entetes });
 }
 
-function refus(raison: Raison, entetes: Record<string, string>): Response {
-  return json({ raison }, STATUT[raison], entetes);
+function refus(raison: Raison, entetes: Record<string, string>, detail?: string): Response {
+  return json(detail ? { raison, detail } : { raison }, STATUT[raison], entetes);
 }
 
 async function entier(kv: Kv, cle: string): Promise<number> {
@@ -158,7 +158,10 @@ export async function traiter(requete: Request, env: Env, deps: Deps): Promise<R
   await ajouter(deps.kv, cleMois(date), cout, TTL_MOIS);
   await ajouter(deps.kv, cleDepense(date), cout, TTL_JOUR);
 
-  if (!termine(reponse) || !fidele(texte, reponse.texte)) return refus('echec', entetes);
+  // `detail` dit pourquoi (arrêt anormal, longueur, nombres) sans jamais citer le texte.
+  if (!termine(reponse)) return refus('echec', entetes, `arret:${reponse.stopReason}`);
+  const defaut = controler(texte, reponse.texte);
+  if (defaut) return refus('echec', entetes, defaut);
 
   await deps.kv.put(cleP, String(faites + 1), { expirationTtl: TTL_JOUR });
   return json({ texte: reponse.texte, restant: Math.max(0, quotaJour - faites - 1) }, 200, entetes);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fidele } from './fidelite';
+import { controler, fidele } from './fidelite';
 
 const ENTREE = 'Rang 1 : 6 ms dans un cercle magique (6)\nRang 2 : 2 ms dans chaque maille (12)';
 
@@ -31,5 +31,31 @@ describe('fidele', () => {
   it('refuse une sortie vide', () => {
     expect(fidele(ENTREE, '')).toBe(false);
     expect(fidele(ENTREE, '   \n')).toBe(false);
+  });
+});
+
+describe('controler : pourquoi une réponse est refusée', () => {
+  it('rend null pour une réponse fidèle', () => {
+    expect(controler(ENTREE, ENTREE)).toBeNull();
+  });
+
+  it('dit « vide » pour une sortie vide', () => {
+    expect(controler(ENTREE, '  ')).toBe('vide');
+  });
+
+  it('donne le pourcentage conservé quand la sortie est trop courte', () => {
+    expect(controler('a'.repeat(100), 'a'.repeat(30))).toBe('trop-court:30%');
+  });
+
+  it('liste les nombres inventés, une fois chacun, cinq au plus', () => {
+    const entree = 'Rang 1 : 6 ms (6)'.padEnd(200, ' ');
+    const sortie = `${entree} 21 21 22 23 24 25 26 27`;
+    expect(controler(entree, sortie)).toBe('nombres:21,22,23,24,25');
+  });
+
+  it('ne cite jamais le texte de la réponse', () => {
+    const detail = controler('Rang 1 : 6 ms (6)', 'Rang 1 : sept mailles secrètes (7)') ?? '';
+    expect(detail).toBe('nombres:7');
+    expect(detail).not.toContain('secrètes');
   });
 });

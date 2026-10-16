@@ -82,6 +82,12 @@ la génération ne s'est pas terminée normalement (`stop_reason` autre que
 ou rang inventé) ; elle fait moins de 40 % de la longueur d'origine (résumé ou
 coupure). L'app garde le texte d'origine avec le projet et permet d'y revenir.
 
+Un refus 422 porte un champ `detail` qui dit pourquoi, sans jamais citer le
+texte : `arret:<stop_reason>`, `vide`, `trop-court:<pourcentage conservé>` ou
+`nombres:<jusqu'à cinq nombres absents de l'original>`. Constaté le 16 octobre :
+sans lui, deux PDF refusés se ressemblaient et rien ne disait lequel des trois
+contrôles avait joué.
+
 ## Confidentialité
 
 C'est la première fois que le texte d'un patron quitte l'appareil : seulement

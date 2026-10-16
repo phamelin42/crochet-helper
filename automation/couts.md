@@ -131,3 +131,4 @@
 | 2026-10-15 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
 | 2026-10-15 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
 | 2026-10-16 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
+| 2026-10-16 | rapport | agent sauté | — | 36 visites sur 8 jours |

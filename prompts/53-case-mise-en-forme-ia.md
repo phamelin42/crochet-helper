@@ -9,14 +9,13 @@ La fiche 52 a livré le Worker `fil-ia` (`docs/adr-003-mise-en-forme-ia.md`).
 Il reste à le proposer à la lectrice : **en option**, décochée par défaut,
 sans jamais perdre son patron, et en disant franchement pourquoi c'est limité.
 
-## Décisions manquantes
+## Décisions déjà prises
 
-Deux constantes, fournies par Phil. Si l'une dit encore `A_RENSEIGNER`,
-**s'arrêter et la demander**.
-
-- URL du Worker : `A_RENSEIGNER` (vide tant qu'il n'est pas déployé : la case
-  n'apparaît pas, tout le reste est livré et testé)
-- URL du formulaire « plus d'utilisations » (Tally) : `A_RENSEIGNER`
+- URL du formulaire « plus d'utilisations » (Tally, « Plus de mises en forme
+  par IA ? », publié par Phil le 16 octobre 2026) : `https://tally.so/r/jeDWZ4`.
+- URL du Worker : **vide** (`''`) tant que Phil ne l'a pas donnée après le
+  déploiement de la fiche 52. C'est un état prévu, pas un manque : la case
+  n'apparaît pas, tout le reste est livré et testé. Ne pas inventer d'URL.
 
 ## Fichiers à lire
 

@@ -110,8 +110,8 @@ supposent cette branche fusionnée.
 
 Les fiches 52 et 53 répondent à la demande de Phil du 16 octobre : une IA en
 option (case décochée), 3 fois par jour, jamais plus de 10 € par mois
-(`docs/adr-003-mise-en-forme-ia.md`). Elles s'enchaînent, et restent bloquées
-tant que Phil n'a pas fourni l'identifiant KV et l'URL du formulaire.
+(`docs/adr-003-mise-en-forme-ia.md`). Elles s'enchaînent : la 53 lit le code
+du Worker livré par la 52, et reste bloquée tant que la 52 n'est pas fusionnée.
 
 La fiche `01` est absorbée par la `16` : ne pas l'exécuter séparément.
 

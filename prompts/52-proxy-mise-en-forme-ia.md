@@ -11,12 +11,12 @@ leur PDF et que la transformation se fasse mieux », en option, 3 fois par jour,
 que hors du navigateur : c'est le seul serveur du projet, borné par
 `docs/adr-003-mise-en-forme-ia.md`. Lis l'ADR en entier avant de commencer.
 
-## Décision manquante
+## Décision déjà prise
 
-`wrangler.toml` a besoin de l'identifiant du namespace KV créé par Phil. Si la
-ligne ci-dessous dit encore `A_RENSEIGNER`, **s'arrêter et le demander**.
-
-- Identifiant KV `fil-ia-quotas` : `A_RENSEIGNER`
+Namespace KV `fil-ia-quotas`, créé par Phil le 16 octobre 2026 (vide) :
+`6a3e304c983a484a80054240e83f92d2`. C'est l'`id` du binding `QUOTAS` dans
+`wrangler.toml` ; ce n'est pas un secret. Aucun identifiant de compte
+Cloudflare dans le dépôt : le déploiement depuis `main` le connaît.
 
 ## Objectif
 

@@ -65,7 +65,7 @@ branche.
 | 50 — Tailles d'aiguilles à tricoter     | Terminée                          | —   | 2026-10-08 |
 | 51 — Poids de fil                       | Terminée                          | —   | 2026-10-08 |
 | 52 — Proxy de mise en forme par IA      | Terminée                          | —   | 2026-10-16 |
-| 53 — Case « remettre en forme par IA »  | Bloquée : suppose la 52 fusionnée | —   | —          |
+| 53 — Case « remettre en forme par IA »  | À faire                           | —   | —          |
 
 ## États possibles
 

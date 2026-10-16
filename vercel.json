@@ -18,7 +18,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' https://analytics.patternreader.com; font-src 'self'; connect-src 'self' https://analytics.patternreader.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' https://analytics.patternreader.com; font-src 'self'; connect-src 'self' https://analytics.patternreader.com https://fil-ia.hamelinphilippe1.workers.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
         }
       ]
     },

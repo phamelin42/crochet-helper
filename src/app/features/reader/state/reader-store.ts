@@ -974,6 +974,7 @@ export class ReaderStore {
     this.pieceIndex.set(pieceIndex);
     this.stepIndex.set(stepIndex);
     this.stitchIndex.set(0);
+    this.aiRefusal.set(null); // lu : la page pleine peut reprendre
     this.analytics.track('step_advanced');
     this.checkDepth();
     if (!this.running()) this.startTimer();
@@ -988,6 +989,7 @@ export class ReaderStore {
     if (!this.stepCount() || !Number.isFinite(oneBased)) return;
     this.stepIndex.set(Math.max(0, Math.min(this.stepCount() - 1, oneBased - 1)));
     this.stitchIndex.set(0);
+    this.aiRefusal.set(null); // lu : la page pleine peut reprendre
     this.analytics.track('step_jumped', { origin });
     this.checkDepth();
   }

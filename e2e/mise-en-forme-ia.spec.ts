@@ -22,8 +22,12 @@ async function ouvrir(page: Page): Promise<void> {
 }
 
 async function decouper(page: Page, cocher: boolean): Promise<void> {
-  await page.locator('#pattern-source').fill(PATRON.join(' '));
-  if (cocher) await page.getByLabel(CASE).check();
+  await page.locator('#pattern-source').fill(PATRON.join('\n'));
+  if (cocher) {
+    // `Checkbox` masque l'<input> natif : comme la lectrice, on clique l'étiquette.
+    await page.locator('label.check', { hasText: CASE }).click();
+    await expect(page.getByLabel(CASE)).toBeChecked();
+  }
   await page.getByRole('button', { name: 'Split into steps', exact: true }).click();
 }
 
@@ -40,6 +44,9 @@ test.describe('Worker non renseigné', () => {
 
 test.describe('Worker renseigné', () => {
   test.skip(!URL_WORKER, 'AI_FORMAT_URL est vide : la case n’apparaît pas.');
+  // Le service worker de l'application capte les requêtes avant `page.route` :
+  // sans ce blocage, l'appel simulé partirait vraiment vers le Worker.
+  test.use({ serviceWorkers: 'block' });
 
   test('case décochée : aucune requête vers le Worker', async ({ page }) => {
     const requetes: string[] = [];
@@ -66,9 +73,14 @@ test.describe('Worker renseigné', () => {
     await ouvrir(page);
     await decouper(page, true);
     await expect(page.locator('.step-body')).toContainText('6 ms');
-    await expect(page.getByText('you have 2 left today')).toBeVisible();
+    // Page pleine : l'étape seule à l'écran, le panneau d'import est masqué.
+    await expect(page.locator('html')).toHaveAttribute('data-focus', 'true');
     const boite = await page.locator('.step-body').boundingBox();
     expect(boite!.y).toBeLessThan(450);
+    // Échap quitte la page pleine : la ligne et « revenir au texte d'origine » apparaissent.
+    await page.keyboard.press('Escape');
+    await expect(page.getByText('you have 2 left today')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Go back to the original text' })).toBeVisible();
   });
 
   test('limite du jour : patron chargé, message de Phil, aucune violation axe', async ({
@@ -87,7 +99,12 @@ test.describe('Worker renseigné', () => {
     await expect(page.locator('.step-body')).toContainText('6 ms');
     await expect(page.getByText('You’ve used your 3 AI tidy-ups for today')).toBeVisible();
     await expect(page.getByText('Unfortunately, using AI isn’t free')).toBeVisible();
+    // Le message est lisible : pas de page pleine tant qu'il n'a pas été lu.
+    await expect(page.locator('html')).not.toHaveAttribute('data-focus');
     const rapport = await new AxeBuilder({ page }).include('.import-body').analyze();
     expect(rapport.violations).toEqual([]);
+    // Elle passe à l'étape suivante : le message est lu, la page pleine reprend.
+    await page.getByRole('button', { name: 'Next' }).click();
+    await expect(page.locator('html')).toHaveAttribute('data-focus', 'true');
   });
 });

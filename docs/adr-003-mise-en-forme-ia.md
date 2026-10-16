@@ -99,8 +99,11 @@ navigateur donné le 16 octobre 2026.
   le 1er du mois), rechargement automatique coupé, clé « fil-ia-worker »
   limitée à cet espace ; namespace KV `fil-ia-quotas` ; formulaire Tally
   `https://tally.so/r/jeDWZ4`.
-- **Après la fiche 52** (partie B) : brancher le dépôt au Worker, poser les
-  secrets `ANTHROPIC_API_KEY` et `SEL_QUOTA`, relever l'URL du Worker.
+- **Fait le 16 octobre** (partie B) : Worker déployé, secrets posés. Son
+  adresse, `https://fil-ia.hamelinphilippe1.workers.dev/mise-en-forme`, est
+  `AI_FORMAT_URL` ; son origine est dans `connect-src` (`vercel.json` et
+  `netlify.toml`). Le Worker n'accepte que `https://patternreader.com` : la
+  case ne marche ni en local ni sur une prévisualisation.
 - **Après la fiche 53** (partie C) : déclaration « Sécurité des données » du
   Play Store.
 

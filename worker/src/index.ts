@@ -78,6 +78,30 @@ async function ajouter(kv: Kv, cle: string, quantite: number, ttl: number): Prom
   await kv.put(cle, String((await entier(kv, cle)) + quantite), { expirationTtl: ttl });
 }
 
+/**
+ * Pourquoi l'API Claude n'a pas répondu, en un code court : jamais le message
+ * de l'erreur, qui pourrait citer autre chose que la cause. Un crédit épuisé et
+ * une clé refusée sont ce que Phil doit pouvoir lire sans ouvrir les journaux.
+ */
+function diagnostic(erreur: unknown): string {
+  const statut = Number((erreur as { status?: unknown } | null)?.status);
+  const message = erreur instanceof Error ? erreur.message : '';
+  if (statut === 401 || statut === 403) return 'cle';
+  if (/credit balance/i.test(message)) return 'credits';
+  if (statut === 429) return 'limite';
+  if (statut === 503 || statut === 529) return 'surcharge';
+  return Number.isFinite(statut) ? `claude-${statut}` : 'claude-inconnu';
+}
+
+/** En-têtes CORS d'une origine autorisée, vides sinon. */
+function cors(requete: Request, env: Env): Record<string, string> {
+  const origine = requete.headers.get('Origin');
+  const autorisees = env.ORIGINES.split(',').map((o) => o.trim());
+  return origine !== null && autorisees.includes(origine)
+    ? { 'Access-Control-Allow-Origin': origine, Vary: 'Origin' }
+    : {};
+}
+
 /** Un `max_tokens` ou un refus ne donnent pas un patron complet. */
 function termine(reponse: ReponseClaude): boolean {
   return reponse.stopReason === 'end_turn';
@@ -146,8 +170,8 @@ export async function traiter(requete: Request, env: Env, deps: Deps): Promise<R
       consigne: consigne(langue as Langue),
       texte,
     });
-  } catch {
-    return refus('indisponible', entetes);
+  } catch (erreur) {
+    return refus('indisponible', entetes, diagnostic(erreur));
   }
 
   const cout = coutMicro(
@@ -194,7 +218,9 @@ export default {
         maintenant: () => new Date(),
       });
     } catch {
-      return Response.json({ raison: 'indisponible' }, { status: 503 });
+      // Avec les en-têtes CORS : sans eux, le navigateur ne lit pas la réponse et
+      // la montre comme une panne de réseau, alors que c'est le Worker qui a échoué.
+      return refus('indisponible', cors(requete, env), 'worker');
     }
   },
 };

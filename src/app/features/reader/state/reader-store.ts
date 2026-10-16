@@ -147,6 +147,12 @@ export class ReaderStore {
   readonly aiBusy = signal(false);
   /** Pourquoi la dernière mise en forme demandée n'a pas eu lieu ; `null` si elle a réussi ou n'a pas été demandée. */
   readonly aiRefusal = signal<AiRefusal | null>(null);
+  /**
+   * Code court qui précise `aiRefusal` (« trop-court:25% », « credits », « http-502 »).
+   * Posé avec la raison dans `askAi`, et lu seulement quand une raison existe : les
+   * autres effacements de la raison n'ont pas à le toucher.
+   */
+  readonly aiDetail = signal<string | null>(null);
   /** Mises en forme qui restent aujourd'hui, d'après la dernière réponse du Worker. */
   readonly aiRemaining = signal<number | null>(null);
   /** Texte d'origine du projet actif quand il a été remis en forme par IA ; `null` sinon. */
@@ -829,6 +835,7 @@ export class ReaderStore {
    */
   private async askAi(text: string, origine: 'saisie' | 'pdf'): Promise<{ texte: string } | null> {
     this.aiRefusal.set(null);
+    this.aiDetail.set(null);
     if (!this.aiUrl) return null;
     this.analytics.track('ai_format_requested', { origine });
     this.aiBusy.set(true);
@@ -840,6 +847,7 @@ export class ReaderStore {
         return { texte: result.texte };
       }
       this.aiRefusal.set(result.raison);
+      this.aiDetail.set(result.detail ?? null);
       this.analytics.track('ai_format_refused', { raison: result.raison });
       return null;
     } finally {

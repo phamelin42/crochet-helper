@@ -12,7 +12,7 @@ import {
 } from '../../../core/storage/testing/fake-indexed-db';
 import { AI_FORMAT_URL_TOKEN, AI_INTEREST_URL_TOKEN } from '../data/ai-format';
 import type { ExtractedPdf } from '../data/pdf-extract';
-import { READER_COPY } from '../data/reader-copy';
+import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { Project } from '../data/project.model';
 import { PDF_EXTRACTOR, ReaderStore } from '../state/reader-store';
 import { PatternImport } from './pattern-import';
@@ -23,12 +23,60 @@ const PDF_LINES = ['Rang 1 : 6 ms dans un cercle magique (6)', 'Rang 2 : 1 aug d
 const WORKER = 'https://worker.test/mise-en-forme';
 const INTEREST = 'https://tally.so/r/test';
 
-const REFUSALS: readonly AiRefusal[] = [
-  'quota-jour',
-  'budget-mois',
-  'echec',
-  'indisponible',
-  'trop-long',
+/**
+ * Chaque cause de refus que la lectrice peut voir, avec la phrase attendue et le
+ * code technique affiché (aucun pour les limites d'usage, dont le message dit tout).
+ */
+const CAUSES: readonly {
+  raison: AiRefusal;
+  detail?: string;
+  message: ReaderTranslationKey;
+  code: string | null;
+}[] = [
+  { raison: 'quota-jour', message: 'ui.aiDay', code: null },
+  { raison: 'budget-mois', message: 'ui.aiMonth', code: null },
+  { raison: 'trop-long', message: 'ui.aiTooLong', code: 'trop-long' },
+  { raison: 'reseau', message: 'ui.aiNetwork', code: 'reseau' },
+  { raison: 'delai', message: 'ui.aiSlow', code: 'delai' },
+  {
+    raison: 'echec',
+    detail: 'trop-court:25%',
+    message: 'ui.aiShort',
+    code: 'echec · trop-court:25%',
+  },
+  {
+    raison: 'echec',
+    detail: 'nombres:21,22',
+    message: 'ui.aiNumbers',
+    code: 'echec · nombres:21,22',
+  },
+  {
+    raison: 'echec',
+    detail: 'arret:max_tokens',
+    message: 'ui.aiIncomplete',
+    code: 'echec · arret:max_tokens',
+  },
+  {
+    raison: 'echec',
+    detail: 'arret:refusal',
+    message: 'ui.aiIncomplete',
+    code: 'echec · arret:refusal',
+  },
+  { raison: 'echec', detail: 'vide', message: 'ui.aiIncomplete', code: 'echec · vide' },
+  { raison: 'echec', message: 'ui.aiFailed', code: 'echec' },
+  {
+    raison: 'indisponible',
+    detail: 'credits',
+    message: 'ui.aiDown',
+    code: 'indisponible · credits',
+  },
+  {
+    raison: 'indisponible',
+    detail: 'http-502',
+    message: 'ui.aiDown',
+    code: 'indisponible · http-502',
+  },
+  { raison: 'indisponible', message: 'ui.aiFailed', code: 'indisponible' },
 ];
 
 describe('PatternImport — mise en forme par IA', () => {
@@ -197,42 +245,52 @@ describe('PatternImport — mise en forme par IA', () => {
     });
   });
 
-  describe.each(REFUSALS)('refus « %s »', (raison) => {
-    const monetary = raison === 'quota-jour' || raison === 'budget-mois';
-    const first = {
-      'quota-jour': 'ui.aiDay',
-      'budget-mois': 'ui.aiMonth',
-      echec: 'ui.aiFailed',
-      indisponible: 'ui.aiFailed',
-      'trop-long': 'ui.aiFailed',
-    } as const;
+  describe.each(CAUSES)(
+    'refus « $raison » $detail',
+    ({ raison, detail, message: attendu, code }) => {
+      const monetary = raison === 'quota-jour' || raison === 'budget-mois';
 
-    beforeEach(() => {
-      client.mockResolvedValue({ ok: false, raison });
-    });
+      beforeEach(() => {
+        client.mockResolvedValue({ ok: false, raison, ...(detail ? { detail } : {}) });
+      });
 
-    it('charge quand même le patron par l’outil habituel, et le dit', async () => {
-      const { fixture, store } = setup(WORKER);
-      await run(fixture, true);
+      it('charge quand même le patron par l’outil habituel, et dit la vraie cause', async () => {
+        const { fixture, store } = setup(WORKER);
+        await run(fixture, true);
 
-      expect(store.source()).toBe(ORIGINAL);
-      expect(store.sourceBeforeAi()).toBeNull();
-      expect(store.total()).toBeGreaterThan(0);
-      expect(track).toHaveBeenCalledWith('ai_format_refused', { raison });
-      const message = text(fixture);
-      expect(message).toContain(t(first[raison]));
-      expect(message.includes(t('ui.aiSorry'))).toBe(monetary);
-      expect(message.includes(t('ui.aiAskLink'))).toBe(monetary);
-    });
+        expect(store.source()).toBe(ORIGINAL);
+        expect(store.sourceBeforeAi()).toBeNull();
+        expect(store.total()).toBeGreaterThan(0);
+        expect(track).toHaveBeenCalledWith('ai_format_refused', { raison });
+        const message = text(fixture);
+        expect(message).toContain(t(attendu));
+        expect(message.includes(t('ui.aiSorry'))).toBe(monetary);
+        expect(message.includes(t('ui.aiAskLink'))).toBe(monetary);
+      });
 
-    it('garde le message visible : le panneau reste ouvert', async () => {
-      const { fixture } = setup(WORKER);
-      await run(fixture, true);
-      expect(fixture.nativeElement.querySelector('[aria-live=polite]').textContent).toContain(
-        t(first[raison]),
-      );
-      expect(fixture.nativeElement.querySelector('textarea')).not.toBeNull();
-    });
+      it('donne le code technique, sauf pour les limites d’usage', async () => {
+        const { fixture } = setup(WORKER);
+        await run(fixture, true);
+        const message = text(fixture);
+        if (code === null) expect(message).not.toContain(t('ui.aiCode'));
+        else expect(message).toContain(`${t('ui.aiCode')} ${code}`);
+      });
+
+      it('garde le message visible : le panneau reste ouvert', async () => {
+        const { fixture } = setup(WORKER);
+        await run(fixture, true);
+        expect(fixture.nativeElement.querySelector('[aria-live=polite]').textContent).toContain(
+          t(attendu),
+        );
+        expect(fixture.nativeElement.querySelector('textarea')).not.toBeNull();
+      });
+    },
+  );
+
+  it('les phrases de refus se distinguent : aucune cause précise ne reprend le message général', () => {
+    const precises = CAUSES.filter((c) => c.message !== 'ui.aiFailed').map((c) => t(c.message));
+    expect(precises).not.toContain(t('ui.aiFailed'));
+    expect(new Set(CAUSES.map((c) => c.message)).size).toBeGreaterThanOrEqual(10);
   });
 
   it.each(['quota-jour', 'budget-mois'] as const)(

@@ -4,30 +4,50 @@ import type { AiFormatResult, AiRefusal } from './format-client.token';
 const TIMEOUT_MS = 90_000;
 /** Une réponse plus longue n'est pas un patron : on la refuse avant de la traiter. */
 const MAX_REPONSE = 200_000;
-const REFUS: readonly AiRefusal[] = ['quota-jour', 'budget-mois', 'echec', 'trop-long'];
+/** Les raisons que le Worker sait donner ; toute autre est une réponse inattendue. */
+const REFUS: readonly AiRefusal[] = [
+  'quota-jour',
+  'budget-mois',
+  'echec',
+  'trop-long',
+  'indisponible',
+];
+/** Un détail est un code court (« trop-court:25% »), jamais une phrase : on ne relaie que cela. */
+const DETAIL = /^[\w:,%.-]{1,80}$/;
 
-const INDISPONIBLE: AiFormatResult = { ok: false, raison: 'indisponible' };
+function indisponible(detail: string): AiFormatResult {
+  return { ok: false, raison: 'indisponible', detail };
+}
 
 /**
- * Envoie le texte au Worker. Toute anomalie — réseau, délai, JSON, forme
- * inattendue — devient `indisponible` : l'appelant charge alors le texte
- * d'origine, il n'a jamais d'exception à rattraper.
+ * Envoie le texte au Worker. Toute anomalie devient un refus dit, jamais une
+ * exception : `delai` (plus d'une minute), `reseau` (le Worker n'a pas été
+ * joint : connexion coupée, bloqueur, service arrêté), ou `indisponible` avec le
+ * statut HTTP ou le détail du Worker. L'appelant charge alors le texte d'origine.
  */
 export async function formatWithAi(
   url: string,
   texte: string,
   langue: 'fr' | 'en',
 ): Promise<AiFormatResult> {
+  let response: Response;
   try {
-    const response = await fetch(url, {
+    response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ texte, langue }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
+  } catch (error) {
+    const delai =
+      error instanceof DOMException && ['TimeoutError', 'AbortError'].includes(error.name);
+    return { ok: false, raison: delai ? 'delai' : 'reseau' };
+  }
+
+  try {
     const body: unknown = await response.json();
-    if (!body || typeof body !== 'object') return INDISPONIBLE;
-    const { texte: reponse, restant, raison } = body as Record<string, unknown>;
+    if (!body || typeof body !== 'object') return indisponible(`http-${response.status}`);
+    const { texte: reponse, restant, raison, detail } = body as Record<string, unknown>;
     if (response.ok) {
       const valide =
         typeof reponse === 'string' &&
@@ -35,11 +55,16 @@ export async function formatWithAi(
         reponse.length < MAX_REPONSE &&
         Number.isInteger(restant) &&
         (restant as number) >= 0;
-      return valide ? { ok: true, texte: reponse, restant: restant as number } : INDISPONIBLE;
+      return valide
+        ? { ok: true, texte: reponse, restant: restant as number }
+        : indisponible('reponse-invalide');
     }
     const connu = REFUS.find((r) => r === raison);
-    return connu ? { ok: false, raison: connu } : INDISPONIBLE;
+    if (!connu) return indisponible(`http-${response.status}`);
+    const code = typeof detail === 'string' && DETAIL.test(detail) ? detail : undefined;
+    return code ? { ok: false, raison: connu, detail: code } : { ok: false, raison: connu };
   } catch {
-    return INDISPONIBLE;
+    // Corps illisible : une page d'erreur de Cloudflare (Worker en panne) plutôt que du JSON.
+    return indisponible(`http-${response.status}`);
   }
 }

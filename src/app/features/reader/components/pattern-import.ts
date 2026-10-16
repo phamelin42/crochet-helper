@@ -125,7 +125,10 @@ import { ReaderStore } from '../state/reader-store';
               @if (store.aiBusy()) {
                 <p class="hint">{{ t('ui.aiBusy') }}</p>
               } @else if (store.aiRefusal(); as raison) {
-                <p class="hint">{{ refusalText(raison) }}</p>
+                <p class="hint">{{ refusalText(raison, store.aiDetail()) }}</p>
+                @if (refusalCode(raison, store.aiDetail()); as code) {
+                  <p class="hint">{{ t('ui.aiCode') }} {{ code }}</p>
+                }
                 @if (raison === 'quota-jour' || raison === 'budget-mois') {
                   <p class="hint">
                     {{ t('ui.aiSorry') }}
@@ -244,10 +247,32 @@ export class PatternImport {
     return null;
   }
 
-  protected refusalText(raison: AiRefusal): string {
+  /**
+   * Dit la vraie cause : le Worker et le client donnent une raison et, souvent, un
+   * détail (« trop-court:25% »). Un détail inconnu retombe sur le message général.
+   */
+  protected refusalText(raison: AiRefusal, detail: string | null): string {
     if (raison === 'quota-jour') return this.t('ui.aiDay');
     if (raison === 'budget-mois') return this.t('ui.aiMonth');
+    if (raison === 'trop-long') return this.t('ui.aiTooLong');
+    if (raison === 'reseau') return this.t('ui.aiNetwork');
+    if (raison === 'delai') return this.t('ui.aiSlow');
+    if (raison === 'echec') {
+      if (detail?.startsWith('trop-court')) return this.t('ui.aiShort');
+      if (detail?.startsWith('nombres:')) return this.t('ui.aiNumbers');
+      if (detail === 'vide' || detail?.startsWith('arret:')) return this.t('ui.aiIncomplete');
+    }
+    if (raison === 'indisponible' && detail !== null) return this.t('ui.aiDown');
     return this.t('ui.aiFailed');
+  }
+
+  /**
+   * Le code technique, pour s'en servir en cas de doute : la raison et son détail.
+   * Pas pour les limites d'usage, dont le message dit tout.
+   */
+  protected refusalCode(raison: AiRefusal, detail: string | null): string {
+    if (raison === 'quota-jour' || raison === 'budget-mois') return '';
+    return detail ? `${raison} · ${detail}` : raison;
   }
 
   protected doneText(): string {

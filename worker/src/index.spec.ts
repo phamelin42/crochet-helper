@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Deps, Env, Kv, ReponseClaude, traiter } from './index';
+import worker, { Deps, Env, Kv, ReponseClaude, traiter } from './index';
 import { budgetAtteint, cleDepense, cleJour, cleMois, dateUtc, empreinte } from './quota';
 
 const ORIGINE = 'https://patternreader.com';
@@ -133,12 +133,36 @@ describe('POST /mise-en-forme : chaque statut du contrat', () => {
       reponse: { ...BONNE, stopReason: 'refusal', texte: '' },
     },
     {
-      nom: 'erreur de l’API Claude',
+      nom: 'erreur de l’API Claude sans statut',
       statut: 503,
       raison: 'indisponible',
+      detail: 'claude-inconnu',
       corps: valide,
-      reponse: new Error('crédits épuisés'),
+      reponse: new Error('connexion coupée'),
     },
+    ...(
+      [
+        ['clé refusée (401)', 401, 'invalid x-api-key', 'cle'],
+        ['clé sans droit (403)', 403, 'forbidden', 'cle'],
+        [
+          'crédit épuisé (400)',
+          400,
+          '400 {"error":{"message":"Your credit balance is too low to access the Anthropic API."}}',
+          'credits',
+        ],
+        ['limite de débit (429)', 429, 'rate limited', 'limite'],
+        ['API surchargée (529)', 529, 'overloaded', 'surcharge'],
+        ['API indisponible (503)', 503, 'unavailable', 'surcharge'],
+        ['autre statut (500)', 500, 'boom', 'claude-500'],
+      ] as const
+    ).map(([nom, statut, message, detail]) => ({
+      nom: `erreur de l’API Claude : ${nom}`,
+      statut: 503,
+      raison: 'indisponible',
+      detail,
+      corps: valide,
+      reponse: Object.assign(new Error(message), { status: statut }),
+    })),
   ];
 
   for (const c of cas) {
@@ -255,5 +279,28 @@ describe('confidentialité', () => {
     for (const espion of espions) {
       expect(JSON.stringify(espion.mock.calls)).not.toContain('cercle magique');
     }
+  });
+});
+
+describe('Worker qui plante (entrée par défaut)', () => {
+  const kvQuiCasse = {
+    get: async () => {
+      throw new Error('KV indisponible');
+    },
+    put: async () => undefined,
+  } as unknown as KVNamespace;
+  const env = { ...ENV, QUOTAS: kvQuiCasse };
+
+  it('répond 503 « worker », avec les en-têtes CORS pour que le navigateur lise la réponse', async () => {
+    const reponse = await worker.fetch(requete(valide), env);
+    expect(reponse.status).toBe(503);
+    expect(reponse.headers.get('Access-Control-Allow-Origin')).toBe(ORIGINE);
+    expect(await reponse.json()).toEqual({ raison: 'indisponible', detail: 'worker' });
+  });
+
+  it('une origine non autorisée reste refusée (403), sans en-tête CORS', async () => {
+    const reponse = await worker.fetch(requete(valide, { origine: 'https://autre.example' }), env);
+    expect(reponse.status).toBe(403);
+    expect(reponse.headers.get('Access-Control-Allow-Origin')).toBeNull();
   });
 });

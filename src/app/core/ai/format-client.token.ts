@@ -1,11 +1,20 @@
 import { InjectionToken } from '@angular/core';
 
 /** Pourquoi une mise en forme n'a pas eu lieu — les raisons que le Worker sait donner. */
-export type AiRefusal = 'quota-jour' | 'budget-mois' | 'echec' | 'indisponible' | 'trop-long';
+export type AiRefusal =
+  | 'quota-jour'
+  | 'budget-mois'
+  | 'echec'
+  | 'indisponible'
+  | 'trop-long'
+  // Posées par le client, pas par le Worker : il n'a pas été joint, ou a trop tardé.
+  | 'reseau'
+  | 'delai';
 
 export type AiFormatResult =
   | { readonly ok: true; readonly texte: string; readonly restant: number }
-  | { readonly ok: false; readonly raison: AiRefusal };
+  /** `detail` : code court du Worker ou statut HTTP (« trop-court:25% », « credits », « http-502 »). */
+  | { readonly ok: false; readonly raison: AiRefusal; readonly detail?: string };
 
 export type AiFormatClient = (
   url: string,

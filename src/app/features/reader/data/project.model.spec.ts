@@ -119,6 +119,22 @@ describe('parseBackup', () => {
     });
   });
 
+  it('garde le texte d’origine d’un patron remis en forme par IA, et refuse un original démesuré', () => {
+    const avant = projectFixture({ sourceBeforeAi: 'Rang 1 : 6 ms' });
+    const sauvegarde = (projet: Project) => ({
+      version: BACKUP_SCHEMA_VERSION,
+      projects: [projet],
+      images: [],
+    });
+    expect(parseBackup(sauvegarde(avant))?.projects[0].sourceBeforeAi).toBe('Rang 1 : 6 ms');
+    expect(
+      parseBackup(sauvegarde(projectFixture({ sourceBeforeAi: 'a'.repeat(200_001) }))),
+    ).toBeNull();
+    expect(
+      parseBackup(sauvegarde({ ...avant, sourceBeforeAi: 12 } as unknown as Project)),
+    ).toBeNull();
+  });
+
   describe('photos (version 2)', () => {
     const photo = (overrides: Partial<BackupImage> = {}): BackupImage => ({
       id: 'p:1',

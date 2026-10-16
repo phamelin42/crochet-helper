@@ -76,6 +76,28 @@ if (analyticsOrigin) {
   }
 }
 
+/**
+ * La mise en forme par IA poste le texte du patron au Worker (ADR-003) :
+ * l'origine de `AI_FORMAT_URL`, quand elle est renseignée, doit figurer dans
+ * `connect-src`, sans quoi le navigateur bloque l'appel et chaque mise en forme
+ * échoue en « indisponible ». Vide : la case n'apparaît pas, rien à vérifier.
+ */
+const aiFormatUrl = readFileSync('src/app/features/reader/data/ai-format.ts', 'utf8').match(
+  /AI_FORMAT_URL\s*=\s*'([^']*)'/,
+)?.[1];
+
+if (aiFormatUrl) {
+  const aiOrigin = new URL(aiFormatUrl).origin;
+  const sources = vercelCsp.match(/connect-src([^;]*)/)?.[1] ?? '';
+  if (!sources.split(/\s+/).includes(aiOrigin)) {
+    console.error(
+      `\nL'origine du Worker de mise en forme ${aiOrigin} est absente de connect-src dans la CSP.\n` +
+        `Ajoute-la dans vercel.json ET netlify.toml, à l'identique.\n`,
+    );
+    process.exit(1);
+  }
+}
+
 /** `onload="…"`, `onclick="…"` : relèvent de `script-src`, pas de `style-src`. */
 const INLINE_HANDLER = /\son[a-z]+\s*=\s*["']/i;
 

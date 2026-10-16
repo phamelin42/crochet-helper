@@ -38,6 +38,29 @@ const FR = {
   'ui.noRows':
     'Aucun rang numéroté trouvé. Pattern Reader crée une étape par rang ou tour numéroté (« Rang 1 : », « Tour 2 : », « 1. »). Un patron rédigé en paragraphes ne peut pas encore être découpé ; un patron donné en diagramme s’ouvre avec « Ouvrir un diagramme ».',
   'ui.emptyText': 'Rien à découper pour le moment : collez d’abord le texte de votre patron.',
+  'ui.aiLabel': 'Remettre en forme avec une IA (Claude) — 3 fois par jour',
+  'ui.aiHelp':
+    'Le texte du patron est envoyé à Anthropic pour être remis en forme, puis découpé ici. Anthropic ne s’en sert pas pour entraîner ses modèles.',
+  'ui.aiPrivacy': 'Confidentialité',
+  'ui.aiBusy': 'Mise en forme en cours… (jusqu’à une minute)',
+  'ui.aiDone': 'Remis en forme par IA — il vous en reste {n} aujourd’hui.',
+  'ui.aiDoneShort': 'Remis en forme par IA.',
+  'ui.aiRevert': 'Revenir au texte d’origine',
+  'ui.aiRevertTitle': 'Revenir au texte d’origine ?',
+  'ui.aiRevertBody':
+    'Le patron reprend son texte d’origine, découpé par l’outil habituel. Votre progression repart de zéro.',
+  'ui.aiDay':
+    'Vous avez utilisé vos 3 mises en forme par IA d’aujourd’hui ; le patron est découpé par l’outil habituel.',
+  'ui.aiMonth':
+    'Les mises en forme par IA de ce mois sont épuisées ; le patron est découpé par l’outil habituel.',
+  'ui.aiFailed':
+    'La mise en forme par IA n’a pas abouti ; le patron est découpé par l’outil habituel.',
+  'ui.aiSorry':
+    'Malheureusement, utiliser une IA n’est pas gratuit, et je ne souhaite pas dépenser plus de 10 € par mois pour ce site pour le moment. Désolé…',
+  'ui.aiAsk':
+    'Si, à l’avenir, vous voulez plus d’utilisations et seriez prête à en payer une partie,',
+  'ui.aiAskLink': 'faites-le-moi savoir',
+  'ui.aiAskEnd': ' !',
   'ui.clearConfirmTitle': 'Effacer ce patron de l’écran ?',
   'ui.clearConfirmBody':
     'Le patron quitte l’écran. Il reste enregistré dans « Mes projets », où vous pourrez le reprendre.',
@@ -146,6 +169,25 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.noRows':
     'No numbered rows found. Pattern Reader makes one step per numbered row or round (“Row 1:”, “Rnd 2:”, “1.”). A pattern written as paragraphs can’t be split yet; a pattern given as a chart opens with “Open a chart”.',
   'ui.emptyText': 'Nothing to split yet: paste your pattern text first.',
+  'ui.aiLabel': 'Tidy up with AI (Claude) — 3 times a day',
+  'ui.aiHelp':
+    'The pattern text is sent to Anthropic to be tidied up, then split into steps here. Anthropic doesn’t train its models on it.',
+  'ui.aiPrivacy': 'Privacy',
+  'ui.aiBusy': 'Tidying up… (up to a minute)',
+  'ui.aiDone': 'Tidied up by AI — you have {n} left today.',
+  'ui.aiDoneShort': 'Tidied up by AI.',
+  'ui.aiRevert': 'Go back to the original text',
+  'ui.aiRevertTitle': 'Go back to the original text?',
+  'ui.aiRevertBody':
+    'The pattern goes back to its original text, split by the usual tool. Your progress starts over.',
+  'ui.aiDay': 'You’ve used your 3 AI tidy-ups for today; the pattern is split by the usual tool.',
+  'ui.aiMonth': 'This month’s AI tidy-ups are used up; the pattern is split by the usual tool.',
+  'ui.aiFailed': 'The AI tidy-up didn’t work out; the pattern is split by the usual tool.',
+  'ui.aiSorry':
+    'Unfortunately, using AI isn’t free, and for now I don’t want to spend more than €10 a month on this site. Sorry…',
+  'ui.aiAsk': 'If you’d like more uses in the future and would be willing to pay part of it,',
+  'ui.aiAskLink': 'let me know',
+  'ui.aiAskEnd': '!',
   'ui.clearConfirmTitle': 'Clear this pattern from the screen?',
   'ui.clearConfirmBody':
     'The pattern leaves the screen. It stays saved in “My projects”, where you can resume it.',

@@ -1,4 +1,4 @@
-# 52 — Page « combien de fil me faut-il ? » : métrage estimé d'un ouvrage
+# 54 — Page « combien de fil me faut-il ? » : métrage estimé d'un ouvrage
 
 **Étape d'entonnoir servie : acquisition (« how much yarn do I need »,
 « combien de pelotes pour un plaid » : la question qui suit « quel poids de

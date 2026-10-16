@@ -87,9 +87,9 @@ URL avant d'accumuler du référencement.
 | 49  | Page-outil image en grille         | acquisition : requête fréquente, outils concurrents payants    |
 | 50  | Tailles d'aiguilles à tricoter     | acquisition : la requête jumelle des crochets, sans page       |
 | 51  | Poids de fil                       | acquisition : « worsted ou aran », le doute avant d'acheter    |
-| 52  | Métrage de fil                     | acquisition : « combien de pelotes ? », la question d'achat    |
 | 52  | Proxy de mise en forme par IA      | activation : un PDF mal extrait devient suivable (ADR-003)     |
 | 53  | Case « remettre en forme par IA »  | activation : l'option, sa limite dite franchement, sans perte  |
+| 54  | Métrage de fil                     | acquisition : « combien de pelotes ? », la question d'achat    |
 
 Les fiches 38 à 41 répondent à la demande de Phil du 30 septembre (mode page
 pleine comme l'application Filo, hors ligne mis en avant, Play Store ; pas

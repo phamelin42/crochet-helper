@@ -116,6 +116,17 @@ d'erreur de Cloudflare). Un détail n'est relayé que s'il a la forme d'un code
 d'usage gardent leur message, sans code. Une erreur imprévue du Worker porte les
 en-têtes CORS : sans eux, le navigateur la montrait comme une panne de réseau.
 
+**Le faux 504.** Le service worker de l'application (`ngsw`) répond « 504 Gateway
+Timeout » à la place du navigateur quand une requête échoue : réseau coupé,
+bloqueur, ou origine refusée par CORS. La lectrice lisait « service d'IA hors
+service, http-504 » alors que le Worker n'avait rien reçu, et le test e2e, qui
+bloquait le service worker, ne pouvait pas le voir. Le Worker ne répond jamais
+504 : l'appel contourne désormais le service worker (`?ngsw-bypass=true`) et un
+504 de ce genre est reconnu comme `reseau`. Le Worker n'accepte que
+`https://patternreader.com` : un site ouvert depuis une autre adresse (aperçu
+Vercel, ancien domaine) échoue de la même façon, d'où le code
+`reseau · origine:<adresse du site>`, qui dit depuis où la page a été ouverte.
+
 ## Confidentialité
 
 C'est la première fois que le texte d'un patron quitte l'appareil : seulement

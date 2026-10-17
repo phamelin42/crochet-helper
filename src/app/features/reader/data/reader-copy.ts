@@ -58,7 +58,7 @@ const FR = {
   'ui.aiTooLong':
     'Ce patron est trop long pour la mise en forme par IA ; il est découpé par l’outil habituel.',
   'ui.aiNetwork':
-    'Le service d’IA n’a pas pu être joint (connexion, bloqueur de publicités ou service arrêté) ; le patron est découpé par l’outil habituel.',
+    'Le service d’IA n’a pas pu être joint (connexion, bloqueur de publicités, site ouvert depuis une autre adresse que patternreader.com, ou service arrêté) ; le patron est découpé par l’outil habituel.',
   'ui.aiSlow':
     'Le service d’IA a mis plus d’une minute à répondre ; le patron est découpé par l’outil habituel.',
   'ui.aiShort':
@@ -200,7 +200,7 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.aiFailed': 'The AI tidy-up didn’t work out; the pattern is split by the usual tool.',
   'ui.aiTooLong': 'This pattern is too long for the AI tidy-up; it is split by the usual tool.',
   'ui.aiNetwork':
-    'The AI service couldn’t be reached (connection, ad blocker or service down); the pattern is split by the usual tool.',
+    'The AI service couldn’t be reached (connection, ad blocker, site opened from an address other than patternreader.com, or service down); the pattern is split by the usual tool.',
   'ui.aiSlow':
     'The AI service took more than a minute to answer; the pattern is split by the usual tool.',
   'ui.aiShort':

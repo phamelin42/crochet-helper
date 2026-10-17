@@ -20,6 +20,33 @@ function indisponible(detail: string): AiFormatResult {
 }
 
 /**
+ * Le service worker de l'application répond « 504 Gateway Timeout » à la place du
+ * navigateur quand une requête échoue (réseau, bloqueur, origine refusée par CORS).
+ * Le Worker, lui, ne répond jamais 504 : c'est un échec de réseau déguisé.
+ */
+const ECHEC_DEGUISE = (response: Response) =>
+  response.status === 504 && response.statusText === 'Gateway Timeout';
+
+/**
+ * Adresse du site, pour le code technique : le Worker n'accepte qu'une origine, et
+ * un site ouvert depuis une autre (aperçu, ancienne adresse) échoue sans autre signe.
+ */
+function hoteDuSite(): string {
+  const hote = globalThis.location?.host ?? '';
+  return /^[\w.:-]{1,60}$/.test(hote) ? hote : 'inconnue';
+}
+
+/**
+ * `ngsw-bypass` : la requête ne passe pas par le service worker, qui masquerait la
+ * vraie erreur et n'a rien à mettre en cache ici.
+ */
+function sansServiceWorker(url: string): string {
+  const adresse = new URL(url);
+  adresse.searchParams.set('ngsw-bypass', 'true');
+  return adresse.toString();
+}
+
+/**
  * Envoie le texte au Worker. Toute anomalie devient un refus dit, jamais une
  * exception : `delai` (plus d'une minute), `reseau` (le Worker n'a pas été
  * joint : connexion coupée, bloqueur, service arrêté), ou `indisponible` avec le
@@ -32,7 +59,7 @@ export async function formatWithAi(
 ): Promise<AiFormatResult> {
   let response: Response;
   try {
-    response = await fetch(url, {
+    response = await fetch(sansServiceWorker(url), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ texte, langue }),
@@ -41,7 +68,9 @@ export async function formatWithAi(
   } catch (error) {
     const delai =
       error instanceof DOMException && ['TimeoutError', 'AbortError'].includes(error.name);
-    return { ok: false, raison: delai ? 'delai' : 'reseau' };
+    return delai
+      ? { ok: false, raison: 'delai' }
+      : { ok: false, raison: 'reseau', detail: `origine:${hoteDuSite()}` };
   }
 
   try {
@@ -64,6 +93,9 @@ export async function formatWithAi(
     const code = typeof detail === 'string' && DETAIL.test(detail) ? detail : undefined;
     return code ? { ok: false, raison: connu, detail: code } : { ok: false, raison: connu };
   } catch {
+    if (ECHEC_DEGUISE(response)) {
+      return { ok: false, raison: 'reseau', detail: `origine:${hoteDuSite()}` };
+    }
     // Corps illisible : une page d'erreur de Cloudflare (Worker en panne) plutôt que du JSON.
     return indisponible(`http-${response.status}`);
   }

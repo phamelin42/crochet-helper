@@ -127,6 +127,18 @@ bloquait le service worker, ne pouvait pas le voir. Le Worker ne répond jamais
 Vercel, ancien domaine) échoue de la même façon, d'où le code
 `reseau · origine:<adresse du site>`, qui dit depuis où la page a été ouverte.
 
+**L'ordre du texte, avant l'IA.** Constaté le 17 octobre sur un PDF à plusieurs
+sections : « First Sleeve » nommé « OVERVIEW », sa première ligne perdue, deux
+titres collés l'un à l'autre. Ce n'était pas l'IA : pdf.js rend le texte dans
+l'ordre où le fichier a été écrit, et ce PDF écrit certains titres après leur
+paragraphe. L'extraction (`pdf-reading-order.ts`) remet désormais au-dessus de
+lui un titre écrit après un texte plus haut dans la même colonne ; deux colonnes
+écrites l'une après l'autre ne sont pas mélangées, et une page déjà dans l'ordre
+ne change pas. La consigne du Worker demande en plus de garder chaque titre sur
+son contenu et de ne pas faire d'un titre courant (« Pattern Continued ») une
+section. Limite : un PDF dont les colonnes se chevauchent mal garde l'ordre du
+fichier.
+
 ## Confidentialité
 
 C'est la première fois que le texte d'un patron quitte l'appareil : seulement

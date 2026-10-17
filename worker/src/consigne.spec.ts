@@ -4,9 +4,24 @@ import { consigne, Langue } from './consigne';
 
 const LANGUES: readonly Langue[] = ['fr', 'en'];
 /** Ce que la consigne dit, par langue : la version gardée, le libellé d'étape, la mise en garde. */
-const ATTENDU: Record<Langue, { version: string; etape: string; interdit: string }> = {
-  fr: { version: 'version en français', etape: 'Étape N', interdit: 'Rangs 4-7' },
-  en: { version: 'English version', etape: 'Step N', interdit: 'Rows 4-7' },
+const ATTENDU: Record<
+  Langue,
+  { version: string; etape: string; interdit: string; titre: string; courant: string }
+> = {
+  fr: {
+    version: 'version en français',
+    etape: 'Étape N',
+    interdit: 'Rangs 4-7',
+    titre: "N'invente aucune section",
+    courant: 'Pattern Continued',
+  },
+  en: {
+    version: 'English version',
+    etape: 'Step N',
+    interdit: 'Rows 4-7',
+    titre: 'Invent no section',
+    courant: 'Pattern Continued',
+  },
 };
 
 describe('consigne du Worker', () => {
@@ -32,6 +47,11 @@ describe('consigne du Worker', () => {
 
       it('interdit d’ajouter un libellé de rang absent de l’original', () => {
         expect(texte).toContain(ATTENDU[langue].interdit);
+      });
+
+      it('garde les titres de section à leur place et ne fait pas d’un titre courant une section', () => {
+        expect(texte).toContain(ATTENDU[langue].titre);
+        expect(texte).toContain(ATTENDU[langue].courant);
       });
     });
   }

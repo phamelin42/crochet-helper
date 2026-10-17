@@ -4,6 +4,7 @@
  * pèse pas sur le bundle initial.
  */
 import type { PdfPageText } from './pdf-normalize';
+import { readingOrder } from './pdf-reading-order';
 
 /** Une photo du PDF, réduite et réencodée en JPEG. */
 export interface ExtractedImage {
@@ -96,6 +97,7 @@ function imageBox(m: Matrix): { top: number; left: number; right: number } {
 interface Line {
   readonly text: string;
   readonly y: number;
+  readonly size: number;
   readonly left: number;
   readonly right: number;
 }
@@ -105,12 +107,14 @@ function toLines(items: readonly PdfTextItem[]): Line[] {
   const lines: Line[] = [];
   let text = '';
   let y = Number.NaN;
+  let size = 0;
   let left = Number.POSITIVE_INFINITY;
   let right = Number.NEGATIVE_INFINITY;
   const flush = (): void => {
-    lines.push({ text, y, left, right });
+    lines.push({ text, y, size, left, right });
     text = '';
     y = Number.NaN;
+    size = 0;
     left = Number.POSITIVE_INFINITY;
     right = Number.NEGATIVE_INFINITY;
   };
@@ -119,7 +123,10 @@ function toLines(items: readonly PdfTextItem[]): Line[] {
     text += item.str;
     const t = item.transform;
     if (item.str.trim() && t) {
-      if (Number.isNaN(y)) y = t[5];
+      if (Number.isNaN(y)) {
+        y = t[5];
+        size = Math.abs(t[3]);
+      }
       left = Math.min(left, t[4]);
       right = Math.max(right, t[4] + (item.width ?? 0));
     }
@@ -128,7 +135,7 @@ function toLines(items: readonly PdfTextItem[]): Line[] {
   // Comme l'ancien `join('').split('\n')` : une dernière ligne, même vide,
   // pour que le texte d'un PDF sans image reste identique au caractère près.
   flush();
-  return lines;
+  return readingOrder(lines);
 }
 
 /**

@@ -14,13 +14,15 @@ const COMPLEMENT: Record<Langue, string> = {
 RÈGLES PROPRES À CET APPEL (elles complètent les règles ci-dessus)
 - Si le document répète le même patron en plusieurs langues, ne garde que la version en français ; à défaut, la version en anglais ; à défaut, la première. C'est la seule suppression permise : ne traduis rien, ne mélange pas les langues, ne dis rien des versions retirées.
 - Les passages écrits en paragraphes, sans rangs numérotés, se découpent en étapes : une ligne « Étape N : … » par instruction (une action, ou des actions qui vont ensemble), la numérotation repartant à 1 sous chaque nom de pièce. Recopie le texte mot pour mot.
-- N'ajoute aucun libellé de rang ni aucun nombre absent de l'original : « Répète le rang 3 pour obtenir 5 rangs » reste tel quel, sans « Rangs 4-7 ».`,
+- N'ajoute aucun libellé de rang ni aucun nombre absent de l'original : « Répète le rang 3 pour obtenir 5 rangs » reste tel quel, sans « Rangs 4-7 ».
+- Les titres de section de l'original (« Première manche », « Dos »…) gardent leur nom et leur place : la première instruction d'une section reste sous son titre. N'invente aucune section. Un titre courant de page (« Suite du patron », « Pattern Continued », « Page 2 ») n'est pas une section : retire-le ou laisse-le hors des pièces.`,
   en: `Keep the [image N] markers exactly as they are, in place.
 
 RULES SPECIFIC TO THIS CALL (they complete the rules above)
 - If the document repeats the same pattern in several languages, keep only the English version; failing that, the first one. This is the only deletion allowed: translate nothing, do not mix languages, say nothing about the versions you removed.
 - Passages written as paragraphs, without numbered rows, are split into steps: one "Step N: ..." line per instruction (one action, or actions that belong together), numbering restarting at 1 under each piece name. Copy the text word for word.
-- Do not add any row label or any number that is not in the original: "Repeat row 3 for a total of 5 rows" stays as it is, without "Rows 4-7".`,
+- Do not add any row label or any number that is not in the original: "Repeat row 3 for a total of 5 rows" stays as it is, without "Rows 4-7".
+- Section titles in the original ("First Sleeve", "Back panel"...) keep their name and their place: the first instruction of a section stays under its title. Invent no section. A running page title ("Pattern Continued", "Page 2") is not a section: drop it or leave it outside the pieces.`,
 };
 
 /** Même consigne que la page /format, plus les règles propres à l'appel automatique. */

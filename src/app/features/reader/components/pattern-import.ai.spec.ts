@@ -37,6 +37,12 @@ const CAUSES: readonly {
   { raison: 'budget-mois', message: 'ui.aiMonth', code: null },
   { raison: 'trop-long', message: 'ui.aiTooLong', code: 'trop-long' },
   { raison: 'reseau', message: 'ui.aiNetwork', code: 'reseau' },
+  {
+    raison: 'reseau',
+    detail: 'origine:crochet-helper.vercel.app',
+    message: 'ui.aiNetwork',
+    code: 'reseau · origine:crochet-helper.vercel.app',
+  },
   { raison: 'delai', message: 'ui.aiSlow', code: 'delai' },
   {
     raison: 'echec',

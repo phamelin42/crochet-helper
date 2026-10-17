@@ -12,6 +12,9 @@ const URL_WORKER = readFileSync('src/app/features/reader/data/ai-format.ts', 'ut
   /AI_FORMAT_URL\s*=\s*'([^']*)'/,
 )?.[1];
 
+/** L'appel porte `?ngsw-bypass=true` : le motif accepte la suite de l'adresse. */
+const ROUTE_WORKER = URL_WORKER ? `${URL_WORKER}*` : '';
+
 const PATRON = ['Rang 1 : 6 ms dans un cercle magique (6)', 'Rang 2 : 1 aug dans chaque m (12)'];
 const CASE = /Tidy up with AI/;
 
@@ -50,7 +53,7 @@ test.describe('Worker renseigné', () => {
 
   test('case décochée : aucune requête vers le Worker', async ({ page }) => {
     const requetes: string[] = [];
-    await page.route(URL_WORKER!, (route) => {
+    await page.route(ROUTE_WORKER, (route) => {
       requetes.push(route.request().url());
       return route.abort();
     });
@@ -62,7 +65,7 @@ test.describe('Worker renseigné', () => {
   });
 
   test('réussite : le texte remis en forme est découpé, l’étape reste haute', async ({ page }) => {
-    await page.route(URL_WORKER!, (route) =>
+    await page.route(ROUTE_WORKER, (route) =>
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -86,7 +89,7 @@ test.describe('Worker renseigné', () => {
   test('limite du jour : patron chargé, message de Phil, aucune violation axe', async ({
     page,
   }) => {
-    await page.route(URL_WORKER!, (route) =>
+    await page.route(ROUTE_WORKER, (route) =>
       route.fulfill({
         status: 429,
         contentType: 'application/json',
@@ -109,7 +112,7 @@ test.describe('Worker renseigné', () => {
   });
 
   test('refus précis : « trop de texte supprimé », avec son code technique', async ({ page }) => {
-    await page.route(URL_WORKER!, (route) =>
+    await page.route(ROUTE_WORKER, (route) =>
       route.fulfill({
         status: 422,
         contentType: 'application/json',
@@ -127,11 +130,44 @@ test.describe('Worker renseigné', () => {
   });
 
   test('Worker injoignable : le message le dit, code « reseau »', async ({ page }) => {
-    await page.route(URL_WORKER!, (route) => route.abort('failed'));
+    await page.route(ROUTE_WORKER, (route) => route.abort('failed'));
     await ouvrir(page);
     await decouper(page, true);
     await expect(page.locator('.step-body')).toContainText('6 ms');
     await expect(page.getByText('The AI service couldn’t be reached')).toBeVisible();
     await expect(page.getByText('Technical code: reseau')).toBeVisible();
+  });
+});
+
+test.describe('Service worker actif', () => {
+  test.skip(!URL_WORKER, 'AI_FORMAT_URL est vide : la case n’apparaît pas.');
+
+  /**
+   * Le service worker de l'application répond « 504 Gateway Timeout » à la place du
+   * navigateur quand une requête échoue : la lectrice lisait « service en panne,
+   * http-504 » pour un simple réseau coupé. Deux protections, qui donnent ici le même
+   * message : l'appel contourne le service worker (`ngsw-bypass`), et un 504 fabriqué
+   * est reconnu comme un échec de réseau. Ce test échoue si on retire les deux.
+   */
+  test('un échec réseau garde son vrai nom, pas un 504 fabriqué', async ({ page, context }) => {
+    test.setTimeout(60000);
+    await page.setViewportSize({ width: 820, height: 1180 });
+    await page.goto('/');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await page.evaluate(async () => {
+      await navigator.serviceWorker.ready;
+    });
+    await page.reload();
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+
+    // Une vraie panne, que le service worker subit comme la page : une route simulée
+    // couperait la requête avant lui et ne montrerait pas le défaut.
+    await context.setOffline(true);
+    await decouper(page, true);
+    await expect(page.locator('.step-body')).toContainText('6 ms');
+    await expect(page.getByText('The AI service couldn’t be reached')).toBeVisible();
+    await expect(page.getByText(/Technical code: reseau · origine:localhost/)).toBeVisible();
+    await expect(page.getByText('http-504')).toHaveCount(0);
   });
 });

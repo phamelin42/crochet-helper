@@ -51,6 +51,27 @@ describe('formatWithAi', () => {
     });
   });
 
+  it('contourne le service worker (ngsw-bypass), qui masquerait la vraie erreur', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(reponse({ texte: 'a', restant: 0 }));
+    vi.stubGlobal('fetch', fetchMock);
+    await formatWithAi('https://w.test/mise-en-forme', 'x', 'fr');
+    const adresse = new URL(fetchMock.mock.calls[0][0] as string);
+    expect(adresse.origin + adresse.pathname).toBe('https://w.test/mise-en-forme');
+    expect(adresse.searchParams.get('ngsw-bypass')).toBe('true');
+  });
+
+  it('un vrai 504 lisible (autre texte d’état) reste une réponse inattendue du service', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response('<html>timeout</html>', { status: 504 })),
+    );
+    expect(await formatWithAi('https://w.test/m', 'x', 'fr')).toEqual({
+      ok: false,
+      raison: 'indisponible',
+      detail: 'http-504',
+    });
+  });
+
   it('envoie le texte et la langue en JSON', async () => {
     const fetchMock = vi.fn().mockResolvedValue(reponse({ texte: 'a', restant: 0 }));
     vi.stubGlobal('fetch', fetchMock);
@@ -71,7 +92,16 @@ describe('formatWithAi', () => {
       () => Promise.reject(new DOMException('aborted', 'AbortError')),
       { raison: 'delai' },
     ],
-    ['réseau coupé', () => Promise.reject(new TypeError('Failed to fetch')), { raison: 'reseau' }],
+    [
+      'réseau coupé',
+      () => Promise.reject(new TypeError('Failed to fetch')),
+      { raison: 'reseau', detail: expect.stringMatching(/^origine:[\w.:-]+$/) },
+    ],
+    [
+      '« 504 » fabriqué par le service worker à la place du navigateur',
+      async () => new Response('', { status: 504, statusText: 'Gateway Timeout' }),
+      { raison: 'reseau', detail: expect.stringMatching(/^origine:[\w.:-]+$/) },
+    ],
     [
       'JSON invalide',
       async () => reponse('pas du json'),

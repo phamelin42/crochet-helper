@@ -101,7 +101,7 @@ jobs:
           prompt: '/lot-suivant ${{ steps.garde.outputs.fiche }}'
           claude_args: >-
             --max-turns 200
-            --allowedTools "Read,Glob,Grep,Edit,MultiEdit,Write,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(git:*),Bash(ls:*)"
+            --allowedTools "WebSearch,WebFetch,Read,Glob,Grep,Edit,MultiEdit,Write,Bash(npm:*),Bash(npx:*),Bash(node:*),Bash(git:*),Bash(ls:*)"
 
       # L'agent affirme avoir lancé `npm run verify` ; ici on le constate, et on
       # constate `verify:ci`, qui y ajoute l'audit Playwright — seul juge de

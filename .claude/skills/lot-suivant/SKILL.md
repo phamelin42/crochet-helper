@@ -1,7 +1,7 @@
 ---
 name: lot-suivant
 description: Exécute la fiche de tâche suivante du dossier prompts/ et prépare une branche prête à publier. Déclenché chaque dimanche par le workflow « Lot suivant ».
-allowed-tools: Read, Glob, Grep, Edit, MultiEdit, Write, Bash(npm:*), Bash(npx:*), Bash(node:*), Bash(git:*), Bash(ls:*)
+allowed-tools: WebSearch, WebFetch, Read, Glob, Grep, Edit, MultiEdit, Write, Bash(npm:*), Bash(npx:*), Bash(node:*), Bash(git:*), Bash(ls:*)
 ---
 
 # Exécuter la fiche suivante

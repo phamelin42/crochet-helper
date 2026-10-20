@@ -36,6 +36,7 @@ interface YarnWeightsCopy {
   readonly toGauge: string;
   readonly toHooks: string;
   readonly toNeedles: string;
+  readonly toYardage: string;
 }
 
 const COPY: Record<Locale, YarnWeightsCopy> = {
@@ -101,6 +102,7 @@ const COPY: Record<Locale, YarnWeightsCopy> = {
     toGauge: 'Le calculateur d’échantillon',
     toHooks: 'Les tailles de crochet',
     toNeedles: 'Les tailles d’aiguilles',
+    toYardage: `Combien de fil me faut-il${NBSP}?`,
   },
   en: {
     seoTitle: `Yarn weight chart: worsted, aran, DK — ${SITE_NAME}`,
@@ -166,6 +168,7 @@ const COPY: Record<Locale, YarnWeightsCopy> = {
     toGauge: 'The gauge calculator',
     toHooks: 'Crochet hook sizes',
     toNeedles: 'Knitting needle sizes',
+    toYardage: 'How much yarn do I need?',
   },
 };
 
@@ -234,6 +237,7 @@ const COPY: Record<Locale, YarnWeightsCopy> = {
       <a filButton="primary" [routerLink]="i18n.link('gaugeCalculator')">{{ c.toGauge }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('hookSizes')">{{ c.toHooks }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('needleSizes')">{{ c.toNeedles }}</a>
+      <a filButton="ghost" [routerLink]="i18n.link('yardageCalculator')">{{ c.toYardage }}</a>
     </div>
   `,
 })

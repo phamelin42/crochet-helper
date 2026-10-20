@@ -26,6 +26,7 @@ interface NeedleSizesCopy {
   readonly sections: readonly { readonly h2: string; readonly paragraphs: readonly string[] }[];
   readonly toHooks: string;
   readonly toYarn: string;
+  readonly toYardage: string;
   readonly toGauge: string;
   readonly toReader: string;
 }
@@ -81,6 +82,7 @@ const COPY: Record<Locale, NeedleSizesCopy> = {
     ],
     toHooks: 'Les tailles de crochet',
     toYarn: 'Les poids de fil',
+    toYardage: `Combien de fil me faut-il${NBSP}?`,
     toGauge: 'Le calculateur d’échantillon',
     toReader: 'Le lecteur de patron',
   },
@@ -134,6 +136,7 @@ const COPY: Record<Locale, NeedleSizesCopy> = {
     ],
     toHooks: 'Crochet hook sizes',
     toYarn: 'Yarn weights',
+    toYardage: 'How much yarn do I need?',
     toGauge: 'The gauge calculator',
     toReader: 'The pattern reader',
   },
@@ -216,6 +219,7 @@ const COPY: Record<Locale, NeedleSizesCopy> = {
       <a filButton="primary" [routerLink]="i18n.link('gaugeCalculator')">{{ c.toGauge }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('hookSizes')">{{ c.toHooks }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('yarnWeights')">{{ c.toYarn }}</a>
+      <a filButton="ghost" [routerLink]="i18n.link('yardageCalculator')">{{ c.toYardage }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('reader')">{{ c.toReader }}</a>
     </div>
   `,

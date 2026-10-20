@@ -15,6 +15,7 @@ const PROJECT = [
   'hookSizes',
   'needleSizes',
   'yarnWeights',
+  'yardageCalculator',
   'imageGrid',
   'gaugeCalculator',
   'forDesigners',

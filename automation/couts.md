@@ -161,3 +161,4 @@
 | 2026-10-20 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
 | 2026-10-20 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
 | 2026-10-20 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
+| 2026-10-20 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |

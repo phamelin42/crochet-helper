@@ -93,6 +93,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         lead: 'Les catégories 0 à 7, avec le crochet et les aiguilles qui vont avec.',
       },
       {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.yardageCalculator.fr}`,
+        title: 'Combien de pelotes ?',
+        lead: 'Une fourchette de mètres et de pelotes selon l’ouvrage et le poids de fil.',
+      },
+      {
         href: `${localePrefix('fr')}${ROUTE_PATHS.gaugeCalculator.fr}`,
         title: 'Calculateur d’échantillon',
         lead: 'Comparez votre échantillon à celui du patron : crochet plus gros ou plus fin, mailles à monter.',
@@ -156,6 +161,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.yarnWeights.en}`,
         title: 'Yarn weights: worsted, aran, DK',
         lead: 'Categories 0 to 7, with the hook and needles that go with them.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.yardageCalculator.en}`,
+        title: 'How much yarn do I need?',
+        lead: 'A range of metres and skeins by project and yarn weight.',
       },
       {
         href: `${localePrefix('en')}${ROUTE_PATHS.gaugeCalculator.en}`,

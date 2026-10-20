@@ -93,6 +93,38 @@ test.describe("tailles d'aiguilles (fiche 50)", () => {
   });
 });
 
+test.describe('métrage de fil (fiche 54)', () => {
+  for (const path of ['/yarn-yardage-calculator', '/fr/calculateur-de-metrage']) {
+    test(`le HTML brut de « ${path} » contient le calculateur et plus de 500 mots`, async ({
+      request,
+    }) => {
+      const html = await (await request.get(path)).text();
+      expect(html).toContain('id="yardage-project"');
+      expect(html).toContain('id="yardage-skein"');
+      const article = html.slice(html.indexOf('<article'), html.indexOf('</article>'));
+      const words = article
+        .replace(/<[^>]+>/g, ' ')
+        .split(/\s+/)
+        .filter(Boolean);
+      expect(words.length).toBeGreaterThan(500);
+    });
+  }
+
+  test('saisir une pelote donne un nombre de pelotes, 320 px sans débordement', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.goto('/fr/calculateur-de-metrage');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await page.locator('#yardage-skein').fill('100');
+    await expect(page.locator('.gauge-result')).toContainText('pelotes');
+    const overflows = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+    expect(overflows).toBe(false);
+  });
+});
+
 test.describe('poids de fil (fiche 51)', () => {
   for (const path of ['/yarn-weight-chart', '/fr/poids-de-fil']) {
     test(`le HTML brut de « ${path} » contient le tableau des 8 catégories`, async ({

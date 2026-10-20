@@ -47,6 +47,7 @@ interface GaugeCopy {
   readonly convertInvalid: string;
   readonly sections: readonly { readonly h2: string; readonly paragraphs: readonly string[] }[];
   readonly toHooks: string;
+  readonly toYardage: string;
   readonly toConverter: string;
   readonly toReader: string;
 }
@@ -127,6 +128,7 @@ const COPY: Record<Locale, GaugeCopy> = {
       },
     ],
     toHooks: 'Le tableau des tailles de crochet',
+    toYardage: `Combien de fil me faut-il${NBSP}?`,
     toConverter: 'Convertir un patron entier',
     toReader: 'Le lecteur de patron',
   },
@@ -206,6 +208,7 @@ const COPY: Record<Locale, GaugeCopy> = {
       },
     ],
     toHooks: 'The crochet hook size chart',
+    toYardage: 'How much yarn do I need?',
     toConverter: 'Convert a whole pattern',
     toReader: 'The pattern reader',
   },
@@ -376,6 +379,7 @@ function parseNumber(text: string): number {
 
     <div class="navrow">
       <a filButton="primary" [routerLink]="i18n.link('hookSizes')">{{ c.toHooks }}</a>
+      <a filButton="ghost" [routerLink]="i18n.link('yardageCalculator')">{{ c.toYardage }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('converter')">{{ c.toConverter }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('reader')">{{ c.toReader }}</a>
     </div>

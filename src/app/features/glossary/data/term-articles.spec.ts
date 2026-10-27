@@ -30,6 +30,12 @@ const SLUGS = [
   'yo',
   'rep',
   'blo',
+  // Tricot : cinq entrées, un article chacune (fiche 55).
+  'k2tog',
+  'ssk',
+  'm1',
+  'tbl',
+  'magic-loop',
 ];
 /**
  * Abréviations ambiguës enrichies ensuite : article plus court (le geste est

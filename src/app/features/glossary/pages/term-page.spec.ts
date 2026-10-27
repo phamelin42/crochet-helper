@@ -156,6 +156,18 @@ describe('GlossaryTermPage — article', () => {
     expect(shown).toContain('See also');
   });
 
+  it('rend les cinq sections d’article sur une page de tricot, indexée', () => {
+    for (const slug of ['k2tog', 'ssk', 'm1', 'tbl', 'magic-loop']) {
+      TestBed.resetTestingModule();
+      const host = render(slug, 'en');
+
+      expect(headings(host).slice(0, 5), slug).toEqual(ARTICLE_TITLES);
+      expect(TestBed.inject(Meta).getTag('name="robots"')?.content, slug).toBe(
+        'index, follow, max-image-preview:large',
+      );
+    }
+  });
+
   it('laisse une page sans article inchangée', () => {
     const shown = headings(render('flo', 'en'));
 

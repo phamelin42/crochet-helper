@@ -67,6 +67,7 @@ branche.
 | 52 — Proxy de mise en forme par IA      | Terminée | —   | 2026-10-16 |
 | 53 — Case « remettre en forme par IA »  | Terminée | —   | 2026-10-16 |
 | 54 — Page métrage de fil                | Terminée | —   | 2026-10-20 |
+| 55 — Articles abréviations de tricot    | Terminée | —   | 2026-10-27 |
 
 ## États possibles
 

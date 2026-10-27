@@ -1,6 +1,6 @@
 import { TermArticles } from './types';
 
-/** Cinq abréviations de tricot : `k2tog`, `ssk`, `m1`, `tbl` et `magic-loop`. */
+/** Cinq abréviations de tricot : `k2tog`, `ssk`, `m1`, `tbl` et `magic-loop`. */
 export const KNITTING: TermArticles = {
   k2tog: {
     en: {

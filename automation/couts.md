@@ -202,3 +202,4 @@
 | 2026-10-27 | lot | 41 tours | 0.73 $ | fiche 55 |
 | 2026-10-27 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
 | 2026-10-27 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
+| 2026-10-28 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |

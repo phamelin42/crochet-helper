@@ -258,3 +258,4 @@
 | 2026-11-08 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
 | 2026-11-08 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
 | 2026-11-08 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |
+| 2026-11-09 | lot | agent sauté | — | aucune fiche « À faire » sans branche ouverte |

@@ -68,6 +68,7 @@ branche.
 | 53 — Case « remettre en forme par IA »  | Terminée | —   | 2026-10-16 |
 | 54 — Page métrage de fil                | Terminée | —   | 2026-10-20 |
 | 55 — Articles abréviations de tricot    | Terminée | —   | 2026-10-27 |
+| 56 — Page calculateur de cercle         | Terminée | —   | 2026-11-09 |
 
 ## États possibles
 

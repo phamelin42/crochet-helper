@@ -28,6 +28,7 @@ interface HookSizesCopy {
   readonly toReader: string;
   readonly toNeedles: string;
   readonly toYarn: string;
+  readonly toCircle: string;
 }
 
 const COPY: Record<Locale, HookSizesCopy> = {
@@ -83,6 +84,7 @@ const COPY: Record<Locale, HookSizesCopy> = {
     toReader: 'Le lecteur de patron',
     toNeedles: 'Les tailles d’aiguilles à tricoter',
     toYarn: 'Les poids de fil',
+    toCircle: 'Un disque au crochet, rang par rang',
   },
   en: {
     seoTitle: `Crochet hook size chart, mm ↔ US sizes — ${SITE_NAME}`,
@@ -136,6 +138,7 @@ const COPY: Record<Locale, HookSizesCopy> = {
     toReader: 'The pattern reader',
     toNeedles: 'Knitting needle sizes',
     toYarn: 'Yarn weights',
+    toCircle: 'A crochet circle, round by round',
   },
 };
 
@@ -218,6 +221,7 @@ const COPY: Record<Locale, HookSizesCopy> = {
       <a filButton="ghost" [routerLink]="i18n.link('reader')">{{ c.toReader }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('needleSizes')">{{ c.toNeedles }}</a>
       <a filButton="ghost" [routerLink]="i18n.link('yarnWeights')">{{ c.toYarn }}</a>
+      <a filButton="ghost" [routerLink]="i18n.link('circleCalculator')">{{ c.toCircle }}</a>
     </div>
   `,
 })

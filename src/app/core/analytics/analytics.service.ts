@@ -77,6 +77,8 @@ export type AnalyticsEvent =
   | 'chart_recognized'
   /** Échantillon comparé à celui du patron (propriétés `unit` et `advice`), une fois par combinaison. */
   | 'gauge_calculated'
+  /** Disque calculé ouvert dans le lecteur depuis la page dédiée (propriétés `stitch` et `rounds`). */
+  | 'circle_opened_in_reader'
   /** Filtre du glossaire changé (propriétés `craft` et `lang`, jamais la recherche). */
   | 'glossary_filtered'
   /** Première saisie sur la page « lire un patron dans l'autre langue » (propriétés `locale` et `length`). */

@@ -482,6 +482,18 @@ export class ReaderStore {
   }
 
   /**
+   * Ouvre le patron calculé par une page-outil (le disque de la fiche 56) :
+   * un nouveau projet, le projet actif restant intact ; le même texte déjà
+   * enregistré est repris plutôt que doublé.
+   */
+  openFromTool(text: string): void {
+    if (!text) return;
+    if (this.reopenSaved(text)) return;
+    if (this.currentId()) this.detach();
+    this.load(text, 'outil');
+  }
+
+  /**
    * Ouvre une grille de couleurs : un nouveau projet, dont le texte est
    * l'écriture de la grille, écrits dans une seule transaction (une grille
    * identique à celle d'un projet enregistré reprend ce projet). Le
@@ -667,7 +679,8 @@ export class ReaderStore {
    */
   load(
     text: string,
-    origine: 'saisie' | 'pdf' | 'exemple' | 'lien' | 'diagramme' | 'grille' | 'ia' = 'saisie',
+    origine:
+      'saisie' | 'pdf' | 'exemple' | 'lien' | 'diagramme' | 'grille' | 'ia' | 'outil' = 'saisie',
     avantIa: string | null = null,
   ): void {
     this.pdfError.set(null);

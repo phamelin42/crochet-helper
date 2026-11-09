@@ -53,7 +53,7 @@ const COPY: Record<Locale, CircleCopy> = {
   fr: {
     seoTitle: `Cercle au crochet${NBSP}: augmentations rang par rang`,
     seoDescription:
-      'Choisissez la maille et le nombre de rangs : la page écrit chaque rang d’un disque au crochet, avec le nombre de mailles, et l’ouvre dans le lecteur. Gratuit, sans compte.',
+      'Choisissez la maille et le nombre de rangs : chaque rang d’un disque au crochet s’écrit avec son total de mailles, puis s’ouvre dans le lecteur. Gratuit.',
     h1: `Un disque au crochet, rang par rang`,
     lead: `Choisissez la maille et le nombre de rangs${NBSP}: la page écrit chaque rang de votre disque, avec le nombre de mailles à la fin, puis l’ouvre dans le lecteur pour le suivre une étape à la fois.`,
     stitchLabel: 'Maille',
@@ -124,7 +124,7 @@ const COPY: Record<Locale, CircleCopy> = {
     toForeign: 'Lire un patron anglais',
   },
   en: {
-    seoTitle: `Crochet circle pattern: increases round by round — ${SITE_NAME}`,
+    seoTitle: `Crochet circle: increases round by round — ${SITE_NAME}`,
     seoDescription:
       'Pick the stitch and the number of rounds: the page writes every round of a crochet circle, with the stitch count, and opens it in the reader. Free, no account.',
     h1: 'A crochet circle, round by round',

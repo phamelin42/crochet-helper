@@ -244,3 +244,83 @@ test.describe('lire un patron dans l’autre langue (fiche 31)', () => {
     }
   });
 });
+
+test.describe('cercle au crochet (fiche 56)', () => {
+  for (const path of ['/crochet-circle-calculator', '/fr/calculateur-de-cercle']) {
+    test(`le HTML brut de « ${path} » contient le calculateur, des rangs et plus de 500 mots`, async ({
+      request,
+    }) => {
+      const html = await (await request.get(path)).text();
+      expect(html).toContain('id="circle-stitch"');
+      expect(html).toContain('id="circle-rounds"');
+      expect(html).toContain('data-testid="circle-rounds"');
+      expect(html).toContain('(36)');
+      const article = html.slice(html.indexOf('<article'), html.indexOf('</article>'));
+      const words = article
+        .replace(/<[^>]+>/g, ' ')
+        .split(/\s+/)
+        .filter(Boolean);
+      expect(words.length).toBeGreaterThan(500);
+    });
+  }
+
+  test('changer la maille et les rangs met la liste à jour, 320 px sans débordement', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.goto('/fr/calculateur-de-cercle');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await page.locator('#circle-stitch').selectOption('dc');
+    await page.locator('#circle-rounds').fill('4');
+    const lines = page.locator('[data-testid="circle-rounds"] li');
+    await expect(lines).toHaveCount(4);
+    await expect(lines.nth(3)).toHaveText('Rang 4 : [2 br, aug] x 12 (48)');
+    await page.locator('#circle-rounds').fill('31');
+    await expect(page.getByRole('alert')).toContainText('de 1 à 30');
+    await expect(page.locator('[data-testid="circle-open"]')).toBeDisabled();
+    const overflows = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+    expect(overflows).toBe(false);
+  });
+
+  test('le bouton ouvre un projet distinct de l’actif, qui reste intact', async ({ page }) => {
+    const sources = () =>
+      page.evaluate(
+        () =>
+          new Promise<string[]>((resolve) => {
+            const open = indexedDB.open('fil');
+            open.onsuccess = () => {
+              const all = open.result
+                .transaction('projects', 'readonly')
+                .objectStore('projects')
+                .getAll();
+              all.onsuccess = () => {
+                open.result.close();
+                resolve(all.result.map((p) => p.source as string));
+              };
+            };
+            open.onerror = () => resolve([]);
+          }),
+      );
+
+    await page.goto('/');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await page.getByRole('button', { name: 'Example', exact: true }).click();
+    await expect(page.locator('.step-body')).toContainText('in magic ring');
+    await expect.poll(async () => (await sources()).length).toBe(1);
+
+    await page.goto('/crochet-circle-calculator');
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    const open = page.locator('[data-testid="circle-open"]');
+    await expect(open).toBeEnabled();
+    await open.click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator('.step-body')).toContainText('in magic ring, 6 sc');
+
+    await expect.poll(async () => (await sources()).length).toBe(2);
+    const all = await sources();
+    expect(all.some((s) => s.startsWith('Tiny Tree'))).toBe(true);
+    expect(all.some((s) => s.startsWith('6-round circle'))).toBe(true);
+  });
+});

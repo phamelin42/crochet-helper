@@ -98,6 +98,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         lead: 'Une fourchette de mètres et de pelotes selon l’ouvrage et le poids de fil.',
       },
       {
+        href: `${localePrefix('fr')}${ROUTE_PATHS.circleCalculator.fr}`,
+        title: 'Disque au crochet : les rangs',
+        lead: 'Les augmentations de chaque rang, en maille serrée, demi-bride ou bride.',
+      },
+      {
         href: `${localePrefix('fr')}${ROUTE_PATHS.gaugeCalculator.fr}`,
         title: 'Calculateur d’échantillon',
         lead: 'Comparez votre échantillon à celui du patron : crochet plus gros ou plus fin, mailles à monter.',
@@ -166,6 +171,11 @@ const GUIDES: Record<Locale, { sectionTitle: string; items: readonly GuideLink[]
         href: `${localePrefix('en')}${ROUTE_PATHS.yardageCalculator.en}`,
         title: 'How much yarn do I need?',
         lead: 'A range of metres and skeins by project and yarn weight.',
+      },
+      {
+        href: `${localePrefix('en')}${ROUTE_PATHS.circleCalculator.en}`,
+        title: 'Crochet circle: round by round',
+        lead: 'The increases for every round, in single, half double or double crochet.',
       },
       {
         href: `${localePrefix('en')}${ROUTE_PATHS.gaugeCalculator.en}`,

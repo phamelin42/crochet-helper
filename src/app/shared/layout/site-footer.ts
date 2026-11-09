@@ -18,6 +18,7 @@ const PROJECT = [
   'yardageCalculator',
   'imageGrid',
   'gaugeCalculator',
+  'circleCalculator',
   'forDesigners',
   'privacy',
 ] as const;

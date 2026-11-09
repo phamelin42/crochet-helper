@@ -162,6 +162,10 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     fr: 'un échantillon est comparé à celui du patron (unité, conseil)',
     en: 'a gauge is compared with the pattern’s (unit, advice)',
   },
+  circle_opened_in_reader: {
+    fr: 'un disque au crochet est ouvert dans le lecteur depuis la page du calculateur (maille et nombre de rangs)',
+    en: 'a crochet circle is opened in the reader from the calculator page (stitch and number of rounds)',
+  },
   glossary_filtered: {
     fr: 'un filtre du glossaire est changé (jamais la recherche)',
     en: 'a glossary filter is changed (never the search text)',

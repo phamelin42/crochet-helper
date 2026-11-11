@@ -3,10 +3,12 @@ import {
   ElementRef,
   afterNextRender,
   effect,
+  inject,
   input,
   model,
   viewChild,
 } from '@angular/core';
+import { FocusService } from '../../../core/platform/focus.service';
 
 /**
  * Boîte de dialogue modale bâtie sur `<dialog>` natif : le piège de focus, la
@@ -20,7 +22,7 @@ import {
 @Component({
   selector: 'fil-dialog',
   template: `
-    <dialog #root [attr.aria-label]="label()" (close)="open.set(false)">
+    <dialog #root [attr.aria-label]="label()" (close)="closed()">
       <div class="dialog" [class.zoom]="wide()">
         <ng-content />
       </div>
@@ -46,6 +48,15 @@ export class Dialog {
   readonly wide = input(false);
 
   private readonly root = viewChild.required<ElementRef<HTMLDialogElement>>('root');
+
+  private readonly focus = inject(FocusService);
+
+  /** Le navigateur rend le focus à l'ouvrant ; s'il a disparu entre-temps
+   *  (l'exemple chargé remplace l'accueil), le focus ne reste pas au corps de la page. */
+  protected closed(): void {
+    this.open.set(false);
+    this.focus.restoreIfLost();
+  }
 
   constructor() {
     afterNextRender(() => {

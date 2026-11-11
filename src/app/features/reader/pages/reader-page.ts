@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
@@ -14,6 +15,7 @@ import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
 import { DisplayPrefsService } from '../../../core/platform/display-prefs.service';
+import { FocusService } from '../../../core/platform/focus.service';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
@@ -563,6 +565,7 @@ export default class ReaderPage {
   private readonly analytics = inject(AnalyticsService);
   private readonly seo = inject(SeoService);
   private readonly prefs = inject(DisplayPrefsService);
+  private readonly focus = inject(FocusService);
   private readonly appMode = inject(AppModeService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -626,6 +629,12 @@ export default class ReaderPage {
       ),
     );
     inject(DestroyRef).onDestroy(() => this.prefs.applyFocus(false));
+
+    // Charger un patron masque le panneau d'import en page pleine, et son
+    // bouton avec lui : le focus ne doit pas tomber sur le corps de la page.
+    effect(() => {
+      if (this.store.pieces().length > 0) untracked(() => this.focus.restoreIfLost());
+    });
 
     // Attend la restauration du projet en cours avant de lire un éventuel
     // permalien : sinon un patron en cours de reprise depuis IndexedDB

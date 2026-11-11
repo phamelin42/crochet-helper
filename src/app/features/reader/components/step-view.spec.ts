@@ -8,6 +8,7 @@ import {
 } from '../../../core/storage/testing/fake-indexed-db';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DisplayPrefsService } from '../../../core/platform/display-prefs.service';
+import { TooltipService } from '../../../shared/ui/tooltip/tooltip.service';
 import { ColorGrid, gridToText } from '../data/color-grid';
 import { ReaderStore } from '../state/reader-store';
 import { StepView } from './step-view';
@@ -108,6 +109,21 @@ describe('StepView', () => {
       expect(toggle?.hasAttribute('aria-pressed'), `page pleine : ${focus}`).toBe(false);
       expect(toggle?.getAttribute('aria-label')).toBe(focus ? 'Exit full page' : 'Full page');
     }
+  });
+
+  it('Échap avec une infobulle ouverte ne quitte pas la page pleine', async () => {
+    const { store, fixture } = await setup();
+    store.load('Rang 1 : 6 ms\nRang 2 : 6 aug');
+    fixture.detectChanges();
+    const prefs = TestBed.inject(DisplayPrefsService);
+    const tooltips = TestBed.inject(TooltipService);
+    tooltips.showFor(document.body, 'ms', 'maille serrée');
+
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+    );
+
+    expect(prefs.focus()).toBe(true);
   });
 
   describe('aide de l’état vide', () => {

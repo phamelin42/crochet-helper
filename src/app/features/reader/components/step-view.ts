@@ -15,6 +15,7 @@ import { DisplayPrefsService, ReaderTextSize } from '../../../core/platform/disp
 import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
+import { TooltipService } from '../../../shared/ui/tooltip/tooltip.service';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { dialogIsOpen } from '../data/shortcut-guard';
 import { ReaderStore } from '../state/reader-store';
@@ -198,6 +199,7 @@ export class StepView {
   private readonly i18n = inject(I18nService);
   protected readonly prefs = inject(DisplayPrefsService);
   private readonly analytics = inject(AnalyticsService);
+  private readonly tooltips = inject(TooltipService);
   private readonly focusToggle = viewChild<ElementRef<HTMLButtonElement>>('focusToggle');
 
   /** « Changer de patron », relayé depuis la liste des étapes jusqu'à la page,
@@ -253,11 +255,12 @@ export class StepView {
   }
 
   /** Échap quitte la page pleine, sauf s'il ferme déjà autre chose (boîte de
-   *  dialogue, diagramme agrandi : celui-ci garde la main). */
+   *  dialogue, infobulle ouverte, diagramme agrandi : celui-ci garde la main). */
   protected leaveFocus(event: Event): void {
     if (
       event.defaultPrevented ||
       dialogIsOpen(event.target) ||
+      this.tooltips.state() !== null ||
       !this.prefs.focus() ||
       !this.store.step()
     )

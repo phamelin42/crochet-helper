@@ -7,7 +7,10 @@ import { TooltipService } from './tooltip.service';
  */
 @Component({
   selector: 'fil-tooltip-host',
-  host: { '(document:pointerdown)': 'tooltips.notePress($event)' },
+  host: {
+    '(document:pointerdown)': 'tooltips.notePress($event)',
+    '(document:keydown.escape)': 'dismiss($event)',
+  },
   template: `
     <div
       #box
@@ -15,6 +18,7 @@ import { TooltipService } from './tooltip.service';
       [class.on]="!!state()"
       role="status"
       aria-live="polite"
+      [attr.aria-hidden]="state()?.labelled ? 'true' : null"
       [style.left.px]="position().left"
       [style.top.px]="position().top"
     >
@@ -31,6 +35,14 @@ export class TooltipHost {
   protected readonly state = this.tooltips.state;
 
   protected readonly position = signal({ left: 0, top: 0 });
+
+  /** Échap ferme l'infobulle ouverte et s'arrête là (WCAG 1.4.13) : le geste est
+   *  consommé, la page pleine ou le dialogue ne le reçoivent pas. */
+  protected dismiss(event: Event): void {
+    if (!this.state()) return;
+    event.preventDefault();
+    this.tooltips.hide();
+  }
 
   constructor() {
     // Après le rendu : la taille de l'infobulle dépend du terme qu'elle vient

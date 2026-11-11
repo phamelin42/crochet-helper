@@ -6,6 +6,9 @@ export interface TooltipState {
   readonly x: number;
   readonly y: number;
   readonly above: boolean;
+  /** L'élément porte déjà ce texte dans son `aria-label` : l'annoncer une seconde
+   *  fois par la région vivante serait une double lecture. */
+  readonly labelled: boolean;
 }
 
 /**
@@ -50,6 +53,7 @@ export class TooltipService {
       x: rect.left + rect.width / 2,
       y: rect.top,
       above: rect.top > 120,
+      labelled: element.getAttribute('aria-label')?.includes(definition) ?? false,
     });
   }
 

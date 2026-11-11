@@ -33,6 +33,7 @@ import { StepView } from '../components/step-view';
 import { InstallSlot } from '../components/install-slot';
 import { WaitlistBanner } from '../components/waitlist-banner';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
+import { keyBelongsToTarget } from '../data/shortcut-guard';
 import { ChartIntake } from '../state/chart-intake';
 import { ReaderStore } from '../state/reader-store';
 
@@ -726,9 +727,16 @@ export default class ReaderPage {
   }
 
   protected onKeydown(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement | null;
-    const tag = target?.tagName;
-    if (tag === 'TEXTAREA' || tag === 'INPUT' || event.metaKey || event.ctrlKey || event.altKey)
+    // Sans patron, ou quand la cible porte déjà son geste (bouton, lien, résumé,
+    // champ) ou qu'une boîte de dialogue est ouverte : le navigateur garde la main.
+    if (
+      this.store.stepCount() === 0 ||
+      event.defaultPrevented ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      keyBelongsToTarget(event.target)
+    )
       return;
 
     switch (event.key) {

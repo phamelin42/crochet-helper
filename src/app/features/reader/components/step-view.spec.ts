@@ -6,6 +6,7 @@ import {
   installFakeIndexedDb,
   uninstallFakeIndexedDb,
 } from '../../../core/storage/testing/fake-indexed-db';
+import { DisplayPrefsService } from '../../../core/platform/display-prefs.service';
 import { ColorGrid, gridToText } from '../data/color-grid';
 import { ReaderStore } from '../state/reader-store';
 import { StepView } from './step-view';
@@ -53,6 +54,45 @@ describe('StepView', () => {
     fixture.detectChanges();
 
     expect(host.querySelector('.navrow')).toBeTruthy();
+  });
+
+  describe('Échap', () => {
+    function escape(target: EventTarget): void {
+      target.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+      );
+    }
+
+    it('quitte la page pleine quand rien d’autre n’est ouvert', async () => {
+      const { store, fixture } = await setup();
+      store.load('Rang 1 : 6 ms\nRang 2 : 6 aug');
+      fixture.detectChanges();
+      const prefs = TestBed.inject(DisplayPrefsService);
+      expect(prefs.focus()).toBe(true);
+
+      escape(document.body);
+
+      expect(prefs.focus()).toBe(false);
+    });
+
+    it('dans une boîte de dialogue ouverte, ferme seulement la boîte : la page pleine reste', async () => {
+      const { store, fixture } = await setup();
+      store.load('Rang 1 : 6 ms\nRang 2 : 6 aug');
+      fixture.detectChanges();
+      const prefs = TestBed.inject(DisplayPrefsService);
+      const dialog = document.createElement('dialog');
+      dialog.setAttribute('open', '');
+      dialog.innerHTML = '<button type="button">Annuler</button>';
+      document.body.appendChild(dialog);
+      try {
+        escape(dialog.querySelector('button')!);
+        escape(document.body);
+
+        expect(prefs.focus()).toBe(true);
+      } finally {
+        dialog.remove();
+      }
+    });
   });
 
   it('en vue grille, seule la barre de la grille reste : pas de « Précédent » ni « Suivant » en double', async () => {

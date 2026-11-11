@@ -81,6 +81,92 @@ describe('ReaderPage', () => {
     }
   });
 
+  const NAVIGATION_KEYS = [
+    ' ',
+    'PageDown',
+    'PageUp',
+    'ArrowRight',
+    'ArrowLeft',
+    'ArrowUp',
+    'ArrowDown',
+  ];
+
+  function press(target: EventTarget, key: string): KeyboardEvent {
+    const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+    target.dispatchEvent(event);
+    return event;
+  }
+
+  const OWNERS: Record<string, string> = {
+    button: '<button type="button">Précédente</button>',
+    a: '<a href="/fr/glossaire">Glossaire</a>',
+    summary: '<details><summary>Question</summary>Réponse</details>',
+    select: '<select><option>a</option></select>',
+    'role=button': '<div role="button" tabindex="0">Action</div>',
+    contenteditable: '<div contenteditable="true">texte</div>',
+  };
+
+  for (const [name, html] of Object.entries(OWNERS)) {
+    it(`patron chargé, aucune touche de navigation n’est volée à un élément ${name}`, () => {
+      const { fixture, store } = setup();
+      store.load(PATTERN);
+      fixture.detectChanges();
+      const holder = document.createElement('div');
+      holder.innerHTML = html;
+      document.body.appendChild(holder);
+      try {
+        const target = (holder.querySelector('summary') ?? holder.firstElementChild) as HTMLElement;
+        for (const key of NAVIGATION_KEYS) {
+          const event = press(target, key);
+          expect(event.defaultPrevented, `${key} sur ${name}`).toBe(false);
+        }
+        expect(store.stepIndex()).toBe(0);
+        expect(store.reps()).toEqual({});
+      } finally {
+        holder.remove();
+      }
+    });
+  }
+
+  it('patron chargé, une boîte de dialogue ouverte garde les touches', () => {
+    const { fixture, store } = setup();
+    store.load(PATTERN);
+    fixture.detectChanges();
+    const dialog = document.createElement('dialog');
+    dialog.setAttribute('open', '');
+    dialog.innerHTML = '<p>Message</p>';
+    document.body.appendChild(dialog);
+    try {
+      for (const key of NAVIGATION_KEYS) {
+        expect(press(dialog, key).defaultPrevented, key).toBe(false);
+        expect(press(document.body, key).defaultPrevented, `${key} sur body`).toBe(false);
+      }
+      expect(store.stepIndex()).toBe(0);
+    } finally {
+      dialog.remove();
+    }
+  });
+
+  it('sans patron chargé, aucune touche n’est interceptée : la page défile', () => {
+    const { fixture } = setup();
+    fixture.detectChanges();
+
+    for (const key of NAVIGATION_KEYS) {
+      expect(press(document.body, key).defaultPrevented, key).toBe(false);
+    }
+  });
+
+  it('patron chargé, Espace sur le corps de la page avance et empêche le défilement', () => {
+    const { fixture, store } = setup();
+    store.load(PATTERN);
+    fixture.detectChanges();
+
+    const event = press(document.body, ' ');
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(store.stepIndex()).toBe(1);
+  });
+
   it('sans patron, le message d’invite est affiché et « Suivante » est désactivé', () => {
     const { fixture, host } = setup();
 

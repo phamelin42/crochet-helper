@@ -16,6 +16,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
+import { dialogIsOpen } from '../data/shortcut-guard';
 import { ReaderStore } from '../state/reader-store';
 import { GlossaryText } from './glossary-text';
 import { ImageGallery } from './image-gallery';
@@ -255,7 +256,13 @@ export class StepView {
   /** Échap quitte la page pleine, sauf s'il ferme déjà autre chose (boîte de
    *  dialogue, diagramme agrandi : celui-ci garde la main). */
   protected leaveFocus(event: Event): void {
-    if (event.defaultPrevented || !this.prefs.focus() || !this.store.step()) return;
+    if (
+      event.defaultPrevented ||
+      dialogIsOpen(event.target) ||
+      !this.prefs.focus() ||
+      !this.store.step()
+    )
+      return;
     this.setFocus(false);
   }
 

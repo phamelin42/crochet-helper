@@ -34,11 +34,15 @@ describe('circleRounds', () => {
         for (let n = 1; n <= MAX_CIRCLE_ROUNDS; n++) {
           const text = circlePattern(stitch, n, locale)!;
           const pattern = parsePattern(text);
-          expect(pattern.total).toBe(n);
+          // Un rang par étape, puis la consigne d'arrêt du fil, étape sans libellé.
+          expect(pattern.total).toBe(n + 1);
           expect(pattern.pieces).toHaveLength(1);
-          pattern.pieces[0].steps.forEach((step, i) => {
+          const steps = pattern.pieces[0].steps;
+          steps.slice(0, n).forEach((step, i) => {
             expect(step.label).toBe(`${locale === 'fr' ? 'Rang' : 'Round'} ${i + 1}`);
           });
+          expect(steps[n].label).toBe('');
+          expect(steps[n].body).toBe(locale === 'fr' ? 'Arrêter le fil.' : 'Fasten off.');
         }
       });
     }

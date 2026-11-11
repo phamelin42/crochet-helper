@@ -180,13 +180,17 @@ describe('pieceToChart', () => {
     const pieces = parsePattern(DEMO_PATTERN).pieces;
     for (const piece of pieces) {
       const chart = pieceToChart(piece);
-      expect(chart.drawable, piece.name).toBe(piece.steps.length);
+      // Les finitions (« Fasten off… ») sont des étapes sans libellé : à faire, pas à dessiner.
+      expect(chart.drawable, piece.name).toBe(piece.steps.filter((s) => s.label).length);
     }
     const tree = pieceToChart(pieces[0]);
-    expect(tree.numbers).toEqual([1, 2, 3, 4, 5, 9, 10, 11]);
-    expect(tree.spans).toEqual([1, 1, 1, 1, 4, 1, 1, 1]);
+    expect(tree.numbers.slice(0, 8)).toEqual([1, 2, 3, 4, 5, 9, 10, 11]);
+    expect(tree.spans.slice(0, 8)).toEqual([1, 1, 1, 1, 4, 1, 1, 1]);
     // Chaque tour de « Rounds 5-8 » a ses 24 mailles.
-    expect(tree.stitches).toEqual([6, 6, 12, 18, 96, 18, 12, 6]);
+    expect(tree.stitches.slice(0, 8)).toEqual([6, 6, 12, 18, 96, 18, 12, 6]);
+    // « Fasten off and close the remaining hole… » est à faire, pas à dessiner.
+    expect(tree.rounds).toHaveLength(9);
+    expect(tree.rounds[8]).toBeNull();
   });
 
   it('répète « sc around » autant que le tour précédent a de mailles', () => {

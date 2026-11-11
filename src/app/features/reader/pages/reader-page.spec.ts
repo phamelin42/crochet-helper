@@ -167,6 +167,46 @@ describe('ReaderPage', () => {
     expect(store.stepIndex()).toBe(1);
   });
 
+  function headingLevels(host: HTMLElement): number[] {
+    return [...host.querySelectorAll('h1, h2, h3, h4, h5, h6')].map((h) => Number(h.tagName[1]));
+  }
+
+  it('patron chargé, la page a un seul <h1> : le titre du patron', () => {
+    const { fixture, store, host } = setup();
+
+    store.load(PATTERN);
+    fixture.detectChanges();
+
+    const h1s = host.querySelectorAll('h1');
+    expect(h1s.length).toBe(1);
+    expect(h1s[0].textContent?.trim()).toBe('Rang 1 : 6 ms dans un cercle magique (6)');
+  });
+
+  it('sans patron, la page a un seul <h1> : celui du bandeau d’accueil', () => {
+    const { fixture, host } = setup();
+
+    fixture.detectChanges();
+
+    expect(host.querySelectorAll('h1').length).toBe(1);
+    expect(host.querySelector('.home-hero h1')).toBeTruthy();
+  });
+
+  for (const loaded of [false, true]) {
+    it(`${loaded ? 'patron chargé' : 'sans patron'}, les titres ne sautent aucun niveau`, () => {
+      const { fixture, store, host } = setup();
+      if (loaded) store.load(PATTERN);
+      fixture.detectChanges();
+
+      const levels = headingLevels(host);
+
+      expect(levels[0]).toBe(1);
+      levels.forEach((level, i) => {
+        if (i > 0)
+          expect(level, `titres ${levels.join(' ')}`).toBeLessThanOrEqual(levels[i - 1] + 1);
+      });
+    });
+  }
+
   it('sans patron, le message d’invite est affiché et « Suivante » est désactivé', () => {
     const { fixture, host } = setup();
 

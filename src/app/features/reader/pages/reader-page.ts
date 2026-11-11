@@ -469,6 +469,12 @@ const SEO: Record<Locale, { title: string; description: string; features: string
       <fil-pattern-import [(open)]="importOpen" />
     }
 
+    <!-- Le bandeau (et son titre) disparaît avec un patron chargé : le titre du
+         patron prend la place du <h1>, sans changer la mise en page. -->
+    @if (store.step()) {
+      <h1 class="visually-hidden">{{ store.currentName() }}</h1>
+    }
+
     <section class="reader">
       <div>
         <fil-step-view (changePattern)="changePattern()" />
@@ -490,7 +496,7 @@ const SEO: Record<Locale, { title: string; description: string; features: string
         <h2>{{ homeCopy.howItWorksTitle }}</h2>
         <div class="grid-steps">
           @for (step of homeCopy.steps; track step.title) {
-            <fil-tile [label]="step.title">
+            <fil-tile [label]="step.title" [heading]="3">
               <p>{{ step.lead }}</p>
             </fil-tile>
           }

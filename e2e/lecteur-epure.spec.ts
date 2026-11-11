@@ -154,8 +154,9 @@ for (const viewport of [
           break;
         }
       }
-      // L'exemple compte 13 étapes (trois pièces) : la garde les a toutes vues.
-      expect(visited).toBe(13);
+      // L'exemple compte 16 étapes (trois pièces, dont la finition de chacune,
+      // qui est une étape depuis la fiche 58) : la garde les a toutes vues.
+      expect(visited).toBe(16);
       expect([...positions]).toHaveLength(1);
     });
   }

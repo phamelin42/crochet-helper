@@ -31,7 +31,7 @@ import { Icon } from '../ui/icon/icon';
       <span>Pattern Reader</span>
     </a>
 
-    <nav class="nav-links" [attr.aria-label]="i18n.t('nav.home')">
+    <nav class="nav-links" [attr.aria-label]="i18n.t('nav.main')">
       <a
         [routerLink]="i18n.link('reader')"
         routerLinkActive="active"

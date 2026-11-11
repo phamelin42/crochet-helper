@@ -95,6 +95,20 @@ describe('StepView', () => {
     });
   });
 
+  it('le bouton de la page pleine n’est pas un bouton à bascule : son libellé change, pas son état annoncé', async () => {
+    const { store, fixture, host } = await setup();
+    store.load('Rang 1 : 6 ms\nRang 2 : 6 aug');
+    const prefs = TestBed.inject(DisplayPrefsService);
+    for (const focus of [true, false]) {
+      prefs.setFocus(focus);
+      fixture.detectChanges();
+
+      const toggle = host.querySelector('.focus-toggle');
+      expect(toggle?.hasAttribute('aria-pressed'), `page pleine : ${focus}`).toBe(false);
+      expect(toggle?.getAttribute('aria-label')).toBe(focus ? 'Exit full page' : 'Full page');
+    }
+  });
+
   it('en vue grille, seule la barre de la grille reste : pas de « Précédent » ni « Suivant » en double', async () => {
     const { store, fixture, host } = await setup();
     await store.openGrid(GRID, gridToText(GRID, 'en'));

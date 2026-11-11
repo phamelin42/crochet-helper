@@ -33,6 +33,7 @@ const COPY = {
   fr: {
     'ui.cancel': 'Annuler',
     'ui.delete': 'Supprimer',
+    'ui.deleteNamed': 'Supprimer le projet « {name} »',
     'ui.deleteConfirmAction': 'Supprimer définitivement',
     'ui.deleteConfirmBody':
       'Le patron, la progression et le chronomètre de ce projet seront définitivement supprimés.',
@@ -51,14 +52,17 @@ const COPY = {
       'Reprenez un patron en cours, ou démarrez-en un nouveau. Tout reste sur cet appareil : exportez une sauvegarde pour la retrouver ailleurs.',
     'ui.projectsTitle': 'Mes projets',
     'ui.rename': 'Renommer',
+    'ui.renameNamed': 'Renommer le projet « {name} »',
     'ui.renameLabel': 'Nom du projet',
     'ui.resume': 'Reprendre',
+    'ui.resumeNamed': 'Reprendre le projet « {name} »',
     'ui.save': 'Enregistrer',
     'ui.untitledProject': 'Projet sans titre',
   },
   en: {
     'ui.cancel': 'Cancel',
     'ui.delete': 'Delete',
+    'ui.deleteNamed': 'Delete project “{name}”',
     'ui.deleteConfirmAction': 'Delete permanently',
     'ui.deleteConfirmBody':
       "This project's pattern, progress and timer will be permanently deleted.",
@@ -76,8 +80,10 @@ const COPY = {
       'Resume a pattern in progress, or start a new one. Everything stays on this device: export a backup to take it elsewhere.',
     'ui.projectsTitle': 'My projects',
     'ui.rename': 'Rename',
+    'ui.renameNamed': 'Rename project “{name}”',
     'ui.renameLabel': 'Project name',
     'ui.resume': 'Resume',
+    'ui.resumeNamed': 'Resume project “{name}”',
     'ui.save': 'Save',
     'ui.untitledProject': 'Untitled project',
   },
@@ -145,13 +151,28 @@ type LocalKey = keyof typeof COPY.fr;
               </p>
             </div>
             <div class="projects-actions">
-              <button type="button" filButton="primary" (click)="resume(project.id)">
+              <button
+                type="button"
+                filButton="primary"
+                [attr.aria-label]="named('ui.resumeNamed', project)"
+                (click)="resume(project.id)"
+              >
                 {{ t('ui.resume') }}
               </button>
-              <button type="button" filButton="secondary" (click)="openRename(project)">
+              <button
+                type="button"
+                filButton="secondary"
+                [attr.aria-label]="named('ui.renameNamed', project)"
+                (click)="openRename(project)"
+              >
                 {{ t('ui.rename') }}
               </button>
-              <button type="button" filButton="ghost" (click)="openDelete(project)">
+              <button
+                type="button"
+                filButton="ghost"
+                [attr.aria-label]="named('ui.deleteNamed', project)"
+                (click)="openDelete(project)"
+              >
                 {{ t('ui.delete') }}
               </button>
             </div>
@@ -209,6 +230,12 @@ export default class ProjectsPage {
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
 
   protected t = (key: LocalKey): string => COPY[this.locale][key];
+
+  /** Nom accessible d'un bouton de carte : l'action, puis le projet visé, pour
+   *  que trois cartes ne portent pas trois fois « Supprimer ». */
+  protected named(key: LocalKey, project: Project): string {
+    return this.t(key).replace('{name}', project.name || this.t('ui.untitledProject'));
+  }
 
   protected readonly renameOpen = signal(false);
   protected readonly renameTarget = signal<Project | null>(null);

@@ -90,7 +90,6 @@ const LONGEST_STEP = 90;
           filButton="ghost"
           class="focus-toggle"
           aria-keyshortcuts="Escape"
-          [attr.aria-pressed]="prefs.focus()"
           [attr.aria-label]="prefs.focus() ? t('ui.focusOff') : t('ui.focusOn')"
           (click)="toggleFocus()"
         >

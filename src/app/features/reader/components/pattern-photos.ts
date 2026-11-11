@@ -9,6 +9,10 @@ import { ImageGallery } from './image-gallery';
  * Photos du PDF rattachées à aucune étape (couverture, schéma général), et
  * l'avis quand des photos ont été laissées de côté à l'import. L'avis reste
  * hors du panneau replié : il doit se lire sans rien ouvrir.
+ *
+ * Ces photos présentent l'ouvrage : à la première étape elles sont dépliées,
+ * c'est là qu'on les cherche ; plus loin le panneau se replie pour laisser la
+ * place. Il vit sous l'étape, jamais au-dessus (`e2e/reading-mode.spec.ts`).
  */
 @Component({
   selector: 'fil-pattern-photos',
@@ -18,7 +22,12 @@ import { ImageGallery } from './image-gallery';
       <p class="hint" role="status">{{ note }}</p>
     }
     @if (visible()) {
-      <fil-disclosure [label]="t('ui.patternPhotos')" variant="mats" [state]="count()">
+      <fil-disclosure
+        [label]="t('ui.patternPhotos')"
+        variant="mats"
+        [state]="count()"
+        [open]="atStart()"
+      >
         <fil-image-gallery [numbers]="numbers()" [label]="t('ui.patternPhotos')" />
       </fil-disclosure>
     }
@@ -35,6 +44,7 @@ export class PatternPhotos {
   protected readonly visible = computed(() =>
     this.numbers().some((n) => this.store.photos()[n - 1]),
   );
+  protected readonly atStart = computed(() => !this.store.hasPrevious());
   protected readonly count = computed(() => String(this.numbers().length));
   protected readonly note = computed(() => {
     const note = this.store.pdfImagesNote();

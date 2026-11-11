@@ -15,7 +15,10 @@ concurrency:
 jobs:
   verify:
     name: Lint · format · tests · build
-    runs-on: ubuntu-latest
+    # Image figée : le 11/11/2026, `ubuntu-latest` (26.04) ne résolvait plus ses
+    # miroirs apt, et `playwright install --with-deps` échouait avant tout test.
+    # Revenir à `ubuntu-latest` quand l'image est stable.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 

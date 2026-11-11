@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 4310;
+// Port réglable : deux copies de travail peuvent lancer l'audit en même temps.
+const PORT = Number(process.env['E2E_PORT'] ?? 4310);
 
 /**
  * Config Playwright dédiée à l'audit d'accessibilité (`npm run test:a11y`).

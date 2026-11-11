@@ -147,7 +147,13 @@ import { ReaderStore } from '../state/reader-store';
           @if (pdfErrorMessage(); as message) {
             <p class="hint" role="alert">{{ message }}</p>
           } @else if (noRows()) {
-            <p class="hint" role="alert">{{ t('ui.noRows') }}</p>
+            <p class="hint" role="alert">
+              {{ t('ui.noRows') }}
+              @if (aiUrl) {
+                {{ t('ui.noRowsAi') }}
+              }
+              <a [routerLink]="i18n.link('format')">{{ t('ui.noRowsFormat') }}</a>
+            </p>
           } @else if (emptyText()) {
             <p class="hint" role="alert">{{ t('ui.emptyText') }}</p>
           }

@@ -6,6 +6,7 @@ import {
   installFakeIndexedDb,
   uninstallFakeIndexedDb,
 } from '../../../core/storage/testing/fake-indexed-db';
+import { I18nService } from '../../../core/i18n/i18n.service';
 import { DisplayPrefsService } from '../../../core/platform/display-prefs.service';
 import { ColorGrid, gridToText } from '../data/color-grid';
 import { ReaderStore } from '../state/reader-store';
@@ -106,6 +107,25 @@ describe('StepView', () => {
       const toggle = host.querySelector('.focus-toggle');
       expect(toggle?.hasAttribute('aria-pressed'), `page pleine : ${focus}`).toBe(false);
       expect(toggle?.getAttribute('aria-label')).toBe(focus ? 'Exit full page' : 'Full page');
+    }
+  });
+
+  describe('aide de l’état vide', () => {
+    const BUTTONS: Record<'fr' | 'en', string> = { fr: 'grands boutons', en: 'big buttons' };
+    const ARROWS = '← →';
+
+    for (const locale of ['fr', 'en'] as const) {
+      it(`en ${locale}, dit « ${BUTTONS[locale]} » avant le clavier : une tablette n’en a pas`, async () => {
+        TestBed.inject(I18nService).setLocale(locale);
+        const { fixture, host } = await setup();
+        fixture.detectChanges();
+
+        const help = host.querySelector('.step-body')?.textContent ?? '';
+
+        expect(help).toContain(BUTTONS[locale]);
+        expect(help.indexOf(BUTTONS[locale])).toBeLessThan(help.indexOf(ARROWS));
+        expect(help).not.toMatch(/barre d’espace|space bar/);
+      });
     }
   });
 

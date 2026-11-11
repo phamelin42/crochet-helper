@@ -31,7 +31,15 @@ jobs:
       # ce soit. L'installer ici après `test:tools` faisait passer partout,
       # sauf en CI, un test d'outil qui ouvre un navigateur (PR #78).
       - name: Navigateur (tests d'outils, audit d'accessibilité)
-        run: npx playwright install --with-deps chromium
+        # Trois essais : les miroirs apt du runner ont parfois une panne DNS de
+        # quelques minutes, qui faisait échouer le job avant le premier test.
+        run: |
+          for essai in 1 2 3; do
+            npx playwright install --with-deps chromium && exit 0
+            echo "Installation du navigateur : essai $essai échoué, nouvel essai dans 60 s."
+            sleep 60
+          done
+          exit 1
 
       - name: Lint
         run: npm run lint

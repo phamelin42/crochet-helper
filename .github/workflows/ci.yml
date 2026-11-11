@@ -31,7 +31,18 @@ jobs:
       # ce soit. L'installer ici après `test:tools` faisait passer partout,
       # sauf en CI, un test d'outil qui ouvre un navigateur (PR #78).
       - name: Navigateur (tests d'outils, audit d'accessibilité)
-        run: npx playwright install --with-deps chromium
+        # Trois essais, puis repli : le 11/11/2026, les runners n'ont plus résolu
+        # leurs miroirs apt pendant des heures, et `--with-deps` faisait échouer
+        # le job avant le premier test. Sans les paquets système (des polices),
+        # Chromium se lance quand même sur l'image du runner.
+        run: |
+          for essai in 1 2 3; do
+            npx playwright install --with-deps chromium && exit 0
+            echo "Installation du navigateur : essai $essai échoué."
+            sleep 30
+          done
+          echo "::warning::Paquets système indisponibles : Chromium installé sans eux."
+          npx playwright install chromium
 
       - name: Lint
         run: npm run lint

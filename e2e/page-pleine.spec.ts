@@ -100,7 +100,7 @@ for (const viewport of VIEWPORTS) {
 
     test('les répétitions se comptent depuis la page pleine', async ({ page }) => {
       await ouvrirExemple(page);
-      await page.getByRole('button', { name: '+', exact: true }).click();
+      await page.getByRole('button', { name: 'Add one repeat', exact: true }).click();
       await expect(page.locator('.reps-tile .big')).toContainText('1');
       await page.getByRole('button', { name: 'Exit full page', exact: true }).click();
       await expect(page.locator('.reps-tile .big')).toContainText('1');

@@ -1,6 +1,7 @@
 import { ApplicationRef, Component, afterNextRender, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { I18nService } from './core/i18n/i18n.service';
+import { RouteAnnouncer } from './core/platform/route-announcer.service';
 import { AppChrome } from './shared/layout/app-chrome';
 import { SiteFooter } from './shared/layout/site-footer';
 import { SiteHeader } from './shared/layout/site-header';
@@ -25,10 +26,14 @@ import { TooltipHost } from './shared/ui/tooltip/tooltip-host';
     </main>
     <fil-site-footer />
     <fil-tooltip-host />
+    <div class="visually-hidden" aria-live="polite" aria-atomic="true">
+      {{ announcer.message() }}
+    </div>
   `,
 })
 export class App {
   protected readonly i18n = inject(I18nService);
+  protected readonly announcer = inject(RouteAnnouncer);
   protected readonly ready = signal(false);
 
   constructor() {

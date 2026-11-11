@@ -34,7 +34,7 @@ import { ReaderStore } from '../state/reader-store';
           type="button"
           filButton="secondary"
           [iconOnly]="true"
-          aria-label="−"
+          [attr.aria-label]="t('ui.repsMinus')"
           [disabled]="!store.step() || store.currentReps() <= 0"
           (click)="store.addRepeat(-1)"
         >
@@ -44,13 +44,18 @@ import { ReaderStore } from '../state/reader-store';
           type="button"
           filButton="primary"
           [iconOnly]="true"
-          aria-label="+"
+          [attr.aria-label]="t('ui.repsPlus')"
           [disabled]="!store.step() || store.repsComplete()"
           (click)="store.addRepeat(1)"
         >
           <fil-icon name="plus" />
         </button>
-        <button type="button" filButton="ghost" (click)="store.resetRepeat()">
+        <button
+          type="button"
+          filButton="ghost"
+          [attr.aria-label]="t('ui.resetReps')"
+          (click)="store.resetRepeat()"
+        >
           {{ t('ui.reset') }}
         </button>
       </div>
@@ -77,13 +82,17 @@ import { ReaderStore } from '../state/reader-store';
           type="button"
           filButton="secondary"
           [iconOnly]="true"
-          [attr.aria-pressed]="store.running()"
           [attr.aria-label]="store.running() ? t('ui.pause') : t('ui.play')"
           (click)="store.toggleTimer()"
         >
           <fil-icon [name]="store.running() ? 'pause' : 'play'" />
         </button>
-        <button type="button" filButton="ghost" (click)="store.resetTimer()">
+        <button
+          type="button"
+          filButton="ghost"
+          [attr.aria-label]="t('ui.resetTimer')"
+          (click)="store.resetTimer()"
+        >
           {{ t('ui.reset') }}
         </button>
       </div>

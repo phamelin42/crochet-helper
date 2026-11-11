@@ -557,8 +557,13 @@ textarea.src-input {
   --tile-pale: var(--color-asagi-pale);
   --tile-ink: var(--color-asagi-ink);
 }
-.tile h6 {
+.tile .tile-label {
   margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  line-height: 1.18;
+  text-wrap: balance;
+  text-transform: uppercase;
   font-size: var(--text-xs);
   letter-spacing: 0.12em;
   color: var(--tile-ink);
@@ -853,7 +858,7 @@ fil-install-slot {
   --tile-pale: var(--color-asagi-pale);
   --tile-ink: var(--color-asagi-ink);
 }
-.grid-steps .tile h6 {
+.grid-steps .tile .tile-label {
   text-transform: none;
   letter-spacing: normal;
   font-size: var(--text-base);

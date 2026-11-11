@@ -26,8 +26,8 @@ const COPY = {
     dim: 'Fond sombre',
     wake: 'Garder l’écran allumé',
     textSize: 'Taille du texte',
-    defaultView: 'Affichage d’un nouveau patron',
-    viewAsk: 'Demander',
+    defaultView: 'À l’ouverture d’un patron',
+    viewAsk: 'Me demander',
     viewText: 'Texte',
     viewChart: 'Diagramme',
     language: 'Langue',
@@ -47,7 +47,7 @@ const COPY = {
     dim: 'Dark background',
     wake: 'Keep screen awake',
     textSize: 'Text size',
-    defaultView: 'Display of a new pattern',
+    defaultView: 'When a pattern opens',
     viewAsk: 'Ask me',
     viewText: 'Text',
     viewChart: 'Chart',
@@ -88,16 +88,18 @@ const GUIDES = ['guideReadingPattern', 'guideReadingChart', 'guideCrochetOrKnitt
             [label]="c.wake"
           />
         }
+        <p class="settings-label" id="settings-text-size-label">{{ c.textSize }}</p>
         <fil-segmented
           name="settings-text-size"
-          [label]="c.textSize"
+          labelledBy="settings-text-size-label"
           [options]="textSizeOptions"
           [selected]="textSizeIndex()"
           (selectedChange)="setTextSize($event)"
         />
+        <p class="settings-label" id="settings-default-view-label">{{ c.defaultView }}</p>
         <fil-segmented
           name="settings-default-view"
-          [label]="c.defaultView"
+          labelledBy="settings-default-view-label"
           [options]="viewOptions"
           [selected]="viewIndex()"
           (selectedChange)="setDefaultView($event)"

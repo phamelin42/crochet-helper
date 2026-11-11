@@ -6,6 +6,9 @@ import {
   installFakeIndexedDb,
   uninstallFakeIndexedDb,
 } from '../../../core/storage/testing/fake-indexed-db';
+import { I18nService } from '../../../core/i18n/i18n.service';
+import { DisplayPrefsService } from '../../../core/platform/display-prefs.service';
+import { TooltipService } from '../../../shared/ui/tooltip/tooltip.service';
 import { ColorGrid, gridToText } from '../data/color-grid';
 import { ReaderStore } from '../state/reader-store';
 import { StepView } from './step-view';
@@ -53,6 +56,93 @@ describe('StepView', () => {
     fixture.detectChanges();
 
     expect(host.querySelector('.navrow')).toBeTruthy();
+  });
+
+  describe('Échap', () => {
+    function escape(target: EventTarget): void {
+      target.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+      );
+    }
+
+    it('quitte la page pleine quand rien d’autre n’est ouvert', async () => {
+      const { store, fixture } = await setup();
+      store.load('Rang 1 : 6 ms\nRang 2 : 6 aug');
+      fixture.detectChanges();
+      const prefs = TestBed.inject(DisplayPrefsService);
+      expect(prefs.focus()).toBe(true);
+
+      escape(document.body);
+
+      expect(prefs.focus()).toBe(false);
+    });
+
+    it('dans une boîte de dialogue ouverte, ferme seulement la boîte : la page pleine reste', async () => {
+      const { store, fixture } = await setup();
+      store.load('Rang 1 : 6 ms\nRang 2 : 6 aug');
+      fixture.detectChanges();
+      const prefs = TestBed.inject(DisplayPrefsService);
+      const dialog = document.createElement('dialog');
+      dialog.setAttribute('open', '');
+      dialog.innerHTML = '<button type="button">Annuler</button>';
+      document.body.appendChild(dialog);
+      try {
+        escape(dialog.querySelector('button')!);
+        escape(document.body);
+
+        expect(prefs.focus()).toBe(true);
+      } finally {
+        dialog.remove();
+      }
+    });
+  });
+
+  it('le bouton de la page pleine n’est pas un bouton à bascule : son libellé change, pas son état annoncé', async () => {
+    const { store, fixture, host } = await setup();
+    store.load('Rang 1 : 6 ms\nRang 2 : 6 aug');
+    const prefs = TestBed.inject(DisplayPrefsService);
+    for (const focus of [true, false]) {
+      prefs.setFocus(focus);
+      fixture.detectChanges();
+
+      const toggle = host.querySelector('.focus-toggle');
+      expect(toggle?.hasAttribute('aria-pressed'), `page pleine : ${focus}`).toBe(false);
+      expect(toggle?.getAttribute('aria-label')).toBe(focus ? 'Exit full page' : 'Full page');
+    }
+  });
+
+  it('Échap avec une infobulle ouverte ne quitte pas la page pleine', async () => {
+    const { store, fixture } = await setup();
+    store.load('Rang 1 : 6 ms\nRang 2 : 6 aug');
+    fixture.detectChanges();
+    const prefs = TestBed.inject(DisplayPrefsService);
+    const tooltips = TestBed.inject(TooltipService);
+    tooltips.showFor(document.body, 'ms', 'maille serrée');
+
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+    );
+
+    expect(prefs.focus()).toBe(true);
+  });
+
+  describe('aide de l’état vide', () => {
+    const BUTTONS: Record<'fr' | 'en', string> = { fr: 'grands boutons', en: 'big buttons' };
+    const ARROWS = '← →';
+
+    for (const locale of ['fr', 'en'] as const) {
+      it(`en ${locale}, dit « ${BUTTONS[locale]} » avant le clavier : une tablette n’en a pas`, async () => {
+        TestBed.inject(I18nService).setLocale(locale);
+        const { fixture, host } = await setup();
+        fixture.detectChanges();
+
+        const help = host.querySelector('.step-body')?.textContent ?? '';
+
+        expect(help).toContain(BUTTONS[locale]);
+        expect(help.indexOf(BUTTONS[locale])).toBeLessThan(help.indexOf(ARROWS));
+        expect(help).not.toMatch(/barre d’espace|space bar/);
+      });
+    }
   });
 
   it('en vue grille, seule la barre de la grille reste : pas de « Précédent » ni « Suivant » en double', async () => {

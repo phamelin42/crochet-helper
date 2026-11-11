@@ -96,7 +96,7 @@ test.describe('compteurs', () => {
   test('le compteur s’arrête à l’objectif et le dit', async ({ page }) => {
     await ouvrir(page);
     await coller(page, 'Round 1: [sc, inc] x 3 (18)');
-    const plus = page.getByRole('button', { name: '+', exact: true });
+    const plus = page.getByRole('button', { name: 'Add one repeat', exact: true });
 
     for (let i = 0; i < 3; i++) await plus.click();
 

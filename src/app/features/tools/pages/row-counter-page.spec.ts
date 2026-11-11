@@ -59,4 +59,49 @@ describe('RowCounterPage', () => {
     expect(host.querySelector('.counter-count')?.textContent).toContain('1');
     expect(findButton(host, '−1').disabled).toBe(false);
   });
+
+  describe('clavier', () => {
+    const press = (target: EventTarget, key: string) => {
+      const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+      target.dispatchEvent(event);
+      return event;
+    };
+    const count = (host: HTMLElement) =>
+      Number(host.querySelector('.counter-count')?.textContent?.match(/\d+/)?.[0]);
+
+    it('Espace sur le corps de la page compte un rang et empêche le défilement', () => {
+      const { fixture, host } = setup();
+      fixture.detectChanges();
+
+      const event = press(document.body, ' ');
+      fixture.detectChanges();
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(count(host)).toBe(1);
+    });
+
+    it('Espace ou flèche sur un bouton, un lien ou un résumé ne compte pas de rang', () => {
+      const { fixture, host } = setup();
+      fixture.detectChanges();
+      const holder = document.createElement('div');
+      holder.innerHTML =
+        '<a href="/x">lien</a><details><summary>faq</summary>r</details><select><option>a</option></select>';
+      document.body.appendChild(holder);
+      try {
+        const targets = [
+          findButton(host, 'Remettre à zéro'),
+          ...holder.querySelectorAll<HTMLElement>('a, summary, select'),
+        ];
+        for (const target of targets) {
+          for (const key of [' ', 'ArrowRight', 'ArrowLeft']) {
+            expect(press(target, key).defaultPrevented, `${key} sur ${target.tagName}`).toBe(false);
+          }
+        }
+        fixture.detectChanges();
+        expect(count(host)).toBe(0);
+      } finally {
+        holder.remove();
+      }
+    });
+  });
 });

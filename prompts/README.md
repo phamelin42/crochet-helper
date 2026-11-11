@@ -92,6 +92,7 @@ URL avant d'accumuler du référencement.
 | 54  | Métrage de fil                     | acquisition : « combien de pelotes ? », la question d'achat    |
 | 55  | Abréviations de tricot (articles)  | acquisition : cinq pages tricot sans article, non indexées     |
 | 56  | Cercle au crochet (calculateur)    | acquisition : « disque au crochet », ouvert dans le lecteur    |
+| 57  | Clavier, focus et noms (audit)     | activation : le clavier et le focus ne cassent plus le patron  |
 
 Les fiches 38 à 41 répondent à la demande de Phil du 30 septembre (mode page
 pleine comme l'application Filo, hors ligne mis en avant, Play Store ; pas

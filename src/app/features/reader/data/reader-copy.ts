@@ -22,9 +22,13 @@ const FR = {
   'ui.timer': 'Session',
   'ui.mats': 'Matériel',
   'ui.empty':
-    'Collez ou écrivez votre patron ci-dessus, puis « Découper en étapes ». Vous pourrez ensuite avancer aux flèches ← → ou à la barre d’espace.',
+    'Collez ou écrivez votre patron ci-dessus, puis « Découper en étapes ». Vous avancerez ensuite avec les grands boutons sous l’étape, ou aux flèches ← → d’un clavier.',
   'ui.allSteps': 'étapes en tout',
   'ui.reset': 'Remettre à zéro',
+  'ui.resetReps': 'Remettre à zéro les répétitions',
+  'ui.resetTimer': 'Remettre à zéro le chronomètre',
+  'ui.repsMinus': 'Retirer une répétition',
+  'ui.repsPlus': 'Ajouter une répétition',
   'ui.pieces': 'Pièces',
   'ui.loaded': 'étapes découpées',
   'ui.noPattern': 'aucun patron chargé',
@@ -37,6 +41,9 @@ const FR = {
   'ui.pdfError': "Ce PDF n'a pas pu être lu. Collez le texte du patron ci-dessus à la place.",
   'ui.noRows':
     'Aucun rang numéroté trouvé. Pattern Reader crée une étape par rang ou tour numéroté (« Rang 1 : », « Tour 2 : », « 1. »). Un patron rédigé en paragraphes ne peut pas encore être découpé ; un patron donné en diagramme s’ouvre avec « Ouvrir un diagramme ».',
+  'ui.noRowsAi':
+    'Cochez « Remettre en forme avec une IA (Claude) » ci-dessus, puis découpez de nouveau.',
+  'ui.noRowsFormat': 'Voir « Préparer un patron »',
   'ui.emptyText': 'Rien à découper pour le moment : collez d’abord le texte de votre patron.',
   'ui.aiLabel': 'Remettre en forme avec une IA (Claude) — 3 fois par jour',
   'ui.aiHelp':
@@ -168,9 +175,13 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.timer': 'Session',
   'ui.mats': 'Materials',
   'ui.empty':
-    'Paste or type your pattern above, then “Split into steps”. After that, move with ← → or the space bar.',
+    'Paste or type your pattern above, then “Split into steps”. After that, move with the big buttons under the step, or with ← → on a keyboard.',
   'ui.allSteps': 'steps in total',
   'ui.reset': 'Reset',
+  'ui.resetReps': 'Reset repeats',
+  'ui.resetTimer': 'Reset the timer',
+  'ui.repsMinus': 'Remove one repeat',
+  'ui.repsPlus': 'Add one repeat',
   'ui.pieces': 'Pieces',
   'ui.loaded': 'steps found',
   'ui.noPattern': 'no pattern loaded',
@@ -183,6 +194,8 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.pdfError': "This PDF couldn't be read. Paste the pattern text above instead.",
   'ui.noRows':
     'No numbered rows found. Pattern Reader makes one step per numbered row or round (“Row 1:”, “Rnd 2:”, “1.”). A pattern written as paragraphs can’t be split yet; a pattern given as a chart opens with “Open a chart”.',
+  'ui.noRowsAi': 'Tick “Tidy up with AI (Claude)” above, then split again.',
+  'ui.noRowsFormat': 'See “Prepare a pattern”',
   'ui.emptyText': 'Nothing to split yet: paste your pattern text first.',
   'ui.aiLabel': 'Tidy up with AI (Claude) — 3 times a day',
   'ui.aiHelp':

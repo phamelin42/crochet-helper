@@ -10,17 +10,11 @@ import { SiteFooter } from './site-footer';
  * `glossary`, `format` et `converter` sont dans la navigation d'en-tête, visible
  * sur toute page : les y dupliquer coûterait du bundle initial sans ajouter de
  * maillage réel. Le pied de page se concentre sur ce qui manquait : les guides
- * et le kit créatrices. `settings` n'est reliée que depuis la barre d'onglets du
- * mode appli (`noIndex`) : le pied de page du site ne la montre pas.
+ * et le kit créatrices, plus les réglages (taille du texte, fond sombre), que la
+ * barre d'onglets du mode appli est seule à relier ailleurs et qui restent
+ * introuvables sur le web sans ce lien.
  */
-const EXEMPT: readonly RouteName[] = [
-  'reader',
-  'projects',
-  'glossary',
-  'format',
-  'converter',
-  'settings',
-];
+const EXEMPT: readonly RouteName[] = ['reader', 'projects', 'glossary', 'format', 'converter'];
 
 function setup(locale: 'fr' | 'en') {
   TestBed.configureTestingModule({ providers: [provideRouter([])] });

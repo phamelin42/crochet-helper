@@ -21,6 +21,7 @@ const PROJECT = [
   'circleCalculator',
   'forDesigners',
   'privacy',
+  'settings',
 ] as const;
 
 /**

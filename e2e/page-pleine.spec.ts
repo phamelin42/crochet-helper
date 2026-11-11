@@ -69,7 +69,7 @@ for (const viewport of VIEWPORTS) {
     test('« Exit full page » rend la page complète, « Full page » y revient', async ({ page }) => {
       await ouvrirExemple(page);
       const outils = page.getByRole('button', { name: 'Exit full page', exact: true });
-      await expect(outils).toHaveAttribute('aria-pressed', 'true');
+      await expect(outils).not.toHaveAttribute('aria-pressed');
       await expect(outils).toHaveAttribute('aria-keyshortcuts', 'Escape');
       await outils.click();
 
@@ -77,7 +77,7 @@ for (const viewport of VIEWPORTS) {
       await expect(page.locator('.nav')).toBeVisible();
       await expect(page.getByRole('button', { name: 'Share this pattern' })).toBeVisible();
       const retour = page.getByRole('button', { name: 'Full page', exact: true });
-      await expect(retour).toHaveAttribute('aria-pressed', 'false');
+      await expect(retour).not.toHaveAttribute('aria-pressed');
       await expect(retour).toBeFocused();
 
       await retour.click();
@@ -100,7 +100,7 @@ for (const viewport of VIEWPORTS) {
 
     test('les répétitions se comptent depuis la page pleine', async ({ page }) => {
       await ouvrirExemple(page);
-      await page.getByRole('button', { name: '+', exact: true }).click();
+      await page.getByRole('button', { name: 'Add one repeat', exact: true }).click();
       await expect(page.locator('.reps-tile .big')).toContainText('1');
       await page.getByRole('button', { name: 'Exit full page', exact: true }).click();
       await expect(page.locator('.reps-tile .big')).toContainText('1');

@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
@@ -14,6 +15,7 @@ import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale, localePrefix } from '../../../core/i18n/locale';
 import { DisplayPrefsService } from '../../../core/platform/display-prefs.service';
+import { FocusService } from '../../../core/platform/focus.service';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
@@ -33,6 +35,7 @@ import { StepView } from '../components/step-view';
 import { InstallSlot } from '../components/install-slot';
 import { WaitlistBanner } from '../components/waitlist-banner';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
+import { keyBelongsToTarget } from '../data/shortcut-guard';
 import { ChartIntake } from '../state/chart-intake';
 import { ReaderStore } from '../state/reader-store';
 
@@ -466,6 +469,12 @@ const SEO: Record<Locale, { title: string; description: string; features: string
       <fil-pattern-import [(open)]="importOpen" />
     }
 
+    <!-- Le bandeau (et son titre) disparaît avec un patron chargé : le titre du
+         patron prend la place du <h1>, sans changer la mise en page. -->
+    @if (store.step()) {
+      <h1 class="visually-hidden">{{ store.currentName() }}</h1>
+    }
+
     <section class="reader">
       <div>
         <fil-step-view (changePattern)="changePattern()" />
@@ -487,7 +496,7 @@ const SEO: Record<Locale, { title: string; description: string; features: string
         <h2>{{ homeCopy.howItWorksTitle }}</h2>
         <div class="grid-steps">
           @for (step of homeCopy.steps; track step.title) {
-            <fil-tile [label]="step.title">
+            <fil-tile [label]="step.title" [heading]="3">
               <p>{{ step.lead }}</p>
             </fil-tile>
           }
@@ -562,6 +571,7 @@ export default class ReaderPage {
   private readonly analytics = inject(AnalyticsService);
   private readonly seo = inject(SeoService);
   private readonly prefs = inject(DisplayPrefsService);
+  private readonly focus = inject(FocusService);
   private readonly appMode = inject(AppModeService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -625,6 +635,12 @@ export default class ReaderPage {
       ),
     );
     inject(DestroyRef).onDestroy(() => this.prefs.applyFocus(false));
+
+    // Charger un patron masque le panneau d'import en page pleine, et son
+    // bouton avec lui : le focus ne doit pas tomber sur le corps de la page.
+    effect(() => {
+      if (this.store.pieces().length > 0) untracked(() => this.focus.restoreIfLost());
+    });
 
     // Attend la restauration du projet en cours avant de lire un éventuel
     // permalien : sinon un patron en cours de reprise depuis IndexedDB
@@ -726,9 +742,16 @@ export default class ReaderPage {
   }
 
   protected onKeydown(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement | null;
-    const tag = target?.tagName;
-    if (tag === 'TEXTAREA' || tag === 'INPUT' || event.metaKey || event.ctrlKey || event.altKey)
+    // Sans patron, ou quand la cible porte déjà son geste (bouton, lien, résumé,
+    // champ) ou qu'une boîte de dialogue est ouverte : le navigateur garde la main.
+    if (
+      this.store.stepCount() === 0 ||
+      event.defaultPrevented ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      keyBelongsToTarget(event.target)
+    )
       return;
 
     switch (event.key) {

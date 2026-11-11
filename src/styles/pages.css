@@ -358,6 +358,13 @@
 .settings-group h2 {
   margin: 0;
 }
+/* Libellé visible d'un groupe de segments : relié au groupe par aria-labelledby. */
+.settings-group .settings-label {
+  margin: 0 0 calc(var(--space-2) * -1);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-label);
+}
 /* Trois options à 320 px : la piste passe à la ligne plutôt que de déborder (fiche 46). */
 .settings-group .seg {
   flex-wrap: wrap;

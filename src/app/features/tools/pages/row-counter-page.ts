@@ -12,6 +12,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Checkbox } from '../../../shared/ui/checkbox/checkbox';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { InputField } from '../../../shared/ui/field/input';
+import { keyBelongsToTarget } from '../../reader/data/shortcut-guard';
 import {
   CounterState,
   INITIAL_COUNTER_STATE,
@@ -368,8 +369,15 @@ export default class RowCounterPage {
   }
 
   protected onKeydown(event: KeyboardEvent): void {
-    const tag = (event.target as HTMLElement | null)?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || event.metaKey || event.ctrlKey || event.altKey) {
+    // Un bouton, un lien, un résumé ou un champ garde son propre geste (Espace
+    // sur « Remettre à zéro » ne doit pas compter un rang), comme un dialogue ouvert.
+    if (
+      event.defaultPrevented ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      keyBelongsToTarget(event.target)
+    ) {
       return;
     }
     if (event.key === 'ArrowRight' || event.key === ' ') {

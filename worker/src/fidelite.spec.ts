@@ -107,3 +107,66 @@ describe('controler : plusieurs langues, étapes numérotées', () => {
     );
   });
 });
+
+/** Un patron issu d'un PDF : les marqueurs [image N] disent quelle photo va où. */
+const AVEC_IMAGES = [
+  'Tête',
+  '[image 1]',
+  'Rang 1 : 6 ms dans un cercle magique (6)',
+  '[image 2]',
+  'Rang 2 : 2 ms dans chaque maille (12)',
+  'Oreilles',
+  '[image 3]',
+  'Rang 1 : 4 ms (4)',
+].join('\n');
+
+describe('controler : marqueurs d’image', () => {
+  const NUMEROS = [1, 2, 3] as const;
+
+  it('accepte une sortie qui garde chaque marqueur une fois', () => {
+    expect(controler(AVEC_IMAGES, AVEC_IMAGES)).toBeNull();
+  });
+
+  it('accepte un marqueur déplacé : la place est l’affaire de la consigne, pas de la garde', () => {
+    const sortie = AVEC_IMAGES.replace('[image 2]\n', '').replace(
+      'Rang 2 : 2 ms dans chaque maille (12)',
+      '[image 2]\nRang 2 : 2 ms dans chaque maille (12)',
+    );
+    expect(controler(AVEC_IMAGES, sortie)).toBeNull();
+  });
+
+  for (const n of NUMEROS) {
+    it(`refuse une sortie où le marqueur [image ${n}] manque`, () => {
+      const sortie = AVEC_IMAGES.replace(`[image ${n}]\n`, '');
+      expect(controler(AVEC_IMAGES, sortie)).toBe(`images-manquantes:${n}`);
+      expect(fidele(AVEC_IMAGES, sortie)).toBe(false);
+    });
+
+    it(`refuse une sortie où le marqueur [image ${n}] est dupliqué`, () => {
+      const sortie = AVEC_IMAGES.replace(`[image ${n}]\n`, `[image ${n}]\n[image ${n}]\n`);
+      expect(controler(AVEC_IMAGES, sortie)).toBe(`images-dupliquees:${n}`);
+    });
+  }
+
+  it('refuse un marqueur qui n’existe pas dans l’entrée, même avec un numéro connu ailleurs', () => {
+    expect(controler(AVEC_IMAGES, `${AVEC_IMAGES}\n[image 4]`)).toBe('images-inventees:4');
+    // Sans marqueur en entrée, tout marqueur en sortie est inventé.
+    expect(controler(ENTREE, `${ENTREE}\n[image 1]`)).toBe('images-inventees:1');
+  });
+
+  it('reconnaît le marqueur quelle que soit la casse et l’espacement', () => {
+    expect(controler(AVEC_IMAGES, AVEC_IMAGES.replace('[image 1]', '[Image  1]'))).toBeNull();
+    expect(controler(AVEC_IMAGES, AVEC_IMAGES.replace('[image 1]\n', ''))).toBe(
+      'images-manquantes:1',
+    );
+  });
+
+  it('nomme les numéros fautifs, cinq au plus, sans citer le texte', () => {
+    const entree = `${ENTREE}\n${[1, 2, 3, 4, 5, 6, 7].map((n) => `[image ${n}]`).join('\n')}`;
+    expect(controler(entree, ENTREE)).toBe('images-manquantes:1,2,3,4,5');
+  });
+
+  it('ne refuse pas un texte sans marqueur sur ce motif', () => {
+    expect(controler(ENTREE, ENTREE)).toBeNull();
+  });
+});

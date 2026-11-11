@@ -15,10 +15,7 @@ concurrency:
 jobs:
   verify:
     name: Lint · format · tests · build
-    # Image figée : le 11/11/2026, `ubuntu-latest` (26.04) ne résolvait plus ses
-    # miroirs apt, et `playwright install --with-deps` échouait avant tout test.
-    # Revenir à `ubuntu-latest` quand l'image est stable.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -34,15 +31,18 @@ jobs:
       # ce soit. L'installer ici après `test:tools` faisait passer partout,
       # sauf en CI, un test d'outil qui ouvre un navigateur (PR #78).
       - name: Navigateur (tests d'outils, audit d'accessibilité)
-        # Trois essais : les miroirs apt du runner ont parfois une panne DNS de
-        # quelques minutes, qui faisait échouer le job avant le premier test.
+        # Trois essais, puis repli : le 11/11/2026, les runners n'ont plus résolu
+        # leurs miroirs apt pendant des heures, et `--with-deps` faisait échouer
+        # le job avant le premier test. Sans les paquets système (des polices),
+        # Chromium se lance quand même sur l'image du runner.
         run: |
           for essai in 1 2 3; do
             npx playwright install --with-deps chromium && exit 0
-            echo "Installation du navigateur : essai $essai échoué, nouvel essai dans 60 s."
-            sleep 60
+            echo "Installation du navigateur : essai $essai échoué."
+            sleep 30
           done
-          exit 1
+          echo "::warning::Paquets système indisponibles : Chromium installé sans eux."
+          npx playwright install chromium
 
       - name: Lint
         run: npm run lint

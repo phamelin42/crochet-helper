@@ -114,6 +114,13 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   test qui validait le bug (`dtr` laissé tel quel par le convertisseur,
   patron écrasé au rechargement). Un test décrit ce que la lectrice doit
   obtenir, pas ce que le code fait.
+- **Un raccourci clavier global ne vole rien** : `document:keydown` laisse
+  Espace, PageBas et les flèches à qui les porte déjà (`button`, `a`, `summary`,
+  champ, dialogue ouvert) et ne bloque rien sans patron chargé. Tout nouveau
+  raccourci passe par `keyBelongsToTarget` (`reader/data/shortcut-guard.ts`) et
+  se teste en boucle sur les types d'éléments (`e2e/clavier.spec.ts`). Un
+  élément qui disparaît (dialogue fermé, panneau masqué) ne doit pas laisser le
+  focus sur `body` : `FocusService.restoreIfLost()`.
 - **Un test qui lit l'état juste après l'action ne prouve rien sur la
   persistance** : l'effet qui écrit en IndexedDB n'a pas encore tourné, et
   « le projet actif est intact » est vrai quoi que fasse le code (fiche 19).

@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   afterNextRender,
   effect,
@@ -59,6 +60,12 @@ export class Dialog {
   }
 
   constructor() {
+    // Retiré du document encore ouvert (un choix qui fait disparaître son
+    // `@if`) : aucun événement `close`, le focus retomberait sur le corps.
+    inject(DestroyRef).onDestroy(() => {
+      if (this.open()) this.focus.restoreIfLost();
+    });
+
     afterNextRender(() => {
       const element = this.root().nativeElement;
       element.addEventListener('click', (event) => {

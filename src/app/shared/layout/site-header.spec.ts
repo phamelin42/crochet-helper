@@ -20,5 +20,17 @@ describe('SiteHeader', () => {
 
       expect(nav?.getAttribute('aria-label')).toBe(NAMES[locale]);
     });
+
+    it(`en ${locale}, la navigation compte quatre liens au plus (fiche 59)`, () => {
+      TestBed.configureTestingModule({ providers: [provideRouter([])] });
+      TestBed.inject(I18nService).setLocale(locale);
+      const fixture = TestBed.createComponent(SiteHeader);
+      fixture.detectChanges();
+
+      const links = (fixture.nativeElement as HTMLElement).querySelectorAll('nav a');
+
+      expect(links.length).toBeGreaterThan(0);
+      expect(links.length).toBeLessThanOrEqual(4);
+    });
   }
 });

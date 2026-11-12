@@ -46,7 +46,7 @@ test('retour à une page déjà vue : la page est annoncée de nouveau', async (
   await nav.getByRole('link', { name: 'Glossary' }).click();
   await expect(page).toHaveURL(/glossary/);
   const glossaire = await page.title();
-  await nav.getByRole('link', { name: 'Reader' }).click();
+  await nav.getByRole('link', { name: 'Read', exact: true }).click();
   await expect.poll(() => page.title()).not.toBe(glossaire);
 
   await expect(region(page)).toHaveText(await page.title());

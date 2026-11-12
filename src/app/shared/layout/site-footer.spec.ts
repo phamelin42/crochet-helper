@@ -7,14 +7,14 @@ import { SiteFooter } from './site-footer';
 
 /**
  * `reader` et `projects` sont déjà joignables ailleurs (marque, « Mes projets »).
- * `glossary`, `format` et `converter` sont dans la navigation d'en-tête, visible
- * sur toute page : les y dupliquer coûterait du bundle initial sans ajouter de
+ * `glossary` est dans la navigation d'en-tête, visible
+ * sur toute page : l'y dupliquer coûterait du bundle initial sans ajouter de
  * maillage réel. Le pied de page se concentre sur ce qui manquait : les guides
  * et le kit créatrices, plus les réglages (taille du texte, fond sombre), que la
  * barre d'onglets du mode appli est seule à relier ailleurs et qui restent
  * introuvables sur le web sans ce lien.
  */
-const EXEMPT: readonly RouteName[] = ['reader', 'projects', 'glossary', 'format', 'converter'];
+const EXEMPT: readonly RouteName[] = ['reader', 'projects', 'glossary'];
 
 function setup(locale: 'fr' | 'en') {
   TestBed.configureTestingModule({ providers: [provideRouter([])] });

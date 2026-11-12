@@ -52,7 +52,6 @@ Round 1: in magic ring, 10 sc (10)
 Round 2: [sl st, ch 3, sl st in next st] x 5
 Fasten off. Sew the star to the top of the tree, then sew the trunk to the base.`;
 
-
 /** L'exemple de la page française : matériel, deux pièces, un conseil, une finition. */
 export const DEMO_PATTERN_FR = `Petit sapin
 

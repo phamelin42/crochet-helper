@@ -110,12 +110,7 @@ const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
         <!-- Le dessin et sa géométrie viennent à la demande : hors du premier affichage. -->
         <ng-container #chartHost />
       } @else {
-        <p
-          class="step-body"
-          tabindex="0"
-          [class.empty]="!store.step()"
-          aria-live="polite"
-        >
+        <p class="step-body" tabindex="0" [class.empty]="!store.step()" aria-live="polite">
           @if (store.step(); as step) {
             <fil-glossary-text [text]="step.body" />
           } @else {

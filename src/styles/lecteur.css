@@ -149,9 +149,10 @@ main {
   text-align: center;
 }
 
-/* Très petit écran : le logo seul, le nom reste lu par les lecteurs d'écran.
-   Sinon marque et boutons ne tiennent pas sur une ligne à 320 px. */
-@media (max-width: 380px) {
+/* Petit écran : le logo seul, le nom reste lu par les lecteurs d'écran.
+   Avec des boutons de 48 px, marque et boutons ne tiennent plus sur une ligne
+   sous 420 px (fiche 59). */
+@media (max-width: 420px) {
   .nav-brand span {
     position: absolute;
     width: 1px;
@@ -463,10 +464,10 @@ textarea.src-input {
   /* Ombres de défilement : les dégradés « local » masquent les ombres quand
      on est au bord, les ombres fixes n'apparaissent que s'il reste du texte. */
   background:
-    linear-gradient(var(--color-bg) 30%, transparent) top / 100% var(--space-6) no-repeat local,
-    linear-gradient(transparent, var(--color-bg) 70%) bottom / 100% var(--space-6) no-repeat local,
-    linear-gradient(var(--scroll-shadow), transparent) top / 100% var(--space-3) no-repeat scroll,
-    linear-gradient(transparent, var(--scroll-shadow)) bottom / 100% var(--space-3) no-repeat scroll;
+    linear-gradient(var(--color-bg), var(--color-bg)) top / 100% var(--space-5) no-repeat local,
+    linear-gradient(var(--color-bg), var(--color-bg)) bottom / 100% var(--space-5) no-repeat local,
+    linear-gradient(var(--scroll-shadow), transparent) top / 100% var(--space-5) no-repeat scroll,
+    linear-gradient(transparent, var(--scroll-shadow)) bottom / 100% var(--space-5) no-repeat scroll;
 }
 .step-body.empty {
   font-size: var(--reader-step-sm);
@@ -1099,6 +1100,10 @@ fil-install-slot {
   /* Sur téléphone, le chronomètre (seul sur sa ligne) tient sur une ligne :
      libellé, temps, boutons. */
   @media (max-width: 699px) {
+    /* Sur téléphone, chaque ligne compte : pas de réserve sous l'étape. */
+    html[data-focus] .step-block {
+      padding-bottom: var(--space-2);
+    }
     html[data-focus] .meter > .timer-tile {
       flex-direction: row;
       align-items: center;

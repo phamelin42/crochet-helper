@@ -78,7 +78,7 @@ test.describe('panneau du patron', () => {
     await page.getByRole('button', { name: 'Clear from the screen' }).click();
 
     await page.getByRole('button', { name: 'See an example' }).click();
-    await expect(page.locator('.stepcount')).toContainText('Step 2');
+    await expect(page.locator('.stepcount')).toContainText('Step 2 of');
 
     await ouvrir(page, '/my-projects');
     await expect(page.locator('.projects-list > li')).toHaveCount(1);
@@ -290,24 +290,25 @@ test.describe('plusieurs onglets', () => {
     const a = await context.newPage();
     await ouvrir(a);
     await a.getByRole('button', { name: 'See an example' }).click();
-    // « Suivant » lance le chronomètre de l'onglet A, qui réécrit son projet chaque seconde.
+    // Le chronomètre de l'onglet A, lancé par son bouton, réécrit son projet chaque seconde.
+    await a.getByRole('button', { name: 'Start the timer', exact: true }).click();
     await a.getByRole('button', { name: 'Next', exact: true }).click();
-    await expect(a.locator('.stepcount')).toContainText('Step 2');
+    await expect(a.locator('.stepcount')).toContainText('Step 2 of');
 
     const b = await context.newPage();
     await ouvrir(b);
-    await expect(b.locator('.stepcount')).toContainText('Step 2');
+    await expect(b.locator('.stepcount')).toContainText('Step 2 of');
     for (let i = 0; i < 3; i++) await b.getByRole('button', { name: 'Next', exact: true }).click();
     await b.locator('.timer-tile').getByRole('button', { name: 'Reset' }).click();
     await b.waitForTimeout(2500);
 
     // L'onglet A suit : même étape, chronomètre remis à zéro et arrêté.
-    await expect(a.locator('.stepcount')).toContainText('Step 5');
+    await expect(a.locator('.stepcount')).toContainText('Step 5 of');
     await expect.poll(async () => (await etat(a)).chrono).toBe('0:00');
 
     await b.reload();
     await b.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
-    await expect(b.locator('.stepcount')).toContainText('Step 5');
+    await expect(b.locator('.stepcount')).toContainText('Step 5 of');
     expect((await etat(b)).chrono).toBe('0:00');
   });
 });

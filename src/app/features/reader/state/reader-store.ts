@@ -19,7 +19,7 @@ import { TabSyncService } from '../../../core/platform/tab-sync.service';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import type { PieceChart } from '../data/text-to-chart';
 import { AI_FORMAT_URL_TOKEN } from '../data/ai-format';
-import { DEMO_PATTERN } from '../data/demo-pattern';
+import { DEMO_PATTERNS } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
 import { SharedProgress } from '../data/project-link';
 import type { ExtractedImage, ExtractedPdf } from '../data/pdf-extract';
@@ -756,9 +756,17 @@ export class ReaderStore {
     this.viewChoice.set(null);
   }
 
+  /**
+   * Ouvre l'exemple de la langue de la page, directement en étapes écrites :
+   * pas de question « Texte ou diagramme » avant d'avoir rien vu (audit I-9).
+   */
   loadDemo(): void {
-    if (this.reopenSaved(DEMO_PATTERN)) return;
-    this.load(DEMO_PATTERN, 'exemple');
+    const demo = DEMO_PATTERNS[this.i18n.locale()];
+    if (this.reopenSaved(demo)) return;
+    this.load(demo, 'exemple');
+    this.pendingView.set(null);
+    this.viewChoice.set(null);
+    this.view.set('text');
   }
 
   /**
@@ -998,7 +1006,6 @@ export class ReaderStore {
     this.aiRefusal.set(null); // lu : la page pleine peut reprendre
     this.analytics.track('step_advanced');
     this.checkDepth();
-    if (!this.running()) this.startTimer();
   }
 
   /**

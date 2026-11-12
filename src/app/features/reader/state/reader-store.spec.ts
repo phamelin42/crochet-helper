@@ -171,9 +171,23 @@ describe('ReaderStore', () => {
     });
   });
 
+  describe('démarrage du chronomètre', () => {
+    it('avancer d’étape ne le lance pas : seul le bouton lecture le fait', () => {
+      store.load(TWO_PIECES);
+
+      store.advance();
+      store.advance();
+
+      expect(store.running()).toBe(false);
+      store.toggleTimer();
+      expect(store.running()).toBe(true);
+    });
+  });
+
   describe('fin du patron', () => {
     it('terminer la dernière étape le dit et arrête le chronomètre', () => {
       store.load(TWO_PIECES);
+      store.startTimer();
       store.advance();
       store.advance();
       expect(store.running()).toBe(true);

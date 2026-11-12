@@ -22,6 +22,7 @@ import { AI_FORMAT_URL_TOKEN } from '../data/ai-format';
 import { DEMO_PATTERNS } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
 import { SharedProgress } from '../data/project-link';
+import type { PrepareResult } from '../data/finished-photo';
 import type { ExtractedImage, ExtractedPdf } from '../data/pdf-extract';
 import { EMPTY_PATTERN, PatternPiece, PatternStep } from '../data/pattern.model';
 import {
@@ -32,6 +33,7 @@ import {
   deriveProjectName,
   fileIds,
   imageId,
+  finishedId,
   imageIds,
   legacyToProject,
   mergeProjects,
@@ -63,6 +65,22 @@ export const PDF_EXTRACTOR = new InjectionToken<(file: File) => Promise<Extracte
   'PDF_EXTRACTOR',
   { factory: () => async (file) => (await import('../data/pdf-extract')).extractPdfPages(file) },
 );
+
+/**
+ * Réduction de la photo d'un ouvrage terminé. Chargée par `import()` : le
+ * traitement d'image n'a rien à faire dans le bundle initial ; remplaçable en
+ * test, jsdom n'ayant ni `createImageBitmap` ni `OffscreenCanvas`.
+ */
+export const FINISHED_PHOTO_PREPARER = new InjectionToken<(file: Blob) => Promise<PrepareResult>>(
+  'FINISHED_PHOTO_PREPARER',
+  {
+    factory: () => async (file) =>
+      (await import('../data/finished-photo')).prepareFinishedPhoto(file),
+  },
+);
+
+/** Issue de « Ajouter une photo » : la lectrice lit un message pour chaque refus. */
+export type FinishedPhotoResult = 'saved' | 'too-large' | 'not-image' | 'failed';
 
 /** Ancien état unique, écrit avant la fiche 16 : sert de source de migration. */
 const LEGACY_KEY = 'fil.reader.v1';
@@ -100,6 +118,7 @@ export class ReaderStore {
   private readonly i18n = inject(I18nService);
   private readonly objectUrls = inject(ObjectUrlService);
   private readonly extractPdf = inject(PDF_EXTRACTOR);
+  private readonly prepareFinishedPhoto = inject(FINISHED_PHOTO_PREPARER);
   private readonly formatClient = inject(AI_FORMAT_CLIENT);
   private readonly aiUrl = inject(AI_FORMAT_URL_TOKEN);
   private readonly destroyRef = inject(DestroyRef);
@@ -140,6 +159,11 @@ export class ReaderStore {
   readonly finishedAt = signal<number | null>(null);
   /** Une photo de l'ouvrage terminé est enregistrée avec le projet (fiche 60). */
   readonly finishedPhoto = signal(false);
+  /** Adresse de la photo de l'ouvrage du projet actif, `null` sans photo. */
+  readonly finishedPhotoUrl = signal<ShownPhoto | null>(null);
+  /** Change à chaque photo écrite : recharge l'adresse même quand `finishedPhoto` était déjà vrai. */
+  private readonly finishedPhotoVersion = signal(0);
+  private finishedPhotoLoad = 0;
   /** La lectrice a demandé à revoir la dernière étape : l'écran de fin s'efface sans rien décocher. */
   private readonly endScreenDismissed = signal(false);
   readonly running = signal(false);
@@ -315,6 +339,14 @@ export class ReaderStore {
       untracked(() => void this.loadPhotos(id, count));
     });
 
+    // La photo de l'ouvrage suit le projet actif, comme celles du PDF.
+    effect(() => {
+      const id = this.currentId();
+      const has = this.finishedPhoto();
+      this.finishedPhotoVersion();
+      untracked(() => void this.loadFinishedPhoto(id, has));
+    });
+
     // Le pointeur vers le projet actif est la seule donnée qui reste dans
     // localStorage : assez petite pour ne jamais dépasser son quota.
     effect(() => {
@@ -331,6 +363,9 @@ export class ReaderStore {
       if (this.refreshTimer) clearTimeout(this.refreshTimer);
       this.stopTimer();
       this.imageLoad++;
+      this.finishedPhotoLoad++;
+      const shown = this.finishedPhotoUrl();
+      if (shown) this.objectUrls.revoke(shown.url);
       this.releasePhotos();
     });
   }
@@ -481,6 +516,74 @@ export class ReaderStore {
           : null,
       ),
     );
+  }
+
+  private async loadFinishedPhoto(id: string | null, has: boolean): Promise<void> {
+    const load = ++this.finishedPhotoLoad;
+    const [file] =
+      id && has ? await this.projectStore.getFiles<ProjectImage>([finishedId(id)]) : [];
+    if (load !== this.finishedPhotoLoad) return;
+    const previous = this.finishedPhotoUrl();
+    if (previous) this.objectUrls.revoke(previous.url);
+    this.finishedPhotoUrl.set(
+      file
+        ? { url: this.objectUrls.create(file.blob), width: file.width, height: file.height }
+        : null,
+    );
+  }
+
+  /** Photo d'ouvrage d'un projet de la liste, pour sa vignette ; l'appelant libère l'adresse. */
+  async readFinishedPhoto(id: string): Promise<ShownPhoto | null> {
+    const [file] = await this.projectStore.getFiles<ProjectImage>([finishedId(id)]);
+    return file
+      ? { url: this.objectUrls.create(file.blob), width: file.width, height: file.height }
+      : null;
+  }
+
+  /**
+   * Garde la photo de l'ouvrage sur l'appareil. Réduite avant stockage, écrite
+   * dans la même transaction que le projet, sous une clé unique : une photo
+   * qui en remplace une autre ne l'efface qu'au `complete`, et un échec laisse
+   * l'ancienne intacte.
+   */
+  async setFinishedPhoto(file: Blob): Promise<FinishedPhotoResult> {
+    const id = this.currentId();
+    if (!id) return 'failed';
+    const prepared = await this.prepareFinishedPhoto(file);
+    if (!prepared.ok) return prepared.reason;
+    // Un autre projet a été ouvert pendant la réduction : cette photo n'est plus la sienne.
+    if (this.currentId() !== id) return 'failed';
+    const image: ProjectImage = {
+      id: finishedId(id),
+      projectId: id,
+      n: 1,
+      blob: prepared.photo.blob,
+      width: prepared.photo.width,
+      height: prepared.photo.height,
+      kind: 'finished',
+    };
+    if (
+      !(await this.projectStore.putAll([{ ...this.snapshot(id), finishedPhoto: true }], [image]))
+    ) {
+      return 'failed';
+    }
+    this.finishedPhoto.set(true);
+    this.finishedPhotoVersion.update((n) => n + 1);
+    this.analytics.track('finished_photo_added');
+    return 'saved';
+  }
+
+  /** Retire la photo de l'ouvrage : le projet et la suppression du fichier partent ensemble. */
+  async removeFinishedPhoto(): Promise<boolean> {
+    const id = this.currentId();
+    if (!id) return false;
+    const saved = await this.projectStore.putAll(
+      [{ ...this.snapshot(id), finishedPhoto: false }],
+      [],
+      [finishedId(id)],
+    );
+    if (saved) this.finishedPhoto.set(false);
+    return saved;
   }
 
   private releasePhotos(): void {
@@ -643,7 +746,9 @@ export class ReaderStore {
     this.analytics.track('backup_exported', { projects: projects.length });
     const [{ encodeBackup }, files] = await Promise.all([
       import('../data/project-backup'),
-      this.projectStore.getFiles<ProjectImage>(projects.flatMap(imageIds)),
+      this.projectStore.getFiles<ProjectImage>(
+        projects.flatMap((p) => [...imageIds(p), finishedId(p.id)]),
+      ),
     ]);
     return encodeBackup(projects, files);
   }

@@ -108,18 +108,21 @@ export class ProjectStoreService {
 
   /**
    * Écrit plusieurs éléments, et leurs fichiers rattachés, dans **une seule**
-   * transaction : tout ou rien. C'est ce qui rend atomiques l'import d'une
+   * transaction : tout ou rien (`removeFiles` : fichiers à supprimer dans la
+   * même transaction). C'est ce qui rend atomiques l'import d'une
    * sauvegarde et l'enregistrement d'un PDF avec ses photos.
    */
   async putAll<T extends { id: string }, F extends { id: string } = { id: string }>(
     items: readonly T[],
     files: readonly F[] = [],
+    removeFiles: readonly string[] = [],
   ): Promise<boolean> {
     const db = await this.db();
     if (!db) return false;
     return this.run(db, (projects, images) => {
       items.forEach((item) => projects.put(item));
       files.forEach((file) => images.put(file));
+      removeFiles.forEach((fileId) => images.delete(fileId));
     });
   }
 

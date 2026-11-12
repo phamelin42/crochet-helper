@@ -37,6 +37,7 @@ const COLOR_TOKENS = [
   'color-surface',
   'color-overlay',
   'color-line',
+  'color-field-border',
   'color-text',
   'color-text-strong',
   'color-text-label',

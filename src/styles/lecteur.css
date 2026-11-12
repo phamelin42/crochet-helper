@@ -37,6 +37,7 @@
 .nav-brand {
   display: inline-flex;
   align-items: center;
+  min-height: var(--control-size);
   gap: var(--space-2);
   margin-right: 0;
 }
@@ -115,6 +116,11 @@ main {
 }
 .site-footer a {
   color: var(--color-text-label);
+  /* Exemptés des 48 px (liens d'une liste), mais jamais sous 32 px de haut :
+     WCAG 2.5.8 demande 24 px et de l'espace. */
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--space-8);
 }
 .footer-columns {
   display: flex;
@@ -143,9 +149,10 @@ main {
   text-align: center;
 }
 
-/* Très petit écran : le logo seul, le nom reste lu par les lecteurs d'écran.
-   Sinon marque et boutons ne tiennent pas sur une ligne à 320 px. */
-@media (max-width: 380px) {
+/* Petit écran : le logo seul, le nom reste lu par les lecteurs d'écran.
+   Avec des boutons de 48 px, marque et boutons ne tiennent plus sur une ligne
+   sous 420 px (fiche 59). */
+@media (max-width: 420px) {
   .nav-brand span {
     position: absolute;
     width: 1px;
@@ -437,10 +444,10 @@ textarea.src-input {
   max-width: 28ch;
 }
 /* L'étape et sa barre de progression, collée dessous. Le bloc réserve deux
-   lignes de texte, quelle que soit l'étape : « Précédent » et « Suivant »,
-   juste après, ne bougent pas d'une étape à l'autre, et l'espace libre va
-   sous la barre plutôt qu'entre le texte et elle. Une étape plus longue
-   s'écrit plus petit (`.long`, `.longer`, `.longest`) pour y tenir. */
+   lignes de texte : « Précédent » et « Suivant », juste après, ne bougent pas
+   d'une étape courte à l'autre. Le texte ne rétrécit jamais (fiche 59) : une
+   étape qui ne tient pas dans son cadre défile dedans, et un dégradé en bas
+   dit qu'il y a une suite. */
 .step-block {
   /* Une base de texte plus grande rétrécit la ligne en caractères : le bloc
      réserve davantage de lignes, au prorata (fiche 42). */
@@ -449,17 +456,31 @@ textarea.src-input {
 .step-block.empty {
   min-height: 0;
 }
-.step-body.long {
-  font-size: calc(var(--reader-step) * 0.8);
-  max-width: 34ch;
+/* Page complète : le cadre de l'étape a une hauteur fixe, « Précédente » et
+   « Suivante » ne bougent donc pas d'une étape à l'autre, quelle que soit sa
+   longueur ; au-delà, le texte défile dedans (fiche 59). Un diagramme garde
+   sa hauteur naturelle. */
+.step-block:not(.chart, .empty) {
+  display: flex;
+  flex-direction: column;
+  height: max(
+    34dvh,
+    calc(var(--reader-step) * 1.3 * 2 * max(1, var(--text-scale)) + var(--space-3) * 2)
+  );
 }
-.step-body.longer {
-  font-size: calc(var(--reader-step) * 0.6);
-  max-width: 44ch;
-}
-.step-body.longest {
-  font-size: calc(var(--reader-step) * 0.5);
-  max-width: 52ch;
+.step-block > .step-body {
+  /* Seule l'étape du lecteur défile : les outils réemploient `.step-body` pour
+     leurs résultats, sans zone à focaliser. */
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Ombres de défilement : les dégradés « local » masquent les ombres quand
+     on est au bord, les ombres fixes n'apparaissent que s'il reste du texte. */
+  background:
+    linear-gradient(var(--color-bg), var(--color-bg)) top / 100% var(--space-5) no-repeat local,
+    linear-gradient(var(--color-bg), var(--color-bg)) bottom / 100% var(--space-5) no-repeat local,
+    linear-gradient(var(--scroll-shadow), transparent) top / 100% var(--space-5) no-repeat scroll,
+    linear-gradient(transparent, var(--scroll-shadow)) bottom / 100% var(--space-5) no-repeat scroll;
 }
 .step-body.empty {
   font-size: var(--reader-step-sm);
@@ -476,6 +497,10 @@ textarea.src-input {
   text-decoration-thickness: 0.08em;
   text-underline-offset: 0.2em;
   cursor: help;
+  /* Zone tactile élargie sans bouger la ligne : le rembourrage et la marge
+     négative se compensent. */
+  padding: 0.25em 0.2em;
+  margin: -0.25em -0.2em;
 }
 .abbr:hover {
   color: var(--color-sakura-ink);
@@ -566,6 +591,8 @@ textarea.src-input {
   text-transform: uppercase;
   font-size: var(--text-xs);
   letter-spacing: 0.12em;
+  /* Texte du système à 32 px : « Avancement » ne déborde pas de sa tuile. */
+  overflow-wrap: anywhere;
   color: var(--tile-ink);
 }
 .tile .big {
@@ -682,6 +709,7 @@ fil-install-slot {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-yamabuki-ink);
+  min-height: var(--control-size);
   padding: var(--space-2) 0;
 }
 .mats > summary::-webkit-details-marker {
@@ -981,12 +1009,40 @@ fil-install-slot {
    l'impression garde ses propres règles. */
 .stepmeta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
+}
+.stepmeta-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* La hauteur d'un libellé de rang plus la position : une étape sans libellé
+     (finition) ne remonte pas « Précédente » et « Suivante ». */
+  min-height: calc(1.5rem * 1.2 + var(--text-sm) * 1.6);
 }
 .stepmeta .stepcount {
   margin: 0;
+}
+/* « Rang 5-8 » : ce que la lectrice cherche d'abord, en grand ; « Étape 5 sur
+   8 » dessous, en petit. */
+.steplabel {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  color: var(--color-text-strong);
+}
+.focus-toggle {
+  flex: none;
+}
+/* Téléphone : « Texte / Diagramme » a toujours sa propre ligne, que l'étape ait
+   un libellé de rang ou non : la hauteur de la ligne ne dépend pas du texte. */
+@media (max-width: 699px) {
+  .stepmeta .view-toggle {
+    flex: 1 1 100%;
+  }
 }
 @media screen {
   html[data-focus] fil-site-header,
@@ -998,7 +1054,7 @@ fil-install-slot {
   html[data-focus] fil-materials-list,
   html[data-focus] fil-share-actions,
   html[data-focus] fil-reader-page > .hr,
-  html[data-focus] .reader-tools {
+  html[data-focus] .pieces {
     display: none;
   }
   html[data-focus] main {
@@ -1007,7 +1063,9 @@ fil-install-slot {
   html[data-focus] fil-reader-page {
     display: flex;
     flex-direction: column;
-    min-height: 100dvh;
+    /* Hauteur fixe : une étape longue défile dans son cadre, la page ne bouge
+       pas et « Précédent » / « Suivant » restent en bas (fiche 59). */
+    height: 100dvh;
     padding-top: var(--space-3);
     padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
   }
@@ -1016,25 +1074,40 @@ fil-install-slot {
   html[data-focus] fil-step-view {
     display: contents;
   }
+  /* La taille du texte reste à portée en page pleine ; le choix de pièce, non. */
+  html[data-focus] .reader-tools {
+    order: 1;
+    margin-bottom: var(--space-2);
+  }
   html[data-focus] .stepmeta {
     order: 1;
+    margin-bottom: var(--space-2);
+  }
+  html[data-focus] .view-toggle {
+    order: 3;
   }
   /* L'étape se centre dans l'espace libre, un peu au-dessus du milieu : à
      l'œil, le centre exact paraît trop bas (et sur tablette, l'étape doit
      rester sous 450 px, garde de `reading-mode.spec.ts`). */
   html[data-focus] .step-block {
     order: 2;
-    padding-bottom: calc(var(--space-10) * 2);
-    flex: 1 1 auto;
+    padding-bottom: min(calc(var(--space-10) * 2), 8dvh);
+    flex: 1 1 0;
+    height: auto;
+    /* Une ligne au moins : une note ou la phrase d'explication ne l'écrase pas. */
+    min-height: calc(var(--reader-step) * 1.3 * max(1, var(--text-scale)) + var(--space-3) * 2);
     display: flex;
     flex-direction: column;
     justify-content: center;
   }
   html[data-focus] .note,
   html[data-focus] .step-tip,
+  html[data-focus] .focus-hint,
   html[data-focus] fil-image-gallery {
     order: 3;
   }
+  /* Dans l'écran, l'étape prend toute la place restante et défile dedans. */
+
   html[data-focus] .meter {
     order: 4;
     margin-top: var(--space-4);
@@ -1052,6 +1125,10 @@ fil-install-slot {
   /* Sur téléphone, le chronomètre (seul sur sa ligne) tient sur une ligne :
      libellé, temps, boutons. */
   @media (max-width: 699px) {
+    /* Sur téléphone, chaque ligne compte : pas de réserve sous l'étape. */
+    html[data-focus] .step-block {
+      padding-bottom: var(--space-2);
+    }
     html[data-focus] .meter > .timer-tile {
       flex-direction: row;
       align-items: center;

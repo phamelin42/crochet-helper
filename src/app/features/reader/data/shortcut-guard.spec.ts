@@ -56,4 +56,22 @@ describe('keyBelongsToTarget', () => {
     const holder = mount('<dialog><p>Message</p></dialog><p id="derriere">patron</p>');
     expect(keyBelongsToTarget(holder.querySelector('#derriere'))).toBe(false);
   });
+
+  describe('étape qui défile dans son cadre', () => {
+    function etape(scrollHeight: number): HTMLElement {
+      const holder = mount('<p tabindex="0" style="overflow-y: auto">rang très long</p>');
+      const p = holder.querySelector('p')!;
+      Object.defineProperty(p, 'scrollHeight', { value: scrollHeight });
+      Object.defineProperty(p, 'clientHeight', { value: 100 });
+      return p;
+    }
+
+    it('garde Espace, PageBas et les flèches quand il reste du texte à défiler', () => {
+      expect(keyBelongsToTarget(etape(300))).toBe(true);
+    });
+
+    it('rend la main aux raccourcis quand l’étape tient en entier', () => {
+      expect(keyBelongsToTarget(etape(100))).toBe(false);
+    });
+  });
 });

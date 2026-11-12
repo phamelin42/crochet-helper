@@ -246,8 +246,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--control-size);
+  min-height: var(--control-size);
   font-weight: 700;
   text-transform: uppercase;
   border-radius: var(--radius-md);
@@ -314,13 +314,14 @@
    * pas seulement l'introduction et les filtres. L'index des lettres tient
    * sur une ligne qui défile, les espacements se resserrent. */
   fil-glossary-page .hero {
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-3);
   }
   fil-glossary-page .hero p {
     font-size: var(--text-sm);
   }
   .glossary-filters {
     gap: var(--space-2);
+    margin-top: var(--space-2);
   }
   /* Libellé à gauche du filtre quand il tient sur la même ligne
    * (« Craft »), au-dessus sinon (« Pattern language »). */
@@ -333,7 +334,7 @@
   .glossary-letters {
     flex-wrap: nowrap;
     overflow-x: auto;
-    margin-top: var(--space-4);
+    margin-top: var(--space-2);
     padding-bottom: var(--space-1);
     scrollbar-width: none;
   }
@@ -344,7 +345,7 @@
     flex: none;
   }
   .glossary-table-scroll {
-    margin-top: var(--space-4);
+    margin-top: var(--space-2);
   }
 }
 

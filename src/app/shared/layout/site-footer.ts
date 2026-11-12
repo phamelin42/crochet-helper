@@ -22,13 +22,14 @@ const PROJECT = [
   'forDesigners',
   'privacy',
   'settings',
+  'format',
+  'converter',
 ] as const;
 
 /**
  * Deux colonnes de maillage interne, écrites à plat : `site-footer.spec.ts`
  * vérifie que chaque route publique de `ROUTE_PATHS` non déjà présente dans la
- * navigation d'en-tête (visible sur toute page — lecteur, projets, glossaire,
- * bien formater, convertisseur) y a son lien. Le pied de page se concentre
+ * navigation d'en-tête (visible sur toute page : lecteur, projets, glossaire) y a son lien. Le pied de page se concentre
  * donc sur le maillage qui manquait vraiment : les guides, le compteur de
  * rangs et le kit créatrices, plutôt que de dupliquer l'en-tête.
  */
@@ -66,6 +67,9 @@ export class SiteFooter {
   protected readonly project = PROJECT;
 
   protected label(key: (typeof LEARN)[number] | (typeof PROJECT)[number]): string {
+    // Ces deux liens ont quitté l'en-tête (fiche 59) : leurs libellés restent ceux de `nav.*`.
+    if (key === 'format') return this.i18n.t('nav.format');
+    if (key === 'converter') return this.i18n.t('nav.converter');
     return this.i18n.t(`footer.${key}`);
   }
 }

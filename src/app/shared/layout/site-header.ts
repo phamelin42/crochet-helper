@@ -54,16 +54,9 @@ import { Icon } from '../ui/icon/icon';
       >
         {{ i18n.t('nav.glossary') }}
       </a>
-      <a [routerLink]="i18n.link('format')" routerLinkActive="active" ariaCurrentWhenActive="page">
-        {{ i18n.t('nav.format') }}
-      </a>
-      <a
-        [routerLink]="i18n.link('converter')"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-      >
-        {{ i18n.t('nav.converter') }}
-      </a>
+      <!-- Quatre liens au plus (fiche 59) : la quatrième place est celle de
+           « Rechercher », page qui n'existe pas encore. « Préparer un patron »
+           et « US ↔ UK » sont au pied de page. Pas de lien mort en attendant. -->
     </nav>
 
     <div class="tools">

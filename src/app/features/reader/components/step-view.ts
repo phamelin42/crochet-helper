@@ -24,10 +24,6 @@ import { ImageGallery } from './image-gallery';
 import { ShareActions } from './share-actions';
 
 const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
-/** Au-delà, le texte de l'étape passe à 80 %, 60 % puis 50 % de sa taille. */
-const LONG_STEP = 30;
-const LONGER_STEP = 60;
-const LONGEST_STEP = 90;
 
 /**
  * L'étape en cours, en très grand : c'est l'écran que l'on regarde crochet en
@@ -63,17 +59,24 @@ const LONGEST_STEP = 90;
         />
       </div>
     }
-    <!-- Seule la position : le libellé du rang et le nom de la pièce
-         redisaient ce que l'étape et le sélecteur de pièces montrent déjà. -->
-    @if (store.step()) {
+    <!-- Le libellé du rang en grand, la position en petit : sur la ligne
+         existante, rien n'est ajouté au-dessus de l'étape (garde de 450 px).
+         Sans libellé de rang (finition, consigne libre), la position seule. -->
+    @if (store.step(); as step) {
       <div class="stepmeta">
-        <p class="stepcount">
-          {{ t('ui.stepOf') }} {{ store.stepIndex() + 1 }} / {{ store.stepCount() }}
-          @if (store.stitchIndex() > 0 && store.stitchTotal()) {
-            · {{ t('ui.stitchOf') }} {{ stitchNumber() }} {{ t('ui.stitchTotal') }}
-            {{ store.stitchTotal() }}
+        <div class="stepmeta-text">
+          @if (step.label) {
+            <p class="steplabel">{{ step.label }}</p>
           }
-        </p>
+          <p class="stepcount">
+            {{ t('ui.stepOf') }} {{ store.stepIndex() + 1 }} {{ t('ui.stitchTotal') }}
+            {{ store.stepCount() }}
+            @if (store.stitchIndex() > 0 && store.stitchTotal()) {
+              · {{ t('ui.stitchOf') }} {{ stitchNumber() }} {{ t('ui.stitchTotal') }}
+              {{ store.stitchTotal() }}
+            }
+          </p>
+        </div>
         <!-- Sur la ligne du libellé : l'étape ne descend pas (garde de la fiche 24). -->
         <fil-segmented
           class="view-toggle"
@@ -83,22 +86,18 @@ const LONGEST_STEP = 90;
           [selected]="store.view() === 'chart' ? 1 : 0"
           (selectedChange)="store.setView($event === 1 ? 'chart' : 'text')"
         />
-        <!-- Même emplacement dans les deux modes : « Quitter la page pleine »
-             rend la page complète, « Page pleine » y revient. -->
+        <!-- Même emplacement dans les deux modes, toujours un libellé en
+             toutes lettres (jamais une icône seule) : « Quitter la page
+             pleine » rend la page complète, « Page pleine » y revient. -->
         <button
           #focusToggle
           type="button"
-          filButton="ghost"
+          filButton="secondary"
           class="focus-toggle"
           aria-keyshortcuts="Escape"
-          [attr.aria-label]="prefs.focus() ? t('ui.focusOff') : t('ui.focusOn')"
           (click)="toggleFocus()"
         >
-          @if (prefs.focus()) {
-            <fil-icon name="dots" />
-          } @else {
-            <span>{{ t('ui.focusOn') }}</span>
-          }
+          {{ prefs.focus() ? t('ui.focusOff') : t('ui.focusOn') }}
         </button>
       </div>
     }
@@ -111,15 +110,7 @@ const LONGEST_STEP = 90;
         <!-- Le dessin et sa géométrie viennent à la demande : hors du premier affichage. -->
         <ng-container #chartHost />
       } @else {
-        <p
-          class="step-body"
-          tabindex="-1"
-          [class.empty]="!store.step()"
-          [class.long]="length() === 'long'"
-          [class.longer]="length() === 'longer'"
-          [class.longest]="length() === 'longest'"
-          aria-live="polite"
-        >
+        <p class="step-body" tabindex="0" [class.empty]="!store.step()" aria-live="polite">
           @if (store.step(); as step) {
             <fil-glossary-text [text]="step.body" />
           } @else {
@@ -144,7 +135,7 @@ const LONGEST_STEP = 90;
           filButton="secondary"
           [step]="true"
           [disabled]="!store.hasPrevious()"
-          (click)="store.move(-1)"
+          (click)="move(-1)"
         >
           <fil-icon name="left" /><span>{{ t('ui.prev') }}</span>
         </button>
@@ -154,12 +145,18 @@ const LONGEST_STEP = 90;
           [step]="true"
           class="next"
           [disabled]="!store.step() || store.finished()"
-          (click)="store.advance()"
+          (click)="advance()"
         >
           <span>{{ t('ui.next') }}</span
           ><fil-icon name="right" />
         </button>
       </div>
+    }
+
+    <!-- Une seule fois : la première lectrice qui voit la page pleine apprend
+         comment en sortir ; elle disparaît au premier geste. -->
+    @if (prefs.focus() && store.step() && !prefs.focusHintSeen()) {
+      <p class="hint focus-hint" role="status">{{ t('ui.focusHint') }}</p>
     }
 
     @if (store.step() && store.pieceChart() && !chartAvailable()) {
@@ -268,7 +265,18 @@ export class StepView {
     this.setFocus(false);
   }
 
+  protected advance(): void {
+    this.prefs.markFocusHintSeen();
+    this.store.advance();
+  }
+
+  protected move(direction: -1 | 1): void {
+    this.prefs.markFocusHintSeen();
+    this.store.move(direction);
+  }
+
   private setFocus(value: boolean): void {
+    this.prefs.markFocusHintSeen();
     this.prefs.setFocus(value);
     this.analytics.track('focus_mode_toggled', { value: value ? 'on' : 'off' });
     // Le bouton reste le même élément : le focus ne se perd pas avec le mode.
@@ -280,15 +288,6 @@ export class StepView {
     this.prefs.setTextSize(value);
     this.analytics.track('reading_pref_changed', { pref: 'text_size', value });
   }
-
-  /** Une étape longue s'écrit plus petit pour tenir dans la hauteur réservée :
-   *  les boutons, dessous, ne bougent pas d'une étape à l'autre. */
-  protected readonly length = computed(() => {
-    const chars = this.store.step()?.body.length ?? 0;
-    if (chars > LONGEST_STEP) return 'longest';
-    if (chars > LONGER_STEP) return 'longer';
-    return chars > LONG_STEP ? 'long' : 'normal';
-  });
 
   protected readonly pieceOptions = computed<SegmentedOption[]>(() =>
     this.store.pieces().map((piece, index) => ({

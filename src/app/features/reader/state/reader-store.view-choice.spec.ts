@@ -73,11 +73,11 @@ describe('ReaderStore — choix d’affichage à l’import', () => {
     });
   }
 
-  for (const origin of ORIGINS) {
+  for (const origin of ORIGINS.filter((o) => o !== 'exemple')) {
     for (const pref of PREFS) {
       it(`${origin}, préférence « ${pref} » : question et affichage d’un patron dessinable`, async () => {
         TestBed.inject(DisplayPrefsService).setDefaultView(pref);
-        const store = await open(origin, origin === 'exemple' ? '' : DRAWABLE);
+        const store = await open(origin, DRAWABLE);
         const id = store.currentId()!;
         await vi.waitFor(() => expect(store.pieceChart()?.drawable).toBeGreaterThan(0));
 
@@ -92,6 +92,21 @@ describe('ReaderStore — choix d’affichage à l’import', () => {
         await expectSavedView(id, expected);
       });
     }
+  }
+
+  // L'exemple s'ouvre en étapes écrites, sans question, quelle que soit la préférence (fiche 59).
+  for (const pref of PREFS) {
+    it(`exemple, préférence « ${pref} » : étapes écrites, jamais de question`, async () => {
+      TestBed.inject(DisplayPrefsService).setDefaultView(pref);
+      const store = await open('exemple', '');
+      const id = store.currentId()!;
+      await vi.waitFor(() => expect(store.pieceChart()?.drawable).toBeGreaterThan(0));
+      TestBed.tick();
+
+      expect(store.viewChoice()).toBeNull();
+      expect(store.view()).toBe('text');
+      await expectSavedView(id, 'text');
+    });
   }
 
   for (const pref of PREFS) {

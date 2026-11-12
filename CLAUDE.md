@@ -121,6 +121,12 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   se teste en boucle sur les types d'éléments (`e2e/clavier.spec.ts`). Un
   élément qui disparaît (dialogue fermé, panneau masqué) ne doit pas laisser le
   focus sur `body` : `FocusService.restoreIfLost()`.
+- **Lisible à un mètre (fiche 59)** : l'étape ne rétrécit jamais (24 px à 390,
+  28 px à 820) ; trop longue, elle défile dans son cadre (`.step-body`, focalisable,
+  Espace et PageBas la font défiler). Toute commande fait 48 px (`--control-size`),
+  tout texte lu 16 px (14 px pour une étiquette en capitales grasses), les champs
+  ont `--color-field-border`. `e2e/lisibilite.spec.ts` le mesure en boucle : un
+  nouveau contrôle sous 48 px ou une étape qui rétrécit fait échouer la CI.
 - **Un test qui lit l'état juste après l'action ne prouve rien sur la
   persistance** : l'effet qui écrit en IndexedDB n'a pas encore tourné, et
   « le projet actif est intact » est vrai quoi que fasse le code (fiche 19).

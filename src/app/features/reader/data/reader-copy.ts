@@ -103,6 +103,8 @@ const FR = {
   'ui.waitlistHide': 'Masquer',
   'ui.textSize': 'Taille du texte',
   'ui.focusOff': 'Quitter la page pleine',
+  'ui.focusHint':
+    'Page pleine\u00a0: l’écran ne montre que l’étape. Touchez «\u00a0Quitter la page pleine\u00a0» pour tout revoir.',
   'ui.finished': 'Patron terminé, bravo ! Le chronomètre est arrêté.',
   'ui.repsDone': 'Répétitions terminées',
   'ui.focusOn': 'Page pleine',
@@ -248,6 +250,8 @@ const EN: Record<ReaderTranslationKey, string> = {
   'ui.waitlistHide': 'Hide',
   'ui.textSize': 'Text size',
   'ui.focusOff': 'Exit full page',
+  'ui.focusHint':
+    'Full page: the screen shows only the step. Tap “Exit full page” to see everything again.',
   'ui.finished': 'Pattern finished, well done! The timer is stopped.',
   'ui.repsDone': 'Repeats complete',
   'ui.focusOn': 'Full page',

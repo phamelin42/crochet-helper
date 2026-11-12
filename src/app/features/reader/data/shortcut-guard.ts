@@ -12,7 +12,20 @@ export function keyBelongsToTarget(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) {
     return false;
   }
-  return target.closest(INTERACTIVE) !== null || dialogIsOpen(target);
+  return target.closest(INTERACTIVE) !== null || dialogIsOpen(target) || isScrollingRegion(target);
+}
+
+/**
+ * Une étape trop longue défile dans son cadre (fiche 59) et se focalise au
+ * clavier : Espace, PageBas et les flèches la font défiler, ils n'avancent pas
+ * l'étape. Quand elle tient en entier, rien à défiler : les raccourcis restent.
+ */
+function isScrollingRegion(element: Element): boolean {
+  return (
+    element.getAttribute('tabindex') === '0' &&
+    element.scrollHeight > element.clientHeight &&
+    ['auto', 'scroll'].includes(getComputedStyle(element).overflowY)
+  );
 }
 
 /** Une boîte de dialogue ouverte (le navigateur la ferme lui-même à Échap). */

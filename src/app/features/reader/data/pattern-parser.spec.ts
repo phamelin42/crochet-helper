@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEMO_PATTERN } from './demo-pattern';
+import { DEMO_PATTERN, DEMO_PATTERNS } from './demo-pattern';
 import mabelMarketBag from './fixtures/01-mabel-market-bag.txt?raw';
 import mushroomToteBag from './fixtures/02-mushroom-tote-bag.txt?raw';
 import pumpkinHarvestHat from './fixtures/03-pumpkin-harvest-hat.txt?raw';
@@ -97,6 +97,28 @@ describe('parsePattern', () => {
     expect(pattern.pieces.map((p) => p.name)).toEqual(['Tree', 'Trunk', 'Star']);
     expect(pattern.total).toBe(pattern.pieces.reduce((n, p) => n + p.steps.length, 0));
     expect(pattern.materials.length).toBeGreaterThan(3);
+  });
+
+  for (const locale of ['en', 'fr'] as const) {
+    it(`l’exemple en ${locale} a du matériel, des pièces et une finition`, () => {
+      const pattern = parsePattern(DEMO_PATTERNS[locale]);
+      const steps = pattern.pieces.flatMap((piece) => piece.steps);
+
+      expect(pattern.materials.length).toBeGreaterThan(2);
+      expect(pattern.pieces.length).toBeGreaterThanOrEqual(2);
+      // Le conseil est une exigence de l'exemple français, écrit pour cela.
+      if (locale === 'fr') expect(steps.some((step) => step.tip)).toBe(true);
+      // Une finition (« Fasten off… », « Arrêtez le fil… ») est une étape sans libellé de rang.
+      expect(steps.some((step) => step.label === '')).toBe(true);
+      expect(steps[0].label).toMatch(/^(Round|Rang) 1$/);
+    });
+  }
+
+  it('l’exemple français se lit en français : titre, pièces, rangs étendus', () => {
+    const pattern = parsePattern(DEMO_PATTERNS.fr);
+    expect(pattern.title).toBe('Petit sapin');
+    expect(pattern.pieces.map((p) => p.name)).toEqual(['Sapin', 'Tronc']);
+    expect(pattern.pieces[0].steps.map((s) => s.label)).toContain('Rang 4–7');
   });
 
   it("normalise les entités HTML d'un copier-coller", () => {

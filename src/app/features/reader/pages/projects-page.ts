@@ -1,4 +1,13 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale } from '../../../core/i18n/locale';
@@ -9,9 +18,11 @@ import { DurationPipe } from '../../../shared/pipes/duration.pipe';
 import { InstallSlot } from '../components/install-slot';
 import { Button } from '../../../shared/ui/button/button';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
+import { Icon } from '../../../shared/ui/icon/icon';
 import { InputField } from '../../../shared/ui/field/input';
 import { MAX_NAME_LENGTH, Project } from '../data/project.model';
-import { ReaderStore } from '../state/reader-store';
+import { ObjectUrlService } from '../../../core/platform/object-url.service';
+import { ReaderStore, ShownPhoto } from '../state/reader-store';
 
 const SEO: Record<Locale, { title: string; description: string }> = {
   fr: {
@@ -39,6 +50,8 @@ const COPY = {
       'Le patron, la progression et le chronomètre de ce projet seront définitivement supprimés.',
     'ui.deleteConfirmTitle': 'Supprimer ce projet ?',
     'ui.exportBackup': 'Exporter une sauvegarde',
+    'ui.finished': 'Terminé',
+    'ui.finishedPhotoAlt': 'Photo de l’ouvrage terminé\u00a0: {name}',
     'ui.exportDone':
       'Sauvegarde téléchargée : retrouvez le fichier « pattern-reader-….json » dans vos téléchargements.',
     'ui.importBackup': 'Importer une sauvegarde',
@@ -68,6 +81,8 @@ const COPY = {
       "This project's pattern, progress and timer will be permanently deleted.",
     'ui.deleteConfirmTitle': 'Delete this project?',
     'ui.exportBackup': 'Export a backup',
+    'ui.finished': 'Finished',
+    'ui.finishedPhotoAlt': 'Photo of the finished piece: {name}',
     'ui.exportDone':
       'Backup downloaded: look for the “pattern-reader-….json” file in your downloads.',
     'ui.importBackup': 'Import a backup',
@@ -98,7 +113,7 @@ type LocalKey = keyof typeof COPY.fr;
  */
 @Component({
   selector: 'fil-projects-page',
-  imports: [Button, Dialog, DurationPipe, InputField, InstallSlot],
+  imports: [Button, Dialog, DurationPipe, Icon, InputField, InstallSlot],
   host: { class: 'wrap' },
   template: `
     <section class="hero">
@@ -143,7 +158,24 @@ type LocalKey = keyof typeof COPY.fr;
       <ul class="projects-list">
         @for (project of store.sortedProjects(); track project.id) {
           <li class="card">
+            @if (thumbs().get(project.id); as photo) {
+              <img
+                class="project-thumb"
+                [src]="photo.url"
+                width="72"
+                height="72"
+                [alt]="named('ui.finishedPhotoAlt', project)"
+              />
+            }
             <div>
+              @if (project.finishedAt !== undefined) {
+                <!-- Texte et coche : la couleur seule ne porte jamais l'information. -->
+                <p class="project-status">
+                  <span class="tag tag-wakaba"
+                    ><fil-icon name="check" />&nbsp;{{ t('ui.finished') }}</span
+                  >
+                </p>
+              }
               <p class="card-title">{{ project.name || t('ui.untitledProject') }}</p>
               <p class="card-meta">
                 {{ t('ui.lastOpened') }} {{ formatDate(project.lastOpenedAt) }} ·
@@ -226,6 +258,7 @@ export default class ProjectsPage {
   private readonly seo = inject(SeoService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly objectUrls = inject(ObjectUrlService);
 
   private readonly locale = (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
 
@@ -247,7 +280,22 @@ export default class ProjectsPage {
   protected readonly importFileInput =
     viewChild.required<ElementRef<HTMLInputElement>>('importFile');
 
+  /** Vignettes des ouvrages terminés, par projet : lues à la demande, adresses libérées à la sortie. */
+  protected readonly thumbs = signal<ReadonlyMap<string, ShownPhoto>>(new Map());
+  private thumbLoad = 0;
+
   constructor() {
+    effect(() => {
+      const wanted = this.store
+        .sortedProjects()
+        .filter((p) => p.finishedAt !== undefined && p.finishedPhoto === true)
+        .map((p) => p.id);
+      untracked(() => void this.loadThumbs(wanted));
+    });
+    inject(DestroyRef).onDestroy(() => {
+      this.thumbLoad++;
+      this.thumbs().forEach((photo) => this.objectUrls.revoke(photo.url));
+    });
     this.i18n.setLocale(this.locale);
     this.seo.apply({
       ...SEO[this.locale],
@@ -255,6 +303,23 @@ export default class ProjectsPage {
       locale: this.locale,
       noIndex: true,
     });
+  }
+
+  private async loadThumbs(wanted: readonly string[]): Promise<void> {
+    const load = ++this.thumbLoad;
+    const known = this.thumbs();
+    const next = new Map<string, ShownPhoto>();
+    for (const id of wanted) {
+      const photo = known.get(id) ?? (await this.store.readFinishedPhoto(id));
+      if (load !== this.thumbLoad) {
+        // Une lecture plus récente a pris le relais : l'adresse créée ici ne servira pas.
+        if (photo && !known.has(id)) this.objectUrls.revoke(photo.url);
+        return;
+      }
+      if (photo) next.set(id, photo);
+    }
+    known.forEach((photo, id) => !next.has(id) && this.objectUrls.revoke(photo.url));
+    this.thumbs.set(next);
   }
 
   protected formatDate(ms: number): string {

@@ -190,6 +190,17 @@
   flex: 1 1 14rem;
   min-width: 0;
 }
+.project-thumb {
+  flex: none;
+  width: 4.5rem;
+  height: 4.5rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-line);
+}
+.project-status {
+  margin: 0 0 var(--space-1);
+}
 .projects-list .card-title {
   overflow-wrap: anywhere;
 }

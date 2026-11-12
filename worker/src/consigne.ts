@@ -9,14 +9,14 @@ export type Langue = 'fr' | 'en';
  * garde de fidélité ignore ses numéros (voir `fidelite.ts`).
  */
 const COMPLEMENT: Record<Langue, string> = {
-  fr: `Conserve tels quels, à leur place, les marqueurs [image N].
+  fr: `Conserve tels quels, à leur place, une seule fois chacun, les marqueurs [image N] : n'en ajoute aucun, n'en retire aucun, ne les déplace pas.
 
 RÈGLES PROPRES À CET APPEL (elles complètent les règles ci-dessus)
 - Si le document répète le même patron en plusieurs langues, ne garde que la version en français ; à défaut, la version en anglais ; à défaut, la première. C'est la seule suppression permise : ne traduis rien, ne mélange pas les langues, ne dis rien des versions retirées.
 - Les passages écrits en paragraphes, sans rangs numérotés, se découpent en étapes : une ligne « Étape N : … » par instruction (une action, ou des actions qui vont ensemble), la numérotation repartant à 1 sous chaque nom de pièce. Recopie le texte mot pour mot.
 - N'ajoute aucun libellé de rang ni aucun nombre absent de l'original : « Répète le rang 3 pour obtenir 5 rangs » reste tel quel, sans « Rangs 4-7 ».
 - Les titres de section de l'original (« Première manche », « Dos »…) gardent leur nom et leur place : la première instruction d'une section reste sous son titre. N'invente aucune section. Un titre courant de page (« Suite du patron », « Pattern Continued », « Page 2 ») n'est pas une section : retire-le ou laisse-le hors des pièces.`,
-  en: `Keep the [image N] markers exactly as they are, in place.
+  en: `Keep the [image N] markers exactly as they are, in place, once each: add none, remove none, move none.
 
 RULES SPECIFIC TO THIS CALL (they complete the rules above)
 - If the document repeats the same pattern in several languages, keep only the English version; failing that, the first one. This is the only deletion allowed: translate nothing, do not mix languages, say nothing about the versions you removed.

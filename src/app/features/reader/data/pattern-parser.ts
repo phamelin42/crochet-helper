@@ -15,12 +15,12 @@ import { EMPTY_PATTERN, Pattern, PatternPiece, PatternStep } from './pattern.mod
  */
 
 /**
- * « Rang 1 », « Rangs 3-6 », « Round 12 », « Rnd 5 », « T. 4 », « Row 2 à 4 »,
+ * « Rang 1 », « Rangs 3-6 », « Rangs 5 à 8 », « Round 12 », « Rnd 5 », « T. 4 », « Row 2 à 4 »,
  * et « Step 1 » / « Étape 1 », la numérotation que choisit souvent un
  * assistant IA quand on lui demande de mettre un patron en étapes.
  */
 const ROW =
-  /^(rangs?|tours?|rows?|rounds?|rnds?|rgs?|steps?|[ée]tapes?|r|t)\s*\.?\s*(\d+)\s*(?:(?:[-–—/]|\s+(?:à|a|to|au)\s+)\s*(\d+))?\s*(?:[:.)\]]|\s+[-–—]\s+)?\s*/i;
+  /^(rangs?|tours?|rows?|rounds?|rnds?|rgs?|steps?|[ée]tapes?|r|t)\s*\.?\s*(\d+)(?:(?:\s*[-–—/]\s*|\s+(?:à|a|to|au)\s+)(\d+))?\s*(?:[:.)\]]|\s+[-–—]\s+)?\s*/i;
 
 /**
  * Numérotation nue : « 1. », « 5-17. », « 4-5 - », « 3) ».
@@ -264,6 +264,9 @@ function unwrap(lines: readonly string[], hasKeywordRow: boolean): string[] {
 /** Une ligne courte, capitalisée et sans ponctuation finale : un nom de pièce. */
 function isHeading(line: string): boolean {
   if (ROW.test(line) || MAT.test(line) || INSTR.test(line)) return false;
+  // « Tip: use a marker » ou « FO and weave in ends » sont courts et sans point,
+  // mais ce sont des consignes, pas des noms de pièce.
+  if (ANNOUNCE.test(line) || FINISH_LEAD.test(line)) return false;
   // « Squares (make 13): » est un nom de pièce : la parenthèse qualifie le nom,
   // elle ne doit pas le disqualifier parce qu'elle contient un chiffre.
   const bare = line
@@ -366,6 +369,16 @@ function splitTip(body: string): { body: string; tip?: string } {
   const sentences = body.match(/[^.!?]+[.!?]+|\S[^.!?]*$/g);
   if (!sentences || sentences.length < 2) return { body };
 
+  // Une phrase qui s'annonce conseil (« Astuce : … ») l'est jusqu'à la fin, même
+  // pleine de chiffres : le test des jetons de maille ne s'applique pas.
+  const announced = sentences.findIndex((sentence, at) => at > 0 && ANNOUNCE.test(sentence.trim()));
+  if (announced > 0) {
+    return {
+      body: sentences.slice(0, announced).join(' ').replace(/\s+/g, ' ').trim(),
+      tip: sentences.slice(announced).join(' ').replace(/\s+/g, ' ').trim(),
+    };
+  }
+
   let cut = sentences.length;
   while (cut > 1 && !STITCH_TOKEN.test(sentences[cut - 1])) cut--;
   if (cut === sentences.length) return { body };
@@ -377,31 +390,71 @@ function splitTip(body: string): { body: string; tip?: string } {
   return { body: sentences.slice(0, cut).join(' ').replace(/\s+/g, ' ').trim(), tip };
 }
 
-/** « Beware », « Note », « Astuce », « Make sure »… : la ligne s'annonce comme
- *  un commentaire, même si elle contient un chiffre. */
-const ADVICE =
-  /^(beware|note|tip|hint|remember|make sure|if you|you can|don'?t forget|attention|astuce|conseil|remarque|pensez|n'oubliez|si vous|vous pouvez)\b/i;
+/** Fin de mot pour du texte français : `\b` ne voit pas « é ». */
+const WORD_END = String.raw`(?![\p{L}\p{N}])`;
+
+/**
+ * Mots qui annoncent un commentaire de l'auteur (« Astuce : », « Tip: »,
+ * « N’oubliez pas »…). Une ligne qui commence ainsi est un conseil même
+ * quand elle contient des chiffres (« tous les 10 rangs »).
+ */
+const ANNOUNCE_WORDS = String.raw`beware|notes?|n\.?\s?b\.?|tips?|hints?|remember|make\s+sure|don['’]t\s+forget|attention|astuces?|conseils?|remarques?|pensez|n['’]oubliez|important|warning|careful|veillez|prenez\s+soin|mind`;
+
+const ANNOUNCE = new RegExp(`^(?:${ANNOUNCE_WORDS})${WORD_END}`, 'iu');
+
+/** Annonces explicites, plus les amorces de phrase de conseil (« Si vous… », « You can… »). */
+const ADVICE_LEAD = new RegExp(
+  `^(?:${ANNOUNCE_WORDS}|if\\s+you|you\\s+can|si\\s+vous|vous\\s+pouvez)${WORD_END}`,
+  'iu',
+);
+
+/**
+ * Verbe de finition ou d'assemblage qui ouvre une consigne : « Fasten off. »,
+ * « Sew the ears… », « Arrêter le fil. Coudre… », « Rabattre toutes les
+ * mailles ». Après le dernier rang d'une pièce, c'est une chose à faire, pas
+ * un commentaire.
+ */
+const FINISH_LEAD = new RegExp(
+  String.raw`^(?:(?:now|then|next|finally|ensuite|puis|maintenant|enfin)[\s,]+)?(?:fasten\s+off|finish(?:ing)?\s+off|cast\s+off|bind\s+off|fo|cut\s+(?:the\s+)?(?:yarn|thread)|sew|stuff|weave|embroider|attach|assemble|arr[êe]te[rz]?|termine[rz]?|coud(?:re|s|ez)|rembourre[rz]?|assemble[rz]?|rentre[rz]?|brode[rz]?|fixe[rz]?|rabatt(?:re|ez|s)|coupe[rz]?|couper|ferme[rz]?)${WORD_END}`,
+  'iu',
+);
 
 /** Abréviations et chiffres qui trahissent une consigne de maille. */
 const STITCH_IN_LINE =
   /\d|\b(?:sc|dc|hdc|tr|dtr|sl\s?st|slst|ch|inc|dec|blo|flo|fo|fpdc|bpdc|rsc|mr|ms|mc|br|aug|dim)\b/i;
 
 /**
- * Une ligne libre qui suit une étape la commente-t-elle, ou prolonge-t-elle
- * ses consignes ?
- *
- * Un patron mis en colonne coupe ses rangs : « FPDC in the same » puis « DC,
- * *(dc, FPDC) in the next dc… ». Cette suite-là doit rejoindre le corps. En
- * revanche « Stitch to tan. » ou « You can switch color if you want » sont des
- * commentaires. Le départage se fait sur la présence de mailles.
+ * Rebut de mise en page : ces lignes sont retirées exprès, la lectrice n'a pas
+ * à les retrouver. Exposé pour que le test « rien ne se perd » les écarte
+ * avec la même règle que le parseur.
  */
-function isAdvice(line: string): boolean {
-  return ADVICE.test(line) || !STITCH_IN_LINE.test(line);
+export function isChromeLine(line: string): boolean {
+  return CHROME.test(line.trim());
+}
+
+/**
+ * En-tête de section (Matériel, Instructions, Notes, Abréviations…) : il ouvre
+ * une section et n'est pas un contenu à restituer tel quel.
+ */
+export function isSectionHeader(line: string): boolean {
+  const text = stripHeaderDecoration(stripMarkdown(line.trim()));
+  return MAT.test(text) || MAT_LOOSE.test(text) || INSTR.test(text) || ASIDE.test(text);
 }
 
 interface MutablePiece {
   name: string;
   steps: PatternStep[];
+}
+
+/** Emplacement d'une image dans le texte, avec ce qui l'entourait à ce moment. */
+interface ImageMarker {
+  readonly n: number;
+  /** Nombre d'étapes créées avant le marqueur. */
+  readonly stepsBefore: number;
+  /** Pièce en cours au moment du marqueur. */
+  readonly piece: MutablePiece | null;
+  /** Le marqueur suit un titre de pièce qui n'a encore aucune étape. */
+  readonly underTitle: boolean;
 }
 
 export function parsePattern(raw: string): Pattern {
@@ -414,7 +467,8 @@ export function parsePattern(raw: string): Pattern {
     .replace(/&nbsp;/g, ' ')
     .split('\n')
     .map((line) => stripMarkdown(line.trim().replace(CHECKBOX, '').trim()).trim())
-    .filter((line) => line && !CHROME.test(line));
+    // Un filet (« - », « *** ») n'a rien à restituer.
+    .filter((line) => /[\p{L}\p{N}]/u.test(line) && !CHROME.test(line));
 
   // Pré-passe : la numérotation nue ne s'active qu'à défaut de vrai libellé.
   const hasKeywordRow = cleaned.some((line) => ROW.test(line));
@@ -435,15 +489,75 @@ export function parsePattern(raw: string): Pattern {
   /** Étapes dans leur ordre de création, toutes pièces confondues. */
   const created: { piece: MutablePiece; index: number }[] = [];
   /** Marqueurs d'image lus, avec le nombre d'étapes créées avant chacun. */
-  const markers: { n: number; stepsBefore: number }[] = [];
+  const markers: ImageMarker[] = [];
+  /** La pièce courante n'a aucun rang : son texte est fait d'étapes sans libellé. */
+  let rowless = false;
+  /** La dernière étape est une finition : ce qui suit n'est plus la suite d'un rang. */
+  let inTail = false;
+  /** Amorce « in white: » d'une pièce sans rang, collée à la ligne suivante. */
+  let lead = '';
 
-  const newPiece = (name: string): MutablePiece => {
-    piece = { name, steps: [] };
-    pieces.push(piece);
-    return piece;
-  };
+  // TypeScript ne voit pas les affectations de `piece` faites dans les fonctions
+  // ci-dessous : il croit la pièce toujours nulle dans la boucle.
+  const current = (): MutablePiece | null => piece;
   const lastStep = (): PatternStep | null =>
     piece && piece.steps.length ? piece.steps[piece.steps.length - 1] : null;
+
+  /** Un rang (numéroté) suit-il avant le prochain en-tête ? */
+  const rowAhead = (from: number): boolean => {
+    for (let at = from; at < lines.length; at++) {
+      const candidate = lines[at];
+      if (IMAGE_MARKER.test(candidate)) continue;
+      if (ROW.test(candidate) || (!hasKeywordRow && BARE_ROW.test(candidate))) return true;
+      if (isHeading(candidate) || isSectionHeader(candidate)) return false;
+    }
+    return false;
+  };
+
+  /** Ajoute une étape sans libellé de rang : finition, assemblage, pièce en phrases. */
+  const addFree = (text: string): void => {
+    const target = piece ?? newPiece('');
+    // Pas de compteur de répétitions : « 50 fois » d'une frange n'est pas un rang.
+    target.steps.push({ label: '', body: text, notes: pending.slice(), reps: 0 });
+    created.push({ piece: target, index: target.steps.length - 1 });
+    pending = [];
+    inTail = true;
+  };
+
+  const appendTip = (text: string): void => {
+    const previous = lastStep();
+    if (!previous) return;
+    piece!.steps[piece!.steps.length - 1] = {
+      ...previous,
+      tip: previous.tip ? `${previous.tip} ${text}` : text,
+    };
+  };
+
+  /** Ce qui n'a pas trouvé de rang à qui se rattacher : aucune ligne ne se perd. */
+  const closePiece = (): void => {
+    if (lead) {
+      addFree(lead);
+      lead = '';
+    }
+    if (pending.length && piece && !piece.steps.length) {
+      for (const text of pending.splice(0)) addFree(text);
+    }
+  };
+
+  /**
+   * `from` : indice de la ligne qui suit l'en-tête, pour savoir si la pièce a des
+   * rangs. Absent pour la pièce implicite, créée par son premier rang.
+   */
+  const newPiece = (name: string, from?: number): MutablePiece => {
+    closePiece();
+    // Du texte lu avant toute pièce est une introduction, pas la note d'un rang.
+    if (from !== undefined && !piece && pending.length) notes.push(...pending.splice(0));
+    piece = { name, steps: [] };
+    pieces.push(piece);
+    rowless = from !== undefined && !rowAhead(from);
+    inTail = false;
+    return piece;
+  };
 
   const addStep = (label: string, rawBody: string, range: number, side?: 'rs' | 'ws'): void => {
     const target = piece ?? newPiece('');
@@ -459,6 +573,7 @@ export function parsePattern(raw: string): Pattern {
     created.push({ piece: target, index: target.steps.length - 1 });
     pending = [];
     seenStep = true;
+    inTail = false;
   };
 
   for (let index = 0; index < lines.length; index++) {
@@ -466,7 +581,15 @@ export function parsePattern(raw: string): Pattern {
     const marker = IMAGE_MARKER.exec(line);
     if (marker) {
       const n = Number(marker[1]);
-      if (!markers.some((m) => m.n === n)) markers.push({ n, stepsBefore: created.length });
+      if (!markers.some((m) => m.n === n)) {
+        markers.push({
+          n,
+          stepsBefore: created.length,
+          piece: current(),
+          // Une photo posée sous un titre de pièce illustre ce qui suit ce titre.
+          underTitle: (current()?.steps.length ?? 1) === 0,
+        });
+      }
       continue;
     }
     let after = index + 1;
@@ -553,7 +676,12 @@ export function parsePattern(raw: string): Pattern {
     }
 
     if (BRACKET_NOTE.test(line)) {
-      notes.push(line.replace(/^\[|\]$/g, '').trim());
+      const text = line.replace(/^\[|\]$/g, '').trim();
+      // La remarque entre crochets commente l'étape qu'elle suit.
+      if (lastStep()) appendTip(text);
+      else if (rowless) addFree(text);
+      else if (piece) pending.push(text);
+      else notes.push(text);
       continue;
     }
 
@@ -604,7 +732,7 @@ export function parsePattern(raw: string): Pattern {
         title = `${title} ${name}`;
         continue;
       }
-      newPiece(name);
+      newPiece(name, index + 1);
       continue;
     }
 
@@ -621,36 +749,51 @@ export function parsePattern(raw: string): Pattern {
       continue;
     }
 
+    const text = line.replace(BULLET, '');
     const previous = lastStep();
-    if (previous && pending.length === 0) {
-      // Décision produit : une ligne libre qui suit une étape commente cette
-      // étape, elle ne s'ajoute pas aux mailles à réaliser. « Stitch to tan. »,
-      // « You can switch color if you want » sont des conseils, et les mêler au
-      // corps rallongeait l'étape sans rien apporter à l'exécution.
-      const addition = line.replace(BULLET, '');
-      const merged: PatternStep = isAdvice(addition)
-        ? { ...previous, tip: previous.tip ? `${previous.tip} ${addition}` : addition }
-        : { ...previous, body: `${previous.body} ${addition}` };
-      piece!.steps[piece!.steps.length - 1] = merged;
+    const announced = ADVICE_LEAD.test(text);
+
+    if (rowless) {
+      // Pièce décrite en phrases : chaque paragraphe est une étape à faire.
+      if (previous && announced) appendTip(text);
+      else if (/:$/.test(text) && !announced) lead = lead ? `${lead} ${text}` : text;
+      else {
+        addFree(lead ? `${lead} ${text}` : text);
+        lead = '';
+      }
+      continue;
+    }
+    if (!previous) {
+      pending.push(text);
+      continue;
+    }
+    if (announced) {
+      appendTip(text);
+    } else if (rowAhead(index + 1)) {
+      // Un rang suit : la ligne est la suite d'un rang coupé en colonne (des
+      // mailles), sinon le commentaire de l'auteur.
+      if (STITCH_IN_LINE.test(text)) {
+        piece!.steps[piece!.steps.length - 1] = { ...previous, body: `${previous.body} ${text}` };
+      } else appendTip(text);
+    } else if (inTail || FINISH_LEAD.test(text) || !STITCH_IN_LINE.test(text)) {
+      // Plus aucun rang dans la pièce : finitions et assemblage sont à faire.
+      addFree(text);
     } else {
-      pending.push(line.replace(BULLET, ''));
+      piece!.steps[piece!.steps.length - 1] = { ...previous, body: `${previous.body} ${text}` };
     }
   }
 
-  if (pending.length && piece && (piece as MutablePiece).steps.length) {
-    const current = piece as MutablePiece;
-    const last = current.steps[current.steps.length - 1];
-    current.steps[current.steps.length - 1] = { ...last, after: pending.slice() };
-  }
+  closePiece();
 
   const patternImages = attachImages(created, markers);
 
   const kept: PatternPiece[] = pieces.filter((p) => p.steps.length);
   const total = kept.reduce((n, p) => n + p.steps.length, 0);
 
-  // Aucune étape : ce n'est pas un patron. Une page de blog ne doit pas
-  // ressortir avec un titre pris dans son menu de navigation.
-  if (!total) return EMPTY_PATTERN;
+  // Aucun rang : ce n'est pas un patron. Une page de blog ne doit pas
+  // ressortir avec un titre pris dans son menu de navigation, ni un texte sans
+  // rang devenir une suite d'étapes.
+  if (!total || !seenStep) return EMPTY_PATTERN;
 
   return {
     title,
@@ -674,7 +817,7 @@ export function parsePattern(raw: string): Pattern {
  */
 function attachImages(
   created: readonly { piece: MutablePiece; index: number }[],
-  markers: readonly { n: number; stepsBefore: number }[],
+  markers: readonly ImageMarker[],
 ): number[] {
   if (!markers.length) return [];
   const known = new Set(markers.map((m) => m.n));
@@ -697,8 +840,18 @@ function attachImages(
 
   const byStep = new Map<number, number[]>();
   const orphans: number[] = [];
-  for (const { n, stepsBefore } of markers) {
-    const owners = cited.get(n) ?? (stepsBefore ? new Set([stepsBefore - 1]) : null);
+  for (const marker of markers) {
+    const { n, stepsBefore } = marker;
+    const next = created[stepsBefore];
+    // La photo qui suit un titre de pièce, ou qui sépare deux pièces, illustre le
+    // premier rang de la pièce qui commence, pas la fin de la précédente. Avant
+    // toute étape et sans titre, c'est une photo du patron (couverture).
+    const startsPiece =
+      next !== undefined &&
+      next.index === 0 &&
+      (marker.underTitle || (stepsBefore > 0 && next.piece !== marker.piece));
+    const following = startsPiece ? stepsBefore : stepsBefore > 0 ? stepsBefore - 1 : null;
+    const owners = cited.get(n) ?? (following === null ? null : new Set([following]));
     if (!owners) {
       orphans.push(n);
       continue;

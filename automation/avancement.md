@@ -70,6 +70,7 @@ branche.
 | 55 — Articles abréviations de tricot    | Terminée | —   | 2026-10-27 |
 | 56 — Page calculateur de cercle         | Terminée | —   | 2026-11-09 |
 | 57 — Clavier, focus et noms accessibles | Terminée | —   | 2026-11-11 |
+| 58 — Découpage fidèle                   | Terminée | —   | 2026-11-11 |
 
 ## États possibles
 

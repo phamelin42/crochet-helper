@@ -1,6 +1,10 @@
 /** Une étape de travail : un rang, un tour, ou une consigne de répétition. */
 export interface PatternStep {
-  /** Libellé normalisé (« Rang 3 », « Round 5–8 »), vide pour une consigne libre. */
+  /**
+   * Libellé normalisé (« Rang 3 », « Round 5–8 »), vide pour une consigne libre :
+   * répétition, finition (« Arrêter le fil. Coudre les oreilles… ») ou pièce
+   * décrite en phrases.
+   */
   readonly label: string;
   /** Texte de l'étape, affiché en grand dans le lecteur. */
   readonly body: string;
@@ -13,8 +17,6 @@ export interface PatternStep {
   readonly tip?: string;
   /** Notes rattachées à l'étape (lignes libres qui la précèdent). */
   readonly notes: readonly string[];
-  /** Lignes libres qui suivent la dernière étape d'une pièce. */
-  readonly after?: readonly string[];
   /** Nombre de répétitions attendu, déduit du libellé ou du corps ; 0 si inconnu. */
   readonly reps: number;
   /** Endroit ou envers, quand le libellé du rang le précise ; absent sinon. */

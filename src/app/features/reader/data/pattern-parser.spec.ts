@@ -340,10 +340,13 @@ describe('parsePattern', () => {
   describe('non-régression sur les patrons réels', () => {
     it.each([
       ['01-mabel-market-bag.txt', mabelMarketBag, 0, 0],
-      ['02-mushroom-tote-bag.txt', mushroomToteBag, 1, 4],
-      ['03-pumpkin-harvest-hat.txt', pumpkinHarvestHat, 3, 15],
+      // « Stitch to tan. » (02) et « Now sew the leaf… » (03) sont des étapes
+      // à faire : le test d'avant les comptait comme des conseils.
+      ['02-mushroom-tote-bag.txt', mushroomToteBag, 1, 5],
+      ['03-pumpkin-harvest-hat.txt', pumpkinHarvestHat, 3, 16],
       ['04-lip-balm-case.txt', lipBalmCase, 1, 10],
-      ['05-lipbalm-mushroom.txt', lipbalmMushroom, 2, 16],
+      // 05 perdait « Mushroom Spots » et « Assembly » avec leur texte (pièces sans rang).
+      ['05-lipbalm-mushroom.txt', lipbalmMushroom, 4, 23],
     ])('« %s » garde le même nombre de rangs et de pièces', (_name, raw, pieces, total) => {
       const pattern = parsePattern(raw as string);
       expect(pattern.pieces.length).toBe(pieces);
@@ -433,7 +436,10 @@ describe('parsePattern', () => {
         'Row 1: ch 5, sc in each ch (4)',
       ].join('\n');
 
-      expect(imagesOf(text)).toEqual([[1, 2], undefined]);
+      // La photo posée sous le titre « Ears » illustre « Ears », pas la fin de
+      // « Head » : l'ancien test attendait [[1, 2], undefined]. « Stuff firmly »
+      // termine la pièce, c'est maintenant une étape.
+      expect(imagesOf(text)).toEqual([[1], undefined, [2]]);
     });
 
     it('rattache plusieurs images citées ensemble (« photos 3 et 4 »)', () => {
@@ -557,6 +563,189 @@ describe('parsePattern', () => {
       const pattern = parsePattern('Materials:\n- 100 g DK yarn\n- 4 mm hook\n\nRow 1: ch 10');
       expect(pattern.total).toBe(1);
       expect(pattern.materials.join(' ')).toContain('4 mm hook');
+    });
+  });
+});
+
+describe('découpage fidèle : finitions, conseils, pièces sans rang', () => {
+  const stepsOf = (text: string) => parsePattern(text).pieces.flatMap((piece) => piece.steps);
+
+  /** Verbes d'ouverture d'une finition, dans les deux langues. */
+  const FINISHES = [
+    'Fasten off.',
+    'Finish off.',
+    'Cast off.',
+    'Bind off all stitches.',
+    'Cut the yarn.',
+    'Sew the ears to the head.',
+    'Stuff firmly.',
+    'Weave in the ends.',
+    'Embroider the nose.',
+    'Attach the eyes.',
+    'Assemble the pieces.',
+    'Now sew the leaf on.',
+    'Arrêter le fil.',
+    'Terminer par une maille coulée.',
+    'Coudre les oreilles.',
+    'Rembourrer le corps.',
+    'Rentrer les fils.',
+    'Broder le nez.',
+    'Fixer les yeux.',
+    'Rabattre toutes les mailles.',
+    'Couper le fil.',
+    'Fermer l’ouverture.',
+    'Assembler les pièces.',
+  ];
+
+  it.each(FINISHES)('« %s » après le dernier rang devient une étape sans libellé', (finish) => {
+    const steps = stepsOf(
+      ['Body', 'Round 1: 6 sc (6)', 'Round 2: 2 sc in each st (12)', finish].join('\n'),
+    );
+    expect(steps.map((s) => s.label)).toEqual(['Round 1', 'Round 2', '']);
+    expect(steps[2].body).toBe(finish);
+    expect(steps[2].tip).toBeUndefined();
+  });
+
+  it('une finition en milieu de pièce, avant un autre rang, reste le commentaire du rang', () => {
+    const steps = stepsOf(
+      ['Body', 'Round 1: 6 sc (6)', 'Stuff firmly.', 'Round 2: 2 sc in each st (12)'].join('\n'),
+    );
+    expect(steps).toHaveLength(2);
+    expect(steps[0].tip).toBe('Stuff firmly.');
+  });
+
+  /** Mots d'annonce, avec un chiffre dans le conseil pour déjouer le test des mailles. */
+  const ANNOUNCES = [
+    'Tip: place a marker every 10 rounds.',
+    'Hint: count 3 ridges.',
+    'Note: 2 rounds are enough.',
+    'NB: 12 stitches only.',
+    'Remember to count 6 stitches.',
+    'Make sure you have 18 stitches.',
+    'Beware, after round 19 add a button.',
+    'Astuce : placez un marqueur tous les 10 rangs.',
+    'Conseil : comptez 12 mailles.',
+    'Remarque : il doit rester 6 mailles.',
+    'Attention : 24 mailles au total.',
+    'Pensez à compter 8 tours.',
+    'N’oubliez pas de compter 6 mailles.',
+    'Important : 3 tours de plus.',
+  ];
+
+  it.each(ANNOUNCES)('« %s » reste un conseil, même chiffré, de l’étape qu’il suit', (advice) => {
+    const steps = stepsOf(
+      ['Body', 'Round 1: 6 sc (6)', advice, 'Round 2: 2 sc in each st (12)'].join('\n'),
+    );
+    expect(steps).toHaveLength(2);
+    expect(steps[0].tip).toBe(advice);
+    expect(steps[1].tip).toBeUndefined();
+  });
+
+  it('un conseil qui précède le premier rang d’une pièce devient une note de ce rang', () => {
+    const steps = stepsOf(['Body', 'Tip: use a 4 mm hook.', 'Round 1: 6 sc (6)'].join('\n'));
+    expect(steps[0].notes).toEqual(['Tip: use a 4 mm hook.']);
+  });
+
+  it('un conseil annoncé au milieu d’un rang quitte le corps', () => {
+    const steps = stepsOf(
+      ['Body', 'Round 1: 6 sc (6). Tip: keep 6 stitches on the hook.'].join('\n'),
+    );
+    expect(steps[0].body).toBe('6 sc (6).');
+    expect(steps[0].tip).toBe('Tip: keep 6 stitches on the hook.');
+  });
+
+  it('un conseil sans point n’est pas pris pour un nom de pièce', () => {
+    const pattern = parsePattern(['Body', 'Round 1: 6 sc (6)', 'Tip: use a marker'].join('\n'));
+    expect(pattern.pieces).toHaveLength(1);
+    expect(pattern.pieces[0].steps[0].tip).toBe('Tip: use a marker');
+  });
+
+  it('une pièce décrite en phrases garde son texte, une étape par paragraphe', () => {
+    const pattern = parsePattern(
+      [
+        'Teddy',
+        'Body',
+        'Round 1: 6 sc (6)',
+        'Bow',
+        'Make a small bow with the leftover yarn.',
+        'Sew it on.',
+      ].join('\n'),
+    );
+    expect(pattern.pieces.map((p) => p.name)).toEqual(['Body', 'Bow']);
+    expect(pattern.pieces[1].steps.map((s) => [s.label, s.body, s.reps])).toEqual([
+      ['', 'Make a small bow with the leftover yarn.', 0],
+      ['', 'Sew it on.', 0],
+    ]);
+  });
+
+  it('un texte sans aucun rang ne devient pas un patron', () => {
+    expect(parsePattern(['Bow', 'Make a small bow.', 'Sew it on.'].join('\n')).total).toBe(0);
+  });
+
+  it('lit « Rangs 5 à 8 » et « Rows 5 to 8 » comme des étendues, tout comme « 5-8 »', () => {
+    for (const label of [
+      'Rangs 5 à 8',
+      'Rangs 5 au 8',
+      'Rows 5 to 8',
+      'Rounds 5 - 8',
+      'Rnds 5–8',
+    ]) {
+      const [step] = stepsOf(['Body', `${label} : 1 sc dans chaque maille (24)`].join('\n'));
+      expect(step.reps, label).toBe(4);
+      expect(step.label, label).toMatch(/5–8$/);
+      expect(step.body, label).toBe('1 sc dans chaque maille (24)');
+    }
+  });
+
+  describe('photos', () => {
+    const imagesOf = (text: string) => stepsOf(text).map((s) => s.images);
+
+    it('une photo sous un titre de pièce va au premier rang de cette pièce', () => {
+      const text = ['Teddy', 'Head', '[image 1]', 'Rnd 1: 6 sc (6)', 'Rnd 2: 12 sc (12)'].join(
+        '\n',
+      );
+      expect(imagesOf(text)).toEqual([[1], undefined]);
+    });
+
+    it('une photo entre deux pièces va au premier rang de la pièce qui commence', () => {
+      const text = [
+        'Teddy',
+        'Head',
+        'Rnd 1: 6 sc (6)',
+        '[image 1]',
+        'Ears',
+        'Rnd 1: 4 sc (4)',
+      ].join('\n');
+      expect(imagesOf(text)).toEqual([undefined, [1]]);
+    });
+
+    it('une référence explicite l’emporte sur la place', () => {
+      const text = [
+        'Teddy',
+        'Head',
+        '[image 1]',
+        'Rnd 1: 6 sc (6)',
+        'Rnd 2: 12 sc (12), see image 1',
+      ].join('\n');
+      expect(imagesOf(text)).toEqual([undefined, [1]]);
+    });
+
+    it('une photo qui suit un rang reste à ce rang, même suivie de finitions', () => {
+      const text = ['Teddy', 'Head', 'Rnd 1: 6 sc (6)', '[image 1]', 'Fasten off.'].join('\n');
+      expect(imagesOf(text)).toEqual([[1], undefined]);
+    });
+
+    it('une photo avant tout titre de pièce reste au patron', () => {
+      const pattern = parsePattern(['Bear', '[image 1]', 'Rnd 1: 6 sc (6)'].join('\n'));
+      expect(pattern.images).toEqual([1]);
+      expect(pattern.pieces[0].steps[0].images).toBeUndefined();
+    });
+
+    it('une photo sous une pièce sans rang va à sa première étape', () => {
+      const text = ['Teddy', 'Body', 'Rnd 1: 6 sc (6)', 'Bow', '[image 1]', 'Make a bow.'].join(
+        '\n',
+      );
+      expect(imagesOf(text)).toEqual([undefined, [1]]);
     });
   });
 });

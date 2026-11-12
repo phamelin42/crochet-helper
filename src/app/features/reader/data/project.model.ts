@@ -23,6 +23,10 @@ export interface Project {
    * à `imageCount`. Absent des projets enregistrés avant la fiche 34 : 0.
    */
   readonly imageCount?: number;
+  /** Horodatage du passage à « terminé » (fiche 60). Absent tant que le patron n'est pas fini. */
+  readonly finishedAt?: number;
+  /** Une photo de l'ouvrage terminé est enregistrée (fiche 60), sous `finishedId(id)`. */
+  readonly finishedPhoto?: boolean;
   /**
    * Nombre de diagrammes joints par la lectrice (fiche 35), fonction retirée
    * depuis. Gardé pour effacer leurs fichiers avec le projet ; jamais affiché.
@@ -61,8 +65,8 @@ export interface ProjectImage {
   readonly blob: Blob;
   readonly width: number;
   readonly height: number;
-  /** `pdf` : photo d'un PDF importé ; `chart` : diagramme chargé par la lectrice. */
-  readonly kind: 'pdf' | 'chart';
+  /** `pdf` : photo d'un PDF importé ; `chart` : diagramme chargé par la lectrice ; `finished` : photo de l'ouvrage terminé. */
+  readonly kind: 'pdf' | 'chart' | 'finished';
 }
 
 export function imageId(projectId: string, n: number): string {
@@ -78,14 +82,21 @@ export function chartId(projectId: string, n: number): string {
   return `${projectId}:chart:${n}`;
 }
 
+/** Clé de la photo de l'ouvrage terminé : une seule par projet. */
+export function finishedId(projectId: string): string {
+  return `${projectId}:finished`;
+}
+
 /** Clés des diagrammes d'un projet, de 1 à `chartCount`. */
 export function chartIds(project: Pick<Project, 'id' | 'chartCount'>): string[] {
   return Array.from({ length: project.chartCount ?? 0 }, (_, i) => chartId(project.id, i + 1));
 }
 
 /** Toutes les clés de fichiers d'un projet, anciens diagrammes joints compris : ce qu'efface sa suppression. */
-export function fileIds(project: Pick<Project, 'id' | 'imageCount' | 'chartCount'>): string[] {
-  return [...imageIds(project), ...chartIds(project)];
+export function fileIds(
+  project: Pick<Project, 'id' | 'imageCount' | 'chartCount' | 'finishedPhoto'>,
+): string[] {
+  return [...imageIds(project), ...chartIds(project), finishedId(project.id)];
 }
 
 /** Forme de l'ancien état unique, stocké dans `localStorage` avant la fiche 16. */

@@ -106,7 +106,13 @@ export type AnalyticsEvent =
   /** Maille touchée dans la grille de couleurs, une fois par rang et par session. */
   | 'grid_stitch_marked'
   /** Grille fabriquée depuis une image (propriétés `width` à la dizaine, `colors`, `worked`, `origine` : lecteur ou page), jamais l'image. */
-  | 'grid_created';
+  | 'grid_created'
+  /** Dernière étape d'un patron cochée, une fois par passage à « terminé » (propriété `steps`). */
+  | 'pattern_finished'
+  /** Photo de l'ouvrage terminé enregistrée sur l'appareil, jamais la photo. */
+  | 'finished_photo_added'
+  /** Ouvrage terminé partagé (propriété `canal` : `natif`, `telechargement` ou `copie`). */
+  | 'finished_shared';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

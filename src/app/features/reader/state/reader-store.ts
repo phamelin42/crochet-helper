@@ -136,6 +136,12 @@ export class ReaderStore {
   readonly done = signal<Record<string, boolean>>({});
   readonly reps = signal<Record<string, number>>({});
   readonly elapsed = signal(0);
+  /** Horodatage du passage à « terminé » (dernière étape cochée) ; `null` tant que le patron n'est pas fini. */
+  readonly finishedAt = signal<number | null>(null);
+  /** Une photo de l'ouvrage terminé est enregistrée avec le projet (fiche 60). */
+  readonly finishedPhoto = signal(false);
+  /** La lectrice a demandé à revoir la dernière étape : l'écran de fin s'efface sans rien décocher. */
+  private readonly endScreenDismissed = signal(false);
   readonly running = signal(false);
   /** Affiche « maille serrée » au lieu de « ms ». Confort de lecture, pas un
    *  réglage de découpage : le texte source reste intact. */
@@ -229,6 +235,16 @@ export class ReaderStore {
   });
   /** Dernière étape du patron terminée : il n'y a plus rien à avancer. */
   readonly finished = computed(() => this.total() > 0 && !this.hasNext() && this.isDone());
+  /** L'écran de célébration : patron terminé, et la lectrice ne l'a pas écarté pour relire. */
+  readonly endScreenVisible = computed(() => this.finished() && !this.endScreenDismissed());
+  /** La dernière étape du dernier ensemble est cochée, où que la lectrice se trouve. */
+  private readonly patternComplete = computed(() => {
+    const pieces = this.pieces();
+    if (!pieces.length) return false;
+    const last = pieces.length - 1;
+    const lastStep = pieces[last].steps.length - 1;
+    return lastStep >= 0 && this.done()[`${last}:${lastStep}`] === true;
+  });
   readonly doneCount = computed(() => Object.values(this.done()).filter(Boolean).length);
   readonly progress = computed(() =>
     this.stepCount() ? ((this.stepIndex() + 1) / this.stepCount()) * 100 : 0,
@@ -260,6 +276,8 @@ export class ReaderStore {
       this.done();
       this.reps();
       this.elapsed();
+      this.finishedAt();
+      this.finishedPhoto();
       this.expandAbbreviations();
       this.currentId();
       this.nameOverride();
@@ -431,6 +449,8 @@ export class ReaderStore {
       createdAt: existing?.createdAt ?? now,
       lastOpenedAt: existing?.lastOpenedAt ?? now,
       imageCount: this.imageCount(),
+      ...(this.finishedAt() !== null ? { finishedAt: this.finishedAt()! } : {}),
+      ...(this.finishedPhoto() ? { finishedPhoto: true } : {}),
       ...(this.legacyChartCount ? { chartCount: this.legacyChartCount } : {}),
       ...(this.grid() ? { grid: this.grid()! } : {}),
       ...(this.sourceBeforeAi() !== null ? { sourceBeforeAi: this.sourceBeforeAi()! } : {}),
@@ -565,6 +585,9 @@ export class ReaderStore {
     this.elapsed.set(project.elapsed);
     this.expandAbbreviations.set(project.expandAbbreviations);
     this.imageCount.set(project.imageCount ?? 0);
+    this.finishedAt.set(project.finishedAt ?? null);
+    this.finishedPhoto.set(project.finishedPhoto === true);
+    this.endScreenDismissed.set(false);
     this.legacyChartCount = project.chartCount ?? 0;
     this.pdfImagesNote.set(null);
     this.viewChoice.set(null);
@@ -693,6 +716,8 @@ export class ReaderStore {
     this.stitchIndex.set(0);
     this.done.set({});
     this.reps.set({});
+    this.finishedAt.set(null);
+    this.endScreenDismissed.set(false);
     this.depthsReached.set(new Set());
     if (!text) return;
     let created = false;
@@ -890,6 +915,7 @@ export class ReaderStore {
     this.stitchIndex.set(0);
     this.done.set({});
     this.reps.set({});
+    this.finishedAt.set(null);
     this.depthsReached.set(new Set());
   }
 
@@ -947,6 +973,9 @@ export class ReaderStore {
     this.currentId.set(null);
     this.nameOverride.set(null);
     this.elapsed.set(0);
+    this.finishedAt.set(null);
+    this.finishedPhoto.set(false);
+    this.endScreenDismissed.set(false);
     this.image.set('');
     this.imageCount.set(0);
     this.legacyChartCount = 0;
@@ -1062,6 +1091,7 @@ export class ReaderStore {
     if (!this.step()) return;
     const key = this.positionKey();
     this.done.update((done) => ({ ...done, [key]: true }));
+    this.syncFinished();
     if (this.hasNext()) this.move(1);
     else this.stopTimer();
   }
@@ -1069,9 +1099,45 @@ export class ReaderStore {
   setDone(value: boolean): void {
     const key = this.positionKey();
     this.done.update((done) => ({ ...done, [key]: value }));
+    this.syncFinished();
     if (!value) return;
     if (this.hasNext()) this.move(1);
     else this.stopTimer();
+  }
+
+  /**
+   * Pose `finishedAt` au passage à « terminé » (et mesure ce passage, une fois),
+   * l'efface quand la dernière étape est décochée. Appelée par les seuls gestes
+   * qui cochent : reprendre un projet déjà terminé ne remesure rien.
+   */
+  private syncFinished(): void {
+    this.endScreenDismissed.set(false);
+    const complete = this.patternComplete();
+    if (complete && this.finishedAt() === null) {
+      this.finishedAt.set(Date.now());
+      this.analytics.track('pattern_finished', { steps: this.total() });
+    } else if (!complete && this.finishedAt() !== null) {
+      this.finishedAt.set(null);
+    }
+  }
+
+  /** Revient lire la dernière étape sans rien décocher. */
+  reviewLastStep(): void {
+    this.endScreenDismissed.set(true);
+  }
+
+  /** Remet la progression de ce patron à zéro : étapes, compteurs, chronomètre. La photo de l'ouvrage reste. */
+  restartPattern(): void {
+    this.stopTimer();
+    this.done.set({});
+    this.reps.set({});
+    this.elapsed.set(0);
+    this.pieceIndex.set(0);
+    this.stepIndex.set(0);
+    this.stitchIndex.set(0);
+    this.finishedAt.set(null);
+    this.endScreenDismissed.set(false);
+    this.depthsReached.set(new Set());
   }
 
   setImage(dataUrl: string): void {

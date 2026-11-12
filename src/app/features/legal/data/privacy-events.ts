@@ -150,6 +150,18 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     fr: 'une grille est fabriquée depuis une image (largeur à la dizaine, nombre de couleurs, à plat ou en rond, depuis le lecteur ou la page dédiée, jamais l’image ni ses couleurs)',
     en: 'a grid is made from an image (width to the nearest ten, number of colours, flat or in the round, from the reader or the dedicated page, never the image or its colours)',
   },
+  pattern_finished: {
+    fr: 'la dernière étape d’un patron est cochée (nombre d’étapes, jamais le contenu du patron ni son nom)',
+    en: 'the last step of a pattern is ticked (number of steps, never the pattern’s content or name)',
+  },
+  finished_photo_added: {
+    fr: 'une photo de l’ouvrage terminé est gardée sur l’appareil (jamais la photo, qui ne quitte pas l’appareil)',
+    en: 'a photo of the finished piece is kept on the device (never the photo, which never leaves the device)',
+  },
+  finished_shared: {
+    fr: 'l’ouvrage terminé est partagé (canal : partage du système, enregistrement de la photo ou message copié)',
+    en: 'the finished piece is shared (channel: system share, photo saved or message copied)',
+  },
   chart_transcribed: {
     fr: 'un diagramme est transcrit en texte (nombre de tours, convention, lu automatiquement ou à la main)',
     en: 'a chart is transcribed to text (number of rounds, convention, read automatically or by hand)',

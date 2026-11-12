@@ -92,6 +92,11 @@ const CURRENT_ID_KEY = 'fil.currentProjectId';
 /** Paliers de profondeur de lecture, en position absolue dans le patron. */
 const DEPTH_THRESHOLDS = [5, 20, 50] as const;
 
+/** Le projet sans son chronomètre, pour distinguer un geste de la lectrice d'un tic de minuterie. */
+function contentKey(project: Project): string {
+  return JSON.stringify({ ...project, elapsed: 0 });
+}
+
 /** Délai de regroupement des annonces des autres onglets avant de relire un projet. */
 const TAB_REFRESH_DELAY_MS = 200;
 
@@ -206,7 +211,12 @@ export class ReaderStore {
   /** Numéro de la dernière lecture de photos : une lecture dépassée est ignorée. */
   private imageLoad = 0;
   /** Le projet tel qu'il est enregistré (écrit ici, ou repris d'un autre onglet) : inutile de le réécrire. */
-  private lastSaved: { readonly id: string; readonly signature: string } | null = null;
+  private lastSaved: {
+    readonly id: string;
+    readonly signature: string;
+    /** Le projet sans son chronomètre : ce qui change quand la lectrice agit, pas quand le temps passe. */
+    readonly content: string;
+  } | null = null;
   /** Projets que d'autres onglets ont changés, relus ensemble après un court délai. */
   private readonly changedElsewhere = new Map<string, boolean>();
   private refreshTimer: ReturnType<typeof setTimeout> | null = null;
@@ -412,15 +422,62 @@ export class ReaderStore {
     return undefined;
   }
 
-  private async persist(): Promise<void> {
+  /** Écriture en vol : une seule à la fois, pour que `lastSaved` soit celui de la précédente. */
+  private persisting: Promise<void> | null = null;
+  private persistAgain = false;
+
+  /**
+   * Une écriture démarre aussitôt si aucune n'est en vol ; sinon elle est
+   * regroupée en une relecture de l'état une fois la précédente terminée.
+   */
+  private persist(): Promise<void> {
+    if (this.persisting) {
+      this.persistAgain = true;
+      return this.persisting;
+    }
+    this.persisting = (async () => {
+      try {
+        do {
+          this.persistAgain = false;
+          await this.persistNow();
+        } while (this.persistAgain);
+      } finally {
+        this.persisting = null;
+      }
+    })();
+    return this.persisting;
+  }
+
+  private async persistNow(): Promise<void> {
     if (this.holdPersist) return;
     const id = this.currentId();
     if (!id) return;
     const project = this.snapshot(id);
     const signature = JSON.stringify(project);
     if (this.lastSaved?.id === id && this.lastSaved.signature === signature) return;
-    if (await this.projectStore.put(project)) {
-      this.lastSaved = { id, signature };
+    // Le projet n'est écrit que s'il est encore tel que cet onglet l'a laissé :
+    // un autre onglet a pu l'avancer depuis, et son annonce n'est relue qu'après
+    // un délai de regroupement. Sans ce contrôle, un tic du chronomètre de cet
+    // onglet écrasait sa progression par un état périmé, que l'autre onglet
+    // reprenait ensuite à son tour. Lecture et écriture : une seule transaction.
+    const known = this.lastSaved?.id === id ? this.lastSaved.signature : null;
+    const content = contentKey(project);
+    let result = await this.projectStore.putIfCurrent(
+      project,
+      (stored) => known === null || stored === undefined || JSON.stringify(stored) === known,
+    );
+    if (result === 'conflict') {
+      // Un tic du chronomètre n'est pas un geste de la lectrice : il cède à ce
+      // qu'un autre onglet a enregistré. Un geste (étape, compteur, nom…) est
+      // le dernier mot, et s'écrit par-dessus.
+      if (this.lastSaved?.id === id && this.lastSaved.content === content) {
+        void this.refreshFromDisk(id, false);
+        return;
+      }
+      result = (await this.projectStore.put(project)) ? 'written' : 'failed';
+    }
+    if (result === 'written') {
+      this.lastSaved = { id, signature, content };
       this.sync.announce(id);
     }
     this.projects.update((list) => [...list.filter((p) => p.id !== id), project]);
@@ -460,7 +517,7 @@ export class ReaderStore {
     const signature = JSON.stringify(stored);
     if (JSON.stringify(this.snapshot(id)) === signature) return;
     this.stopTimer();
-    this.lastSaved = { id, signature };
+    this.lastSaved = { id, signature, content: contentKey(stored) };
     this.hydrate(stored);
   }
 

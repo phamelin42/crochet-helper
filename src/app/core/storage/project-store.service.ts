@@ -126,6 +126,37 @@ export class ProjectStoreService {
     });
   }
 
+  /**
+   * Écrit `item` seulement si l'élément enregistré est celui que l'appelant
+   * croit : lecture et écriture dans **une seule** transaction, donc aucun
+   * autre onglet ne peut s'intercaler. `'conflict'` quand `isCurrent` refuse
+   * l'état enregistré (un autre onglet l'a changé) : rien n'est écrit.
+   */
+  async putIfCurrent<T extends { id: string }>(
+    item: T,
+    isCurrent: (stored: T | undefined) => boolean,
+  ): Promise<'written' | 'conflict' | 'failed'> {
+    const db = await this.db();
+    if (!db) return 'failed';
+    return new Promise((resolve) => {
+      let outcome: 'written' | 'conflict' = 'written';
+      try {
+        const tx = db.transaction([STORE, IMAGES], 'readwrite');
+        tx.oncomplete = () => resolve(outcome);
+        tx.onerror = () => resolve('failed');
+        tx.onabort = () => resolve('failed');
+        const projects = tx.objectStore(STORE);
+        const read = projects.get(item.id);
+        read.onsuccess = () => {
+          if (isCurrent(read.result as T | undefined)) projects.put(item);
+          else outcome = 'conflict';
+        };
+      } catch {
+        resolve('failed');
+      }
+    });
+  }
+
   /** Supprime un élément et ses fichiers rattachés, dans la même transaction. */
   async remove(id: string, fileIds: readonly string[] = []): Promise<boolean> {
     const db = await this.db();

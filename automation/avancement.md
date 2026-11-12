@@ -71,6 +71,7 @@ branche.
 | 56 — Page calculateur de cercle         | Terminée | —   | 2026-11-09 |
 | 57 — Clavier, focus et noms accessibles | Terminée | —   | 2026-11-11 |
 | 58 — Découpage fidèle                   | Terminée | —   | 2026-11-11 |
+| 59 — Lisible à un mètre                 | Terminée | —   | 2026-11-12 |
 
 ## États possibles
 

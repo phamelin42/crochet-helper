@@ -259,7 +259,7 @@
  * courant : un contour clair sous un contour foncé, lisible sur toute teinte. */
 .grid-number {
   fill: var(--print-ink);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
 }
 .grid-number.is-current {
   font-weight: 700;
@@ -269,7 +269,7 @@
   paint-order: stroke;
   stroke: var(--print-paper);
   stroke-width: 3;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   pointer-events: none;
 }

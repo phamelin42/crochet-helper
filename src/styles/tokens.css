@@ -22,6 +22,10 @@
   --color-surface: #fffaf3; /* 楮 kōzo — cartes, champs */
   --color-overlay: #f2e9e1; /* surfaces calmes, survols */
   --color-line: #e3d7cd; /* filets, bordures */
+  /* Bordure des champs, cases et segments : 3,66:1 sur le fond (WCAG 1.4.11). */
+  --color-field-border: #8a7d72;
+  /* Ombre du bord d'une zone qui défile : il reste du texte dans ce sens. */
+  --scroll-shadow: rgb(81 74 98 / 22%);
   --color-text: #514a62; /* 墨 sumi — encre violacée, jamais noire (7,7:1) */
   --color-text-strong: #3c3550; /* titres */
   /* Étiquettes et textes discrets : ≥ 4,7:1 sur washi, kōzo et overlay. */
@@ -67,8 +71,8 @@
   --font-display-weight: 700;
   --font-body: 'Karla Variable', 'Karla', 'Helvetica Neue', Arial, sans-serif;
   --text-base: 1.0625rem;
-  --text-sm: 0.9375rem;
-  --text-xs: 0.8125rem;
+  --text-sm: 1rem;
+  --text-xs: 0.875rem;
 
   /* — espacement — */
   --space-1: 4px;
@@ -110,7 +114,7 @@
   /* Côté d'un bouton d'icône. L'emplacement réservé du bouton « écran allumé »
      (`.tool-slot`) doit garder exactement cette taille, sinon le décalage de
      mise en page revient à l'hydratation. */
-  --control-size: 44px;
+  --control-size: 48px;
   /* Largeur du champ de filtre du glossaire. */
   --glossary-filter-width: 360px;
 }
@@ -143,6 +147,8 @@
   --color-surface: #2a273f;
   --color-overlay: #393552;
   --color-line: #44415a;
+  --color-field-border: #7a7699; /* 3,34:1 sur le fond sombre */
+  --scroll-shadow: rgb(0 0 0 / 40%);
   --color-text: #e6e2f7;
   --color-text-strong: #f4f1ff;
   --color-text-label: #b3aecd;

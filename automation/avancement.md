@@ -72,6 +72,7 @@ branche.
 | 57 — Clavier, focus et noms accessibles | Terminée | —   | 2026-11-11 |
 | 58 — Découpage fidèle                   | Terminée | —   | 2026-11-11 |
 | 59 — Lisible à un mètre                 | Terminée | —   | 2026-11-12 |
+| 60 — Patron terminé et photo            | Terminée | —   | 2026-11-12 |
 
 ## États possibles
 

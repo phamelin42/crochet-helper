@@ -37,6 +37,7 @@
 .nav-brand {
   display: inline-flex;
   align-items: center;
+  min-height: var(--control-size);
   gap: var(--space-2);
   margin-right: 0;
 }
@@ -115,6 +116,11 @@ main {
 }
 .site-footer a {
   color: var(--color-text-label);
+  /* Exemptés des 48 px (liens d'une liste), mais jamais sous 32 px de haut :
+     WCAG 2.5.8 demande 24 px et de l'espace. */
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--space-8);
 }
 .footer-columns {
   display: flex;
@@ -437,10 +443,10 @@ textarea.src-input {
   max-width: 28ch;
 }
 /* L'étape et sa barre de progression, collée dessous. Le bloc réserve deux
-   lignes de texte, quelle que soit l'étape : « Précédent » et « Suivant »,
-   juste après, ne bougent pas d'une étape à l'autre, et l'espace libre va
-   sous la barre plutôt qu'entre le texte et elle. Une étape plus longue
-   s'écrit plus petit (`.long`, `.longer`, `.longest`) pour y tenir. */
+   lignes de texte : « Précédent » et « Suivant », juste après, ne bougent pas
+   d'une étape courte à l'autre. Le texte ne rétrécit jamais (fiche 59) : une
+   étape qui ne tient pas dans son cadre défile dedans, et un dégradé en bas
+   dit qu'il y a une suite. */
 .step-block {
   /* Une base de texte plus grande rétrécit la ligne en caractères : le bloc
      réserve davantage de lignes, au prorata (fiche 42). */
@@ -449,17 +455,18 @@ textarea.src-input {
 .step-block.empty {
   min-height: 0;
 }
-.step-body.long {
-  font-size: calc(var(--reader-step) * 0.8);
-  max-width: 34ch;
-}
-.step-body.longer {
-  font-size: calc(var(--reader-step) * 0.6);
-  max-width: 44ch;
-}
-.step-body.longest {
-  font-size: calc(var(--reader-step) * 0.5);
-  max-width: 52ch;
+.step-body {
+  /* Page complète : le cadre est la moitié de l'écran, jamais plus. */
+  max-height: 60dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Ombres de défilement : les dégradés « local » masquent les ombres quand
+     on est au bord, les ombres fixes n'apparaissent que s'il reste du texte. */
+  background:
+    linear-gradient(var(--color-bg) 30%, transparent) top / 100% var(--space-6) no-repeat local,
+    linear-gradient(transparent, var(--color-bg) 70%) bottom / 100% var(--space-6) no-repeat local,
+    linear-gradient(var(--scroll-shadow), transparent) top / 100% var(--space-3) no-repeat scroll,
+    linear-gradient(transparent, var(--scroll-shadow)) bottom / 100% var(--space-3) no-repeat scroll;
 }
 .step-body.empty {
   font-size: var(--reader-step-sm);
@@ -476,6 +483,10 @@ textarea.src-input {
   text-decoration-thickness: 0.08em;
   text-underline-offset: 0.2em;
   cursor: help;
+  /* Zone tactile élargie sans bouger la ligne : le rembourrage et la marge
+     négative se compensent. */
+  padding: 0.25em 0.2em;
+  margin: -0.25em -0.2em;
 }
 .abbr:hover {
   color: var(--color-sakura-ink);
@@ -682,6 +693,7 @@ fil-install-slot {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-yamabuki-ink);
+  min-height: var(--control-size);
   padding: var(--space-2) 0;
 }
 .mats > summary::-webkit-details-marker {
@@ -981,12 +993,30 @@ fil-install-slot {
    l'impression garde ses propres règles. */
 .stepmeta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
+}
+.stepmeta-text {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .stepmeta .stepcount {
   margin: 0;
+}
+/* « Rang 5-8 » : ce que la lectrice cherche d'abord, en grand ; « Étape 5 sur
+   8 » dessous, en petit. */
+.steplabel {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  color: var(--color-text-strong);
+}
+.focus-toggle {
+  flex: none;
 }
 @media screen {
   html[data-focus] fil-site-header,
@@ -998,7 +1028,7 @@ fil-install-slot {
   html[data-focus] fil-materials-list,
   html[data-focus] fil-share-actions,
   html[data-focus] fil-reader-page > .hr,
-  html[data-focus] .reader-tools {
+  html[data-focus] .pieces {
     display: none;
   }
   html[data-focus] main {
@@ -1007,7 +1037,9 @@ fil-install-slot {
   html[data-focus] fil-reader-page {
     display: flex;
     flex-direction: column;
-    min-height: 100dvh;
+    /* Hauteur fixe : une étape longue défile dans son cadre, la page ne bouge
+       pas et « Précédent » / « Suivant » restent en bas (fiche 59). */
+    height: 100dvh;
     padding-top: var(--space-3);
     padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
   }
@@ -1016,24 +1048,39 @@ fil-install-slot {
   html[data-focus] fil-step-view {
     display: contents;
   }
+  /* La taille du texte reste à portée en page pleine ; le choix de pièce, non. */
+  html[data-focus] .reader-tools {
+    order: 1;
+    margin-bottom: var(--space-2);
+  }
   html[data-focus] .stepmeta {
     order: 1;
+    margin-bottom: var(--space-2);
+  }
+  html[data-focus] .view-toggle {
+    order: 3;
   }
   /* L'étape se centre dans l'espace libre, un peu au-dessus du milieu : à
      l'œil, le centre exact paraît trop bas (et sur tablette, l'étape doit
      rester sous 450 px, garde de `reading-mode.spec.ts`). */
   html[data-focus] .step-block {
     order: 2;
-    padding-bottom: calc(var(--space-10) * 2);
-    flex: 1 1 auto;
+    padding-bottom: min(calc(var(--space-10) * 2), 8dvh);
+    flex: 1 1 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
   }
   html[data-focus] .note,
   html[data-focus] .step-tip,
+  html[data-focus] .focus-hint,
   html[data-focus] fil-image-gallery {
     order: 3;
+  }
+  /* Dans l'écran, l'étape prend toute la place restante et défile dedans. */
+  html[data-focus] .step-body {
+    max-height: none;
+    min-height: 0;
   }
   html[data-focus] .meter {
     order: 4;

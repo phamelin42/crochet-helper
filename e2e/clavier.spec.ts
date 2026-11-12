@@ -27,7 +27,7 @@ async function charger(page: Page): Promise<void> {
   await ouvrir(page);
   await page.locator('#pattern-source').fill(PATRON);
   await page.getByRole('button', { name: 'Split into steps', exact: true }).click();
-  await expect(page.locator('.stepcount')).toContainText('Step 1 / 4');
+  await expect(page.locator('.stepcount')).toContainText('Step 1 of 4');
 }
 
 const etape = (page: Page) => page.locator('.stepcount').textContent();
@@ -97,18 +97,18 @@ test.describe('patron chargé : une touche appartient d’abord à l’élément
 
     await page.keyboard.press(' ');
 
-    await expect(page.locator('.stepcount')).toContainText('Step 2 / 4');
+    await expect(page.locator('.stepcount')).toContainText('Step 2 of 4');
   });
 
   test('Espace sur « Previous » ne fait pas avancer le patron', async ({ page }) => {
     await charger(page);
     await page.getByRole('button', { name: 'Next', exact: true }).click();
-    await expect(page.locator('.stepcount')).toContainText('Step 2 / 4');
+    await expect(page.locator('.stepcount')).toContainText('Step 2 of 4');
     await page.getByRole('button', { name: 'Previous', exact: true }).focus();
 
     await page.keyboard.press(' ');
 
-    await expect(page.locator('.stepcount')).toContainText('Step 1 / 4');
+    await expect(page.locator('.stepcount')).toContainText('Step 1 of 4');
   });
 
   test('sur la page, hors de tout contrôle, les flèches et Espace conduisent toujours la lecture', async ({
@@ -121,11 +121,11 @@ test.describe('patron chargé : une touche appartient d’abord à l’élément
     ).evaluate((el) => el.blur());
 
     await page.keyboard.press('ArrowRight');
-    await expect(page.locator('.stepcount')).toContainText('Step 2 / 4');
+    await expect(page.locator('.stepcount')).toContainText('Step 2 of 4');
     await page.keyboard.press(' ');
-    await expect(page.locator('.stepcount')).toContainText('Step 3 / 4');
+    await expect(page.locator('.stepcount')).toContainText('Step 3 of 4');
     await page.keyboard.press('ArrowLeft');
-    await expect(page.locator('.stepcount')).toContainText('Step 2 / 4');
+    await expect(page.locator('.stepcount')).toContainText('Step 2 of 4');
   });
 });
 

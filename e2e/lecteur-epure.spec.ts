@@ -49,7 +49,7 @@ test('le compteur de répétitions est toujours là, sur la ligne de l’avancem
 
 test('la position n’est dite qu’une fois, sans badge de rang ni de pièce', async ({ page }) => {
   await page.getByRole('button', { name: 'Example', exact: true }).click();
-  await expect(page.locator('.stepcount')).toHaveText(/^\s*Step 1 \/ \d+\s*$/);
+  await expect(page.locator('.stepcount')).toHaveText(/^\s*Step 1 of \d+\s*$/);
   await expect(page.getByRole('button', { name: /Spell out/ })).toHaveCount(0);
   await expect(page.getByText('All steps')).toHaveCount(0);
 });

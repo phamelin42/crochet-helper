@@ -14,6 +14,7 @@ const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
 const TEXT_SIZE_KEY = 'fil.textSize';
 const DIM_KEY = 'fil.dim';
 const FOCUS_KEY = 'fil.focus';
+const FOCUS_HINT_KEY = 'fil.focusHintSeen';
 
 /**
  * Les réglages de lecture (taille du texte, fond sombre, mode page pleine),
@@ -32,6 +33,10 @@ export class DisplayPrefsService {
   /** Mode page pleine (fiche 38) : activé tant que la lectrice ne l'a pas quitté. */
   readonly focus = signal(true);
 
+  /** La phrase qui explique la page pleine ne s'affiche qu'à la première visite. Vrai tant que la
+   *  préférence n'est pas lue : rien ne clignote au pré-rendu ni chez qui l'a déjà vue. */
+  readonly focusHintSeen = signal(true);
+
   readonly defaultView = signal<DefaultView>('ask');
 
   constructor() {
@@ -42,6 +47,7 @@ export class DisplayPrefsService {
       if (size && TEXT_SIZES.includes(size)) this.setTextSize(size);
       if (this.storage.read<boolean>(DIM_KEY)) this.setDim(true);
       if (this.storage.read<boolean>(FOCUS_KEY) === false) this.focus.set(false);
+      this.focusHintSeen.set(this.storage.read<boolean>(FOCUS_HINT_KEY) === true);
       const view = this.storage.read<DefaultView>(DEFAULT_VIEW_KEY);
       if (view && DEFAULT_VIEWS.includes(view)) this.defaultView.set(view);
     });
@@ -71,6 +77,12 @@ export class DisplayPrefsService {
   setDefaultView(value: DefaultView): void {
     this.defaultView.set(value);
     this.storage.write(DEFAULT_VIEW_KEY, value);
+  }
+
+  markFocusHintSeen(): void {
+    if (this.focusHintSeen()) return;
+    this.focusHintSeen.set(true);
+    this.storage.write(FOCUS_HINT_KEY, true);
   }
 
   setFocus(value: boolean): void {

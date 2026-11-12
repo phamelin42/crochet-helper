@@ -42,7 +42,9 @@ async function charger(
   await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
   await page.locator('#pattern-source').fill(texte);
   await page.getByRole('button', { name: 'Split into steps', exact: true }).click();
-  await expect(page.locator('.step-body')).toBeVisible();
+  // Avant le découpage, `.step-body.empty` affiche l'invite en 20 px (`--reader-step-sm`) :
+  // on attend l'étape elle-même, pas le premier `.step-body` venu.
+  await expect(page.locator('.step-body:not(.empty)')).toBeVisible();
 }
 
 const taillePx = (page: Page) =>

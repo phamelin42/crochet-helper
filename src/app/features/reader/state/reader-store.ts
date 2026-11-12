@@ -532,6 +532,14 @@ export class ReaderStore {
     );
   }
 
+  /** Le fichier de la photo de l'ouvrage du projet actif (pour la partager ou l'enregistrer), `null` sans photo. */
+  async finishedPhotoBlob(): Promise<Blob | null> {
+    const id = this.currentId();
+    if (!id || !this.finishedPhoto()) return null;
+    const [file] = await this.projectStore.getFiles<ProjectImage>([finishedId(id)]);
+    return file?.blob ?? null;
+  }
+
   /** Photo d'ouvrage d'un projet de la liste, pour sa vignette ; l'appelant libère l'adresse. */
   async readFinishedPhoto(id: string): Promise<ShownPhoto | null> {
     const [file] = await this.projectStore.getFiles<ProjectImage>([finishedId(id)]);

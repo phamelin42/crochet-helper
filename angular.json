@@ -43,6 +43,11 @@
                 "inject": false
               },
               {
+                "input": "src/styles/fin.css",
+                "bundleName": "fin",
+                "inject": false
+              },
+              {
                 "input": "src/styles/pages.css",
                 "bundleName": "pages",
                 "inject": false

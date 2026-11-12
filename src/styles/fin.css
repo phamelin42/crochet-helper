@@ -96,6 +96,24 @@
   }
 }
 
+fil-celebration,
+fil-finish-view {
+  display: block;
+}
+/* Page pleine : la colonne de la page fait 100dvh ; l'écran de fin y défile
+   dans son cadre plutôt que d'allonger la page (comme l'étape, fiche 59). */
+@media screen {
+  html[data-focus] fil-celebration,
+  html[data-focus] fil-finish-view {
+    display: contents;
+  }
+  html[data-focus] .celebration {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
 /* — Écran de fin du lecteur — */
 .finish-photo {
   margin: 0;

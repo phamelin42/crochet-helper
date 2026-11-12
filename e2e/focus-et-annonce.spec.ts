@@ -85,7 +85,10 @@ test.describe('fermeture d’un dialogue', () => {
       page,
     }) => {
       await ouvrir(page);
-      await page.getByRole('button', { name: 'Example', exact: true }).click();
+      await page
+        .locator('#pattern-source')
+        .fill(['Tree', 'Round 1: 6 sc (6)', 'Round 2: 12 sc (12)'].join('\n'));
+      await page.getByRole('button', { name: 'Split into steps', exact: true }).click();
       const question = page.getByRole('dialog', {
         name: 'How do you want to follow this pattern?',
       });

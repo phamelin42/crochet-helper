@@ -130,7 +130,8 @@ test.describe('patron chargé : une touche appartient d’abord à l’élément
 });
 
 test.describe('dialogue ouvert : il garde le clavier', () => {
-  // Sans choix retenu, « Example » pose la question « Written steps / Chart ».
+  // Sans choix retenu, un patron dessinable pose la question « Written steps /
+  // Chart » (l'exemple, lui, s'ouvre directement en étapes écrites : fiche 59).
   test.use({ storageState: { cookies: [], origins: [] } });
 
   const question = (page: Page) =>
@@ -138,7 +139,10 @@ test.describe('dialogue ouvert : il garde le clavier', () => {
 
   async function ouvrirQuestion(page: Page): Promise<void> {
     await ouvrir(page);
-    await page.getByRole('button', { name: 'Example', exact: true }).click();
+    await page
+      .locator('#pattern-source')
+      .fill(['Tree', 'Round 1: 6 sc (6)', 'Round 2: 12 sc (12)'].join('\n'));
+    await page.getByRole('button', { name: 'Split into steps', exact: true }).click();
     await expect(question(page)).toBeVisible();
   }
 

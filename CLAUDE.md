@@ -127,6 +127,13 @@ Chacun a été livré une fois puis corrigé. Vérifie-les avant de rendre une f
   tout texte lu 16 px (14 px pour une étiquette en capitales grasses), les champs
   ont `--color-field-border`. `e2e/lisibilite.spec.ts` le mesure en boucle : un
   nouveau contrôle sous 48 px ou une étape qui rétrécit fait échouer la CI.
+- **Patron terminé (fiche 60)** : l'écran de fin, ses textes et `fin.css`
+  viennent par `import()` (`FinishSlot` les charge dès la dernière étape ;
+  l'étape reste affichée tant qu'ils ne sont pas là). La photo de l'ouvrage est
+  un `ProjectImage` de `kind: 'finished'`, clé unique `finishedId(id)` : la
+  remplacer ne l'efface qu'au `complete`. Un e2e qui coche jusqu'à la fin ne
+  clique pas sur « Suivante » sans délai : le bouton disparaît à la dernière
+  coche et le clic attend sa cible jusqu'au timeout (`terminerExemple`).
 - **Un test qui lit l'état juste après l'action ne prouve rien sur la
   persistance** : l'effet qui écrit en IndexedDB n'a pas encore tourné, et
   « le projet actif est intact » est vrai quoi que fasse le code (fiche 19).

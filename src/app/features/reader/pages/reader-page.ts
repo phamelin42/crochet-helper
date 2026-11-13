@@ -31,7 +31,7 @@ import { PatternImport } from '../components/pattern-import';
 import { PrintView } from '../components/print-view';
 import { PatternPhotos } from '../components/pattern-photos';
 import { ReaderCounters } from '../components/reader-counters';
-import { StepView } from '../components/step-view';
+import { FinishSlot } from '../components/finish-slot';
 import { InstallSlot } from '../components/install-slot';
 import { WaitlistBanner } from '../components/waitlist-banner';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
@@ -419,7 +419,7 @@ const SEO: Record<Locale, { title: string; description: string; features: string
     ReaderCounters,
     RouterLink,
     InstallSlot,
-    StepView,
+    FinishSlot,
     Tile,
     WaitlistBanner,
   ],
@@ -477,7 +477,7 @@ const SEO: Record<Locale, { title: string; description: string; features: string
 
     <section class="reader">
       <div>
-        <fil-step-view (changePattern)="changePattern()" />
+        <fil-finish-slot (changePattern)="changePattern()" />
       </div>
     </section>
 

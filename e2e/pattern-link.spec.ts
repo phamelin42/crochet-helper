@@ -70,6 +70,10 @@ test('permalien créé depuis un vrai PDF — première et dernière étape iden
 
   const firstStep = await stepBody(page);
   const lastStep = await lastStepBody(page);
+  // Cocher la dernière étape ouvre l'écran de fin (fiche 60) : le partage du
+  // patron est sous l'étape, qu'on revoit d'un clic sans rien décocher.
+  const revoir = page.getByRole('button', { name: 'Review the last step', exact: true });
+  await revoir.click({ timeout: 3000 });
 
   // Les actions de partage sont visibles sous l'étape (fiche 25), sans rien
   // à déplier.

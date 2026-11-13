@@ -1,0 +1,148 @@
+/*
+ * Écran de fin (fiche 60) : le composant `fil-celebration` et la mise en page
+ * de l'écran « Patron terminé ». Feuille à part (`angular.json`, `inject:
+ * false`), chargée par le composant : le premier affichage ne la paie pas.
+ * Mêmes règles que le reste : jetons de `tokens.css` seulement.
+ */
+.celebration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-6) var(--space-5);
+  text-align: center;
+  border-radius: var(--radius-lg);
+  background: var(--color-sakura-pale);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-md);
+  animation: celebration-in 0.5s ease both;
+}
+.celebration-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+.celebration-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(1.5rem, calc(5vw * var(--text-scale)), 2.25rem);
+  line-height: 1.2;
+  color: var(--color-text-strong);
+}
+.celebration-title:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+.celebration-subtitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-sakura-ink);
+  overflow-wrap: anywhere;
+}
+.celebration-facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-base);
+  color: var(--color-text);
+}
+.celebration-visual {
+  display: flex;
+  justify-content: center;
+  max-width: 100%;
+}
+.celebration-visual:empty {
+  display: none;
+}
+.celebration-visual img {
+  max-width: 100%;
+  height: auto;
+}
+.celebration-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 28rem;
+}
+@media (min-width: 640px) {
+  .celebration-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: none;
+    width: auto;
+  }
+}
+@keyframes celebration-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-3));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+fil-celebration,
+fil-finish-view {
+  display: block;
+}
+/* Page pleine : la colonne de la page fait 100dvh ; l'écran de fin y défile
+   dans son cadre plutôt que d'allonger la page (comme l'étape, fiche 59). */
+@media screen {
+  html[data-focus] fil-celebration,
+  html[data-focus] fil-finish-view {
+    display: contents;
+  }
+  html[data-focus] .celebration {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
+/* — Écran de fin du lecteur — */
+.finish-photo {
+  margin: 0;
+  max-width: 100%;
+}
+.finish-photo img {
+  display: block;
+  max-width: 100%;
+  max-height: 22rem;
+  width: auto;
+  height: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-sm);
+}
+.finish-art {
+  width: 9rem;
+  height: auto;
+}
+.finish-messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 28rem;
+}
+.finish-messages .hint {
+  margin: 0;
+}
+.finish-review {
+  margin: 0;
+  font-size: var(--text-sm);
+}

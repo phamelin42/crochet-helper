@@ -1071,6 +1071,7 @@ fil-install-slot {
   }
   html[data-focus] .reader,
   html[data-focus] .reader > div,
+  html[data-focus] fil-finish-slot,
   html[data-focus] fil-step-view {
     display: contents;
   }

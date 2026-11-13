@@ -105,6 +105,36 @@ describe('ReaderStore — plusieurs onglets', () => {
     expect(await db.get<Project>(id)).toEqual(other);
   });
 
+  it('un tic du chronomètre, avant d’avoir relu l’annonce d’un autre onglet, n’écrase pas sa progression', async () => {
+    const { store, id } = await opened();
+    const saved = (await db.get<Project>(id))!;
+    // L'autre onglet a avancé et enregistré ; l'annonce n'est pas encore arrivée
+    // ici (elle attend le délai de regroupement) quand le chronomètre de cet onglet tourne.
+    const other: Project = { ...saved, stepIndex: 2, elapsed: 0 };
+    await db.put(other);
+
+    store.elapsed.set(1_000);
+    TestBed.tick();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(await db.get<Project>(id)).toEqual(other);
+    // Et cet onglet adopte l'état de l'autre au lieu de le défaire.
+    await vi.waitFor(() => expect(store.stepIndex()).toBe(2));
+    expect(store.elapsed()).toBe(0);
+  });
+
+  it('un geste de la lectrice ici reste le dernier mot, même si un autre onglet a écrit entre-temps', async () => {
+    const { store, id } = await opened();
+    const saved = (await db.get<Project>(id))!;
+    await db.put({ ...saved, elapsed: 4_000 });
+
+    store.move(1);
+    TestBed.tick();
+
+    await vi.waitFor(async () => expect((await db.get<Project>(id))?.stepIndex).toBe(1));
+    expect(store.stepIndex()).toBe(1);
+  });
+
   it('met à jour la liste quand l’autre onglet change un projet qui n’est pas ouvert ici', async () => {
     const { store, id } = await opened();
     const saved = (await db.get<Project>(id))!;

@@ -22,6 +22,7 @@ import { AI_FORMAT_URL_TOKEN } from '../data/ai-format';
 import { DEMO_PATTERNS } from '../data/demo-pattern';
 import { parsePattern } from '../data/pattern-parser';
 import { SharedProgress } from '../data/project-link';
+import type { PrepareResult } from '../data/finished-photo';
 import type { ExtractedImage, ExtractedPdf } from '../data/pdf-extract';
 import { EMPTY_PATTERN, PatternPiece, PatternStep } from '../data/pattern.model';
 import {
@@ -32,6 +33,7 @@ import {
   deriveProjectName,
   fileIds,
   imageId,
+  finishedId,
   imageIds,
   legacyToProject,
   mergeProjects,
@@ -64,6 +66,22 @@ export const PDF_EXTRACTOR = new InjectionToken<(file: File) => Promise<Extracte
   { factory: () => async (file) => (await import('../data/pdf-extract')).extractPdfPages(file) },
 );
 
+/**
+ * Réduction de la photo d'un ouvrage terminé. Chargée par `import()` : le
+ * traitement d'image n'a rien à faire dans le bundle initial ; remplaçable en
+ * test, jsdom n'ayant ni `createImageBitmap` ni `OffscreenCanvas`.
+ */
+export const FINISHED_PHOTO_PREPARER = new InjectionToken<(file: Blob) => Promise<PrepareResult>>(
+  'FINISHED_PHOTO_PREPARER',
+  {
+    factory: () => async (file) =>
+      (await import('../data/finished-photo')).prepareFinishedPhoto(file),
+  },
+);
+
+/** Issue de « Ajouter une photo » : la lectrice lit un message pour chaque refus. */
+export type FinishedPhotoResult = 'saved' | 'too-large' | 'not-image' | 'failed';
+
 /** Ancien état unique, écrit avant la fiche 16 : sert de source de migration. */
 const LEGACY_KEY = 'fil.reader.v1';
 /** Marque la migration comme faite — évite de la rejouer, et de ressusciter
@@ -73,6 +91,11 @@ const MIGRATION_FLAG = 'fil.storage.migrated';
 const CURRENT_ID_KEY = 'fil.currentProjectId';
 /** Paliers de profondeur de lecture, en position absolue dans le patron. */
 const DEPTH_THRESHOLDS = [5, 20, 50] as const;
+
+/** Le projet sans son chronomètre, pour distinguer un geste de la lectrice d'un tic de minuterie. */
+function contentKey(project: Project): string {
+  return JSON.stringify({ ...project, elapsed: 0 });
+}
 
 /** Délai de regroupement des annonces des autres onglets avant de relire un projet. */
 const TAB_REFRESH_DELAY_MS = 200;
@@ -100,6 +123,7 @@ export class ReaderStore {
   private readonly i18n = inject(I18nService);
   private readonly objectUrls = inject(ObjectUrlService);
   private readonly extractPdf = inject(PDF_EXTRACTOR);
+  private readonly prepareFinishedPhoto = inject(FINISHED_PHOTO_PREPARER);
   private readonly formatClient = inject(AI_FORMAT_CLIENT);
   private readonly aiUrl = inject(AI_FORMAT_URL_TOKEN);
   private readonly destroyRef = inject(DestroyRef);
@@ -136,6 +160,17 @@ export class ReaderStore {
   readonly done = signal<Record<string, boolean>>({});
   readonly reps = signal<Record<string, number>>({});
   readonly elapsed = signal(0);
+  /** Horodatage du passage à « terminé » (dernière étape cochée) ; `null` tant que le patron n'est pas fini. */
+  readonly finishedAt = signal<number | null>(null);
+  /** Une photo de l'ouvrage terminé est enregistrée avec le projet (fiche 60). */
+  readonly finishedPhoto = signal(false);
+  /** Adresse de la photo de l'ouvrage du projet actif, `null` sans photo. */
+  readonly finishedPhotoUrl = signal<ShownPhoto | null>(null);
+  /** Change à chaque photo écrite : recharge l'adresse même quand `finishedPhoto` était déjà vrai. */
+  private readonly finishedPhotoVersion = signal(0);
+  private finishedPhotoLoad = 0;
+  /** La lectrice a demandé à revoir la dernière étape : l'écran de fin s'efface sans rien décocher. */
+  private readonly endScreenDismissed = signal(false);
   readonly running = signal(false);
   /** Affiche « maille serrée » au lieu de « ms ». Confort de lecture, pas un
    *  réglage de découpage : le texte source reste intact. */
@@ -176,7 +211,12 @@ export class ReaderStore {
   /** Numéro de la dernière lecture de photos : une lecture dépassée est ignorée. */
   private imageLoad = 0;
   /** Le projet tel qu'il est enregistré (écrit ici, ou repris d'un autre onglet) : inutile de le réécrire. */
-  private lastSaved: { readonly id: string; readonly signature: string } | null = null;
+  private lastSaved: {
+    readonly id: string;
+    readonly signature: string;
+    /** Le projet sans son chronomètre : ce qui change quand la lectrice agit, pas quand le temps passe. */
+    readonly content: string;
+  } | null = null;
   /** Projets que d'autres onglets ont changés, relus ensemble après un court délai. */
   private readonly changedElsewhere = new Map<string, boolean>();
   private refreshTimer: ReturnType<typeof setTimeout> | null = null;
@@ -229,6 +269,16 @@ export class ReaderStore {
   });
   /** Dernière étape du patron terminée : il n'y a plus rien à avancer. */
   readonly finished = computed(() => this.total() > 0 && !this.hasNext() && this.isDone());
+  /** L'écran de célébration : patron terminé, et la lectrice ne l'a pas écarté pour relire. */
+  readonly endScreenVisible = computed(() => this.finished() && !this.endScreenDismissed());
+  /** La dernière étape du dernier ensemble est cochée, où que la lectrice se trouve. */
+  private readonly patternComplete = computed(() => {
+    const pieces = this.pieces();
+    if (!pieces.length) return false;
+    const last = pieces.length - 1;
+    const lastStep = pieces[last].steps.length - 1;
+    return lastStep >= 0 && this.done()[`${last}:${lastStep}`] === true;
+  });
   readonly doneCount = computed(() => Object.values(this.done()).filter(Boolean).length);
   readonly progress = computed(() =>
     this.stepCount() ? ((this.stepIndex() + 1) / this.stepCount()) * 100 : 0,
@@ -260,6 +310,8 @@ export class ReaderStore {
       this.done();
       this.reps();
       this.elapsed();
+      this.finishedAt();
+      this.finishedPhoto();
       this.expandAbbreviations();
       this.currentId();
       this.nameOverride();
@@ -297,6 +349,14 @@ export class ReaderStore {
       untracked(() => void this.loadPhotos(id, count));
     });
 
+    // La photo de l'ouvrage suit le projet actif, comme celles du PDF.
+    effect(() => {
+      const id = this.currentId();
+      const has = this.finishedPhoto();
+      this.finishedPhotoVersion();
+      untracked(() => void this.loadFinishedPhoto(id, has));
+    });
+
     // Le pointeur vers le projet actif est la seule donnée qui reste dans
     // localStorage : assez petite pour ne jamais dépasser son quota.
     effect(() => {
@@ -313,6 +373,9 @@ export class ReaderStore {
       if (this.refreshTimer) clearTimeout(this.refreshTimer);
       this.stopTimer();
       this.imageLoad++;
+      this.finishedPhotoLoad++;
+      const shown = this.finishedPhotoUrl();
+      if (shown) this.objectUrls.revoke(shown.url);
       this.releasePhotos();
     });
   }
@@ -359,15 +422,62 @@ export class ReaderStore {
     return undefined;
   }
 
-  private async persist(): Promise<void> {
+  /** Écriture en vol : une seule à la fois, pour que `lastSaved` soit celui de la précédente. */
+  private persisting: Promise<void> | null = null;
+  private persistAgain = false;
+
+  /**
+   * Une écriture démarre aussitôt si aucune n'est en vol ; sinon elle est
+   * regroupée en une relecture de l'état une fois la précédente terminée.
+   */
+  private persist(): Promise<void> {
+    if (this.persisting) {
+      this.persistAgain = true;
+      return this.persisting;
+    }
+    this.persisting = (async () => {
+      try {
+        do {
+          this.persistAgain = false;
+          await this.persistNow();
+        } while (this.persistAgain);
+      } finally {
+        this.persisting = null;
+      }
+    })();
+    return this.persisting;
+  }
+
+  private async persistNow(): Promise<void> {
     if (this.holdPersist) return;
     const id = this.currentId();
     if (!id) return;
     const project = this.snapshot(id);
     const signature = JSON.stringify(project);
     if (this.lastSaved?.id === id && this.lastSaved.signature === signature) return;
-    if (await this.projectStore.put(project)) {
-      this.lastSaved = { id, signature };
+    // Le projet n'est écrit que s'il est encore tel que cet onglet l'a laissé :
+    // un autre onglet a pu l'avancer depuis, et son annonce n'est relue qu'après
+    // un délai de regroupement. Sans ce contrôle, un tic du chronomètre de cet
+    // onglet écrasait sa progression par un état périmé, que l'autre onglet
+    // reprenait ensuite à son tour. Lecture et écriture : une seule transaction.
+    const known = this.lastSaved?.id === id ? this.lastSaved.signature : null;
+    const content = contentKey(project);
+    let result = await this.projectStore.putIfCurrent(
+      project,
+      (stored) => known === null || stored === undefined || JSON.stringify(stored) === known,
+    );
+    if (result === 'conflict') {
+      // Un tic du chronomètre n'est pas un geste de la lectrice : il cède à ce
+      // qu'un autre onglet a enregistré. Un geste (étape, compteur, nom…) est
+      // le dernier mot, et s'écrit par-dessus.
+      if (this.lastSaved?.id === id && this.lastSaved.content === content) {
+        void this.refreshFromDisk(id, false);
+        return;
+      }
+      result = (await this.projectStore.put(project)) ? 'written' : 'failed';
+    }
+    if (result === 'written') {
+      this.lastSaved = { id, signature, content };
       this.sync.announce(id);
     }
     this.projects.update((list) => [...list.filter((p) => p.id !== id), project]);
@@ -407,7 +517,7 @@ export class ReaderStore {
     const signature = JSON.stringify(stored);
     if (JSON.stringify(this.snapshot(id)) === signature) return;
     this.stopTimer();
-    this.lastSaved = { id, signature };
+    this.lastSaved = { id, signature, content: contentKey(stored) };
     this.hydrate(stored);
   }
 
@@ -431,6 +541,8 @@ export class ReaderStore {
       createdAt: existing?.createdAt ?? now,
       lastOpenedAt: existing?.lastOpenedAt ?? now,
       imageCount: this.imageCount(),
+      ...(this.finishedAt() !== null ? { finishedAt: this.finishedAt()! } : {}),
+      ...(this.finishedPhoto() ? { finishedPhoto: true } : {}),
       ...(this.legacyChartCount ? { chartCount: this.legacyChartCount } : {}),
       ...(this.grid() ? { grid: this.grid()! } : {}),
       ...(this.sourceBeforeAi() !== null ? { sourceBeforeAi: this.sourceBeforeAi()! } : {}),
@@ -461,6 +573,82 @@ export class ReaderStore {
           : null,
       ),
     );
+  }
+
+  private async loadFinishedPhoto(id: string | null, has: boolean): Promise<void> {
+    const load = ++this.finishedPhotoLoad;
+    const [file] =
+      id && has ? await this.projectStore.getFiles<ProjectImage>([finishedId(id)]) : [];
+    if (load !== this.finishedPhotoLoad) return;
+    const previous = this.finishedPhotoUrl();
+    if (previous) this.objectUrls.revoke(previous.url);
+    this.finishedPhotoUrl.set(
+      file
+        ? { url: this.objectUrls.create(file.blob), width: file.width, height: file.height }
+        : null,
+    );
+  }
+
+  /** Le fichier de la photo de l'ouvrage du projet actif (pour la partager ou l'enregistrer), `null` sans photo. */
+  async finishedPhotoBlob(): Promise<Blob | null> {
+    const id = this.currentId();
+    if (!id || !this.finishedPhoto()) return null;
+    const [file] = await this.projectStore.getFiles<ProjectImage>([finishedId(id)]);
+    return file?.blob ?? null;
+  }
+
+  /** Photo d'ouvrage d'un projet de la liste, pour sa vignette ; l'appelant libère l'adresse. */
+  async readFinishedPhoto(id: string): Promise<ShownPhoto | null> {
+    const [file] = await this.projectStore.getFiles<ProjectImage>([finishedId(id)]);
+    return file
+      ? { url: this.objectUrls.create(file.blob), width: file.width, height: file.height }
+      : null;
+  }
+
+  /**
+   * Garde la photo de l'ouvrage sur l'appareil. Réduite avant stockage, écrite
+   * dans la même transaction que le projet, sous une clé unique : une photo
+   * qui en remplace une autre ne l'efface qu'au `complete`, et un échec laisse
+   * l'ancienne intacte.
+   */
+  async setFinishedPhoto(file: Blob): Promise<FinishedPhotoResult> {
+    const id = this.currentId();
+    if (!id) return 'failed';
+    const prepared = await this.prepareFinishedPhoto(file);
+    if (!prepared.ok) return prepared.reason;
+    // Un autre projet a été ouvert pendant la réduction : cette photo n'est plus la sienne.
+    if (this.currentId() !== id) return 'failed';
+    const image: ProjectImage = {
+      id: finishedId(id),
+      projectId: id,
+      n: 1,
+      blob: prepared.photo.blob,
+      width: prepared.photo.width,
+      height: prepared.photo.height,
+      kind: 'finished',
+    };
+    if (
+      !(await this.projectStore.putAll([{ ...this.snapshot(id), finishedPhoto: true }], [image]))
+    ) {
+      return 'failed';
+    }
+    this.finishedPhoto.set(true);
+    this.finishedPhotoVersion.update((n) => n + 1);
+    this.analytics.track('finished_photo_added');
+    return 'saved';
+  }
+
+  /** Retire la photo de l'ouvrage : le projet et la suppression du fichier partent ensemble. */
+  async removeFinishedPhoto(): Promise<boolean> {
+    const id = this.currentId();
+    if (!id) return false;
+    const saved = await this.projectStore.putAll(
+      [{ ...this.snapshot(id), finishedPhoto: false }],
+      [],
+      [finishedId(id)],
+    );
+    if (saved) this.finishedPhoto.set(false);
+    return saved;
   }
 
   private releasePhotos(): void {
@@ -565,6 +753,9 @@ export class ReaderStore {
     this.elapsed.set(project.elapsed);
     this.expandAbbreviations.set(project.expandAbbreviations);
     this.imageCount.set(project.imageCount ?? 0);
+    this.finishedAt.set(project.finishedAt ?? null);
+    this.finishedPhoto.set(project.finishedPhoto === true);
+    this.endScreenDismissed.set(false);
     this.legacyChartCount = project.chartCount ?? 0;
     this.pdfImagesNote.set(null);
     this.viewChoice.set(null);
@@ -620,7 +811,9 @@ export class ReaderStore {
     this.analytics.track('backup_exported', { projects: projects.length });
     const [{ encodeBackup }, files] = await Promise.all([
       import('../data/project-backup'),
-      this.projectStore.getFiles<ProjectImage>(projects.flatMap(imageIds)),
+      this.projectStore.getFiles<ProjectImage>(
+        projects.flatMap((p) => [...imageIds(p), finishedId(p.id)]),
+      ),
     ]);
     return encodeBackup(projects, files);
   }
@@ -693,6 +886,8 @@ export class ReaderStore {
     this.stitchIndex.set(0);
     this.done.set({});
     this.reps.set({});
+    this.finishedAt.set(null);
+    this.endScreenDismissed.set(false);
     this.depthsReached.set(new Set());
     if (!text) return;
     let created = false;
@@ -890,6 +1085,7 @@ export class ReaderStore {
     this.stitchIndex.set(0);
     this.done.set({});
     this.reps.set({});
+    this.finishedAt.set(null);
     this.depthsReached.set(new Set());
   }
 
@@ -947,6 +1143,9 @@ export class ReaderStore {
     this.currentId.set(null);
     this.nameOverride.set(null);
     this.elapsed.set(0);
+    this.finishedAt.set(null);
+    this.finishedPhoto.set(false);
+    this.endScreenDismissed.set(false);
     this.image.set('');
     this.imageCount.set(0);
     this.legacyChartCount = 0;
@@ -1062,6 +1261,7 @@ export class ReaderStore {
     if (!this.step()) return;
     const key = this.positionKey();
     this.done.update((done) => ({ ...done, [key]: true }));
+    this.syncFinished();
     if (this.hasNext()) this.move(1);
     else this.stopTimer();
   }
@@ -1069,9 +1269,45 @@ export class ReaderStore {
   setDone(value: boolean): void {
     const key = this.positionKey();
     this.done.update((done) => ({ ...done, [key]: value }));
+    this.syncFinished();
     if (!value) return;
     if (this.hasNext()) this.move(1);
     else this.stopTimer();
+  }
+
+  /**
+   * Pose `finishedAt` au passage à « terminé » (et mesure ce passage, une fois),
+   * l'efface quand la dernière étape est décochée. Appelée par les seuls gestes
+   * qui cochent : reprendre un projet déjà terminé ne remesure rien.
+   */
+  private syncFinished(): void {
+    this.endScreenDismissed.set(false);
+    const complete = this.patternComplete();
+    if (complete && this.finishedAt() === null) {
+      this.finishedAt.set(Date.now());
+      this.analytics.track('pattern_finished', { steps: this.total() });
+    } else if (!complete && this.finishedAt() !== null) {
+      this.finishedAt.set(null);
+    }
+  }
+
+  /** Revient lire la dernière étape sans rien décocher. */
+  reviewLastStep(): void {
+    this.endScreenDismissed.set(true);
+  }
+
+  /** Remet la progression de ce patron à zéro : étapes, compteurs, chronomètre. La photo de l'ouvrage reste. */
+  restartPattern(): void {
+    this.stopTimer();
+    this.done.set({});
+    this.reps.set({});
+    this.elapsed.set(0);
+    this.pieceIndex.set(0);
+    this.stepIndex.set(0);
+    this.stitchIndex.set(0);
+    this.finishedAt.set(null);
+    this.endScreenDismissed.set(false);
+    this.depthsReached.set(new Set());
   }
 
   setImage(dataUrl: string): void {

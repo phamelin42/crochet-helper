@@ -15,6 +15,7 @@ import { LocalizedPath } from '../../core/i18n/route-paths';
 import { DisplayPrefsService } from '../../core/platform/display-prefs.service';
 import { SeoService } from '../../core/seo/seo.service';
 import { Button } from '../../shared/ui/button/button';
+import { Celebration } from '../../shared/ui/celebration/celebration';
 import { Checkbox } from '../../shared/ui/checkbox/checkbox';
 import { Dialog } from '../../shared/ui/dialog/dialog';
 import { Breadcrumb } from '../../shared/ui/breadcrumb/breadcrumb';
@@ -75,6 +76,7 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
 @Component({
   selector: 'fil-design-system-page',
   imports: [
+    Celebration,
     Breadcrumb,
     Button,
     Checkbox,
@@ -378,6 +380,29 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
           </fil-disclosure>
         </div>
       </div>
+
+      <h3>Célébration</h3>
+      <p class="ds-caption">
+        <code>fil-celebration</code> : l'écran de fin d'un ouvrage. Titre, sous-titre, faits, image
+        et actions projetés ; son titre prend le focus à l'apparition (coupé ici).
+      </p>
+      <fil-celebration
+        title="Bravo, votre ouvrage est terminé !"
+        subtitle="Petit sapin"
+        [facts]="['12 étapes', 'Temps passé : 1:25:30']"
+        [takeFocus]="false"
+      >
+        <img
+          celebrationVisual
+          class="finish-art"
+          src="/illustrations/pelote.svg"
+          width="240"
+          height="200"
+          alt=""
+        />
+        <button type="button" filButton="primary">Ajouter une photo</button>
+        <button type="button" filButton="secondary">Partager</button>
+      </fil-celebration>
 
       <h3>Dialog</h3>
       <div class="grid-cards">

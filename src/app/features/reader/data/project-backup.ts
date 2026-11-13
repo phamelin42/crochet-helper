@@ -5,6 +5,7 @@ import {
   Project,
   ProjectImage,
   chartId,
+  finishedId,
   imageId,
 } from './project.model';
 
@@ -28,6 +29,12 @@ export const MAX_BACKUP_IMAGE_BYTES = 2 * 1024 * 1024;
  * reste valide, ses diagrammes (6 Mo décodés au plus) sont écartés à l'import.
  */
 export const MAX_BACKUP_CHART_BYTES = 6 * 1024 * 1024;
+/**
+ * Photo d'un ouvrage terminé : 1 600 px en JPEG, au plus 3 Mo à l'enregistrement
+ * (`MAX_FINISHED_PHOTO_BYTES`). La borne des photos de PDF (2 Mo) en refuserait
+ * certaines, et une sauvegarde invalide l'est en bloc : on ne perd pas tout pour une photo.
+ */
+export const MAX_BACKUP_FINISHED_BYTES = 3 * 1024 * 1024;
 
 /** Une photo dans un fichier de sauvegarde : `ProjectImage` avec son contenu en base64. */
 export interface BackupImage {
@@ -36,7 +43,7 @@ export interface BackupImage {
   readonly n: number;
   readonly width: number;
   readonly height: number;
-  readonly kind: 'pdf' | 'chart';
+  readonly kind: 'pdf' | 'chart' | 'finished';
   readonly type: string;
   readonly data: string;
 }
@@ -73,7 +80,13 @@ export function parseBackup(data: unknown): ProjectBackup | null {
       void _charts;
       return { ...rest, imageCount: project.imageCount ?? 0, ...(grid ? { grid } : {}) };
     }),
-    images: images.filter((image) => image.kind === 'pdf'),
+    images: images.filter(
+      (image) =>
+        image.kind === 'pdf' ||
+        // Une photo d'ouvrage n'a de sens que si son projet la déclare.
+        (image.kind === 'finished' &&
+          projects.some((p) => p.id === image.projectId && p.finishedPhoto === true)),
+    ),
   };
 }
 
@@ -89,15 +102,21 @@ function isBackupImage(value: unknown, projectIds: ReadonlySet<string>): value i
     isPositiveInteger(i['height']) &&
     (i['kind'] === 'pdf'
       ? i['id'] === imageId(i['projectId'], i['n'] as number)
-      : i['kind'] === 'chart' &&
-        i['id'] === chartId(i['projectId'], i['n'] as number) &&
-        (i['n'] as number) <= MAX_CHARTS) &&
+      : i['kind'] === 'finished'
+        ? i['id'] === finishedId(i['projectId']) && i['n'] === 1
+        : i['kind'] === 'chart' &&
+          i['id'] === chartId(i['projectId'], i['n'] as number) &&
+          (i['n'] as number) <= MAX_CHARTS) &&
     typeof i['type'] === 'string' &&
     IMAGE_TYPE.test(i['type']) &&
     typeof i['data'] === 'string' &&
     // Taille décodée : trois octets pour quatre caractères.
     (i['data'].length * 3) / 4 <=
-      (i['kind'] === 'chart' ? MAX_BACKUP_CHART_BYTES : MAX_BACKUP_IMAGE_BYTES) &&
+      (i['kind'] === 'chart'
+        ? MAX_BACKUP_CHART_BYTES
+        : i['kind'] === 'finished'
+          ? MAX_BACKUP_FINISHED_BYTES
+          : MAX_BACKUP_IMAGE_BYTES) &&
     BASE64.test(i['data'])
   );
 }
@@ -127,6 +146,9 @@ function isProject(value: unknown): value is Project {
     (p['sourceBeforeAi'] === undefined ||
       (typeof p['sourceBeforeAi'] === 'string' &&
         p['sourceBeforeAi'].length <= MAX_SOURCE_LENGTH)) &&
+    (p['finishedAt'] === undefined ||
+      (typeof p['finishedAt'] === 'number' && Number.isFinite(p['finishedAt']))) &&
+    (p['finishedPhoto'] === undefined || typeof p['finishedPhoto'] === 'boolean') &&
     (p['grid'] === undefined || validGrid(p['grid']) !== null) &&
     (p['imageCount'] === undefined ||
       (Number.isInteger(p['imageCount']) && (p['imageCount'] as number) >= 0)) &&

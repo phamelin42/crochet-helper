@@ -108,18 +108,52 @@ export class ProjectStoreService {
 
   /**
    * Écrit plusieurs éléments, et leurs fichiers rattachés, dans **une seule**
-   * transaction : tout ou rien. C'est ce qui rend atomiques l'import d'une
+   * transaction : tout ou rien (`removeFiles` : fichiers à supprimer dans la
+   * même transaction). C'est ce qui rend atomiques l'import d'une
    * sauvegarde et l'enregistrement d'un PDF avec ses photos.
    */
   async putAll<T extends { id: string }, F extends { id: string } = { id: string }>(
     items: readonly T[],
     files: readonly F[] = [],
+    removeFiles: readonly string[] = [],
   ): Promise<boolean> {
     const db = await this.db();
     if (!db) return false;
     return this.run(db, (projects, images) => {
       items.forEach((item) => projects.put(item));
       files.forEach((file) => images.put(file));
+      removeFiles.forEach((fileId) => images.delete(fileId));
+    });
+  }
+
+  /**
+   * Écrit `item` seulement si l'élément enregistré est celui que l'appelant
+   * croit : lecture et écriture dans **une seule** transaction, donc aucun
+   * autre onglet ne peut s'intercaler. `'conflict'` quand `isCurrent` refuse
+   * l'état enregistré (un autre onglet l'a changé) : rien n'est écrit.
+   */
+  async putIfCurrent<T extends { id: string }>(
+    item: T,
+    isCurrent: (stored: T | undefined) => boolean,
+  ): Promise<'written' | 'conflict' | 'failed'> {
+    const db = await this.db();
+    if (!db) return 'failed';
+    return new Promise((resolve) => {
+      let outcome: 'written' | 'conflict' = 'written';
+      try {
+        const tx = db.transaction([STORE, IMAGES], 'readwrite');
+        tx.oncomplete = () => resolve(outcome);
+        tx.onerror = () => resolve('failed');
+        tx.onabort = () => resolve('failed');
+        const projects = tx.objectStore(STORE);
+        const read = projects.get(item.id);
+        read.onsuccess = () => {
+          if (isCurrent(read.result as T | undefined)) projects.put(item);
+          else outcome = 'conflict';
+        };
+      } catch {
+        resolve('failed');
+      }
     });
   }
 

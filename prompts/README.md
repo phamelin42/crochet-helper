@@ -96,6 +96,7 @@ URL avant d'accumuler du référencement.
 | 58  | Découpage fidèle                   | activation : rien ne se perd, conseils et photos à leur place  |
 | 59  | Lisible à un mètre (audit)         | activation et rétention : texte, cibles et sortie lisibles     |
 | 60  | Patron terminé et photo            | rétention : écran de fin, photo sur l'appareil, partage natif  |
+| 61  | Abréviations de crochet (articles) | acquisition : huit pages sans article, non indexées            |
 
 Les fiches 38 à 41 répondent à la demande de Phil du 30 septembre (mode page
 pleine comme l'application Filo, hors ligne mis en avant, Play Store ; pas

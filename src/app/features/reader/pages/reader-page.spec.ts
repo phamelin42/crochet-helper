@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { ReaderStore } from '../state/reader-store';
 import ReaderPage from './reader-page';
 
@@ -29,6 +29,23 @@ function findButton(host: HTMLElement, label: string): HTMLButtonElement {
 function stepBody(host: HTMLElement): string {
   return host.querySelector('.step-body')?.textContent ?? '';
 }
+
+/**
+ * La page lance trois `import()` que ses tests, synchrones, n'attendent pas :
+ * le texte vers diagramme (à chaque patron chargé), la carte d'installation
+ * (après le premier affichage) et l'écran de fin (dernière étape). Encore en vol
+ * quand le fichier se termine, l'un d'eux se résolvait après la fin de
+ * l'environnement : « EnvironmentTeardownError », une erreur non gérée qui fait
+ * échouer la commande de temps en temps (origin/main 1 passage sur 4). Les charger
+ * avant les tests les rend immédiats.
+ */
+beforeAll(async () => {
+  await Promise.all([
+    import('../data/text-to-chart'),
+    import('../components/finish-view'),
+    import('../components/install-card'),
+  ]);
+});
 
 describe('ReaderPage', () => {
   it('affiche le texte de l’étape courante quand un patron est chargé', () => {

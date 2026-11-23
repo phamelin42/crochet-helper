@@ -1,5 +1,12 @@
-import { Component, EnvironmentInjector, computed, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import {
+  Component,
+  EnvironmentInjector,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale } from '../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../core/i18n/route-paths';
@@ -9,9 +16,13 @@ import {
   ReaderTextSize,
 } from '../../core/platform/display-prefs.service';
 import { WakeLockService } from '../../core/platform/wake-lock.service';
+import { RavelryAccess } from '../../core/ravelry/ravelry-access';
+import { RavelrySession } from '../../core/ravelry/ravelry-session.service';
 import { SeoService } from '../../core/seo/seo.service';
 import { SITE_NAME } from '../../core/seo/site';
 import { Checkbox } from '../../shared/ui/checkbox/checkbox';
+import { RavelryConnection } from '../../shared/ui/ravelry-connection/ravelry-connection';
+import { CONNECT_COPY } from '../discover/data/connect-copy';
 import { Segmented, SegmentedOption } from '../../shared/ui/segmented/segmented';
 
 const TEXT_SIZES: readonly ReaderTextSize[] = ['base', 'lg', 'xl'];
@@ -72,7 +83,7 @@ const GUIDES = ['guideReadingPattern', 'guideReadingChart', 'guideCrochetOrKnitt
  */
 @Component({
   selector: 'fil-settings-page',
-  imports: [Checkbox, RouterLink, Segmented],
+  imports: [Checkbox, RavelryConnection, RouterLink, Segmented],
   host: { class: 'wrap' },
   template: `
     <article class="settings">
@@ -105,6 +116,26 @@ const GUIDES = ['guideReadingPattern', 'guideReadingChart', 'guideCrochetOrKnitt
           (selectedChange)="setDefaultView($event)"
         />
       </section>
+
+      @if (ravelryOn) {
+        <section class="settings-group" aria-labelledby="settings-ravelry">
+          <h2 id="settings-ravelry">{{ cc.settingsTitle }}</h2>
+          <p>{{ cc.settingsIntro }}</p>
+          @if (session.loaded()) {
+            <fil-ravelry-connection
+              [connected]="session.connected()"
+              [busy]="busy()"
+              [connectLabel]="cc.connect"
+              [busyLabel]="cc.connecting"
+              [connectedLabel]="cc.connected"
+              [disconnectLabel]="cc.disconnect"
+              [message]="ravelryMessage()"
+              (connect)="connectRavelry()"
+              (disconnect)="session.disconnect()"
+            />
+          }
+        </section>
+      }
 
       <section class="settings-group">
         <h2>{{ c.language }}</h2>
@@ -142,6 +173,21 @@ export default class SettingsPage {
     (inject(ActivatedRoute).snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
 
   protected readonly c = COPY[this.locale];
+  protected readonly cc = CONNECT_COPY[this.locale];
+  /** La section Ravelry n'existe que si l'interrupteur de la recherche est allumé (ADR-004). */
+  protected readonly ravelryOn = inject(RavelryAccess).enabled;
+  protected readonly session = inject(RavelrySession);
+  private readonly router = inject(Router);
+  protected readonly busy = signal(false);
+  protected readonly ravelryMessage = computed(() =>
+    this.session.connected()
+      ? ''
+      : this.session.expired()
+        ? this.cc.expired
+        : this.session.farewell()
+          ? this.cc.disconnected
+          : '',
+  );
   protected readonly guides = GUIDES;
   protected readonly textSizeOptions: SegmentedOption[] = [
     { value: 0, label: 'A' },
@@ -165,6 +211,14 @@ export default class SettingsPage {
       locale: this.locale,
       noIndex: true,
     });
+    afterNextRender(() => {
+      if (this.ravelryOn) void this.session.load();
+    });
+  }
+
+  protected async connectRavelry(): Promise<void> {
+    this.busy.set(true);
+    if (!(await this.session.begin(this.router.url))) this.busy.set(false);
   }
 
   protected setDim(value: boolean): void {

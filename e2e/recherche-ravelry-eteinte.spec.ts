@@ -75,3 +75,60 @@ for (const chemin of CHEMINS) {
     expect(appels).toEqual([]);
   });
 }
+
+test('la page de retour de Ravelry existe mais n’appelle rien : ni le Worker, ni Ravelry', async ({
+  page,
+}) => {
+  const appels: string[] = [];
+  await page.route(`${WORKER}/**`, (route) => {
+    appels.push(route.request().url());
+    return route.abort();
+  });
+  await page.route('https://auth.ravelry.com/**', (route) => {
+    appels.push(route.request().url());
+    return route.abort();
+  });
+  // Un faux retour : l'interrupteur éteint ne vérifie ni n'échange rien.
+  await page.goto('/ravelry-callback?code=code-secret&state=state-secret');
+  await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+  await expect(page.getByRole('alert')).toContainText('Connecting to Ravelry is not available');
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
+  // L'adresse est nettoyée, rien n'est gardé.
+  await expect(page).toHaveURL(/\/ravelry-callback$/);
+  expect(appels).toEqual([]);
+  expect(
+    await page.evaluate(() => JSON.stringify({ ...localStorage, ...sessionStorage })),
+  ).not.toContain('secret');
+});
+
+test('le HTML pré-rendu de la page de retour : texte d’attente, noindex, hors du sitemap', async ({
+  request,
+}) => {
+  const html = await (await request.get('/ravelry-callback')).text();
+  expect(html).toContain('Connexion à Ravelry en cours');
+  expect(html).toMatch(/<meta name="robots" content="[^"]*noindex/);
+  const sitemap = await (await request.get('/sitemap.xml')).text();
+  expect(sitemap).not.toContain('ravelry-callback');
+});
+
+test('aucun lien ne mène à la page de retour', async ({ page }) => {
+  for (const chemin of PAGES) {
+    await page.goto(chemin);
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    const hrefs = await page
+      .locator('a[href]')
+      .evaluateAll((liens) => liens.map((a) => new URL((a as HTMLAnchorElement).href).pathname));
+    expect(hrefs).not.toContain('/ravelry-callback');
+  }
+});
+
+test('les réglages ne montrent pas de section Ravelry', async ({ page }) => {
+  for (const [chemin, titre] of [
+    ['/settings', 'Ravelry'],
+    ['/fr/reglages', 'Ravelry'],
+  ]) {
+    await page.goto(chemin);
+    await page.locator('fil-root[data-ready]').waitFor({ state: 'attached' });
+    await expect(page.getByRole('heading', { name: titre, exact: true })).toHaveCount(0);
+  }
+});

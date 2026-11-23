@@ -9,6 +9,7 @@ import {
 } from '../../../core/storage/testing/fake-indexed-db';
 import { BACKUP_SCHEMA_VERSION } from '../data/project-backup';
 import { Project, ProjectImage } from '../data/project.model';
+import { readSession, writeSession } from '../../../core/storage/ravelry-session-db';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import type { ExtractedPdf } from '../data/pdf-extract';
@@ -511,6 +512,28 @@ describe('ReaderStore — projets', () => {
       ]);
       expect(await bytesOf(files[0]?.blob)).toEqual([1, 2, 3]);
       expect(await bytesOf(files[1]?.blob)).toEqual([4, 5, 6, 7]);
+    });
+
+    it('une connexion Ravelry enregistrée n’entre jamais dans la sauvegarde exportée', async () => {
+      const store = TestBed.inject(ReaderStore);
+      await store.initialize();
+      await store.importPdf(pdfFile());
+      await vi.waitFor(() => expect(store.projects().length).toBe(1));
+      const db = await TestBed.inject(ProjectStoreService).db();
+      expect(
+        await writeSession(db, {
+          accessToken: 'at-secret-exemple',
+          refreshToken: 'rt-secret-exemple',
+          expiresAt: Date.now() + 3_600_000,
+        }),
+      ).toBe(true);
+
+      const text = await (await store.exportBackup()).text();
+      expect(text).not.toContain('at-secret-exemple');
+      expect(text).not.toContain('rt-secret-exemple');
+      expect(Object.keys(JSON.parse(text)).sort()).not.toContain('session');
+      // La sauvegarde n'a rien effacé : la connexion est toujours là.
+      expect((await readSession(db))?.accessToken).toBe('at-secret-exemple');
     });
 
     it('accepte toujours une sauvegarde v1, sans photos', async () => {

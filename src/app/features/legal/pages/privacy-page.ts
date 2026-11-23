@@ -32,6 +32,7 @@ interface PrivacyCopy {
   readonly h2Ravelry: string;
   readonly bodyRavelry: string;
   readonly bodyRavelryDevice: string;
+  readonly bodyRavelryConnection: string;
   readonly h2Delete: string;
   readonly bodyDelete: string;
   readonly h2Contact: string;
@@ -67,7 +68,8 @@ const COPY: Record<Locale, PrivacyCopy> = {
     bodyAi: `Uniquement si vous cochez «${NBSP}Remettre en forme avec une IA${NBSP}», le texte du patron est envoyé à un petit service de ${SITE_NAME}, puis à Anthropic (Claude), qui le remet en forme avant qu’il soit découpé ici. Anthropic ne s’en sert pas pour entraîner ses modèles. Notre service ne garde aucun texte${NBSP}: seulement des compteurs, rattachés à une empreinte de votre adresse réseau qui change chaque jour. Case décochée, rien n’est envoyé.`,
     h2Ravelry: 'La recherche de patrons (Ravelry)',
     bodyRavelry: `Lorsqu’elle est disponible, la recherche de patrons gratuits envoie le terme cherché, ou l’identifiant du patron dont vous ouvrez la fiche, à un petit service de ${SITE_NAME}, qui interroge Ravelry à votre place. Ce service ne garde ni le terme, ni les résultats${NBSP}: seulement un compteur par jour, rattaché à une empreinte de votre adresse réseau qui change chaque jour. Les photos, elles, sont chargées depuis les serveurs de Ravelry, qui voient alors votre adresse réseau, comme pour toute image d’un site. ${SITE_NAME} n’est ni affilié à Ravelry ni approuvé par Ravelry.`,
-    bodyRavelryDevice: `Sur votre appareil, un favori ne garde que l’identifiant du patron, son nom, sa créatrice, l’adresse de sa vignette, le lien vers sa page Ravelry et la date d’ajout. Pour les effacer${NBSP}: «${NBSP}Retirer${NBSP}» ou «${NBSP}Retirer tous mes favoris${NBSP}» dans Mes favoris, ou effacez les données du site dans votre navigateur. La sauvegarde que vous exportez contient aussi vos favoris. Aucun compte Ravelry n’est utilisé.`,
+    bodyRavelryDevice: `Sur votre appareil, un favori ne garde que l’identifiant du patron, son nom, sa créatrice, l’adresse de sa vignette, le lien vers sa page Ravelry et la date d’ajout. Pour les effacer${NBSP}: «${NBSP}Retirer${NBSP}» ou «${NBSP}Retirer tous mes favoris${NBSP}» dans Mes favoris, ou effacez les données du site dans votre navigateur. La sauvegarde que vous exportez contient aussi vos favoris.`,
+    bodyRavelryConnection: `Si vous vous connectez à votre compte Ravelry, la connexion est en lecture seule${NBSP}: ${SITE_NAME} peut voir les patrons gratuits et leurs photos, et ne publie rien, ne lit pas vos messages. Pour se connecter, vous passez par le site d’authentification de Ravelry, puis un petit service de ${SITE_NAME} échange le code reçu contre un jeton de connexion, sans le conserver. Ce jeton reste uniquement sur votre appareil (dans le stockage du navigateur), jamais dans la sauvegarde que vous exportez, dans une adresse ni dans la mesure d’audience. Il est renouvelé automatiquement. Pour vous déconnecter${NBSP}: «${NBSP}Se déconnecter de Ravelry${NBSP}» dans Réglages ou sur la page de recherche, ce qui l’efface de l’appareil. Pour retirer aussi l’accès de ${SITE_NAME}, ouvrez les réglages de votre compte Ravelry.`,
     h2Delete: 'Effacer vos données',
     bodyDelete: `Dans «${NBSP}Mes projets${NBSP}», supprimez un projet pour l’effacer de l’appareil. Pour tout effacer d’un coup, supprimez les données du site dans les réglages de votre navigateur. Comme rien n’est gardé ailleurs, il n’y a rien d’autre à demander.`,
     h2Contact: 'Nous écrire',
@@ -105,7 +107,8 @@ const COPY: Record<Locale, PrivacyCopy> = {
     bodyAi: `Only if you tick “Tidy up with AI”, the pattern text is sent to a small ${SITE_NAME} service, then to Anthropic (Claude), which tidies it up before it is split into steps here. Anthropic does not train its models on it. Our service keeps no text: only counters, tied to a fingerprint of your network address that changes every day. With the box unticked, nothing is sent.`,
     h2Ravelry: 'Pattern search (Ravelry)',
     bodyRavelry: `When it is available, the free pattern search sends your search term, or the number of the pattern whose page you open, to a small ${SITE_NAME} service, which queries Ravelry for you. That service keeps neither the term nor the results: only a daily counter, tied to a fingerprint of your network address that changes every day. Photos, however, are loaded from Ravelry’s servers, which then see your network address, as with any image on a website. ${SITE_NAME} is not affiliated with or endorsed by Ravelry.`,
-    bodyRavelryDevice: `On your device, a favourite keeps only the pattern number, its name, its designer, the address of its thumbnail, the link to its Ravelry page and the date it was added. To erase them: “Remove” or “Remove all my favourites” in My favourites, or clear the site data in your browser. The backup you export also contains your favourites. No Ravelry account is used.`,
+    bodyRavelryDevice: `On your device, a favourite keeps only the pattern number, its name, its designer, the address of its thumbnail, the link to its Ravelry page and the date it was added. To erase them: “Remove” or “Remove all my favourites” in My favourites, or clear the site data in your browser. The backup you export also contains your favourites.`,
+    bodyRavelryConnection: `If you connect your Ravelry account, the connection is read-only: ${SITE_NAME} can see free patterns and their photos, and posts nothing and reads none of your messages. To connect, you go through Ravelry’s own sign-in site, then a small ${SITE_NAME} service exchanges the code it receives for a connection token, without keeping it. That token stays only on your device (in the browser’s storage), never in the backup you export, in an address or in audience measurement. It is renewed automatically. To disconnect: “Disconnect from Ravelry” in Settings or on the search page, which erases it from the device. To also remove ${SITE_NAME}’s access, open your Ravelry account settings.`,
     h2Delete: 'Erasing your data',
     bodyDelete:
       'In “My projects”, delete a project to remove it from the device. To erase everything at once, clear the site’s data in your browser settings. Since nothing is kept anywhere else, there is nothing else to ask for.',
@@ -161,6 +164,7 @@ const COPY: Record<Locale, PrivacyCopy> = {
       <h2>{{ c.h2Ravelry }}</h2>
       <p>{{ c.bodyRavelry }}</p>
       <p>{{ c.bodyRavelryDevice }}</p>
+      <p>{{ c.bodyRavelryConnection }}</p>
 
       <h2>{{ c.h2Delete }}</h2>
       <p>

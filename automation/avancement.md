@@ -73,6 +73,7 @@ branche.
 | 58 — Découpage fidèle                   | Terminée | —   | 2026-11-11 |
 | 59 — Lisible à un mètre                 | Terminée | —   | 2026-11-12 |
 | 60 — Patron terminé et photo            | Terminée | —   | 2026-11-12 |
+| 61 — Rechercher un patron gratuit       | Terminée | —   | 2026-11-23 |
 
 ## États possibles
 

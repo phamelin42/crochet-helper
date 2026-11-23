@@ -31,7 +31,8 @@ const FICHE = {
 };
 
 function simuler(reponse: Response | Error | DOMException) {
-  const fetchSimule = vi.fn(async (_url: string, _init?: RequestInit) => {
+  const fetchSimule = vi.fn(async (...args: [string, RequestInit?]) => {
+    void args;
     if (!(reponse instanceof Response)) throw reponse;
     return reponse.clone();
   });

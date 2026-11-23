@@ -1,4 +1,10 @@
 import { Service, computed, inject, signal } from '@angular/core';
+import {
+  clearFavorites,
+  deleteFavorites,
+  readFavorites,
+  writeFavorites,
+} from '../../../core/storage/favorites-db';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import { Favorite, validFavorite } from '../data/favorite.model';
 
@@ -10,6 +16,7 @@ import { Favorite, validFavorite } from '../data/favorite.model';
 @Service()
 export class FavoritesStore {
   private readonly base = inject(ProjectStoreService);
+  private readonly db = () => this.base.db();
   private loading: Promise<void> | null = null;
 
   readonly items = signal<readonly Favorite[]>([]);
@@ -28,30 +35,32 @@ export class FavoritesStore {
   /** Lit le stockage une fois ; `force` le relit. */
   load(force = false): Promise<void> {
     if (force) this.loading = null;
-    return (this.loading ??= this.base.listFavorites<unknown>().then((stored) => {
-      // Une base abîmée ou modifiée à la main n'est jamais affichée telle quelle.
-      this.items.set(stored.filter(validFavorite));
-      this.loaded.set(true);
-    }));
+    return (this.loading ??= this.db()
+      .then((db) => readFavorites<unknown>(db))
+      .then((stored) => {
+        // Une base abîmée ou modifiée à la main n'est jamais affichée telle quelle.
+        this.items.set(stored.filter(validFavorite));
+        this.loaded.set(true);
+      }));
   }
 
   async add(favorite: Omit<Favorite, 'addedAt'>): Promise<boolean> {
     if (this.has(favorite.id)) return true;
     const item: Favorite = { ...favorite, addedAt: Date.now() };
-    return this.confirm(await this.base.putFavorites([item]), () =>
+    return this.confirm(await writeFavorites(await this.db(), [item]), () =>
       this.items.update((list) => [...list, item]),
     );
   }
 
   async remove(id: string): Promise<boolean> {
-    return this.confirm(await this.base.removeFavorites([id]), () =>
+    return this.confirm(await deleteFavorites(await this.db(), [id]), () =>
       this.items.update((list) => list.filter((f) => f.id !== id)),
     );
   }
 
   /** « Retirer tous mes favoris » : à n'appeler qu'après confirmation. */
   async clear(): Promise<boolean> {
-    return this.confirm(await this.base.clearFavorites(), () => this.items.set([]));
+    return this.confirm(await clearFavorites(await this.db()), () => this.items.set([]));
   }
 
   private confirm(written: boolean, apply: () => void): boolean {

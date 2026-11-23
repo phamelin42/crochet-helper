@@ -72,6 +72,8 @@ function routesFor(locale: Locale): Routes {
         page('format', () => import('./features/format/format-page')),
         page('converter', () => import('./features/converter/converter-page')),
         page('projects', () => import('./features/reader/pages/projects-page')),
+        page('findPattern', () => import('./features/discover/pages/find-pattern-page')),
+        page('myFavorites', () => import('./features/discover/pages/favorites-page')),
         page('hookSizes', () => import('./features/tools/pages/hook-sizes-page')),
         page('needleSizes', () => import('./features/tools/pages/needle-sizes-page')),
         page('yarnWeights', () => import('./features/tools/pages/yarn-weights-page')),

@@ -47,12 +47,12 @@ export class SearchField {
   /** Une recherche est en cours : le bouton se grise, la saisie reste possible. */
   readonly busy = input(false);
   /** La personne lance la recherche (bouton ou Entrée). */
-  readonly search = output<string>();
+  readonly submitted = output<string>();
 
   protected readonly id = `fil-search-${nextId++}`;
 
   protected submit(event: Event): void {
     event.preventDefault();
-    this.search.emit(this.value().trim());
+    this.submitted.emit(this.value().trim());
   }
 }

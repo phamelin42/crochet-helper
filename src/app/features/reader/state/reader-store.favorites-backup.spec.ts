@@ -2,6 +2,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
+import { readFavorites, writeFavorites } from '../../../core/storage/favorites-db';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import {
   installFakeIndexedDb,
@@ -137,7 +138,13 @@ describe('sauvegarde : favoris et origine Ravelry', () => {
       TestBed.configureTestingModule({ providers });
       const store = TestBed.inject(ReaderStore);
       await store.initialize();
-      return { store, base: TestBed.inject(ProjectStoreService) };
+      const projets = TestBed.inject(ProjectStoreService);
+      const base = Object.assign(projets, {
+        listFavorites: async <T>() => readFavorites<T>(await projets.db()),
+        putFavorites: async <T extends { id: string }>(items: readonly T[]) =>
+          writeFavorites(await projets.db(), items),
+      });
+      return { store, base };
     }
 
     it('les favoris de l’appareil partent dans la sauvegarde et reviennent sur un autre', async () => {

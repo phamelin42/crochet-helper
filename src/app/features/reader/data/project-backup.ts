@@ -242,3 +242,23 @@ export function decodeImages(
       blob: new Blob([base64ToBytes(data)], { type }),
     }));
 }
+
+/** Favoris de l'appareil, pour la sauvegarde : lus par `favorites-db.ts`, chargé ici à la demande. */
+export async function loadFavorites(db: IDBDatabase | null): Promise<Favorite[]> {
+  const { readFavorites } = await import('../../../core/storage/favorites-db');
+  return readFavorites<Favorite>(db);
+}
+
+/**
+ * Fusionne les favoris d'une sauvegarde dans ceux de l'appareil : le plus récent
+ * l'emporte, aucun n'est perdu. `false` si l'écriture n'est pas confirmée.
+ */
+export async function mergeFavorites(
+  db: IDBDatabase | null,
+  incoming: readonly Favorite[],
+): Promise<boolean> {
+  const { readFavorites, writeFavorites } = await import('../../../core/storage/favorites-db');
+  const known = new Map((await readFavorites<Favorite>(db)).map((f) => [f.id, f]));
+  const newer = incoming.filter((f) => f.addedAt > (known.get(f.id)?.addedAt ?? -1));
+  return !newer.length || writeFavorites(db, newer);
+}

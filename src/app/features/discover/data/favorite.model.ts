@@ -8,6 +8,9 @@
 /** Toute page de patron de Ravelry commence ainsi : l'app ne lie rien d'autre. */
 export const RAVELRY_PATTERN_PREFIX = 'https://www.ravelry.com/patterns/library/';
 
+/** Mémoire de session de la fiche Ravelry en attente : écrite par « Commencer ce patron », lue par le lecteur. */
+export const RAVELRY_START_KEY = 'fil.ravelryStart';
+
 /** Favoris gardés au plus : une sauvegarde n'en importe pas davantage. */
 export const MAX_FAVORITES = 500;
 

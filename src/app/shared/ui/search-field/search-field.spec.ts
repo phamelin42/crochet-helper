@@ -7,7 +7,7 @@ function monter() {
   fixture.componentRef.setInput('label', 'Que cherchez-vous ?');
   fixture.componentRef.setInput('buttonLabel', 'Rechercher');
   const recherche = vi.fn();
-  fixture.componentInstance.search.subscribe(recherche);
+  fixture.componentInstance.submitted.subscribe(recherche);
   fixture.detectChanges();
   const el: HTMLElement = fixture.nativeElement;
   return { fixture, el, recherche, input: el.querySelector('input')! };

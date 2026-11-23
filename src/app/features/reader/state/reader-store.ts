@@ -18,7 +18,8 @@ import { LocalStorageService } from '../../../core/storage/local-storage.service
 import { TabSyncService } from '../../../core/platform/tab-sync.service';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import { SessionStorageService } from '../../../core/storage/session-storage.service';
-import type { Favorite, PatternOrigin } from '../../discover/data/favorite.model';
+import { RAVELRY_START_KEY } from '../../discover/data/favorite.model';
+import type { PatternOrigin } from '../../discover/data/favorite.model';
 import type { PieceChart } from '../data/text-to-chart';
 import { AI_FORMAT_URL_TOKEN } from '../data/ai-format';
 import { DEMO_PATTERNS } from '../data/demo-pattern';
@@ -98,9 +99,6 @@ const DEPTH_THRESHOLDS = [5, 20, 50] as const;
 function contentKey(project: Project): string {
   return JSON.stringify({ ...project, elapsed: 0 });
 }
-
-/** Mémoire de session de la fiche Ravelry en attente (voir `RavelrySlot`). */
-export const RAVELRY_START_KEY = 'fil.ravelryStart';
 
 /** Délai de regroupement des annonces des autres onglets avant de relire un projet. */
 const TAB_REFRESH_DELAY_MS = 200;
@@ -821,14 +819,14 @@ export class ReaderStore {
   async exportBackup(): Promise<Blob> {
     const projects = this.projects();
     this.analytics.track('backup_exported', { projects: projects.length });
-    const [{ encodeBackup }, files, favorites] = await Promise.all([
+    const [{ encodeBackup, loadFavorites }, files, db] = await Promise.all([
       import('../data/project-backup'),
       this.projectStore.getFiles<ProjectImage>(
         projects.flatMap((p) => [...imageIds(p), finishedId(p.id)]),
       ),
-      this.projectStore.listFavorites<Favorite>(),
+      this.projectStore.db(),
     ]);
-    return encodeBackup(projects, files, favorites);
+    return encodeBackup(projects, files, await loadFavorites(db));
   }
 
   /**
@@ -837,7 +835,8 @@ export class ReaderStore {
    * numéro de schéma est inconnu, et n'importe rien si l'écriture échoue.
    */
   async importBackup(file: File): Promise<boolean> {
-    const { MAX_BACKUP_BYTES, decodeImages, parseBackup } = await import('../data/project-backup');
+    const { MAX_BACKUP_BYTES, decodeImages, mergeFavorites, parseBackup } =
+      await import('../data/project-backup');
     // Borné avant lecture : un fichier démesuré ne doit pas saturer la mémoire.
     if (file.size > MAX_BACKUP_BYTES) return false;
     let raw: unknown;
@@ -851,12 +850,11 @@ export class ReaderStore {
 
     // Les favoris d'abord, et additifs : un échec ici n'importe rien, un échec des
     // projets ensuite ne retire aucun favori. Le plus récent l'emporte, aucun n'est perdu.
-    if (backup.favorites?.length) {
-      const known = new Map(
-        (await this.projectStore.listFavorites<Favorite>()).map((f) => [f.id, f]),
-      );
-      const incoming = backup.favorites.filter((f) => f.addedAt > (known.get(f.id)?.addedAt ?? -1));
-      if (incoming.length && !(await this.projectStore.putFavorites(incoming))) return false;
+    if (
+      backup.favorites?.length &&
+      !(await mergeFavorites(await this.projectStore.db(), backup.favorites))
+    ) {
+      return false;
     }
 
     const current = this.projects();

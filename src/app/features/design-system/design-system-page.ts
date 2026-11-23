@@ -22,6 +22,7 @@ import { Breadcrumb } from '../../shared/ui/breadcrumb/breadcrumb';
 import { Disclosure } from '../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../shared/ui/field/input';
 import { ICONS, Icon, IconName } from '../../shared/ui/icon/icon';
+import { ICONS_EXTRA } from '../../shared/ui/icon/icons-extra';
 import { FavoriteButton } from '../../shared/ui/favorite-button/favorite-button';
 import { PatternCard } from '../../shared/ui/pattern-card/pattern-card';
 import { SearchField } from '../../shared/ui/search-field/search-field';
@@ -620,7 +621,7 @@ export default class DesignSystemPage {
   protected readonly shadowTokens = SHADOW_TOKENS;
   protected readonly headingTags = HEADING_TAGS;
   protected readonly favorite = signal(false);
-  protected readonly iconNames = Object.keys(ICONS) as IconName[];
+  protected readonly iconNames = [...Object.keys(ICONS), ...Object.keys(ICONS_EXTRA)] as IconName[];
 
   protected readonly computedValues = signal<Record<string, string>>({});
 

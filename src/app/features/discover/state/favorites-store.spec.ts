@@ -1,6 +1,7 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { readFavorites, writeFavorites } from '../../../core/storage/favorites-db';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
 import {
   FakeControl,
@@ -27,7 +28,14 @@ describe('FavoritesStore', () => {
     TestBed.configureTestingModule({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] });
     const store = TestBed.inject(FavoritesStore);
     await store.load();
-    return { store, base: TestBed.inject(ProjectStoreService) };
+    const projets = TestBed.inject(ProjectStoreService);
+    // Lecture et écriture directes, comme le ferait un autre onglet.
+    const base = {
+      listFavorites: async <T>() => readFavorites<T>(await projets.db()),
+      putFavorites: async <T extends { id: string }>(items: readonly T[]) =>
+        writeFavorites(await projets.db(), items),
+    };
+    return { store, base };
   }
 
   beforeEach(() => {

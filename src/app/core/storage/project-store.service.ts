@@ -7,7 +7,7 @@ const DB_VERSION = 3;
 const STORE = 'projects';
 /** Fichiers rattachés aux projets (photos d'un PDF), clé `${projectId}:${n}`. */
 const IMAGES = 'images';
-/** Patrons mis en favoris sur l'appareil (fiche 61) : leur propre magasin, hors des transactions des projets. */
+/** Patrons mis en favoris sur l'appareil (fiche 61) : leur propre magasin, lu et écrit par `favorites-db.ts` (chargé à la demande). */
 const FAVORITES = 'favorites';
 
 /**
@@ -27,7 +27,8 @@ export class ProjectStoreService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private dbPromise: Promise<IDBDatabase | null> | null = null;
 
-  private db(): Promise<IDBDatabase | null> {
+  /** La base ouverte, pour `favorites-db.ts` ; `null` si le stockage est indisponible. */
+  db(): Promise<IDBDatabase | null> {
     if (!this.isBrowser) return Promise.resolve(null);
     return (this.dbPromise ??= this.open());
   }
@@ -192,50 +193,6 @@ export class ProjectStoreService {
         });
       } catch {
         resolve(ids.map(() => undefined));
-      }
-    });
-  }
-
-  /** Favoris enregistrés ; `[]` si le stockage est indisponible. */
-  async listFavorites<T>(): Promise<T[]> {
-    const db = await this.db();
-    if (!db) return [];
-    return new Promise((resolve) => {
-      try {
-        const request = db.transaction(FAVORITES, 'readonly').objectStore(FAVORITES).getAll();
-        request.onsuccess = () => resolve((request.result as T[]) ?? []);
-        request.onerror = () => resolve([]);
-      } catch {
-        resolve([]);
-      }
-    });
-  }
-
-  /** Écrit des favoris dans une seule transaction ; `true` seulement une fois validée. */
-  putFavorites<T extends { id: string }>(items: readonly T[]): Promise<boolean> {
-    return this.runFavorites((favorites) => items.forEach((item) => favorites.put(item)));
-  }
-
-  removeFavorites(ids: readonly string[]): Promise<boolean> {
-    return this.runFavorites((favorites) => ids.forEach((id) => favorites.delete(id)));
-  }
-
-  clearFavorites(): Promise<boolean> {
-    return this.runFavorites((favorites) => favorites.clear());
-  }
-
-  private async runFavorites(work: (favorites: IDBObjectStore) => void): Promise<boolean> {
-    const db = await this.db();
-    if (!db) return false;
-    return new Promise((resolve) => {
-      try {
-        const tx = db.transaction(FAVORITES, 'readwrite');
-        tx.oncomplete = () => resolve(true);
-        tx.onerror = () => resolve(false);
-        tx.onabort = () => resolve(false);
-        work(tx.objectStore(FAVORITES));
-      } catch {
-        resolve(false);
       }
     });
   }

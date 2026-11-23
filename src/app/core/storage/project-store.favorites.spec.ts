@@ -1,6 +1,7 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it } from 'vitest';
+import { clearFavorites, deleteFavorites, readFavorites, writeFavorites } from './favorites-db';
 import { ProjectStoreService } from './project-store.service';
 import { installFakeIndexedDb, uninstallFakeIndexedDb } from './testing/fake-indexed-db';
 
@@ -9,9 +10,19 @@ interface Fav {
   readonly nom: string;
 }
 
-function service(): ProjectStoreService {
-  TestBed.configureTestingModule({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] });
-  return TestBed.inject(ProjectStoreService);
+/** Les favoris, par la base que le service ouvre (v3 : le magasin est créé à la migration). */
+function service(platform: 'browser' | 'server' = 'browser') {
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({ providers: [{ provide: PLATFORM_ID, useValue: platform }] });
+  const projets = TestBed.inject(ProjectStoreService);
+  const base = () => projets.db();
+  return Object.assign(projets, {
+    listFavorites: async <T>() => readFavorites<T>(await base()),
+    putFavorites: async <T extends { id: string }>(items: readonly T[]) =>
+      writeFavorites(await base(), items),
+    removeFavorites: async (ids: readonly string[]) => deleteFavorites(await base(), ids),
+    clearFavorites: async () => clearFavorites(await base()),
+  });
 }
 
 describe('favoris dans IndexedDB (base « fil » version 3)', () => {
@@ -88,8 +99,7 @@ describe('favoris dans IndexedDB (base « fil » version 3)', () => {
 
   it('reste inerte côté serveur', async () => {
     installFakeIndexedDb();
-    TestBed.configureTestingModule({ providers: [{ provide: PLATFORM_ID, useValue: 'server' }] });
-    const store = TestBed.inject(ProjectStoreService);
+    const store = service('server');
     expect(await store.listFavorites()).toEqual([]);
     expect(await store.putFavorites([{ id: '1' }])).toBe(false);
   });

@@ -2,13 +2,16 @@ import { PLATFORM_ID, Service, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 const DB_NAME = 'fil';
-/** Version 2 : ajout du magasin `images` (fiche 34). Version 3 : `favorites` (fiche 61). */
-const DB_VERSION = 3;
+/** Version 2 : ajout du magasin `images` (fiche 34). Version 3 : `favorites` (fiche 61).
+ * Version 4 : `ravelry-session` (fiche 62). */
+const DB_VERSION = 4;
 const STORE = 'projects';
 /** Fichiers rattachés aux projets (photos d'un PDF), clé `${projectId}:${n}`. */
 const IMAGES = 'images';
 /** Patrons mis en favoris sur l'appareil (fiche 61) : leur propre magasin, lu et écrit par `favorites-db.ts` (chargé à la demande). */
 const FAVORITES = 'favorites';
+/** Jetons de connexion Ravelry (fiche 62) : lus et écrits par `ravelry-session-db.ts`, jamais exportés avec la sauvegarde. */
+const RAVELRY_SESSION = 'ravelry-session';
 
 /**
  * Accès à IndexedDB pour les projets, sans quota pratique — contrairement à
@@ -50,7 +53,7 @@ export class ProjectStoreService {
       // `images`, une base en version 2 reçoit `favorites`, sans que ses
       // projets ni ses photos soient touchés.
       request.onupgradeneeded = () => {
-        for (const name of [STORE, IMAGES, FAVORITES]) {
+        for (const name of [STORE, IMAGES, FAVORITES, RAVELRY_SESSION]) {
           if (!request.result.objectStoreNames.contains(name)) {
             request.result.createObjectStore(name, { keyPath: 'id' });
           }

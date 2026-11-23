@@ -40,7 +40,11 @@ export type RavelryRefusal =
   | 'introuvable'
   | 'indisponible'
   | 'reseau'
-  | 'delai';
+  | 'delai'
+  /** 403 du Worker : il faut se connecter à Ravelry (fiche 62). */
+  | 'connexion-requise'
+  /** 401 : le jeton n'est plus accepté et ne peut pas être renouvelé. */
+  | 'session-expiree';
 
 export type RavelryResult<T> =
   | { readonly ok: true; readonly data: T }
@@ -53,3 +57,23 @@ export type RavelryResult<T> =
     };
 
 export type RavelryCraft = 'crochet' | 'knitting';
+
+/** Un ouvrage réalisé avec un patron : une photo et le lien vers sa page Ravelry, rien d'autre (fiche 62). */
+export interface RavelryProject {
+  readonly photo: string;
+  readonly lien: string;
+}
+
+export interface RavelryProjects {
+  readonly projets: readonly RavelryProject[];
+  readonly page: number;
+  readonly pages: number;
+}
+
+/** Jetons rendus par le Worker, déjà validés. `expiresIn` en secondes. */
+export interface RavelryTokens {
+  readonly accessToken: string;
+  /** Absent d'un renouvellement qui ne change pas de jeton de rafraîchissement. */
+  readonly refreshToken: string | null;
+  readonly expiresIn: number;
+}

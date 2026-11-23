@@ -84,6 +84,8 @@ export const EVENEMENTS = [
   'pattern_viewed',
   'favorite_added',
   'pattern_started',
+  'ravelry_connected',
+  'ravelry_disconnected',
 ];
 
 /** Sept noms distincts : la tranche ou le palier vit dans le nom, pas dans une propriété. */

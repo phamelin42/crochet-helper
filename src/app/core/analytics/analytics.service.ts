@@ -120,7 +120,11 @@ export type AnalyticsEvent =
   /** Patron Ravelry ajouté aux favoris de l'appareil, sans nom ni identifiant. */
   | 'favorite_added'
   /** « Commencer ce patron » : la source est ouverte et le lecteur attend le texte, sans nom ni identifiant. */
-  | 'pattern_started';
+  | 'pattern_started'
+  /** Connexion à Ravelry réussie (fiche 62), sans aucune donnée : ni jeton, ni compte. */
+  | 'ravelry_connected'
+  /** « Se déconnecter de Ravelry », sans aucune donnée. */
+  | 'ravelry_disconnected';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

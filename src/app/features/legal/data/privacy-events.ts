@@ -178,6 +178,14 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     fr: '« Commencer ce patron » est choisi (jamais le nom du patron)',
     en: '“Start this pattern” is chosen (never the pattern name)',
   },
+  ravelry_connected: {
+    fr: 'la connexion à Ravelry réussit (jamais le compte ni le jeton)',
+    en: 'the connection to Ravelry succeeds (never the account or the token)',
+  },
+  ravelry_disconnected: {
+    fr: '« Se déconnecter de Ravelry » est choisi (aucune donnée)',
+    en: '“Disconnect from Ravelry” is chosen (no data)',
+  },
   chart_transcribed: {
     fr: 'un diagramme est transcrit en texte (nombre de tours, convention, lu automatiquement ou à la main)',
     en: 'a chart is transcribed to text (number of rounds, convention, read automatically or by hand)',

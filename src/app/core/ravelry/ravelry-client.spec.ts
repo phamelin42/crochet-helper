@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getPattern, searchPatterns } from './ravelry-client';
+import {
+  exchangeCode,
+  getPattern,
+  getProjects,
+  refreshTokens,
+  searchPatterns,
+} from './ravelry-client';
 
 const BASE = 'https://fil-ia.example/ravelry';
 
@@ -184,5 +190,141 @@ describe('refus nommés, jamais d’exception', () => {
   it('refuse une réponse démesurée avant de la lire', async () => {
     simuler(new Response('{}', { headers: { 'Content-Length': String(5_000_000) } }));
     expect(await getPattern(BASE, 1)).toMatchObject({ ok: false, raison: 'indisponible' });
+  });
+});
+
+describe('au nom de la lectrice connectée (fiche 62)', () => {
+  const AUCUN = (init?: RequestInit) => new Headers(init?.headers).get('Authorization');
+
+  it('envoie le jeton en Bearer, dans l’en-tête seulement, sans cache de navigateur', async () => {
+    const f = simuler(Response.json(LISTE));
+    await searchPatterns(BASE, { q: 'a', craft: 'crochet', page: 1 }, 'at-secret');
+    const [url, init] = f.mock.calls[0];
+    expect(AUCUN(init)).toBe('Bearer at-secret');
+    expect(init?.cache).toBe('no-store');
+    expect(url).not.toContain('at-secret');
+  });
+
+  it('sans jeton, n’envoie aucun en-tête Authorization', async () => {
+    const f = simuler(Response.json(FICHE));
+    await getPattern(BASE, 1);
+    await getPattern(BASE, 1, null);
+    for (const [, init] of f.mock.calls) expect(AUCUN(init)).toBeNull();
+  });
+
+  it.each([
+    [403, 'connexion-requise'],
+    [401, 'session-expiree'],
+  ])('un %s du Worker (« %s ») est un refus dit', async (statut, raison) => {
+    simuler(Response.json({ raison }, { status: statut }));
+    expect(await getPattern(BASE, 1, 'at')).toEqual({ ok: false, raison });
+  });
+
+  describe('galerie', () => {
+    const GALERIE = {
+      projets: [
+        {
+          photo: 'https://images4-g.ravelrycache.com/p.jpg',
+          lien: 'https://www.ravelry.com/projects/lectrice/ouvrage',
+        },
+      ],
+      page: 1,
+      pages: 2,
+    };
+
+    it('demande la page avec le jeton et rend photo et lien', async () => {
+      const f = simuler(Response.json(GALERIE));
+      expect(await getProjects(BASE, 7, 2, 'at')).toEqual({ ok: true, data: GALERIE });
+      const [url, init] = f.mock.calls[0];
+      const u = new URL(url);
+      expect(u.pathname).toBe('/ravelry/patron/7/projets');
+      expect(u.searchParams.get('page')).toBe('2');
+      expect(AUCUN(init)).toBe('Bearer at');
+    });
+
+    it.each([
+      [
+        'un champ en trop (nom de la personne)',
+        { ...GALERIE, projets: [{ ...GALERIE.projets[0], nom: 'Zoé' }] },
+      ],
+      [
+        'un lien hors des projets Ravelry',
+        { ...GALERIE, projets: [{ ...GALERIE.projets[0], lien: 'https://evil.example/' }] },
+      ],
+      [
+        'une photo en http',
+        { ...GALERIE, projets: [{ ...GALERIE.projets[0], photo: 'http://x.example/a.jpg' }] },
+      ],
+      ['plus de 24 ouvrages', { ...GALERIE, projets: Array(25).fill(GALERIE.projets[0]) }],
+      ['pas de page', { projets: [] }],
+    ])('refuse une réponse 200 qui contient %s', async (_n, corps) => {
+      simuler(Response.json(corps));
+      expect(await getProjects(BASE, 7, 1, 'at')).toEqual({
+        ok: false,
+        raison: 'indisponible',
+        detail: 'reponse',
+      });
+    });
+  });
+
+  describe('jetons', () => {
+    const BONS = { access_token: 'at-1', refresh_token: 'rt-1', expires_in: 3600 };
+
+    it('échange le code : POST JSON vers le Worker, jamais dans l’adresse', async () => {
+      const f = simuler(Response.json(BONS));
+      const r = await exchangeCode(BASE, {
+        code: 'c1',
+        verifier: 'v'.repeat(43),
+        redirectUri: 'https://patternreader.com/ravelry-callback',
+      });
+      expect(r).toEqual({
+        ok: true,
+        data: { accessToken: 'at-1', refreshToken: 'rt-1', expiresIn: 3600 },
+      });
+      const [url, init] = f.mock.calls[0];
+      expect(new URL(url).pathname).toBe('/ravelry/oauth/jeton');
+      expect(url).not.toContain('c1');
+      expect(init?.method).toBe('POST');
+      expect(init?.cache).toBe('no-store');
+      expect(JSON.parse(String(init?.body))).toEqual({
+        code: 'c1',
+        code_verifier: 'v'.repeat(43),
+        redirect_uri: 'https://patternreader.com/ravelry-callback',
+      });
+    });
+
+    it('renouvelle : refresh_token en POST JSON ; sans nouveau jeton de rafraîchissement, null', async () => {
+      const f = simuler(Response.json({ access_token: 'at-2', expires_in: 3600 }));
+      const r = await refreshTokens(BASE, 'rt-1');
+      expect(r).toEqual({
+        ok: true,
+        data: { accessToken: 'at-2', refreshToken: null, expiresIn: 3600 },
+      });
+      const [url, init] = f.mock.calls[0];
+      expect(new URL(url).pathname).toBe('/ravelry/oauth/rafraichir');
+      expect(JSON.parse(String(init?.body))).toEqual({ refresh_token: 'rt-1' });
+    });
+
+    it.each([
+      ['sans jeton d’accès', { expires_in: 3600 }],
+      ['durée nulle', { access_token: 'a', expires_in: 0 }],
+      ['durée de plus d’un jour', { access_token: 'a', expires_in: 86_401 }],
+      ['durée textuelle', { access_token: 'a', expires_in: '3600' }],
+      ['jeton avec espace', { access_token: 'a b', expires_in: 3600 }],
+      ['jeton de 4097 caractères', { access_token: 'a'.repeat(4097), expires_in: 3600 }],
+      [
+        'rafraîchissement de 2049 caractères',
+        { access_token: 'a', expires_in: 3600, refresh_token: 'a'.repeat(2049) },
+      ],
+    ])('refuse une réponse 200 : %s', async (_n, corps) => {
+      simuler(Response.json(corps));
+      const r = await refreshTokens(BASE, 'rt');
+      expect(r).toMatchObject({ ok: false, raison: 'indisponible' });
+    });
+
+    it('un session-expiree du Worker reste un refus dit', async () => {
+      simuler(Response.json({ raison: 'session-expiree' }, { status: 401 }));
+      expect(await refreshTokens(BASE, 'rt')).toEqual({ ok: false, raison: 'session-expiree' });
+    });
   });
 });

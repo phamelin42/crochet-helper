@@ -1,9 +1,11 @@
 import type {
   RavelryCard,
   RavelryDetail,
+  RavelryProjects,
   RavelryRefusal,
   RavelryResult,
   RavelrySearch,
+  RavelryTokens,
 } from './ravelry.model';
 
 /** Le Worker coupe Ravelry à 8 s : un peu plus ici, pour recevoir son refus plutôt que le nôtre. */
@@ -16,6 +18,8 @@ const REFUS: readonly RavelryRefusal[] = [
   'trop-de-demandes',
   'introuvable',
   'indisponible',
+  'connexion-requise',
+  'session-expiree',
 ];
 /** Un détail est un code court (« ravelry-504 »), jamais une phrase. */
 const DETAIL = /^[\w:,%.-]{1,80}$/;
@@ -93,10 +97,22 @@ function adresse(base: string, chemin: string, params: Record<string, string> = 
 async function appeler<T>(
   url: string,
   valide: (corps: unknown) => corps is T,
+  options: { auth?: string | null; post?: unknown } = {},
 ): Promise<RavelryResult<T>> {
   let reponse: Response;
   try {
-    reponse = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+    // Le jeton ne voyage que dans cet en-tête : jamais dans l'adresse, ni dans un message.
+    const entetes: Record<string, string> = {};
+    if (options.auth) entetes['Authorization'] = `Bearer ${options.auth}`;
+    if (options.post !== undefined) entetes['Content-Type'] = 'application/json';
+    reponse = await fetch(url, {
+      method: options.post === undefined ? 'GET' : 'POST',
+      headers: entetes,
+      ...(options.post === undefined ? {} : { body: JSON.stringify(options.post) }),
+      // Une réponse personnelle n'a rien à faire dans le cache HTTP du navigateur.
+      ...(options.auth || options.post !== undefined ? { cache: 'no-store' as const } : {}),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
   } catch (erreur) {
     const delai =
       erreur instanceof DOMException && ['TimeoutError', 'AbortError'].includes(erreur.name);
@@ -138,6 +154,7 @@ async function appeler<T>(
 export function searchPatterns(
   base: string,
   demande: { q: string; craft: 'crochet' | 'knitting'; page: number },
+  auth?: string | null,
 ): Promise<RavelryResult<RavelrySearch>> {
   return appeler(
     adresse(base, '/recherche', {
@@ -146,9 +163,100 @@ export function searchPatterns(
       page: String(demande.page),
     }),
     liste,
+    { auth },
   );
 }
 
-export function getPattern(base: string, id: number): Promise<RavelryResult<RavelryDetail>> {
-  return appeler(adresse(base, `/patron/${id}`), fiche);
+export function getPattern(
+  base: string,
+  id: number,
+  auth?: string | null,
+): Promise<RavelryResult<RavelryDetail>> {
+  return appeler(adresse(base, `/patron/${id}`), fiche, { auth });
+}
+
+const PREFIXE_PROJET = 'https://www.ravelry.com/projects/';
+
+function galerie(v: unknown): v is RavelryProjects {
+  return (
+    objet(v) &&
+    Array.isArray(v['projets']) &&
+    v['projets'].length <= 24 &&
+    v['projets'].every(
+      (p) =>
+        objet(p) &&
+        Object.keys(p).length === 2 &&
+        https(p['photo']) &&
+        https(p['lien']) &&
+        (p['lien'] as string).startsWith(PREFIXE_PROJET),
+    ) &&
+    entierPositif(v['page']) &&
+    entierPositif(v['pages'])
+  );
+}
+
+/** Ouvrages réalisés avec un patron : réservé aux lectrices connectées (`auth` obligatoire). */
+export function getProjects(
+  base: string,
+  id: number,
+  page: number,
+  auth: string,
+): Promise<RavelryResult<RavelryProjects>> {
+  return appeler(adresse(base, `/patron/${id}/projets`, { page: String(page) }), galerie, { auth });
+}
+
+/** Au plus 4096 caractères de jeton d'accès, 2048 de rafraîchissement : les bornes du Worker. */
+const JETON = /^[A-Za-z0-9._~+/=-]+$/;
+
+function jetons(
+  v: unknown,
+): v is { access_token: string; refresh_token?: string; expires_in: number } {
+  return (
+    objet(v) &&
+    typeof v['access_token'] === 'string' &&
+    v['access_token'].length <= 4096 &&
+    JETON.test(v['access_token']) &&
+    (v['refresh_token'] === undefined ||
+      (typeof v['refresh_token'] === 'string' &&
+        v['refresh_token'].length <= 2048 &&
+        JETON.test(v['refresh_token']))) &&
+    Number.isInteger(v['expires_in']) &&
+    (v['expires_in'] as number) > 0 &&
+    (v['expires_in'] as number) <= 86_400
+  );
+}
+
+async function appelerJetons(
+  url: string,
+  corps: Record<string, string>,
+): Promise<RavelryResult<RavelryTokens>> {
+  const r = await appeler(url, jetons, { post: corps });
+  if (!r.ok) return r;
+  return {
+    ok: true,
+    data: {
+      accessToken: r.data.access_token,
+      refreshToken: r.data.refresh_token ?? null,
+      expiresIn: r.data.expires_in,
+    },
+  };
+}
+
+/** Échange du code d'autorisation contre des jetons, par le Worker (qui porte le secret client). */
+export function exchangeCode(
+  base: string,
+  demande: { code: string; verifier: string; redirectUri: string },
+): Promise<RavelryResult<RavelryTokens>> {
+  return appelerJetons(adresse(base, '/oauth/jeton'), {
+    code: demande.code,
+    code_verifier: demande.verifier,
+    redirect_uri: demande.redirectUri,
+  });
+}
+
+export function refreshTokens(
+  base: string,
+  refreshToken: string,
+): Promise<RavelryResult<RavelryTokens>> {
+  return appelerJetons(adresse(base, '/oauth/rafraichir'), { refresh_token: refreshToken });
 }

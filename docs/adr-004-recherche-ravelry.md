@@ -31,7 +31,7 @@ navigateur ── GET /ravelry/… ──▶ Worker fil-ia ── Basic read-onl
               KV : compteur du jour par empreinte d'IP salée
 ```
 
-Routes du Worker (la route `POST /mise-en-forme` ne change pas) :
+Le Worker expose `Retry-After` (CORS) pour que la page puisse le lire. Routes du Worker (la route `POST /mise-en-forme` ne change pas) :
 
 | Route                                    | Rôle                                    |
 | ---------------------------------------- | --------------------------------------- |
@@ -57,10 +57,24 @@ Routes du Worker (la route `POST /mise-en-forme` ne change pas) :
 
 ## Interrupteur
 
-`RAVELRY_URL` (`features/discover/data/`) est la base du Worker pour Ravelry.
-**Vide dans ce lot** : aucune page n'est liée (en-tête, pied, écran de fin, mode
-appli) et l'URL directe affiche « bientôt disponible ». Un test e2e le prouve
-sur le build de production.
+`RAVELRY_URL` (`src/app/core/ravelry/ravelry-access.ts`) est la base des routes
+`/ravelry/…` du Worker. **Vide dans ce lot**, par un `define` d'`angular.json`
+(configuration `production`) : aucune page n'est liée et l'adresse directe
+affiche « bientôt disponible », sans appeler le Worker. Seul le lien « Chercher
+un autre patron » de l'écran de fin (chargé à la demande) existe déjà, et ne
+s'affiche que si l'interrupteur est renseigné.
+
+**Non lié dans ce lot, volontairement** : le pied de page, l'en-tête et la barre
+d'onglets du mode appli. Mesuré : deux liens dans le pied de page coûtent
+0,6 ko de code mort au bundle initial, déjà au-dessus de son budget. La PR
+d'activation les ajoute (et retire les deux routes de l'exemption de
+`site-footer.spec.ts`).
+
+**Tests de bout en bout** : un second build (`npm run build:ravelry-e2e`, soit
+`ng build -c production,ravelry-e2e`) renseigne l'interrupteur par `define` dans
+`dist-ravelry`, jamais livré ; le projet Playwright `ravelry` le sert (reconstruit
+à chaque lancement) avec le Worker simulé par `page.route`. Le build livré, éteint,
+est testé par `e2e/recherche-ravelry-eteinte.spec.ts` (aucun lien, aucun appel).
 
 ## Ce qui est établi, et ce qui reste à confirmer
 

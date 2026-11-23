@@ -435,6 +435,8 @@
 /* — Rechercher un patron, fiche d'un patron, Mes favoris (fiche 61) — */
 .discover {
   display: grid;
+  /* Une seule colonne qui ne s'élargit jamais au contenu : pas de défilement horizontal à 320 px. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
   margin-block: var(--space-6);
 }
@@ -503,6 +505,7 @@
 }
 .discover-detail {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
   justify-items: start;
 }
@@ -511,7 +514,7 @@
 }
 .discover-facts {
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
   gap: var(--space-2) var(--space-4);
   margin: 0;
 }

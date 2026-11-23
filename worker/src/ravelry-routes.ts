@@ -97,7 +97,12 @@ export async function traiterRavelry(requete: Request, env: Env, deps: Deps): Pr
   const origine = requete.headers.get('Origin');
   const autorisees = env.ORIGINES.split(',').map((o) => o.trim());
   if (origine === null || !autorisees.includes(origine)) return new Response(null, { status: 403 });
-  const entetes = { 'Access-Control-Allow-Origin': origine, Vary: 'Origin' };
+  // Retry-After doit être exposé : sans cela, le navigateur ne le laisse pas lire à la page.
+  const entetes = {
+    'Access-Control-Allow-Origin': origine,
+    'Access-Control-Expose-Headers': 'Retry-After',
+    Vary: 'Origin',
+  };
 
   if (requete.method === 'OPTIONS') {
     return new Response(null, {

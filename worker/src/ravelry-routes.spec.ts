@@ -266,6 +266,20 @@ describe('secrets, origine et méthodes', () => {
     expect(fetchSimule).not.toHaveBeenCalled();
   });
 
+  it('expose Retry-After au navigateur, sans quoi la page ne peut pas le lire', async () => {
+    const { deps } = monter(
+      () => new Response('{}', { status: 429, headers: { 'Retry-After': '9' } }),
+    );
+    const r = await traiter(get('/ravelry/patron/1'), ENV, deps);
+    expect(r.headers.get('Access-Control-Expose-Headers')).toBe('Retry-After');
+    const ok = await traiter(
+      get('/ravelry/patron/1'),
+      ENV,
+      monter(() => Response.json(FICHE)).deps,
+    );
+    expect(ok.headers.get('Access-Control-Expose-Headers')).toBe('Retry-After');
+  });
+
   it('une origine non autorisée ou absente reçoit 403, sans appel amont', async () => {
     for (const origine of ['https://autre.example', null]) {
       const { deps, fetchSimule } = monter();

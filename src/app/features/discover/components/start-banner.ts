@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { DisplayPrefsService } from '../../../core/platform/display-prefs.service';
 import { SessionStorageService } from '../../../core/storage/session-storage.service';
 import { Button } from '../../../shared/ui/button/button';
 import { ReaderStore } from '../../reader/state/reader-store';
@@ -50,7 +51,11 @@ export class StartBanner {
     try {
       const raw = inject(SessionStorageService).read(RAVELRY_START_KEY);
       const origin: unknown = raw ? JSON.parse(raw) : null;
-      if (validOrigin(origin)) this.store.pendingOrigin.set(origin);
+      if (validOrigin(origin)) {
+        this.store.pendingOrigin.set(origin);
+        // La page pleine masque le panneau d'import : la lectrice doit pouvoir y déposer le texte.
+        inject(DisplayPrefsService).setFocus(false);
+      }
     } catch {
       /* mémoire de session illisible : pas de bandeau */
     }

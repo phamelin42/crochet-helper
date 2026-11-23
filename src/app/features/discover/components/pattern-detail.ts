@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input, untracked } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
 import { I18nService } from '../../../core/i18n/i18n.service';
@@ -151,7 +151,10 @@ export class PatternDetail {
 
   constructor() {
     effect(() => {
-      void this.store.openPattern(this.id());
+      const id = this.id();
+      // Sans `untracked`, l'effet suit les signaux d'état que `openPattern` lit et se relance
+      // à chaque changement : un refus rechargeait la fiche sans fin.
+      untracked(() => void this.store.openPattern(id));
     });
     void this.favorites.load();
   }

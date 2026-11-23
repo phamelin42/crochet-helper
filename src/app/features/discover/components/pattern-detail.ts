@@ -10,6 +10,7 @@ import { PatternOrigin, RAVELRY_START_KEY } from '../data/favorite.model';
 import { DiscoverStore } from '../state/discover-store';
 import { FavoritesStore } from '../state/favorites-store';
 import { PatternGallery } from './pattern-gallery';
+import { PatternProjects } from './pattern-projects';
 
 /**
  * Fiche d'un patron gratuit : photos, texte brut de description (rendu par
@@ -19,7 +20,7 @@ import { PatternGallery } from './pattern-gallery';
  */
 @Component({
   selector: 'fil-pattern-detail',
-  imports: [Button, FavoriteButton, PatternGallery, RouterLink],
+  imports: [Button, FavoriteButton, PatternGallery, PatternProjects, RouterLink],
   template: `
     <p>
       <a [routerLink]="backLink()" [queryParams]="backParams()">← {{ backLabel() }}</a>
@@ -105,6 +106,8 @@ import { PatternGallery } from './pattern-gallery';
                 {{ c.seeOnRavelry }} {{ c.newTab }}
               </a>
             </p>
+
+            <fil-pattern-projects [id]="id()" />
           </article>
         }
       }

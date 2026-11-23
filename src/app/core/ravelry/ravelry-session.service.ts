@@ -103,6 +103,8 @@ export class RavelrySession {
   readonly loaded = signal(false);
   /** La connexion a été perdue (jeton refusé et non renouvelable) : à dire à la lectrice. */
   readonly expired = signal(false);
+  /** La lectrice vient de se déconnecter : à lui dire, une fois. */
+  readonly farewell = signal(false);
 
   private loading: Promise<void> | null = null;
   private erasures = 0;
@@ -203,6 +205,7 @@ export class RavelrySession {
     }
     await this.save(result.data, null);
     this.expired.set(false);
+    this.farewell.set(false);
     this.analytics.track('ravelry_connected');
     return { ok: true, returnTo: safeReturn(flow.returnTo), locale: flow.locale };
   }
@@ -294,7 +297,7 @@ export class RavelrySession {
   }
 
   /** La connexion est perdue : tout est effacé, et la lectrice en est informée. */
-  private async expire(): Promise<void> {
+  async expire(): Promise<void> {
     this.expired.set(true);
     await this.erase();
   }
@@ -310,6 +313,7 @@ export class RavelrySession {
   /** « Se déconnecter de Ravelry » : efface tout localement. `true` une fois l'effacement confirmé. */
   async disconnect(): Promise<boolean> {
     this.expired.set(false);
+    this.farewell.set(true);
     const done = await this.erase();
     this.loaded.set(true);
     this.analytics.track('ravelry_disconnected');

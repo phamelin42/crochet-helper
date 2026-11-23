@@ -15,15 +15,20 @@ import { I18nService } from '../../../core/i18n/i18n.service';
 import { DEFAULT_LOCALE, Locale } from '../../../core/i18n/locale';
 import { ROUTE_PATHS } from '../../../core/i18n/route-paths';
 import { RavelryAccess } from '../../../core/ravelry/ravelry-access';
+import { RAVELRY_MODE_TOKEN } from '../../../core/ravelry/ravelry-connection-config';
+import { RavelrySession } from '../../../core/ravelry/ravelry-session.service';
 import type { RavelryCraft } from '../../../core/ravelry/ravelry.model';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_NAME } from '../../../core/seo/site';
 import { Button } from '../../../shared/ui/button/button';
 import { PatternCard } from '../../../shared/ui/pattern-card/pattern-card';
+import { RavelryConnection } from '../../../shared/ui/ravelry-connection/ravelry-connection';
 import { SearchField } from '../../../shared/ui/search-field/search-field';
 import { Segmented, SegmentedOption } from '../../../shared/ui/segmented/segmented';
 import { PatternDetail } from '../components/pattern-detail';
+import { RavelryLogin } from '../components/ravelry-login';
 import { RavelryNote } from '../components/ravelry-note';
+import { CONNECT_COPY } from '../data/connect-copy';
 import { DISCOVER_COPY } from '../data/discover-copy';
 import { DiscoverStore } from '../state/discover-store';
 
@@ -38,7 +43,17 @@ const ID = /^[1-9]\d{0,9}$/;
  */
 @Component({
   selector: 'fil-find-pattern-page',
-  imports: [Button, PatternCard, PatternDetail, RavelryNote, RouterLink, SearchField, Segmented],
+  imports: [
+    Button,
+    PatternCard,
+    PatternDetail,
+    RavelryConnection,
+    RavelryLogin,
+    RavelryNote,
+    RouterLink,
+    SearchField,
+    Segmented,
+  ],
   host: { class: 'wrap' },
   template: `
     <article class="discover">
@@ -49,7 +64,24 @@ const ID = /^[1-9]\d{0,9}$/;
         <p>
           <a filButton="secondary" [routerLink]="i18n.link('reader')">{{ c.soonHome }}</a>
         </p>
+      } @else if (gate() === 'checking') {
+        <p role="status">{{ cc.checking }}</p>
+      } @else if (gate() === 'login') {
+        <fil-ravelry-login />
+        <p>
+          <a [routerLink]="i18n.link('myFavorites')">{{ c.favoritesLink }}</a>
+        </p>
+        <fil-ravelry-note [text]="c.note" />
       } @else {
+        @if (session.connected()) {
+          <fil-ravelry-connection
+            [connected]="true"
+            [connectLabel]="cc.connect"
+            [connectedLabel]="cc.connected"
+            [disconnectLabel]="cc.disconnect"
+            (disconnect)="disconnect()"
+          />
+        }
         @if (patternId(); as id) {
           <fil-pattern-detail [id]="id" [backParams]="backParams()" />
         } @else {
@@ -144,10 +176,24 @@ export default class FindPatternPage {
   private readonly seo = inject(SeoService);
   private readonly title = inject(Title);
   protected readonly enabled = inject(RavelryAccess).enabled;
+  protected readonly session = inject(RavelrySession);
+  private readonly mode = inject(RAVELRY_MODE_TOKEN);
 
   private readonly locale: Locale =
     (this.route.snapshot.data['locale'] as Locale) ?? DEFAULT_LOCALE;
   protected readonly c = DISCOVER_COPY[this.locale];
+  protected readonly cc = CONNECT_COPY[this.locale];
+  /**
+   * En mode `compte`, la recherche et la fiche attendent la connexion (lue sur l'appareil) ;
+   * sans elle, l'écran de connexion les remplace. En mode `ouvert`, rien n'attend.
+   */
+  protected readonly gate = computed<'open' | 'checking' | 'login'>(() =>
+    this.mode !== 'compte' || this.session.connected()
+      ? 'open'
+      : this.session.loaded()
+        ? 'login'
+        : 'checking',
+  );
 
   private readonly params = toSignal(this.route.queryParamMap, {
     initialValue: this.route.snapshot.queryParamMap,
@@ -188,13 +234,17 @@ export default class FindPatternPage {
       locale: this.locale,
       noIndex: true,
     });
-    afterNextRender(() => this.ready.set(true));
+    afterNextRender(() => {
+      this.ready.set(true);
+      if (this.enabled) void this.session.load();
+    });
 
     // La requête de l'adresse (`?q=&craft=`) fait foi : « Retour » retrouve les résultats.
     effect(() => {
       const q = this.qParam();
       const craft = this.craftParam();
-      if (!this.ready() || !this.enabled || !q || this.patternId()) return;
+      if (!this.ready() || !this.enabled || !q || this.patternId() || this.gate() !== 'open')
+        return;
       untracked(() => void this.store.ensure(q, craft));
     });
     effect(() => {
@@ -215,6 +265,10 @@ export default class FindPatternPage {
     } else {
       void this.router.navigate([], { relativeTo: this.route, queryParams: { q, craft } });
     }
+  }
+
+  protected disconnect(): void {
+    void this.session.disconnect();
   }
 
   protected retry(): void {

@@ -110,7 +110,9 @@ export const DISCOVER_COPY: Record<Locale, DiscoverCopy> = {
             ? `Ravelry demande de patienter un peu.${wait ? ` Réessayez dans ${wait}${nbsp}s.` : ''}`
             : raison === 'quota-jour'
               ? 'Vous avez atteint le nombre de recherches possibles aujourd’hui. Revenez demain.'
-              : 'Le service de recherche est indisponible pour le moment.',
+              : raison === 'session-expiree' || raison === 'connexion-requise'
+                ? 'Votre connexion à Ravelry a expiré. Reconnectez-vous pour continuer.'
+                : 'Le service de recherche est indisponible pour le moment.',
     free: 'Gratuit',
     by: (designer) => `par ${designer}`,
     note: 'Pattern Reader n’est ni affilié à Ravelry ni approuvé par Ravelry. Données et photos : Ravelry et leurs auteurs.',
@@ -128,7 +130,9 @@ export const DISCOVER_COPY: Record<Locale, DiscoverCopy> = {
               ? 'Ravelry demande de patienter un peu. Réessayez dans un instant.'
               : raison === 'quota-jour'
                 ? 'Vous avez atteint le nombre de requêtes possibles aujourd’hui. Revenez demain.'
-                : 'Le service est indisponible pour le moment.',
+                : raison === 'session-expiree' || raison === 'connexion-requise'
+                  ? 'Votre connexion à Ravelry a expiré. Reconnectez-vous pour continuer.'
+                  : 'Le service est indisponible pour le moment.',
     seeOnRavelry: 'Voir sur Ravelry',
     newTab: '(nouvel onglet)',
     craft: 'Technique',
@@ -200,7 +204,9 @@ export const DISCOVER_COPY: Record<Locale, DiscoverCopy> = {
             ? `Ravelry asks you to wait a little.${wait ? ` Try again in ${wait} s.` : ''}`
             : raison === 'quota-jour'
               ? 'You have reached today’s search limit. Come back tomorrow.'
-              : 'The search service is unavailable right now.',
+              : raison === 'session-expiree' || raison === 'connexion-requise'
+                ? 'Your connection to Ravelry has expired. Reconnect to continue.'
+                : 'The search service is unavailable right now.',
     free: 'Free',
     by: (designer) => `by ${designer}`,
     note: 'Pattern Reader is not affiliated with or endorsed by Ravelry. Data and photos: Ravelry and their authors.',
@@ -218,7 +224,9 @@ export const DISCOVER_COPY: Record<Locale, DiscoverCopy> = {
               ? 'Ravelry asks you to wait a little. Try again in a moment.'
               : raison === 'quota-jour'
                 ? 'You have reached today’s request limit. Come back tomorrow.'
-                : 'The service is unavailable right now.',
+                : raison === 'session-expiree' || raison === 'connexion-requise'
+                  ? 'Your connection to Ravelry has expired. Reconnect to continue.'
+                  : 'The service is unavailable right now.',
     seeOnRavelry: 'See on Ravelry',
     newTab: '(new tab)',
     craft: 'Craft',

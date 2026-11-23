@@ -62,10 +62,16 @@ async function stockage(page: Page) {
 }
 
 /** Parcours complet jusqu'à la recherche connectée. */
-async function seConnecter(page: Page, chemin = `${EN.recherche}?q=christmas+tree&craft=crochet`) {
+async function seConnecter(
+  page: Page,
+  chemin = `${EN.recherche}?q=christmas+tree&craft=crochet`,
+  l: { connecter: string; connectee: string } = EN,
+) {
   await ouvrir(page, chemin);
-  await page.getByRole('button', { name: EN.connecter, exact: true }).click();
-  await expect(page.getByText(EN.connectee)).toBeVisible();
+  await page.getByRole('button', { name: l.connecter, exact: true }).click();
+  await expect(page.getByText(l.connectee)).toBeVisible();
+  // La recherche de l'adresse part avec le jeton : on attend sa réponse avant d'aller plus loin.
+  if (chemin.includes('q=')) await expect(page.locator('.discover-grid li').first()).toBeVisible();
 }
 
 test('mode compte sans connexion : l’écran de connexion remplace la recherche, rien ne part', async ({
@@ -165,7 +171,9 @@ test('recherche, fiche et galerie des ouvrages, connectée', async ({ page }) =>
   const images = page.locator('.projects-grid img');
   await expect(images).toHaveCount(3);
   await expect(images.first()).toHaveAttribute('alt', 'Project made with this pattern, photo 1');
-  const lien = page.getByRole('link', { name: /View on Ravelry, project 2/ });
+  const lien = page.getByRole('link', {
+    name: /View on Ravelry \(project 2, opens in a new tab\)/,
+  });
   await expect(lien).toHaveAttribute('href', 'https://www.ravelry.com/projects/exemple/ouvrage-2');
   await expect(lien).toHaveAttribute('target', '_blank');
   await expect(lien).toHaveAttribute('rel', /noopener/);
@@ -199,7 +207,7 @@ test('se déconnecter efface tout sur l’appareil, le dit, et referme la recher
   expect(s.session).toBeNull();
   expect(s.local + s.session_storage).not.toContain('at-exemple');
   // Plus rien de la recherche en mémoire : se reconnecter repart de zéro.
-  await expect(page.getByRole('heading', { level: 3 })).toHaveCount(0);
+  await expect(page.locator('.discover-grid')).toHaveCount(0);
 
   // Après rechargement : toujours déconnectée.
   const avant = compte.appels.length;
@@ -268,8 +276,7 @@ test('session expirée : un seul renouvellement, puis « Votre connexion à Rave
   page,
 }) => {
   const compte = await simulerCompte(page);
-  await seConnecter(page, `${FR.recherche}?q=christmas+tree&craft=crochet`);
-  await expect(page.getByText(FR.connectee)).toBeVisible();
+  await seConnecter(page, `${FR.recherche}?q=christmas+tree&craft=crochet`, FR);
   compte.expirer();
   await page.getByLabel('Que voulez-vous crocheter ou tricoter ?').fill('guirlande');
   await page.getByRole('button', { name: 'Rechercher', exact: true }).click();
@@ -398,10 +405,8 @@ for (const largeur of [320, 390, 820]) {
   }
 }
 
-test('toute commande de la connexion fait 48 px, tout texte lu 16 px au moins', async ({
-  page,
-}) => {
-  for (const [nom, preparer] of Object.entries(ETATS)) {
+for (const [nom, preparer] of Object.entries(ETATS)) {
+  test(`${nom} : toute commande fait 48 px, tout texte lu 16 px au moins`, async ({ page }) => {
     await preparer(page);
     const trop = await page.evaluate(() => {
       const visible = (e: Element) => {
@@ -415,7 +420,7 @@ test('toute commande de la connexion fait 48 px, tout texte lu 16 px au moins', 
         .map(({ e, h }) => `${e.textContent?.trim().slice(0, 40)} ${Math.round(h)}px`);
       const petitsTextes = [
         ...document.querySelectorAll(
-          '.connect-panel p, .connect-panel h3, .ravelry-connection-state, .ravelry-connection-message, .project-item a',
+          '.connect-panel p, .connect-panel h3, .ravelry-connection-state, .ravelry-connection-message, .project-item a, .discover-alert p',
         ),
       ]
         .filter(visible)
@@ -424,6 +429,6 @@ test('toute commande de la connexion fait 48 px, tout texte lu 16 px au moins', 
         .map(({ e, px }) => `${e.textContent?.trim().slice(0, 40)} ${px}px`);
       return { petitesCommandes, petitsTextes };
     });
-    expect(trop, nom).toEqual({ petitesCommandes: [], petitsTextes: [] });
-  }
-});
+    expect(trop).toEqual({ petitesCommandes: [], petitsTextes: [] });
+  });
+}

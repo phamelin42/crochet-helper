@@ -25,10 +25,29 @@ export type RouteOauth = 'jeton' | 'rafraichir';
 const chaine = (v: unknown, min: number, max: number, forme: RegExp): v is string =>
   typeof v === 'string' && v.length >= min && v.length <= max && forme.test(v);
 
-/** Corps JSON borné ; `null` si trop gros, illisible ou pas un objet. */
+/**
+ * Corps JSON borné : lu par morceaux et abandonné au-delà de la borne (un en-tête
+ * `Content-Length` ne suffit pas à s'y fier). `null` si trop gros, illisible ou pas un objet.
+ */
 async function lireCorps(requete: Request): Promise<Record<string, unknown> | null> {
-  const texte = await requete.text();
-  if (texte.length === 0 || texte.length > CORPS_MAX) return null;
+  if (Number(requete.headers.get('Content-Length') ?? 0) > CORPS_MAX) return null;
+  if (requete.body === null) return null;
+  const lecteur = requete.body.getReader();
+  const decodeur = new TextDecoder();
+  let total = 0;
+  let texte = '';
+  for (;;) {
+    const { done, value } = await lecteur.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > CORPS_MAX) {
+      await lecteur.cancel();
+      return null;
+    }
+    texte += decodeur.decode(value, { stream: true });
+  }
+  texte += decodeur.decode();
+  if (texte.length === 0) return null;
   try {
     const corps: unknown = JSON.parse(texte);
     return typeof corps === 'object' && corps !== null && !Array.isArray(corps)

@@ -193,6 +193,25 @@ describe('POST /ravelry/oauth/jeton', () => {
     expect(fetchSimule).not.toHaveBeenCalled();
   });
 
+  it('un corps qui dépasse la borne en cours de lecture est abandonné, même sans Content-Length', async () => {
+    const { deps, fetchSimule } = monter();
+    const flux = new ReadableStream<Uint8Array>({
+      start(c) {
+        for (let i = 0; i < 10; i++) c.enqueue(new TextEncoder().encode('x'.repeat(1000)));
+        c.close();
+      },
+    });
+    const requete = new Request('https://fil-ia.example/ravelry/oauth/jeton', {
+      method: 'POST',
+      headers: { Origin: ORIGINE },
+      body: flux,
+      duplex: 'half',
+    } as RequestInit);
+    const r = await traiter(requete, ENV, deps);
+    expect(r.status).toBe(400);
+    expect(fetchSimule).not.toHaveBeenCalled();
+  });
+
   it('une origine non autorisée ou absente reçoit 403, sans appel amont', async () => {
     for (const origine of ['https://autre.example', null]) {
       const { deps, fetchSimule } = monter();

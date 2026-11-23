@@ -189,6 +189,8 @@ export async function simulerCompte(
       const corps = JSON.parse(requete.postData() ?? '{}') as Record<string, string>;
       corpsOauth.push({ chemin, corps });
       if (chemin === '/oauth/jeton') {
+        // Une nouvelle connexion repart d'un compte valide.
+        if (corps['code'] === CODE) expire = false;
         return corps['code'] === CODE
           ? reponse(route, {
               access_token: ACCESS_TOKEN,

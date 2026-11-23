@@ -97,6 +97,7 @@ URL avant d'accumuler du référencement.
 | 59  | Lisible à un mètre (audit)         | activation et rétention : texte, cibles et sortie lisibles     |
 | 60  | Patron terminé et photo            | rétention : écran de fin, photo sur l'appareil, partage natif  |
 | 61  | Rechercher un patron gratuit       | acquisition et activation : Ravelry, favoris, import guidé     |
+| 62  | Connexion à Ravelry (OAuth 2.1)    | activation et rétention : recherche réservée aux connectées    |
 
 Les fiches 38 à 41 répondent à la demande de Phil du 30 septembre (mode page
 pleine comme l'application Filo, hors ligne mis en avant, Play Store ; pas

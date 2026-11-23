@@ -1,3 +1,4 @@
+import type { PatternOrigin } from '../../discover/data/favorite.model';
 import type { ColorGrid } from './color-grid';
 
 /** Longueur maximale du nom d'un projet, en caractères. */
@@ -46,6 +47,8 @@ export interface Project {
    * « Revenir au texte d'origine » le remet en place. Absent sinon.
    */
   readonly sourceBeforeAi?: string;
+  /** Patron Ravelry dont le texte a été déposé (fiche 61). Absent des projets d'avant et des autres. */
+  readonly origin?: PatternOrigin;
 }
 
 /** Longueur maximale d'un texte de patron remis en forme, ou de son original (même borne que le Worker). */

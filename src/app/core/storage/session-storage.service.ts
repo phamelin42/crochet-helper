@@ -27,4 +27,13 @@ export class SessionStorageService {
       /* stockage refusé : la marque est simplement perdue. */
     }
   }
+
+  remove(key: string): void {
+    if (!this.isBrowser) return;
+    try {
+      sessionStorage.removeItem(key);
+    } catch {
+      /* stockage refusé : rien à retirer. */
+    }
+  }
 }

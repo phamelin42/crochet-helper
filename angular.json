@@ -73,6 +73,9 @@
                   "maximumError": "8kB"
                 }
               ],
+              "define": {
+                "FIL_RAVELRY_URL": "''"
+              },
               "outputHashing": "all",
               "namedChunks": true,
               "optimization": {
@@ -89,6 +92,14 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "ravelry-e2e": {
+              "outputPath": "dist-ravelry",
+              "serviceWorker": false,
+              "budgets": [],
+              "define": {
+                "FIL_RAVELRY_URL": "'https://fil-ia.hamelinphilippe1.workers.dev/ravelry'"
+              }
             }
           },
           "defaultConfiguration": "production"

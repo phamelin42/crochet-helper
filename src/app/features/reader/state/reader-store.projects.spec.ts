@@ -478,7 +478,7 @@ describe('ReaderStore — projets', () => {
       expect(await db.list()).toEqual([]);
     });
 
-    it('exporte une sauvegarde v2 et la réimporte à l’identique sur un profil vide', async () => {
+    it('exporte une sauvegarde v3 et la réimporte à l’identique sur un profil vide', async () => {
       const store = TestBed.inject(ReaderStore);
       await store.initialize();
       await store.importPdf(pdfFile());
@@ -486,7 +486,7 @@ describe('ReaderStore — projets', () => {
       await vi.waitFor(() => expect(store.projects().length).toBe(1));
       const projects = store.projects();
       const text = await (await store.exportBackup()).text();
-      expect(JSON.parse(text).version).toBe(2);
+      expect(JSON.parse(text).version).toBe(3);
 
       // Profil vide : autre base, autre magasin.
       uninstallFakeIndexedDb();

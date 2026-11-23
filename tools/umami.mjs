@@ -80,6 +80,10 @@ export const EVENEMENTS = [
   'pattern_finished',
   'finished_photo_added',
   'finished_shared',
+  'pattern_searched',
+  'pattern_viewed',
+  'favorite_added',
+  'pattern_started',
 ];
 
 /** Sept noms distincts : la tranche ou le palier vit dans le nom, pas dans une propriété. */

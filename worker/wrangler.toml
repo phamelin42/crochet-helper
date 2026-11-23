@@ -17,3 +17,7 @@ BUDGET_MOIS_USD = "7"
 QUOTA_JOUR = "3"
 ORIGINES = "https://patternreader.com"
 MAX_CARACTERES = "60000"
+# Recherche Ravelry (ADR-004) : requêtes par personne et par jour. Les secrets
+# RAVELRY_USER et RAVELRY_KEY (Basic, lecture seule) se posent dans le tableau
+# de bord Cloudflare, jamais ici.
+QUOTA_RAVELRY_JOUR = "120"

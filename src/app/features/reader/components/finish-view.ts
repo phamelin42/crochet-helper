@@ -1,6 +1,7 @@
 import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../../core/analytics/analytics.service';
+import { RavelryAccess } from '../../../core/ravelry/ravelry-access';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { FocusService } from '../../../core/platform/focus.service';
 import { ShareService } from '../../../core/platform/share.service';
@@ -27,6 +28,7 @@ const COPY = {
     savePhoto: 'Enregistrer la photo',
     restart: 'Recommencer ce patron',
     projects: 'Mes projets',
+    another: 'Chercher un autre patron',
     review: 'Revoir la dernière étape',
     cancel: 'Annuler',
     photoAlt: (name: string) =>
@@ -72,6 +74,7 @@ const COPY = {
     savePhoto: 'Save the photo',
     restart: 'Start this pattern over',
     projects: 'My projects',
+    another: 'Find another pattern',
     review: 'Review the last step',
     cancel: 'Cancel',
     photoAlt: (name: string) =>
@@ -190,7 +193,9 @@ interface Notice {
         {{ c().restart }}
       </button>
       <a filButton="secondary" [routerLink]="i18n.link('projects')">{{ c().projects }}</a>
-      <!-- « Chercher un autre patron » : la page n'existe pas encore, pas de lien mort. -->
+      @if (ravelry.enabled) {
+        <a filButton="secondary" [routerLink]="i18n.link('findPattern')">{{ c().another }}</a>
+      }
       <button type="button" filButton="ghost" (click)="review()">{{ c().review }}</button>
     </fil-celebration>
 
@@ -237,6 +242,8 @@ interface Notice {
 export class FinishView {
   protected readonly store = inject(ReaderStore);
   protected readonly i18n = inject(I18nService);
+  /** Interrupteur de la recherche Ravelry (ADR-004) : le lien n'existe pas tant qu'il est éteint. */
+  protected readonly ravelry = inject(RavelryAccess);
   private readonly share = inject(ShareService);
   private readonly analytics = inject(AnalyticsService);
   private readonly focus = inject(FocusService);

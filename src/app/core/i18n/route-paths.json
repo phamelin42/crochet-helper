@@ -4,6 +4,8 @@
   "format": { "fr": "/bien-formater-son-patron", "en": "/format-your-pattern" },
   "converter": { "fr": "/convertisseur-us-uk", "en": "/us-uk-converter" },
   "projects": { "fr": "/mes-projets", "en": "/my-projects" },
+  "findPattern": { "fr": "/trouver-un-patron", "en": "/find-a-pattern" },
+  "myFavorites": { "fr": "/mes-favoris", "en": "/my-favorites" },
   "guideReadingPattern": { "fr": "/guide/lire-un-patron", "en": "/guide/reading-a-pattern" },
   "guideReadingChart": { "fr": "/guide/lire-un-diagramme", "en": "/guide/reading-a-chart" },
   "guideCrochetOrKnitting": {

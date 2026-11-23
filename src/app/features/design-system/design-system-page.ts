@@ -22,6 +22,10 @@ import { Breadcrumb } from '../../shared/ui/breadcrumb/breadcrumb';
 import { Disclosure } from '../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../shared/ui/field/input';
 import { ICONS, Icon, IconName } from '../../shared/ui/icon/icon';
+import { ICONS_EXTRA } from '../../shared/ui/icon/icons-extra';
+import { FavoriteButton } from '../../shared/ui/favorite-button/favorite-button';
+import { PatternCard } from '../../shared/ui/pattern-card/pattern-card';
+import { SearchField } from '../../shared/ui/search-field/search-field';
 import { Segmented, SegmentedOption } from '../../shared/ui/segmented/segmented';
 import { TabBar, TabItem } from '../../shared/ui/tab-bar/tab-bar';
 import { Tile } from '../../shared/ui/tile/tile';
@@ -84,6 +88,9 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
     Disclosure,
     Icon,
     InputField,
+    FavoriteButton,
+    PatternCard,
+    SearchField,
     Segmented,
     TabBar,
     Tile,
@@ -341,6 +348,60 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
         </div>
       </div>
 
+      <h3>SearchField</h3>
+      <div class="grid-cards">
+        <div class="card">
+          <p class="ds-caption">libellé visible, recherche au bouton ou à Entrée</p>
+          <fil-search-field
+            label="Que voulez-vous crocheter ?"
+            buttonLabel="Rechercher"
+            placeholder="Un sapin de Noël"
+          />
+        </div>
+      </div>
+
+      <h3>PatternCard</h3>
+      <div class="grid-cards">
+        <fil-pattern-card
+          name="Petit sapin au crochet"
+          designer="par Camille Exemple"
+          tag="Gratuit"
+          link="/design-system"
+        >
+          <fil-favorite-button
+            [active]="false"
+            addLabel="Ajouter à mes favoris"
+            removeLabel="Retirer de mes favoris"
+          />
+        </fil-pattern-card>
+        <fil-pattern-card
+          name="Patron sans image"
+          designer="par Une créatrice"
+          link="/design-system"
+        >
+          <fil-favorite-button
+            [active]="true"
+            addLabel="Ajouter à mes favoris"
+            removeLabel="Retirer de mes favoris"
+          />
+        </fil-pattern-card>
+      </div>
+
+      <h3>FavoriteButton</h3>
+      <div class="grid-cards">
+        <div class="card">
+          <p class="ds-caption">état annoncé, libellé qui change</p>
+          <fil-favorite-button
+            [active]="favorite()"
+            (toggled)="favorite.set($event)"
+            addLabel="Ajouter à mes favoris"
+            removeLabel="Retirer de mes favoris"
+            addedMessage="Ajouté à vos favoris."
+            removedMessage="Retiré de vos favoris."
+          />
+        </div>
+      </div>
+
       <h3>Tile</h3>
       <div class="grid-cards">
         <fil-tile label="Rang">
@@ -559,7 +620,8 @@ export default class DesignSystemPage {
   protected readonly radiusTokens = RADIUS_TOKENS;
   protected readonly shadowTokens = SHADOW_TOKENS;
   protected readonly headingTags = HEADING_TAGS;
-  protected readonly iconNames = Object.keys(ICONS) as IconName[];
+  protected readonly favorite = signal(false);
+  protected readonly iconNames = [...Object.keys(ICONS), ...Object.keys(ICONS_EXTRA)] as IconName[];
 
   protected readonly computedValues = signal<Record<string, string>>({});
 

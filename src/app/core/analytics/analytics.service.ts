@@ -112,7 +112,15 @@ export type AnalyticsEvent =
   /** Photo de l'ouvrage terminé enregistrée sur l'appareil, jamais la photo. */
   | 'finished_photo_added'
   /** Ouvrage terminé partagé (propriété `canal` : `natif`, `telechargement` ou `copie`). */
-  | 'finished_shared';
+  | 'finished_shared'
+  /** Recherche de patron Ravelry lancée (propriétés `craft` et `resultats` : tranche `0`, `1-9`, `10-19`, `20+`), jamais le terme cherché. */
+  | 'pattern_searched'
+  /** Fiche d'un patron Ravelry ouverte, sans nom ni identifiant. */
+  | 'pattern_viewed'
+  /** Patron Ravelry ajouté aux favoris de l'appareil, sans nom ni identifiant. */
+  | 'favorite_added'
+  /** « Commencer ce patron » : la source est ouverte et le lecteur attend le texte, sans nom ni identifiant. */
+  | 'pattern_started';
 
 interface Umami {
   track(event: string, props?: Record<string, string | number>): void;

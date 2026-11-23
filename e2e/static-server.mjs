@@ -5,7 +5,10 @@ import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 
-const ROOT = join(import.meta.dirname, '..', 'dist', 'fil-patterns', 'browser');
+// Deuxième argument : le dossier de build servi. Par défaut `dist/fil-patterns`, le build livré ;
+// `dist-ravelry` est le build des tests de la recherche Ravelry (interrupteur renseigné).
+const BUILD = process.argv[3] ?? join('dist', 'fil-patterns');
+const ROOT = join(import.meta.dirname, '..', BUILD, 'browser');
 const PORT = Number(process.argv[2] ?? 4310);
 
 const MIME_TYPES = {

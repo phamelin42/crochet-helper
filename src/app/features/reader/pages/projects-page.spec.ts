@@ -140,3 +140,59 @@ describe('ProjectsPage : projets terminés', () => {
     });
   }
 });
+
+describe('ProjectsPage : projet d’origine Ravelry', () => {
+  beforeEach(() => {
+    installFakeIndexedDb();
+    localStorage.clear();
+  });
+  afterEach(() => {
+    uninstallFakeIndexedDb();
+    localStorage.clear();
+  });
+
+  const PHRASES = {
+    fr: 'D’après un patron de Camille Exemple sur Ravelry',
+    en: 'From a pattern by Camille Exemple on Ravelry',
+  } as const;
+  const PERMALINK = 'https://www.ravelry.com/patterns/library/petit-sapin';
+
+  for (const locale of ['fr', 'en'] as const) {
+    it(`en ${locale}, seul le projet d’origine Ravelry le dit, avec le lien vers le patron`, async () => {
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: PLATFORM_ID, useValue: 'browser' },
+          { provide: AnalyticsService, useValue: { track: vi.fn() } },
+          provideRouter([]),
+          { provide: ActivatedRoute, useValue: { snapshot: { data: { locale } } } },
+        ],
+      });
+      const store = TestBed.inject(ReaderStore);
+      TestBed.tick();
+      await store.initialize();
+      store.load('Rang 1 : 6 ms');
+      await vi.waitFor(() => expect(store.projects().length).toBe(1));
+      store.pendingOrigin.set({
+        source: 'ravelry',
+        id: '101',
+        name: 'Petit sapin',
+        designer: 'Camille Exemple',
+        permalink: PERMALINK,
+        photoUrl: null,
+      });
+      store.load('Rang 1 : 8 ms\nRang 2 : 16 ms');
+      await vi.waitFor(() => expect(store.projects().length).toBe(2));
+      await vi.waitFor(() => expect(store.projects().some((p) => p.origin)).toBe(true));
+
+      const fixture = TestBed.createComponent(ProjectsPage);
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      const liens = [...el.querySelectorAll<HTMLAnchorElement>('li.card a')];
+      expect(liens).toHaveLength(1);
+      expect(liens[0].textContent).toContain(PHRASES[locale]);
+      expect(liens[0].getAttribute('href')).toBe(PERMALINK);
+      expect(liens[0].getAttribute('rel')).toBe('noopener noreferrer');
+      expect(liens[0].getAttribute('target')).toBe('_blank');
+    });
+  }
+});

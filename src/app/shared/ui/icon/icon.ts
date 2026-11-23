@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, effect, input, signal } from '@angular/core';
 
 /** Jeu d'icônes du produit — tracés Phosphor sur une grille 256, comme le design. */
 export const ICONS = {
@@ -33,7 +33,9 @@ export const ICONS = {
     'M32 64h56v16H32ZM152 64h72v16h-72ZM120 52a20 20 0 1 0 0 40 20 20 0 1 0 0-40ZM32 120h120v16H32ZM200 120h24v16h-24ZM176 108a20 20 0 1 0 0 40 20 20 0 1 0 0-40ZM32 176h24v16H32ZM104 176h120v16H104ZM80 164a20 20 0 1 0 0 40 20 20 0 1 0 0-40Z',
 } as const;
 
-export type IconName = keyof typeof ICONS;
+/** Icônes hors du bundle initial (`icons-extra.ts`, chargé à la première utilisation). */
+export type ExtraIconName = 'heart' | 'heartFill';
+export type IconName = keyof typeof ICONS | ExtraIconName;
 
 /**
  * Icône SVG en ligne. Décorative par défaut (`aria-hidden`) : le sens est porté
@@ -58,5 +60,17 @@ export type IconName = keyof typeof ICONS;
 })
 export class Icon {
   readonly name = input.required<IconName>();
-  protected readonly path = computed(() => ICONS[this.name()]);
+  private readonly extra = signal<Record<string, string> | null>(null);
+  protected readonly path = computed(
+    () => (ICONS as Record<string, string>)[this.name()] ?? this.extra()?.[this.name()],
+  );
+
+  constructor() {
+    // Une icône hors du bundle initial se charge à sa première utilisation.
+    effect(() => {
+      if (!(this.name() in ICONS) && !this.extra()) {
+        void import('./icons-extra').then((m) => this.extra.set(m.ICONS_EXTRA));
+      }
+    });
+  }
 }

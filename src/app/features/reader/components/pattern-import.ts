@@ -1,6 +1,9 @@
+import { NgComponentOutlet } from '@angular/common';
 import {
   Component,
   ElementRef,
+  Type,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -11,11 +14,13 @@ import {
 import { RouterLink } from '@angular/router';
 import { AiRefusal } from '../../../core/ai/format-client.token';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { SessionStorageService } from '../../../core/storage/session-storage.service';
 import { Button } from '../../../shared/ui/button/button';
 import { Checkbox } from '../../../shared/ui/checkbox/checkbox';
 import { Dialog } from '../../../shared/ui/dialog/dialog';
 import { Disclosure } from '../../../shared/ui/disclosure/disclosure';
 import { InputField } from '../../../shared/ui/field/input';
+import { RAVELRY_START_KEY } from '../../discover/data/favorite.model';
 import { AI_FORMAT_URL_TOKEN, AI_INTEREST_URL_TOKEN } from '../data/ai-format';
 import { READER_COPY, ReaderTranslationKey } from '../data/reader-copy';
 import { ChartIntake } from '../state/chart-intake';
@@ -28,7 +33,7 @@ import { ReaderStore } from '../state/reader-store';
  */
 @Component({
   selector: 'fil-pattern-import',
-  imports: [Button, Checkbox, Dialog, Disclosure, InputField, RouterLink],
+  imports: [Button, Checkbox, Dialog, Disclosure, InputField, NgComponentOutlet, RouterLink],
   template: `
     <fil-disclosure
       [label]="t('ui.import')"
@@ -38,6 +43,10 @@ import { ReaderStore } from '../state/reader-store';
       class="import-host"
     >
       <div class="import-body">
+        <!-- Après « Commencer ce patron » : quel patron attend son texte (ADR-004). -->
+        @if (banner(); as component) {
+          <ng-container *ngComponentOutlet="component" />
+        }
         <div>
           <div class="field">
             <label for="pattern-source">{{ t('ui.paste') }}</label>
@@ -229,7 +238,19 @@ export class PatternImport {
   protected readonly revertOpen = signal(false);
   protected readonly busy = computed(() => this.store.pdfImporting() || this.store.aiBusy());
 
+  /** Bandeau « Déposez ici le PDF de… », chargé seulement si une fiche Ravelry attend. */
+  protected readonly banner = signal<Type<unknown> | null>(null);
+
   constructor() {
+    const session = inject(SessionStorageService);
+    afterNextRender(() => {
+      if (!session.read(RAVELRY_START_KEY)) return;
+      void import('../../discover/components/start-banner').then((m) => {
+        this.banner.set(m.StartBanner);
+        this.open.set(true);
+        setTimeout(() => this.focusSource());
+      });
+    });
     // Rouvre le panneau dès qu'une erreur de PDF survient, y compris quand le
     // PDF a été collé ou déposé ailleurs sur la page, panneau replié.
     effect(() => {

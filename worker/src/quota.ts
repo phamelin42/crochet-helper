@@ -1,3 +1,5 @@
+import type { Kv } from './index';
+
 const MICRO = 1_000_000;
 export const TTL_JOUR = 2 * 24 * 3600;
 export const TTL_MOIS = 40 * 24 * 3600;
@@ -16,6 +18,7 @@ export async function empreinte(sel: string, date: string, ip: string): Promise<
 
 export const cleJour = (date: string, empr: string) => `jour:${date}:${empr}`;
 export const cleMois = (date: string) => `mois:${date.slice(0, 7)}`;
+export const cleRavelry = (date: string, empr: string) => `ravelry:${date}:${empr}`;
 export const cleDepense = (date: string) => `depense:${date}`;
 
 /** Dépense en micro-dollars (entier) d'après l'`usage` réel de la réponse. */
@@ -32,4 +35,12 @@ export function coutMicro(
 export function budgetAtteint(moisMicro: number, jourMicro: number, budgetUsd: number): boolean {
   const plafond = budgetUsd * MICRO;
   return moisMicro >= plafond || jourMicro >= plafond / 10;
+}
+
+export async function entier(kv: Kv, cle: string): Promise<number> {
+  return Number((await kv.get(cle)) ?? 0) || 0;
+}
+
+export async function ajouter(kv: Kv, cle: string, quantite: number, ttl: number): Promise<void> {
+  await kv.put(cle, String((await entier(kv, cle)) + quantite), { expirationTtl: ttl });
 }

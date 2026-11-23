@@ -431,3 +431,203 @@
   font-size: var(--text-sm);
   color: var(--color-text-label);
 }
+
+/* — Rechercher un patron, fiche d'un patron, Mes favoris (fiche 61) — */
+.discover {
+  display: grid;
+  /* Une seule colonne qui ne s'élargit jamais au contenu : pas de défilement horizontal à 320 px. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  margin-block: var(--space-6);
+}
+.discover > * {
+  margin: 0;
+}
+.discover-lead {
+  max-width: 44rem;
+  font-size: var(--text-base);
+}
+.discover-label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-label);
+  margin-bottom: calc(var(--space-2) * -1);
+}
+.discover .seg {
+  flex-wrap: wrap;
+  border-radius: var(--radius-lg);
+}
+.discover .search-field {
+  max-width: 44rem;
+}
+.discover .hint {
+  margin: 0;
+}
+/* Annonce vocale : la zone garde sa hauteur, rien ne saute quand le texte arrive. */
+.discover-status {
+  min-height: 1.5em;
+  font-weight: 700;
+  color: var(--color-text-strong);
+}
+.discover-alert {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-momiji-pale);
+  color: var(--color-momiji-ink);
+  border: 2px solid var(--color-momiji-ink);
+}
+.discover-alert p {
+  margin: 0;
+}
+.discover-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.discover-grid > li {
+  display: flex;
+}
+.discover-grid .pattern-card {
+  flex: 1;
+}
+.discover-by {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-base);
+}
+.discover-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  justify-items: start;
+}
+.discover-detail > * {
+  margin: 0;
+}
+.discover-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+.discover-facts dt {
+  font-weight: 700;
+  color: var(--color-text-label);
+}
+.discover-facts dd {
+  margin: 0;
+}
+.discover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+/* Description de tiers : du texte brut, paragraphe par paragraphe, retours à la ligne gardés. */
+.discover-text {
+  max-width: 44rem;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.ravelry-note {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-label);
+}
+.gallery {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  max-width: 40rem;
+}
+.gallery-main {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  background: var(--color-overlay);
+}
+.gallery-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.gallery-thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--control-size);
+  min-height: var(--control-size);
+  padding: var(--space-1);
+  border: 2px solid var(--color-field-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+.gallery-thumb[aria-pressed='true'] {
+  border-color: var(--color-kikyo-ink);
+  background: var(--color-kikyo-pale);
+}
+.gallery-thumb:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.gallery-thumb img {
+  display: block;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+/* Composants de shared/ui qui ne servent qu'aux pages (chargées avec pages.css, hors du bundle initial) : champ de recherche, carte de patron. */
+/* — recherche — */
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.search-row .input {
+  flex: 1 1 16rem;
+  width: auto;
+}
+
+/* — carte de patron : vignette à dimensions fixes, espace réservé sans image — */
+.pattern-card {
+  padding: var(--space-4);
+}
+.pattern-card-media {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--color-overlay);
+}
+.pattern-card-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pattern-card-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 3rem;
+  color: var(--color-text-label);
+}
+.pattern-card .card-title {
+  margin: 0;
+}
+.pattern-card .card-meta {
+  flex-wrap: wrap;
+  margin: 0;
+}

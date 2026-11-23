@@ -2,11 +2,13 @@ import { PLATFORM_ID, Service, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 const DB_NAME = 'fil';
-/** Version 2 : ajout du magasin `images` (fiche 34). */
-const DB_VERSION = 2;
+/** Version 2 : ajout du magasin `images` (fiche 34). Version 3 : `favorites` (fiche 61). */
+const DB_VERSION = 3;
 const STORE = 'projects';
 /** Fichiers rattachés aux projets (photos d'un PDF), clé `${projectId}:${n}`. */
 const IMAGES = 'images';
+/** Patrons mis en favoris sur l'appareil (fiche 61) : leur propre magasin, lu et écrit par `favorites-db.ts` (chargé à la demande). */
+const FAVORITES = 'favorites';
 
 /**
  * Accès à IndexedDB pour les projets, sans quota pratique — contrairement à
@@ -25,7 +27,8 @@ export class ProjectStoreService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private dbPromise: Promise<IDBDatabase | null> | null = null;
 
-  private db(): Promise<IDBDatabase | null> {
+  /** La base ouverte, pour `favorites-db.ts` ; `null` si le stockage est indisponible. */
+  db(): Promise<IDBDatabase | null> {
     if (!this.isBrowser) return Promise.resolve(null);
     return (this.dbPromise ??= this.open());
   }
@@ -44,9 +47,10 @@ export class ProjectStoreService {
         return;
       }
       // Chaque magasin est créé s'il manque : une base en version 1 reçoit
-      // `images` sans que ses projets soient touchés.
+      // `images`, une base en version 2 reçoit `favorites`, sans que ses
+      // projets ni ses photos soient touchés.
       request.onupgradeneeded = () => {
-        for (const name of [STORE, IMAGES]) {
+        for (const name of [STORE, IMAGES, FAVORITES]) {
           if (!request.result.objectStoreNames.contains(name)) {
             request.result.createObjectStore(name, { keyPath: 'id' });
           }

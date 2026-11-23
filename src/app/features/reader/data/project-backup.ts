@@ -1,3 +1,9 @@
+import {
+  Favorite,
+  MAX_FAVORITES,
+  validFavorite,
+  validOrigin,
+} from '../../discover/data/favorite.model';
 import { encodeGrid, validGrid } from './color-grid';
 import {
   MAX_CHARTS,
@@ -18,8 +24,9 @@ import {
 /**
  * Version du format de fichier de sauvegarde — incrémentée à tout changement
  * de forme. Version 2 : les photos des projets, en base64 (fiche 34).
+ * Version 3 : les favoris Ravelry (fiche 61) ; les versions 1 et 2 restent acceptées.
  */
-export const BACKUP_SCHEMA_VERSION = 2;
+export const BACKUP_SCHEMA_VERSION = 3;
 /** Au-delà, un fichier de sauvegarde est refusé avant même d'être lu. */
 export const MAX_BACKUP_BYTES = 60 * 1024 * 1024;
 /** Taille maximale d'une photo d'une sauvegarde, une fois décodée. */
@@ -52,6 +59,8 @@ export interface ProjectBackup {
   readonly version: number;
   readonly projects: readonly Project[];
   readonly images: readonly BackupImage[];
+  /** Favoris Ravelry, version 3 seulement ; absent d'une ancienne sauvegarde. */
+  readonly favorites?: readonly Favorite[];
 }
 
 const BASE64 = /^[A-Za-z0-9+/]*={0,2}$/;
@@ -65,14 +74,19 @@ const IMAGE_TYPE = /^image\/(?:jpeg|png|webp)$/;
  */
 export function parseBackup(data: unknown): ProjectBackup | null {
   if (!data || typeof data !== 'object') return null;
-  const { version, projects, images = [] } = data as Record<string, unknown>;
-  if (version !== 1 && version !== BACKUP_SCHEMA_VERSION) return null;
+  const { version, projects, images = [], favorites } = data as Record<string, unknown>;
+  if (version !== 1 && version !== 2 && version !== BACKUP_SCHEMA_VERSION) return null;
+  // Un fichier d'avant les favoris n'en porte pas : mieux vaut le refuser que deviner.
+  if (favorites !== undefined && version !== BACKUP_SCHEMA_VERSION) return null;
+  const kept = favorites === undefined ? null : parseFavorites(favorites);
+  if (favorites !== undefined && kept === null) return null;
   if (!Array.isArray(projects) || !projects.every(isProject)) return null;
   if (!Array.isArray(images) || (version === 1 && images.length)) return null;
   const ids = new Set(projects.map((project) => project.id));
   if (!images.every((image) => isBackupImage(image, ids))) return null;
   return {
     version,
+    ...(kept ? { favorites: kept } : {}),
     projects: projects.map((project) => {
       const grid = validGrid(project.grid);
       // Les épingles des anciens diagrammes joints n'ont plus d'usage.
@@ -88,6 +102,18 @@ export function parseBackup(data: unknown): ProjectBackup | null {
           projects.some((p) => p.id === image.projectId && p.finishedPhoto === true)),
     ),
   };
+}
+
+/** Favoris bornés et dédoublonnés (le plus récent l'emporte) ; `null` si l'un est mal formé. */
+function parseFavorites(value: unknown): Favorite[] | null {
+  if (!Array.isArray(value) || value.length > MAX_FAVORITES) return null;
+  if (!value.every(validFavorite)) return null;
+  const byId = new Map<string, Favorite>();
+  for (const favorite of value) {
+    const known = byId.get(favorite.id);
+    if (!known || favorite.addedAt > known.addedAt) byId.set(favorite.id, favorite);
+  }
+  return [...byId.values()];
 }
 
 function isBackupImage(value: unknown, projectIds: ReadonlySet<string>): value is BackupImage {
@@ -149,6 +175,7 @@ function isProject(value: unknown): value is Project {
     (p['finishedAt'] === undefined ||
       (typeof p['finishedAt'] === 'number' && Number.isFinite(p['finishedAt']))) &&
     (p['finishedPhoto'] === undefined || typeof p['finishedPhoto'] === 'boolean') &&
+    (p['origin'] === undefined || validOrigin(p['origin'])) &&
     (p['grid'] === undefined || validGrid(p['grid']) !== null) &&
     (p['imageCount'] === undefined ||
       (Number.isInteger(p['imageCount']) && (p['imageCount'] as number) >= 0)) &&
@@ -179,6 +206,7 @@ export function base64ToBytes(data: string): Uint8Array<ArrayBuffer> {
 export async function encodeBackup(
   projects: readonly Project[],
   files: readonly (ProjectImage | undefined)[],
+  favorites: readonly Favorite[] = [],
 ): Promise<Blob> {
   const images: BackupImage[] = [];
   for (const file of files) {
@@ -193,7 +221,7 @@ export async function encodeBackup(
   const written = projects.map((project) =>
     project.grid ? { ...project, grid: encodeGrid(project.grid) } : project,
   );
-  const backup = { version: BACKUP_SCHEMA_VERSION, projects: written, images };
+  const backup = { version: BACKUP_SCHEMA_VERSION, projects: written, images, favorites };
   return new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
 }
 
@@ -213,4 +241,24 @@ export function decodeImages(
       kind,
       blob: new Blob([base64ToBytes(data)], { type }),
     }));
+}
+
+/** Favoris de l'appareil, pour la sauvegarde : lus par `favorites-db.ts`, chargé ici à la demande. */
+export async function loadFavorites(db: IDBDatabase | null): Promise<Favorite[]> {
+  const { readFavorites } = await import('../../../core/storage/favorites-db');
+  return readFavorites<Favorite>(db);
+}
+
+/**
+ * Fusionne les favoris d'une sauvegarde dans ceux de l'appareil : le plus récent
+ * l'emporte, aucun n'est perdu. `false` si l'écriture n'est pas confirmée.
+ */
+export async function mergeFavorites(
+  db: IDBDatabase | null,
+  incoming: readonly Favorite[],
+): Promise<boolean> {
+  const { readFavorites, writeFavorites } = await import('../../../core/storage/favorites-db');
+  const known = new Map((await readFavorites<Favorite>(db)).map((f) => [f.id, f]));
+  const newer = incoming.filter((f) => f.addedAt > (known.get(f.id)?.addedAt ?? -1));
+  return !newer.length || writeFavorites(db, newer);
 }

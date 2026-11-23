@@ -17,6 +17,9 @@ import { ObjectUrlService } from '../../../core/platform/object-url.service';
 import { LocalStorageService } from '../../../core/storage/local-storage.service';
 import { TabSyncService } from '../../../core/platform/tab-sync.service';
 import { ProjectStoreService } from '../../../core/storage/project-store.service';
+import { SessionStorageService } from '../../../core/storage/session-storage.service';
+import { RAVELRY_START_KEY } from '../../discover/data/favorite.model';
+import type { PatternOrigin } from '../../discover/data/favorite.model';
 import type { PieceChart } from '../data/text-to-chart';
 import { AI_FORMAT_URL_TOKEN } from '../data/ai-format';
 import { DEMO_PATTERNS } from '../data/demo-pattern';
@@ -119,6 +122,7 @@ export class ReaderStore {
   private readonly prefs = inject(DisplayPrefsService);
   private readonly projectStore = inject(ProjectStoreService);
   private readonly sync = inject(TabSyncService);
+  private readonly session = inject(SessionStorageService);
   private readonly analytics = inject(AnalyticsService);
   private readonly i18n = inject(I18nService);
   private readonly objectUrls = inject(ObjectUrlService);
@@ -192,6 +196,10 @@ export class ReaderStore {
   readonly aiRemaining = signal<number | null>(null);
   /** Texte d'origine du projet actif quand il a été remis en forme par IA ; `null` sinon. */
   readonly sourceBeforeAi = signal<string | null>(null);
+  /** Patron Ravelry dont vient le projet actif (fiche 61) ; `null` sinon. */
+  readonly origin = signal<PatternOrigin | null>(null);
+  /** Fiche Ravelry ouverte avec « Commencer ce patron » : le prochain patron déposé en portera l'origine. */
+  readonly pendingOrigin = signal<PatternOrigin | null>(null);
   /** Photos d'un PDF laissées de côté : au-delà des plafonds, ou non enregistrées (quota). */
   readonly pdfImagesNote = signal<'tronque' | 'non-enregistrees' | null>(null);
 
@@ -546,6 +554,7 @@ export class ReaderStore {
       ...(this.legacyChartCount ? { chartCount: this.legacyChartCount } : {}),
       ...(this.grid() ? { grid: this.grid()! } : {}),
       ...(this.sourceBeforeAi() !== null ? { sourceBeforeAi: this.sourceBeforeAi()! } : {}),
+      ...(this.origin() ? { origin: this.origin()! } : {}),
     };
   }
 
@@ -766,6 +775,7 @@ export class ReaderStore {
     this.view.set(project.view === 'chart' ? 'chart' : 'text');
     this.grid.set(validGrid(project.grid));
     this.sourceBeforeAi.set(project.sourceBeforeAi ?? null);
+    this.origin.set(project.origin ?? null);
     this.aiRefusal.set(null);
     this.depthsReached.set(new Set(DEPTH_THRESHOLDS.filter((t) => this.absoluteStep() >= t)));
     if (touch) {
@@ -809,13 +819,14 @@ export class ReaderStore {
   async exportBackup(): Promise<Blob> {
     const projects = this.projects();
     this.analytics.track('backup_exported', { projects: projects.length });
-    const [{ encodeBackup }, files] = await Promise.all([
+    const [{ encodeBackup, loadFavorites }, files, db] = await Promise.all([
       import('../data/project-backup'),
       this.projectStore.getFiles<ProjectImage>(
         projects.flatMap((p) => [...imageIds(p), finishedId(p.id)]),
       ),
+      this.projectStore.db(),
     ]);
-    return encodeBackup(projects, files);
+    return encodeBackup(projects, files, await loadFavorites(db));
   }
 
   /**
@@ -824,7 +835,8 @@ export class ReaderStore {
    * numéro de schéma est inconnu, et n'importe rien si l'écriture échoue.
    */
   async importBackup(file: File): Promise<boolean> {
-    const { MAX_BACKUP_BYTES, decodeImages, parseBackup } = await import('../data/project-backup');
+    const { MAX_BACKUP_BYTES, decodeImages, mergeFavorites, parseBackup } =
+      await import('../data/project-backup');
     // Borné avant lecture : un fichier démesuré ne doit pas saturer la mémoire.
     if (file.size > MAX_BACKUP_BYTES) return false;
     let raw: unknown;
@@ -835,6 +847,15 @@ export class ReaderStore {
     }
     const backup = parseBackup(raw);
     if (!backup) return false;
+
+    // Les favoris d'abord, et additifs : un échec ici n'importe rien, un échec des
+    // projets ensuite ne retire aucun favori. Le plus récent l'emporte, aucun n'est perdu.
+    if (
+      backup.favorites?.length &&
+      !(await mergeFavorites(await this.projectStore.db(), backup.favorites))
+    ) {
+      return false;
+    }
 
     const current = this.projects();
     const merged = mergeProjects(current, backup.projects);
@@ -904,11 +925,19 @@ export class ReaderStore {
     if (origine === 'saisie') {
       this.analytics.track('pattern_pasted', { length: roundToHundred(text.length) });
     }
+    // Un texte déposé après « Commencer ce patron » nomme son patron Ravelry ; l'exemple,
+    // un lien ou un diagramme ne le font pas. Toujours un nouveau projet, jamais un écrasement.
+    const adopted =
+      created && ['saisie', 'pdf', 'ia'].includes(origine) ? this.pendingOrigin() : null;
+    if (adopted) {
+      this.origin.set(adopted);
+      this.dismissPendingOrigin();
+    }
     this.analytics.track('pattern_parsed', {
       steps: this.total(),
       pieces: this.pieces().length,
       materials: this.materials().length,
-      origine,
+      origine: adopted ? 'ravelry' : origine,
     });
     if (created) this.pendingView.set(this.currentId());
   }
@@ -1151,9 +1180,16 @@ export class ReaderStore {
     this.legacyChartCount = 0;
     this.grid.set(null);
     this.sourceBeforeAi.set(null);
+    this.origin.set(null);
     this.pdfImagesNote.set(null);
     this.viewChoice.set(null);
     this.viewFallback.set(false);
+  }
+
+  /** Renonce à relier le prochain patron à une fiche Ravelry. */
+  dismissPendingOrigin(): void {
+    this.pendingOrigin.set(null);
+    this.session.remove(RAVELRY_START_KEY);
   }
 
   selectPiece(index: number): void {

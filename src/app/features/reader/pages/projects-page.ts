@@ -68,6 +68,9 @@ const COPY = {
     'ui.renameNamed': 'Renommer le projet « {name} »',
     'ui.renameLabel': 'Nom du projet',
     'ui.resume': 'Reprendre',
+    'ui.fromRavelry': 'D’après un patron de {designer} sur Ravelry',
+    'ui.fromRavelryNoDesigner': 'D’après un patron sur Ravelry',
+    'ui.newTab': '(nouvel onglet)',
     'ui.resumeNamed': 'Reprendre le projet « {name} »',
     'ui.save': 'Enregistrer',
     'ui.untitledProject': 'Projet sans titre',
@@ -98,6 +101,9 @@ const COPY = {
     'ui.renameNamed': 'Rename project “{name}”',
     'ui.renameLabel': 'Project name',
     'ui.resume': 'Resume',
+    'ui.fromRavelry': 'From a pattern by {designer} on Ravelry',
+    'ui.fromRavelryNoDesigner': 'From a pattern on Ravelry',
+    'ui.newTab': '(new tab)',
     'ui.resumeNamed': 'Resume project “{name}”',
     'ui.save': 'Save',
     'ui.untitledProject': 'Untitled project',
@@ -181,6 +187,15 @@ type LocalKey = keyof typeof COPY.fr;
                 {{ t('ui.lastOpened') }} {{ formatDate(project.lastOpenedAt) }} ·
                 {{ project.elapsed | filDuration }}
               </p>
+              @if (project.origin; as origin) {
+                <!-- Nom de la créatrice : texte d'un tiers, rendu en texte, lien vers la page Ravelry du patron. -->
+                <p class="card-meta">
+                  <a [href]="origin.permalink" target="_blank" rel="noopener noreferrer">
+                    {{ fromRavelry(origin.designer) }}
+                    <span class="visually-hidden">{{ t('ui.newTab') }}</span>
+                  </a>
+                </p>
+              }
             </div>
             <div class="projects-actions">
               <button
@@ -268,6 +283,13 @@ export default class ProjectsPage {
    *  que trois cartes ne portent pas trois fois « Supprimer ». */
   protected named(key: LocalKey, project: Project): string {
     return this.t(key).replace('{name}', project.name || this.t('ui.untitledProject'));
+  }
+
+  /** « D'après un patron de <créatrice> sur Ravelry » : l'origine d'un projet déposé depuis une fiche. */
+  protected fromRavelry(designer: string): string {
+    return designer
+      ? this.t('ui.fromRavelry').replace('{designer}', designer)
+      : this.t('ui.fromRavelryNoDesigner');
   }
 
   protected readonly renameOpen = signal(false);

@@ -162,6 +162,22 @@ export const PRIVACY_EVENTS: Record<AnalyticsEvent, Record<Locale, string>> = {
     fr: 'l’ouvrage terminé est partagé (canal : partage du système, enregistrement de la photo ou message copié)',
     en: 'the finished piece is shared (channel: system share, photo saved or message copied)',
   },
+  pattern_searched: {
+    fr: 'une recherche de patron est lancée (métier et nombre de résultats par tranche ; jamais le terme cherché)',
+    en: 'a pattern search is run (craft and result count in a range; never the search term)',
+  },
+  pattern_viewed: {
+    fr: 'la fiche d’un patron est ouverte (jamais son nom)',
+    en: 'a pattern page is opened (never its name)',
+  },
+  favorite_added: {
+    fr: 'un patron est ajouté aux favoris de l’appareil (jamais son nom)',
+    en: 'a pattern is added to the favourites on the device (never its name)',
+  },
+  pattern_started: {
+    fr: '« Commencer ce patron » est choisi (jamais le nom du patron)',
+    en: '“Start this pattern” is chosen (never the pattern name)',
+  },
   chart_transcribed: {
     fr: 'un diagramme est transcrit en texte (nombre de tours, convention, lu automatiquement ou à la main)',
     en: 'a chart is transcribed to text (number of rounds, convention, read automatically or by hand)',

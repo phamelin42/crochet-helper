@@ -1,7 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { consigne, Langue } from './consigne';
 import { controler } from './fidelite';
+import { traiterRavelry } from './ravelry-routes';
 import {
+  ajouter,
   budgetAtteint,
   cleDepense,
   cleJour,
@@ -9,6 +11,7 @@ import {
   coutMicro,
   dateUtc,
   empreinte,
+  entier,
   TTL_JOUR,
   TTL_MOIS,
 } from './quota';
@@ -25,6 +28,11 @@ export interface Env {
   QUOTA_JOUR: string;
   ORIGINES: string;
   MAX_CARACTERES: string;
+  /** Secrets Ravelry (ADR-004) : absents, les routes `/ravelry/` répondent 503. */
+  RAVELRY_USER?: string;
+  RAVELRY_KEY?: string;
+  /** Requêtes Ravelry par personne et par jour ; 120 si absent. */
+  QUOTA_RAVELRY_JOUR?: string;
 }
 
 export interface Kv {
@@ -49,6 +57,8 @@ export interface Deps {
   kv: Kv;
   claude: (demande: DemandeClaude) => Promise<ReponseClaude>;
   maintenant: () => Date;
+  /** Appels vers Ravelry ; `fetch` du Worker par défaut. */
+  fetch?: (url: string, init: RequestInit) => Promise<Response>;
 }
 
 type Raison = 'requete' | 'trop-long' | 'quota-jour' | 'budget-mois' | 'echec' | 'indisponible';
@@ -68,14 +78,6 @@ function json(corps: unknown, statut: number, entetes: Record<string, string>): 
 
 function refus(raison: Raison, entetes: Record<string, string>, detail?: string): Response {
   return json(detail ? { raison, detail } : { raison }, STATUT[raison], entetes);
-}
-
-async function entier(kv: Kv, cle: string): Promise<number> {
-  return Number((await kv.get(cle)) ?? 0) || 0;
-}
-
-async function ajouter(kv: Kv, cle: string, quantite: number, ttl: number): Promise<void> {
-  await kv.put(cle, String((await entier(kv, cle)) + quantite), { expirationTtl: ttl });
 }
 
 /**
@@ -109,6 +111,7 @@ function termine(reponse: ReponseClaude): boolean {
 
 export async function traiter(requete: Request, env: Env, deps: Deps): Promise<Response> {
   const url = new URL(requete.url);
+  if (url.pathname.startsWith('/ravelry/')) return traiterRavelry(requete, env, deps);
   if (url.pathname !== '/mise-en-forme') return new Response(null, { status: 404 });
   if (requete.method !== 'POST' && requete.method !== 'OPTIONS') {
     return new Response(null, { status: 404 });

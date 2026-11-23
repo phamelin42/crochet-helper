@@ -1,12 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  CRAFTS,
-  reduireFiche,
-  reduireListe,
-  texteBrut,
-  urlFiche,
-  urlRecherche,
-} from './ravelry';
+import { CRAFTS, reduireFiche, reduireListe, texteBrut, urlFiche, urlRecherche } from './ravelry';
 
 // Réponses d'exemple écrites pour ces tests : aucune donnée réelle de Ravelry.
 const LISTE = {
@@ -45,7 +38,8 @@ const FICHE = {
     permalink: 'petit-sapin',
     free: true,
     pattern_author: { name: 'Camille Exemple' },
-    notes_html: '<p>Un sapin &amp; ses <b>boules</b>.</p><script>alert(1)</script><p>Rang 1 :<br>6 ms</p>',
+    notes_html:
+      '<p>Un sapin &amp; ses <b>boules</b>.</p><script>alert(1)</script><p>Rang 1 :<br>6 ms</p>',
     photos: [
       { medium_url: 'https://images4-g.ravelrycache.com/uploads/a/medium.jpg' },
       { medium_url: 'http://images4-g.ravelrycache.com/uploads/a/http.jpg' },

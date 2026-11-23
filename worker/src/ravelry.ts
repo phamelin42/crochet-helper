@@ -200,7 +200,8 @@ export function reduireFiche(brut: unknown): Fiche | null {
   if (typeof id !== 'number' || !Number.isInteger(id) || id <= 0) return null;
   if (nom === null || lien === null) return null;
 
-  const notes = texte(p['notes'], MAX_DESCRIPTION * 2) ?? texte(p['notes_html'], MAX_DESCRIPTION * 2);
+  const notes =
+    texte(p['notes'], MAX_DESCRIPTION * 2) ?? texte(p['notes_html'], MAX_DESCRIPTION * 2);
   const photos: string[] = [];
   if (Array.isArray(p['photos'])) {
     for (const ph of p['photos']) {

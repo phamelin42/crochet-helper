@@ -2,11 +2,13 @@ import { PLATFORM_ID, Service, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 const DB_NAME = 'fil';
-/** Version 2 : ajout du magasin `images` (fiche 34). */
-const DB_VERSION = 2;
+/** Version 2 : ajout du magasin `images` (fiche 34). Version 3 : `favorites` (fiche 61). */
+const DB_VERSION = 3;
 const STORE = 'projects';
 /** Fichiers rattachés aux projets (photos d'un PDF), clé `${projectId}:${n}`. */
 const IMAGES = 'images';
+/** Patrons mis en favoris sur l'appareil (fiche 61) : leur propre magasin, hors des transactions des projets. */
+const FAVORITES = 'favorites';
 
 /**
  * Accès à IndexedDB pour les projets, sans quota pratique — contrairement à
@@ -44,9 +46,10 @@ export class ProjectStoreService {
         return;
       }
       // Chaque magasin est créé s'il manque : une base en version 1 reçoit
-      // `images` sans que ses projets soient touchés.
+      // `images`, une base en version 2 reçoit `favorites`, sans que ses
+      // projets ni ses photos soient touchés.
       request.onupgradeneeded = () => {
-        for (const name of [STORE, IMAGES]) {
+        for (const name of [STORE, IMAGES, FAVORITES]) {
           if (!request.result.objectStoreNames.contains(name)) {
             request.result.createObjectStore(name, { keyPath: 'id' });
           }
@@ -189,6 +192,50 @@ export class ProjectStoreService {
         });
       } catch {
         resolve(ids.map(() => undefined));
+      }
+    });
+  }
+
+  /** Favoris enregistrés ; `[]` si le stockage est indisponible. */
+  async listFavorites<T>(): Promise<T[]> {
+    const db = await this.db();
+    if (!db) return [];
+    return new Promise((resolve) => {
+      try {
+        const request = db.transaction(FAVORITES, 'readonly').objectStore(FAVORITES).getAll();
+        request.onsuccess = () => resolve((request.result as T[]) ?? []);
+        request.onerror = () => resolve([]);
+      } catch {
+        resolve([]);
+      }
+    });
+  }
+
+  /** Écrit des favoris dans une seule transaction ; `true` seulement une fois validée. */
+  putFavorites<T extends { id: string }>(items: readonly T[]): Promise<boolean> {
+    return this.runFavorites((favorites) => items.forEach((item) => favorites.put(item)));
+  }
+
+  removeFavorites(ids: readonly string[]): Promise<boolean> {
+    return this.runFavorites((favorites) => ids.forEach((id) => favorites.delete(id)));
+  }
+
+  clearFavorites(): Promise<boolean> {
+    return this.runFavorites((favorites) => favorites.clear());
+  }
+
+  private async runFavorites(work: (favorites: IDBObjectStore) => void): Promise<boolean> {
+    const db = await this.db();
+    if (!db) return false;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(FAVORITES, 'readwrite');
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+        tx.onabort = () => resolve(false);
+        work(tx.objectStore(FAVORITES));
+      } catch {
+        resolve(false);
       }
     });
   }

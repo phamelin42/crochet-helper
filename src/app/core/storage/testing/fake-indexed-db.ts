@@ -1,7 +1,7 @@
 /**
  * Fausse IndexedDB minimale pour les tests : jsdom n'implémente pas l'API, et
  * la fiche interdit toute dépendance nouvelle. Couvre uniquement ce dont
- * `ProjectStoreService` se sert — `put`, `get`, `getAll`, `delete`, transactions
+ * `ProjectStoreService` se sert — `put`, `get`, `getAll`, `delete`, `clear`, transactions
  * atomiques et annulation — avec des
  * callbacks asynchrones (microtâches), comme le ferait un vrai navigateur.
  */
@@ -58,6 +58,13 @@ class FakeObjectStore {
       request.result = this.entry.data.get(key);
       request.onsuccess?.(new Event('success'));
     });
+    return request;
+  }
+
+  clear(): FakeRequest {
+    const request = new FakeRequest();
+    this.tx.stage(() => this.entry.data.clear());
+    queueMicrotask(() => request.onsuccess?.(new Event('success')));
     return request;
   }
 
@@ -136,17 +143,38 @@ class FakeDatabase {
   }
 }
 
-/** Installe une fausse `indexedDB` globale, base vide, et renvoie ses commandes. */
-export function installFakeIndexedDb(): FakeControl {
+/**
+ * Base déjà existante, telle qu'une visite précédente l'a laissée : sa version
+ * et le contenu de ses magasins (un tableau d'enregistrements par magasin). Sert
+ * à vérifier qu'une migration ne perd rien.
+ */
+export interface FakeSeed {
+  readonly version: number;
+  readonly stores: Readonly<Record<string, readonly { id: string }[]>>;
+}
+
+/**
+ * Installe une fausse `indexedDB` globale (vide, ou reprise de `seed`) et renvoie
+ * ses commandes. Comme la vraie, elle ne déclenche `onupgradeneeded` que si la
+ * version demandée dépasse la version enregistrée.
+ */
+export function installFakeIndexedDb(seed?: FakeSeed): FakeControl {
   const control: FakeControl = { failWrites: false };
   const stores = new Map<string, StoreEntry>();
+  for (const [name, items] of Object.entries(seed?.stores ?? {})) {
+    stores.set(name, { keyPath: 'id', data: new Map(items.map((item) => [item.id, item])) });
+  }
+  let version = seed?.version ?? 0;
   const db = new FakeDatabase(stores, control);
   const fakeFactory = {
-    open(): FakeOpenRequest {
+    open(_name: string, requested = 1): FakeOpenRequest {
       const request = new FakeOpenRequest();
       queueMicrotask(() => {
         request.result = db;
-        request.onupgradeneeded?.(new Event('upgradeneeded'));
+        if (requested > version) {
+          version = requested;
+          request.onupgradeneeded?.(new Event('upgradeneeded'));
+        }
         request.onsuccess?.(new Event('success'));
       });
       return request;

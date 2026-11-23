@@ -14,7 +14,14 @@ import { SiteFooter } from './site-footer';
  * barre d'onglets du mode appli est seule à relier ailleurs et qui restent
  * introuvables sur le web sans ce lien.
  */
-const EXEMPT: readonly RouteName[] = ['reader', 'projects', 'glossary'];
+const EXEMPT: readonly RouteName[] = [
+  'reader',
+  'projects',
+  'glossary',
+  // Recherche Ravelry (fiche 61, ADR-004) : liée par la PR d'activation, pas avant.
+  'findPattern',
+  'myFavorites',
+];
 
 function setup(locale: 'fr' | 'en') {
   TestBed.configureTestingModule({ providers: [provideRouter([])] });
@@ -39,6 +46,16 @@ describe('SiteFooter', () => {
       }
     });
   }
+
+  it.each(['fr', 'en'] as const)(
+    'ne lie ni la recherche Ravelry ni les favoris tant que l’interrupteur est éteint (%s)',
+    (locale) => {
+      const { host, i18n } = setup(locale);
+      const hrefs = [...host.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+      expect(hrefs).not.toContain(i18n.link('findPattern'));
+      expect(hrefs).not.toContain(i18n.link('myFavorites'));
+    },
+  );
 
   it("dit ce que l'outil fait des données, en une phrase", () => {
     const { host } = setup('fr');

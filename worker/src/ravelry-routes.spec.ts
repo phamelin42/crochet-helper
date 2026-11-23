@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Deps, Env, Kv, ReponseClaude, traiter } from './index';
 import { cleRavelry, dateUtc, empreinte } from './quota';
 
@@ -19,6 +19,7 @@ const ENV: Env = {
   MAX_CARACTERES: '60000',
   RAVELRY_USER: 'utilisateur-test',
   RAVELRY_KEY: 'cle-test',
+  RAVELRY_ACCES: 'ouvert',
   QUOTA_RAVELRY_JOUR: '3',
 };
 
@@ -161,13 +162,6 @@ describe('GET /ravelry/patron/:id', () => {
       expect(fetchSimule).not.toHaveBeenCalled();
     },
   );
-
-  it('ne propose aucune route de projets d’autres personnes (licence, ADR-004)', async () => {
-    const { deps, fetchSimule } = monter();
-    const r = await traiter(get('/ravelry/patron/1/projets?page=1'), ENV, deps);
-    expect(r.status).toBe(404);
-    expect(fetchSimule).not.toHaveBeenCalled();
-  });
 });
 
 describe('erreurs amont : refus nommés, jamais d’exception', () => {
@@ -387,5 +381,272 @@ describe('la route POST /mise-en-forme reste en place', () => {
     });
     expect((await traiter(post, ENV, m.deps)).status).toBe(400);
     expect((await traiter(get('/mise-en-forme'), ENV, m.deps)).status).toBe(404);
+  });
+});
+
+// --- Connexion Ravelry (fiche 62) : jeton de la lectrice, mode d'accès, galerie ---
+
+const BEARER = { Authorization: 'Bearer at-exemple-1' };
+
+function getAvec(chemin: string, entetes: Record<string, string> = {}) {
+  return new Request(`https://fil-ia.example${chemin}`, {
+    headers: { Origin: ORIGINE, 'CF-Connecting-IP': '203.0.113.7', ...entetes },
+  });
+}
+
+// Réponse d'exemple écrite pour ces tests : 30 projets, dont un sans photo.
+const PROJETS = {
+  projects: [
+    ...Array.from({ length: 30 }, (_, i) => ({
+      id: i + 1,
+      permalink: `ouvrage-${i + 1}`,
+      user: { username: `lectrice${i + 1}`, id: 99 },
+      notes: 'Notes privées',
+      name: `Nom ${i + 1}`,
+      first_photo: { medium_url: 'https://images4-g.ravelrycache.com/uploads/x/y_medium.jpg' },
+    })),
+    { id: 99, permalink: 'sans-photo', user: { username: 'zoe' }, first_photo: null },
+  ],
+  paginator: { page: 2, page_count: 5 },
+};
+
+afterEach(() => vi.restoreAllMocks());
+
+describe('jeton de la lectrice (Authorization: Bearer)', () => {
+  it.each(['/ravelry/recherche?q=a&craft=crochet', '/ravelry/patron/1'])(
+    'transmet le jeton à Ravelry à la place de la clé en lecture seule : %s',
+    async (chemin) => {
+      const { deps, fetchSimule } = monter(() =>
+        Response.json(chemin.includes('patron') ? FICHE : LISTE),
+      );
+      const r = await traiter(getAvec(chemin, BEARER), ENV, deps);
+      expect(r.status).toBe(200);
+      const [, init] = fetchSimule.mock.calls[0];
+      expect(new Headers(init.headers).get('Authorization')).toBe('Bearer at-exemple-1');
+    },
+  );
+
+  it('fonctionne même sans clé en lecture seule', async () => {
+    const { deps, fetchSimule } = monter(() => Response.json(FICHE));
+    const env = { ...ENV, RAVELRY_USER: undefined, RAVELRY_KEY: undefined };
+    const r = await traiter(getAvec('/ravelry/patron/1', BEARER), env, deps);
+    expect(r.status).toBe(200);
+    expect(fetchSimule).toHaveBeenCalledTimes(1);
+  });
+
+  it('la réponse à une lectrice connectée n’est jamais mise en cache partagé', async () => {
+    const { deps } = monter(() => Response.json(FICHE));
+    const r = await traiter(getAvec('/ravelry/patron/1', BEARER), ENV, deps);
+    expect(r.headers.get('Cache-Control')).toBe('no-store');
+    expect(r.headers.get('Vary')).toContain('Authorization');
+  });
+
+  it.each([
+    ['sans le mot Bearer', 'at-exemple-1'],
+    ['en Basic', 'Basic abc'],
+    ['vide', 'Bearer '],
+    ['avec espace dans le jeton', 'Bearer a b'],
+    ['de plus de 4096 caractères', `Bearer ${'a'.repeat(4097)}`],
+    ['avec caractères interdits', 'Bearer a;b'],
+  ])('un en-tête Authorization %s est refusé en 400, sans appel amont', async (_n, valeur) => {
+    const { deps, fetchSimule } = monter();
+    const r = await traiter(getAvec('/ravelry/patron/1', { Authorization: valeur }), ENV, deps);
+    expect(r.status).toBe(400);
+    expect(fetchSimule).not.toHaveBeenCalled();
+  });
+
+  it('un 401 de Ravelry sur un jeton devient « session-expiree »', async () => {
+    const { deps } = monter(() => new Response('{}', { status: 401 }));
+    const r = await traiter(getAvec('/ravelry/patron/1', BEARER), ENV, deps);
+    expect(r.status).toBe(401);
+    expect(await r.json()).toEqual({ raison: 'session-expiree' });
+  });
+
+  it('un 401 de Ravelry sur la clé en lecture seule reste « indisponible » (ce n’est pas la lectrice)', async () => {
+    const { deps } = monter(() => new Response('{}', { status: 401 }));
+    const r = await traiter(get('/ravelry/patron/1'), ENV, deps);
+    expect(r.status).toBe(503);
+  });
+
+  it('ne conserve ni ne journalise le jeton', async () => {
+    const espions = (['log', 'info', 'warn', 'error', 'debug'] as const).map((m) =>
+      vi.spyOn(console, m).mockImplementation(() => undefined),
+    );
+    const { deps, donnees } = monter(() => Response.json(FICHE));
+    const r = await traiter(getAvec('/ravelry/patron/1', BEARER), ENV, deps);
+    expect(JSON.stringify(espions.flatMap((e) => e.mock.calls))).not.toContain('at-exemple-1');
+    expect(JSON.stringify([...donnees])).not.toContain('at-exemple-1');
+    expect(await r.text()).not.toContain('at-exemple-1');
+  });
+
+  it('les réponses CORS autorisent l’en-tête Authorization', async () => {
+    const { deps } = monter();
+    const r = await traiter(get('/ravelry/recherche', { methode: 'OPTIONS' }), ENV, deps);
+    expect(r.headers.get('Access-Control-Allow-Headers')).toContain('Authorization');
+    expect(r.headers.get('Access-Control-Allow-Headers')).toContain('Content-Type');
+  });
+});
+
+describe('mode d’accès du Worker (RAVELRY_ACCES)', () => {
+  const routes = ['/ravelry/recherche?q=a&craft=crochet', '/ravelry/patron/1'];
+
+  it.each(
+    routes.flatMap(
+      (c) =>
+        [
+          ['compte', c],
+          [undefined, c],
+        ] as const,
+    ),
+  )(
+    'mode %s sans jeton : 403 « connexion-requise », sans appel amont : %s',
+    async (acces, chemin) => {
+      const { deps, fetchSimule } = monter();
+      const r = await traiter(get(chemin), { ...ENV, RAVELRY_ACCES: acces }, deps);
+      expect(r.status).toBe(403);
+      expect(await r.json()).toEqual({ raison: 'connexion-requise' });
+      expect(r.headers.get('Access-Control-Allow-Origin')).toBe(ORIGINE);
+      expect(fetchSimule).not.toHaveBeenCalled();
+    },
+  );
+
+  it('mode compte : une valeur inconnue vaut « compte », jamais « ouvert »', async () => {
+    const { deps, fetchSimule } = monter();
+    const r = await traiter(get('/ravelry/patron/1'), { ...ENV, RAVELRY_ACCES: 'OUVERT ' }, deps);
+    expect(r.status).toBe(403);
+    expect(fetchSimule).not.toHaveBeenCalled();
+  });
+
+  it('mode compte : le refus passe avant le contrôle des secrets', async () => {
+    const { deps } = monter();
+    const env = { ...ENV, RAVELRY_ACCES: 'compte', RAVELRY_USER: undefined };
+    expect((await traiter(get('/ravelry/patron/1'), env, deps)).status).toBe(403);
+  });
+
+  it.each(routes)('mode compte avec jeton : passe : %s', async (chemin) => {
+    const { deps } = monter(() => Response.json(chemin.includes('patron') ? FICHE : LISTE));
+    const r = await traiter(getAvec(chemin, BEARER), { ...ENV, RAVELRY_ACCES: 'compte' }, deps);
+    expect(r.status).toBe(200);
+  });
+
+  it.each(routes)('mode ouvert sans jeton : comme au lot 5 : %s', async (chemin) => {
+    const { deps, fetchSimule } = monter(() =>
+      Response.json(chemin.includes('patron') ? FICHE : LISTE),
+    );
+    const r = await traiter(get(chemin), { ...ENV, RAVELRY_ACCES: 'ouvert' }, deps);
+    expect(r.status).toBe(200);
+    expect(new Headers(fetchSimule.mock.calls[0][1].headers).get('Authorization')).toMatch(
+      /^Basic /,
+    );
+  });
+});
+
+describe('GET /ravelry/patron/:id/projets (galerie)', () => {
+  it.each(['ouvert', 'compte'])(
+    'sans jeton : 403 « connexion-requise » en mode %s, sans appel amont',
+    async (acces) => {
+      const { deps, fetchSimule } = monter();
+      const r = await traiter(
+        get('/ravelry/patron/1/projets?page=1'),
+        { ...ENV, RAVELRY_ACCES: acces },
+        deps,
+      );
+      expect(r.status).toBe(403);
+      expect(await r.json()).toEqual({ raison: 'connexion-requise' });
+      expect(fetchSimule).not.toHaveBeenCalled();
+    },
+  );
+
+  it('ne se sert jamais de la clé en lecture seule', async () => {
+    const { deps, fetchSimule } = monter(() => Response.json(PROJETS));
+    await traiter(getAvec('/ravelry/patron/1/projets?page=1', BEARER), ENV, deps);
+    expect(new Headers(fetchSimule.mock.calls[0][1].headers).get('Authorization')).toBe(
+      'Bearer at-exemple-1',
+    );
+  });
+
+  it('réduit à photo et lien, 24 au plus, sans nom, notes ni identifiant', async () => {
+    const { deps, fetchSimule } = monter(() => Response.json(PROJETS));
+    const r = await traiter(getAvec('/ravelry/patron/7/projets?page=2', BEARER), ENV, deps);
+    expect(r.status).toBe(200);
+    expect(r.headers.get('Cache-Control')).toBe('no-store');
+    const corps = (await r.json()) as {
+      projets: { photo: string; lien: string }[];
+      page: number;
+      pages: number;
+    };
+    expect(Object.keys(corps).sort()).toEqual(['page', 'pages', 'projets']);
+    expect(corps.projets).toHaveLength(24);
+    expect(corps.page).toBe(2);
+    expect(corps.pages).toBe(5);
+    for (const p of corps.projets) {
+      expect(Object.keys(p).sort()).toEqual(['lien', 'photo']);
+      expect(p.photo).toMatch(/^https:\/\/[^/]+\.ravelrycache\.com\//);
+      expect(p.lien).toMatch(/^https:\/\/www\.ravelry\.com\/projects\//);
+    }
+    const texte = JSON.stringify(corps);
+    expect(texte).not.toContain('Notes privées');
+    expect(texte).not.toContain('Nom 1');
+    expect(texte).not.toContain('sans-photo');
+    const u = new URL(fetchSimule.mock.calls[0][0]);
+    expect(u.hostname).toBe('api.ravelry.com');
+    expect(u.pathname).toContain('/7');
+    expect(u.searchParams.get('page')).toBe('2');
+  });
+
+  it('un projet sans photo https de Ravelry est écarté, une photo d’un autre hôte aussi', async () => {
+    const { deps } = monter(() =>
+      Response.json({
+        projects: [
+          {
+            id: 1,
+            permalink: 'a',
+            user: { username: 'u' },
+            first_photo: { medium_url: 'https://evil.example/x.jpg' },
+          },
+          {
+            id: 2,
+            permalink: 'b',
+            user: { username: 'u' },
+            first_photo: { medium_url: 'http://x.ravelrycache.com/x.jpg' },
+          },
+        ],
+      }),
+    );
+    const r = await traiter(getAvec('/ravelry/patron/1/projets?page=1', BEARER), ENV, deps);
+    expect(((await r.json()) as { projets: unknown[] }).projets).toEqual([]);
+  });
+
+  it.each(['0', '51', 'a', '1.5', '-1', '01'])('page « %s » refusée en 400', async (page) => {
+    const { deps, fetchSimule } = monter();
+    const r = await traiter(getAvec(`/ravelry/patron/1/projets?page=${page}`, BEARER), ENV, deps);
+    expect(r.status).toBe(400);
+    expect(fetchSimule).not.toHaveBeenCalled();
+  });
+
+  it('identifiant invalide : 400', async () => {
+    const { deps } = monter();
+    const r = await traiter(getAvec('/ravelry/patron/abc/projets?page=1', BEARER), ENV, deps);
+    expect(r.status).toBe(400);
+  });
+
+  it('401 de Ravelry : « session-expiree » ; 404 : « introuvable »', async () => {
+    for (const [statut, raison] of [
+      [401, 'session-expiree'],
+      [404, 'introuvable'],
+    ] as const) {
+      const { deps } = monter(() => new Response('{}', { status: statut }));
+      const r = await traiter(getAvec('/ravelry/patron/1/projets?page=1', BEARER), ENV, deps);
+      expect(((await r.json()) as { raison: string }).raison).toBe(raison);
+    }
+  });
+
+  it('compte dans le quota du jour', async () => {
+    const { deps, fetchSimule } = monter(() => Response.json(PROJETS));
+    for (let i = 0; i < 3; i++)
+      await traiter(getAvec('/ravelry/patron/1/projets?page=1', BEARER), ENV, deps);
+    const r = await traiter(getAvec('/ravelry/patron/1/projets?page=1', BEARER), ENV, deps);
+    expect(r.status).toBe(429);
+    expect(fetchSimule).toHaveBeenCalledTimes(3);
   });
 });

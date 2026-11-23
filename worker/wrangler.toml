@@ -21,3 +21,11 @@ MAX_CARACTERES = "60000"
 # RAVELRY_USER et RAVELRY_KEY (Basic, lecture seule) se posent dans le tableau
 # de bord Cloudflare, jamais ici.
 QUOTA_RAVELRY_JOUR = "120"
+# Connexion Ravelry (fiche 62, ADR-004). Les secrets RAVELRY_OAUTH_ID et
+# RAVELRY_OAUTH_SECRET (application OAuth 2.1 de Fil) se posent dans le tableau
+# de bord Cloudflare, jamais ici. Adresses de retour acceptées : comparaison
+# exacte, séparées par des virgules.
+RAVELRY_REDIRECT_URIS = "https://patternreader.com/ravelry-callback"
+# « compte » : recherche et fiche refusées sans jeton de lectrice (403). À passer
+# à « ouvert » seulement si Ravelry l'accepte par écrit.
+RAVELRY_ACCES = "compte"

@@ -18,6 +18,7 @@ const MAX_NOM = 200;
 const MAX_DESIGNER = 100;
 const MAX_COURT = 60;
 const MAX_URL = 600;
+export const PROJETS_PAR_PAGE = 24;
 
 export interface CartePatron {
   id: number;
@@ -224,5 +225,61 @@ export function reduireFiche(brut: unknown): Fiche | null {
     telechargement: urlHttps(objet(p['download_location'])?.['url']),
     source: urlHttps(p['url']),
     lien,
+  };
+}
+
+export interface Projet {
+  photo: string;
+  lien: string;
+}
+
+export interface Galerie {
+  projets: Projet[];
+  page: number;
+  pages: number;
+}
+
+/**
+ * Galerie des ouvrages d'un patron (fiche 62). Chemin `/patterns/{id}/projects.json`
+ * et paramètres `page`, `page_size` : à confirmer (doc non lue).
+ */
+export function urlProjets(id: number, page: number): string {
+  const u = new URL(`${BASE}/patterns/${id}/projects.json`);
+  u.searchParams.set('page', String(page));
+  u.searchParams.set('page_size', String(PROJETS_PAR_PAGE));
+  return u.toString();
+}
+
+/**
+ * Réponse de galerie → photo et lien, **rien d'autre** : ni nom de la personne
+ * ni notes (contenus d'utilisateurs, ADR-004). `projects`, `permalink`,
+ * `user.username` (seulement pour fabriquer le lien) et `first_photo.medium_url` :
+ * à confirmer (doc non lue). Un projet sans photo ou sans lien utilisable est écarté.
+ */
+export function reduireProjets(brut: unknown): Galerie | null {
+  const r = objet(brut);
+  if (r === null || !Array.isArray(r['projects'])) return null;
+  const pag = r['paginator'] === undefined ? {} : objet(r['paginator']);
+  if (pag === null) return null;
+
+  const projets: Projet[] = [];
+  for (const element of r['projects']) {
+    const p = objet(element);
+    if (p === null) continue;
+    const perma = texte(p['permalink'], 200);
+    const nom = texte(objet(p['user'])?.['username'], 100);
+    const ph = objet(p['first_photo']);
+    const photo = urlImage(ph?.['medium_url']);
+    const sur = (v: string | null) => v !== null && /^[a-z0-9][a-z0-9._-]*$/i.test(v);
+    if (photo === null || !sur(perma) || !sur(nom)) continue;
+    projets.push({ photo, lien: `https://www.ravelry.com/projects/${nom}/${perma}` });
+    if (projets.length >= PROJETS_PAR_PAGE) break;
+  }
+  const page = Number(pag['page']);
+  const pages = Number(pag['page_count']);
+  return {
+    projets,
+    page: Number.isInteger(page) && page > 0 ? page : 1,
+    pages: Number.isInteger(pages) && pages > 0 ? pages : 1,
   };
 }

@@ -3,6 +3,7 @@ import { Meta } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { describe, expect, it } from 'vitest';
 import { ICONS } from '../../shared/ui/icon/icon';
+import { ICONS_EXTRA } from '../../shared/ui/icon/icons-extra';
 import DesignSystemPage from './design-system-page';
 
 function setup() {
@@ -25,6 +26,6 @@ describe('DesignSystemPage', () => {
     const { host } = setup();
 
     const shown = [...host.querySelectorAll('.ds-icon-grid code')].map((el) => el.textContent);
-    expect(shown.sort()).toEqual(Object.keys(ICONS).sort());
+    expect(shown.sort()).toEqual([...Object.keys(ICONS), ...Object.keys(ICONS_EXTRA)].sort());
   });
 });

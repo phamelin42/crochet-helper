@@ -36,8 +36,8 @@ texte : le projet naît relié au patron Ravelry.
 ## À faire
 
 1. ADR-004 et règle n° 1 de `CLAUDE.md` (trois exceptions).
-2. Worker : routeur par chemin ; `GET /ravelry/recherche`, `/ravelry/patron/:id`,
-   `/ravelry/patron/:id/projets`. Tout ce qui dépend des noms de l'API vit dans
+2. Worker : routeur par chemin ; `GET /ravelry/recherche`, `/ravelry/patron/:id`
+   (jamais de projets d'autres personnes : licence, lot 6). Tout ce qui dépend des noms de l'API vit dans
    `worker/src/ravelry.ts`, chaque nom non confirmé marqué « à confirmer (doc
    non lue) ». `POST /mise-en-forme` ne change pas.
 3. CSP : hôtes d'images de Ravelry dans `img-src` (`vercel.json`, `netlify.toml`).
@@ -50,8 +50,10 @@ texte : le projet naît relié au patron Ravelry.
    `Project.origin`, mention dans « Mes projets ».
 7. Mesure : `pattern_searched` (sans le terme), `pattern_viewed`,
    `favorite_added`, `pattern_started`.
-8. Page de confidentialité (FR et EN) : le terme cherché passe par notre Worker
-   vers Ravelry, sans être conservé.
+8. Page de confidentialité (FR et EN) : section Ravelry (ce que le Worker envoie,
+   ce qui n'est pas conservé, ce qui reste sur l'appareil, comment l'effacer).
+9. Licence : mention « ni affilié ni approuvé » sur recherche, fiche et favoris,
+   « Retirer tous mes favoris » avec confirmation.
 
 ## Tests
 
@@ -72,4 +74,4 @@ vide, aucun lien n'existe.
 
 Connexion Ravelry (OAuth), patrons payants, récupération du texte d'un patron par
 un serveur, activation (URL non vide : PR d'activation après lecture des
-conditions de l'API et déploiement du Worker), tri et filtres avancés.
+accord de Ravelry ou connexion Ravelry, voir ADR-004, et déploiement du Worker), tri et filtres avancés.

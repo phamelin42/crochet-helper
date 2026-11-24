@@ -3,6 +3,7 @@
 # Compiled output
 /dist
 /dist-ravelry
+/dist-ravelry-ouvert
 /tmp
 /out-tsc
 /bazel-out

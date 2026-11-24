@@ -109,6 +109,13 @@ export const routes: Routes = [
     loadComponent: styled(() => import('./features/design-system/design-system-page')),
     data: { locale: 'fr' },
   },
+  // Retour de la connexion à Ravelry (fiche 62) : une seule adresse, celle que Ravelry a
+  // enregistrée, sans paire de langues (la langue vient du départ, gardé le temps de l'aller-retour).
+  {
+    path: 'ravelry-callback',
+    loadComponent: styled(() => import('./features/discover/pages/ravelry-callback-page')),
+    data: { locale: DEFAULT_LOCALE },
+  },
   {
     path: '**',
     loadComponent: styled(() => import('./features/not-found/not-found-page')),

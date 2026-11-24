@@ -1,5 +1,6 @@
 dist
 dist-ravelry
+dist-ravelry-ouvert
 .angular
 coverage
 package-lock.json

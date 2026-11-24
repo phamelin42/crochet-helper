@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { type Page, expect, test } from '@playwright/test';
-import { FICHE_101, IMAGE, PDF_URL, WORKER, simulerWorker } from './ravelry-simule';
+import { FICHE_101, IMAGE, PDF_URL, WORKER, simulerCompte, simulerWorker } from './ravelry-simule';
 
 /**
  * Recherche de patrons gratuits (fiche 61, ADR-004), sur le build dont
@@ -310,6 +310,35 @@ test('l’écran de fin propose de chercher un autre patron quand la recherche e
     await suivante.click({ timeout: 1500 }).catch(() => undefined);
   }
   await expect(page.getByRole('link', { name: 'Find another pattern', exact: true })).toBeVisible();
+});
+
+/* ——— mode « ouvert » (fiche 62) : la connexion ne sert qu'à la galerie ——— */
+
+test('mode ouvert : recherche et fiche sans connexion, la galerie propose de se connecter', async ({
+  page,
+}) => {
+  const compte = await simulerCompte(page, 'ouvert');
+  await ouvrir(page, `${EN.recherche}?q=christmas+tree&craft=crochet`);
+  // Aucun écran de connexion, aucun jeton : comme au lot 5.
+  await expect(page.getByRole('heading', { level: 3 })).toHaveCount(3);
+  await expect(page.getByRole('heading', { name: 'Connect with Ravelry' })).toHaveCount(0);
+  await expect(page.getByText('Connected to Ravelry')).toHaveCount(0);
+  expect(compte.autorisations.every((a) => a === null)).toBe(true);
+
+  await page.getByRole('link', { name: 'Petit sapin au crochet' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Petit sapin au crochet');
+  await expect(page.locator('.projects-grid img')).toHaveCount(0);
+  expect(compte.appels.some((a) => a.includes('/projets'))).toBe(false);
+
+  const connecter = page.getByRole('button', {
+    name: 'Connect to see projects made with this pattern',
+    exact: true,
+  });
+  await connecter.click();
+  // Retour sur la même fiche, avec la galerie.
+  await expect(page.getByText('Connected to Ravelry')).toBeVisible();
+  await expect(page.locator('.projects-grid img')).toHaveCount(3);
+  await expect(page).toHaveURL(/id=101/);
 });
 
 /* ——— accessibilité, reflow, cibles ——— */

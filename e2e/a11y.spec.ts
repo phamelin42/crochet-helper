@@ -37,6 +37,9 @@ const ROUTES = [
   // Route déclarée directement dans `app.routes.ts`, pas dans `route-paths.json`
   // (page d'équipe sans version anglaise) : elle échapperait sinon à l'audit.
   { name: 'vitrine du design system', path: '/design-system' },
+  // Retour de la connexion à Ravelry (fiche 62) : une adresse unique hors des paires de
+  // langues, elle échapperait aussi à l'audit. Interrupteur éteint : l'état « indisponible ».
+  { name: 'retour de la connexion Ravelry', path: '/ravelry-callback' },
 ];
 
 /**

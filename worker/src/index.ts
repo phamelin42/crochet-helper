@@ -33,6 +33,13 @@ export interface Env {
   RAVELRY_KEY?: string;
   /** Requêtes Ravelry par personne et par jour ; 120 si absent. */
   QUOTA_RAVELRY_JOUR?: string;
+  /** Application OAuth 2.1 de Fil chez Ravelry (fiche 62) : absents, `/ravelry/oauth/…` répond 503. */
+  RAVELRY_OAUTH_ID?: string;
+  RAVELRY_OAUTH_SECRET?: string;
+  /** Adresses de retour acceptées, séparées par des virgules ; comparaison exacte. */
+  RAVELRY_REDIRECT_URIS?: string;
+  /** `ouvert` : recherche sans connexion ; toute autre valeur, absente comprise : `compte`. */
+  RAVELRY_ACCES?: string;
 }
 
 export interface Kv {

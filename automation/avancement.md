@@ -74,6 +74,7 @@ branche.
 | 59 — Lisible à un mètre                 | Terminée | —   | 2026-11-12 |
 | 60 — Patron terminé et photo            | Terminée | —   | 2026-11-12 |
 | 61 — Rechercher un patron gratuit       | Terminée | —   | 2026-11-23 |
+| 62 — Connexion à Ravelry                | Terminée | —   | 2026-11-23 |
 
 ## États possibles
 

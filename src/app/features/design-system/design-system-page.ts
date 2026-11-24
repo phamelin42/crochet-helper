@@ -24,6 +24,7 @@ import { InputField } from '../../shared/ui/field/input';
 import { ICONS, Icon, IconName } from '../../shared/ui/icon/icon';
 import { ICONS_EXTRA } from '../../shared/ui/icon/icons-extra';
 import { FavoriteButton } from '../../shared/ui/favorite-button/favorite-button';
+import { RavelryConnection } from '../../shared/ui/ravelry-connection/ravelry-connection';
 import { PatternCard } from '../../shared/ui/pattern-card/pattern-card';
 import { SearchField } from '../../shared/ui/search-field/search-field';
 import { Segmented, SegmentedOption } from '../../shared/ui/segmented/segmented';
@@ -89,6 +90,7 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
     Icon,
     InputField,
     FavoriteButton,
+    RavelryConnection,
     PatternCard,
     SearchField,
     Segmented,
@@ -398,6 +400,38 @@ Rang 1 : 6 ms dans un cercle magique</textarea>
             removeLabel="Retirer de mes favoris"
             addedMessage="Ajouté à vos favoris."
             removedMessage="Retiré de vos favoris."
+          />
+        </div>
+      </div>
+
+      <h3>RavelryConnection</h3>
+      <div class="grid-cards">
+        <div class="card">
+          <p class="ds-caption">pas connectée : l'action principale</p>
+          <fil-ravelry-connection
+            connectLabel="Se connecter avec Ravelry"
+            connectedLabel="Connectée à Ravelry"
+            disconnectLabel="Se déconnecter de Ravelry"
+          />
+        </div>
+        <div class="card">
+          <p class="ds-caption">connectée : l'état en mots, puis la sortie</p>
+          <fil-ravelry-connection
+            [connected]="true"
+            connectLabel="Se connecter avec Ravelry"
+            connectedLabel="Connectée à Ravelry"
+            disconnectLabel="Se déconnecter de Ravelry"
+            message="Vous êtes déconnectée de Ravelry : la connexion est effacée de cet appareil."
+          />
+        </div>
+        <div class="card">
+          <p class="ds-caption">redirection en cours</p>
+          <fil-ravelry-connection
+            [busy]="true"
+            connectLabel="Se connecter avec Ravelry"
+            busyLabel="Redirection vers Ravelry…"
+            connectedLabel="Connectée à Ravelry"
+            disconnectLabel="Se déconnecter de Ravelry"
           />
         </div>
       </div>

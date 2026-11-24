@@ -10,6 +10,7 @@
     "lint": "ng lint",
     "build:app": "ng build",
     "build:ravelry-e2e": "ng build --configuration=production,ravelry-e2e",
+    "build:ravelry-e2e-ouvert": "ng build --configuration=production,ravelry-e2e-ouvert",
     "test:ci": "ng test --no-watch",
     "etude:charts": "node tools/charts/study.mjs",
     "test:tools": "node --test \"tools/**/*.test.mjs\"",

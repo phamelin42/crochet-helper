@@ -112,6 +112,10 @@ test('recherche, fiche, favori, liste hors ligne, retrait confirmé', async ({ p
     .getByRole('button', { name: 'Remove Petit sapin au crochet from my favourites' })
     .click();
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  // Le dialogue se ferme au tour suivant (effet) : sans cette attente, le bouton
+  // de la page et celui du dialogue portent le même nom et la liste derrière lui
+  // paraît intacte même si « Annuler » ne fermait rien.
+  await expect(page.getByRole('dialog')).toBeHidden();
   await expect(page.getByRole('link', { name: 'Petit sapin au crochet' })).toBeVisible();
   await page
     .getByRole('button', { name: 'Remove Petit sapin au crochet from my favourites' })
@@ -139,6 +143,10 @@ test('« Retirer tous mes favoris » demande confirmation, puis vide la liste', 
     'The 2 patterns will be removed from this device.',
   );
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  // Le dialogue se ferme au tour suivant (effet) : sans cette attente, le bouton
+  // de la page et celui du dialogue portent le même nom et la liste derrière lui
+  // paraît intacte même si « Annuler » ne fermait rien.
+  await expect(page.getByRole('dialog')).toBeHidden();
   await expect(page.getByRole('link', { name: 'Petit sapin au crochet' })).toBeVisible();
   await page.getByRole('button', { name: 'Remove all my favourites', exact: true }).click();
   await page

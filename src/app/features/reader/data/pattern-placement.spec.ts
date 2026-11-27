@@ -219,52 +219,60 @@ describe('placement : 12 snood en PDF (FR)', () => {
   });
 });
 
-describe('placement : patrons publiés (01 à 05)', () => {
+describe('placement : patrons d’essai 01 à 05', () => {
   it('02 : la remarque entre crochets est le conseil du tour qu’elle suit, la fin est une étape', () => {
     const p = load('02');
     const steps = stepsOf(p, 0);
-    expect(steps[0].notes).toEqual(['Start with green.']);
-    expect(steps[3].tip).toMatch(/^This is just the way I create dc circles/);
-    expect(steps.at(-1)).toMatchObject({ label: '', body: 'Stitch to tan.' });
-    expect(p.notes).toContain('Inspired by Sunflower Bag from Crochet 365 Knit Too');
+    expect(steps[0].notes).toEqual(['Start with gold.']);
+    expect(steps[3].tip).toMatch(/^This is how I avoid a visible seam/);
+    expect(steps.at(-1)).toMatchObject({ label: '', body: 'Change to cream.' });
+    // La ligne sous le titre n'est pas une pièce : elle reste lisible en note.
+    expect(p.notes).toContain('Inspired by the classic granny square');
+    expect(p.pieces.map((x) => x.name)).toEqual(['Petals (make 8)']);
   });
 
-  it('03 : l’assemblage de la dernière pièce est une étape', () => {
+  it('03 : titre recollé, trois pièces, l’assemblage de la dernière est une étape', () => {
     const p = load('03');
-    expect(p.pieces.map((x) => x.name)).toEqual(['Stem', 'Hat', 'Leaf and Vine']);
+    expect(p.title).toBe('Little Acorn Hat');
+    expect(p.pieces.map((x) => x.name)).toEqual(['Pompon', 'Hat', 'Bow and Ties']);
+    expect(p.pieces.map((x) => x.steps.length)).toEqual([7, 6, 3]);
+    expect(labels(p, 1)).toEqual(['Row 1', 'Row 2', 'Row 3', 'Row 4–9', 'Row 10–12', 'Row 13']);
+    expect(stepsOf(p, 1)[3].reps).toBe(6);
     const last = stepsOf(p, 2).at(-1)!;
     expect(last.label).toBe('');
-    expect(last.body).toMatch(/^Now sew the leaf and vine to your stem/);
+    expect(last.body).toMatch(/^Now sew the bow to the brim/);
   });
 
-  it('04 : « You can switch color » reste le conseil d’un rang, « Beware » celui du dernier', () => {
+  it('04 : numérotation nue, plages « 5-14. », « You can change color » conseil d’un rang, « Careful » celui du dernier', () => {
     const p = load('04');
-    expect(stepsOf(p, 0)).toHaveLength(10);
-    expect(stepsOf(p, 0)[4].tip).toBe('You can switch color if you want');
-    expect(stepsOf(p, 0).at(-1)?.tip).toMatch(/^Beware, after round 19/);
+    expect(labels(p, 0)).toEqual(['1', '2', '3', '4', '5–14', '15–20', '21–26', '27', '28', '29']);
+    expect(stepsOf(p, 0)[4].reps).toBe(10);
+    expect(stepsOf(p, 0)[4].tip).toBe('You can change color here if you want');
+    expect(stepsOf(p, 0).at(-1)?.tip).toMatch(/^Careful, after round 16/);
   });
 
   it('05 : aucune pièce ni assemblage n’est avalé', () => {
     const p = load('05');
     expect(p.pieces.map((x) => x.name)).toEqual([
-      'Mushroom Stem',
-      'Mushroom Cap',
-      'Mushroom Spots - for Toadstool (leave out for Brown Mushroom)',
+      'Acorn Body',
+      'Acorn Cap',
+      'Leaves - for the Green Acorn (leave out for Ripe Acorn)',
       'Assembly',
     ]);
+    expect(labels(p, 0)).toEqual(['1', '2', '3', '4–5', '6', '7–12', '']);
     expect(stepsOf(p, 1).at(-1)).toMatchObject({ label: '', body: 'FO and weave in ends' });
     // Chaque ligne de la pièce sans rang est lisible dans ses étapes.
-    const spots = stepsOf(p, 2)
+    const leaves = stepsOf(p, 2)
       .map((s) => s.body)
       .join(' ');
     for (const line of [
-      'in white: small - sc4 in mr, slst in 1st sc, FO',
-      'medium - sc6 in mr, slst in 1st sc, FO',
-      'large - hdc6 in mr, slst in 1st hdc, FO',
+      'in light green: small - sc3 in mr, slst in 1st sc, FO',
+      'medium - sc5 in mr, slst in 1st sc, FO',
+      'large - hdc5 in mr, slst in 1st hdc, FO',
       'make 2 of each size and sew onto the cap.',
     ]) {
-      expect(spots).toContain(line);
+      expect(leaves).toContain(line);
     }
-    expect(stepsOf(p, 3)[0].body).toMatch(/^thread the chain through the cap/);
+    expect(stepsOf(p, 3)[0].body).toMatch(/^fit the cap over the body/);
   });
 });

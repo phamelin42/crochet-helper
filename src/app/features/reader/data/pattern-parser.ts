@@ -550,6 +550,9 @@ export function parsePattern(raw: string): Pattern {
    */
   const newPiece = (name: string, from?: number): MutablePiece => {
     closePiece();
+    // Un en-tête sans rang ni texte (sous-titre sous le titre, suivi aussitôt d'une
+    // section) n'est pas une pièce : son nom serait perdu au filtrage final.
+    if (piece && !piece.steps.length && piece.name) notes.push(piece.name);
     // Du texte lu avant toute pièce est une introduction, pas la note d'un rang.
     if (from !== undefined && !piece && pending.length) notes.push(...pending.splice(0));
     piece = { name, steps: [] };

@@ -75,6 +75,7 @@ branche.
 | 60 — Patron terminé et photo            | Terminée | —   | 2026-11-12 |
 | 61 — Rechercher un patron gratuit       | Terminée | —   | 2026-11-23 |
 | 62 — Connexion à Ravelry                | Terminée | —   | 2026-11-23 |
+| 63 — Fixtures de test sans droits       | Terminée | —   | 2026-11-27 |
 
 ## États possibles
 

@@ -359,16 +359,34 @@ describe('parsePattern', () => {
     });
   });
 
+  describe('ligne de sous-titre', () => {
+    it('garde en note la ligne qui suit le titre, même si une section matériel la suit aussitôt', () => {
+      const pattern = parsePattern(
+        [
+          'Acorn Pouch Free Crochet Pattern',
+          'Inspired by the classic granny square',
+          'Materials:',
+          '• US E/4 crochet hook',
+          'Petals (make 8):',
+          'Round 1: 6 sc (6)',
+        ].join('\n'),
+      );
+      expect(pattern.notes).toContain('Inspired by the classic granny square');
+      expect(pattern.pieces.map((p) => p.name)).toEqual(['Petals (make 8)']);
+    });
+  });
+
   describe('non-régression sur les patrons réels', () => {
     it.each([
       ['01-mabel-market-bag.txt', mabelMarketBag, 0, 0],
-      // « Stitch to tan. » (02) et « Now sew the leaf… » (03) sont des étapes
-      // à faire : le test d'avant les comptait comme des conseils.
+      // « Change to cream. » (02) et « Now sew the bow… » (03) sont des étapes
+      // à faire, pas des conseils.
       ['02-mushroom-tote-bag.txt', mushroomToteBag, 1, 5],
       ['03-pumpkin-harvest-hat.txt', pumpkinHarvestHat, 3, 16],
       ['04-lip-balm-case.txt', lipBalmCase, 1, 10],
-      // 05 perdait « Mushroom Spots » et « Assembly » avec leur texte (pièces sans rang).
-      ['05-lipbalm-mushroom.txt', lipbalmMushroom, 4, 23],
+      // 05 : les pièces sans rang (« Leaves ») et « Assembly » gardent leur texte.
+      // Corps (6 rangs + finition), chapeau (8 + finition), feuilles (3), assemblage (1).
+      ['05-lipbalm-mushroom.txt', lipbalmMushroom, 4, 20],
     ])('« %s » garde le même nombre de rangs et de pièces', (_name, raw, pieces, total) => {
       const pattern = parsePattern(raw as string);
       expect(pattern.pieces.length).toBe(pieces);
